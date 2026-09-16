@@ -1167,3 +1167,27 @@ OQ 摘要（依模組；「採用」為 `spec-migration-open-questions.md` 表�
 
 ### Act
 完成：T3.03 done。下一個任務：T3.04。
+
+## Iteration 44 — 2026-09-17 09:15 — D-10
+
+### Plan
+本輪任務 D-10：修正 F01 `spec-kanban-basic.md` 兩處 usecase 措辭造成的指涉不清（只改 usecase 區塊字句，gherkin、Aggregate 註解、`crud` 都不動，不新增 OQ）。
+- 改 `uc-set-stage-role` post 第二句：明寫是「原本持有該角色的另一個 stage」自動變回 NONE，避免讀成剛被設定的那個 stage。
+- 改 `uc-move-card-stage` 的 `pre.p1`：從「`card` 存在於指定的 `stage`」改為「`card` 存在，且位於來源 `stage`」，消除來源／目的的歧義。
+驗收條件：`errors(F01#Stage（階段）管理)=0`、`errors(F01#Card（卡片）編輯)=0`、F01 spec 含新措辭字句。預期 error 數不變（0 → 0）。
+
+### Do
+- d05556a `[spec/design](basic-kanban) 修正 Stage 角色與跨 Stage 移動 usecase 措辭`
+  - `uc-set-stage-role` post：「若 `board` 中原本已有其他 `stage` 的角色與新設定的角色相同，該 `stage` 的角色自動變回 NONE」→「若新角色為 START 或 DONE，且 `board` 中原本已有其他 `stage` 持有該角色，該其他 `stage` 的角色自動變回 NONE」。
+  - `uc-move-card-stage` pre.p1：「`card` 存在於指定的 `stage`」→「`card` 存在，且位於來源 `stage`」。
+  - 未新增假設、未新增 OQ；gherkin 與 Aggregate 註解未動。
+
+### Check
+- `./scripts/spec-check`（不帶參數）最後一行：`0 error(s), 0 warning(s)`（開工前與收尾時皆同）。
+- `tools error-count .dev/F01-basic-kanban/spec-kanban-basic.md`：0 → 0。
+- `tools accept-check spec-migration-tasks.md D-10`：無輸出，exit 0。
+- `tools gherkin-diff`／`tag-diff`／`changelog-check`：三者皆 exit 0（行為與遷移前一致，未新增/改動 tag，變更紀錄正常）。
+- 驗收條件逐條：`errors(F01#Stage（階段）管理)=0` 達成；`errors(F01#Card（卡片）編輯)=0` 達成；F01 spec 含兩句新措辭 達成。
+
+### Act
+完成：D-10 done。下一個任務：D-11。
