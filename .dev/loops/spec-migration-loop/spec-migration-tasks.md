@@ -62,7 +62,7 @@
 | T2.19 | done | [F05] 遷移程序 10～11 與收尾，F05 全檔 0 error | `errors(F05)=0` | T2.18 |
 | T2.20 | done | [F06] 遷移程序 1～6：狀態行、名詞／角色表、「身為」行 | `errors(F06;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0` | T2.19 |
 | T2.21 | done | [F06] 「Feature／CR 追蹤表」usecase 區塊＋tag＋Aggregate 註解（Scenario 裡的卡片標籤 `"F01"` 等是範例資料，不是功能引用） | `errors(F06#Feature／CR 追蹤表)=0` | T2.20 |
-| T2.22 | todo | [F06] 遷移程序 10～11 與收尾（原變更紀錄是兩欄表格，改四欄），F06 全檔 0 error | `errors(F06)=0` | T2.21 |
+| T2.22 | done | [F06] 遷移程序 10～11 與收尾（原變更紀錄是兩欄表格，改四欄），F06 全檔 0 error | `errors(F06)=0` | T2.21 |
 
 ## 階段 3：跨模組收尾
 

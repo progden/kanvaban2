@@ -873,3 +873,23 @@
 
 ### Act
 完成，下一個任務：T2.22（[F06] 遷移程序 10～11 與收尾：正文反引號清理、變更紀錄改四欄，F06 全檔 0 error）
+
+## Iteration 39 — 2026-09-16 — T2.22
+### Plan
+本輪任務為 T2.22：完成 F06 遷移程序 10～11 並收尾。要改的檔案是 `.dev/F06-feature-cr-board/spec-feature-cr-board.md`，改動段落：「Aggregate 標記說明」（`read`／`write` 改用「」，因不是本文件定義的 Entity ID）、「變更紀錄」（原兩欄表格改成日期／票號／類型／摘要四欄，舊列文字逐字保留，追加 CR-005 遷移列）。驗收條件：`errors(F06)=0`。預期 F06 全檔 error 數由 8 降到 0。
+
+### Do
+- 870af9b [spec/design](feature-cr-board) 完成正文反引號清理與變更紀錄收尾
+- 低影響假設：變更紀錄舊列（原「開發完成：`kanban-spring` 新增…測試皆綠。」）拆成 票號＝空、類型＝「開發完成」、摘要＝「（原票號 F06）開發完成：「kanban-spring」新增…測試皆綠。」，摘要保留「開發完成：」前綴與句尾句號（雖與類型欄重複）以符合 `changelog-check` 的逐字子字串比對（比照 F05 前例的「（原票號 F05）」格式，但 F05 舊表已是四欄無需保留動詞前綴，F06 舊表是二欄含前綴，故本輪保留前綴）
+- 追加 CR-005 遷移列：`| 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-view-feature-cr-board`） |`
+- 未新增 OQ
+
+### Check
+- `./scripts/spec-check` 最後一行：0 error(s), 0 warning(s)（開工前 8）
+- `tools error-count .dev/F06-feature-cr-board/spec-feature-cr-board.md`：開工前 8 → 收尾時 0
+- `tools accept-check spec-migration-tasks.md T2.22`：無輸出，exit 0（達成）
+- `tools gherkin-diff`：一致（27 行，exit 0）；`tools tag-diff`：一致（exit 0）；`tools changelog-check`：一致（exit 0）
+- 全部 spec error 總數：8 → 0（F01～F06 皆 0）
+
+### Act
+完成，下一個任務：T3.01（全部 spec 一起跑 spec-check 到 0 error：REF-08 重複定義、跨模組引用、事件配對）
