@@ -1229,3 +1229,23 @@ OQ 摘要（依模組；「採用」為 `spec-migration-open-questions.md` 表�
 
 ### Act
 完成：下一個任務 D-13。
+
+## Iteration 47 — 2026-09-17 11:10 — D-13
+### Plan
+本輪任務 D-13：修改 `.dev/F04-board-clock/spec-board-clock.md` 的 usecase 區塊，`uc-adjust-board-clock` 與 `uc-pause-resume-board-clock` 的 `post`；不動 gherkin、Aggregate 註解、`crud`。驗收條件：`errors(F04)=0`，且 F04 spec 含四段指定文字。預期 error 數不變（開工前、收尾皆 0）。
+
+### Do
+- 197ea13 [spec/design](board-clock) 補齊看板時間管理兩個 uc 的 post 對照 Scenario
+- `uc-adjust-board-clock` post 第二句改為「該操作被記錄為 `board` 的一筆活動紀錄，說明看板時間被調整為指定時間，包含操作人與操作時間」
+- `uc-pause-resume-board-clock` post 拆成三句：暫停時 PAUSED＋時間停在暫停當下、恢復時 REALTIME＋從暫停時間繼續前進、活動紀錄說明已暫停或已恢復
+- 無新增假設、無新增 OQ
+
+### Check
+- `./scripts/spec-check`：`0 error(s), 0 warning(s)`
+- `tools error-count .dev/F04-board-clock/spec-board-clock.md`：開工前 0 → 收尾 0
+- `tools accept-check spec-migration-tasks.md D-13`：exit 0（達成）
+- `gherkin-diff`：一致（43 行）；`tag-diff`：無差異；`changelog-check`：通過
+- 逐條對照：`errors(F04)=0` 達成；四段指定文字皆已寫入
+
+### Act
+完成：下一個任務 D-14
