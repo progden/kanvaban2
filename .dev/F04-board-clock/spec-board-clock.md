@@ -64,7 +64,7 @@ Board Clock 是 F03（標準圖表）計算「asOf」、Aging、逾期判斷的�
     p1: "我是該 `board` 的 Owner"
   post:
     - "`board` 的看板時間更新為指定時間"
-    - "該操作被記錄為 `board` 的一筆活動紀錄，包含操作人與操作時間"
+    - "該操作被記錄為 `board` 的一筆活動紀錄，說明看板時間被調整為指定時間，包含操作人與操作時間"
   fail:
     p1: "拒絕，顯示錯誤訊息「只有 Owner 可以調整看板時間」，`board` 的看板時間維持不變"
   emits: []
@@ -92,8 +92,9 @@ Board Clock 是 F03（標準圖表）計算「asOf」、Aging、逾期判斷的�
   pre:
     p1: "我是該 `board` 的 Owner"
   post:
-    - "`board` 的看板時間狀態切換為 PAUSED 或 REALTIME"
-    - "該操作被記錄為 `board` 的一筆活動紀錄，包含操作人與操作時間"
+    - "暫停時，`board` 的看板時間狀態切換為 PAUSED，看板時間停在暫停當下的時間"
+    - "恢復時，`board` 的看板時間狀態切換為 REALTIME，看板時間從暫停時的時間繼續隨系統時間前進"
+    - "該操作被記錄為 `board` 的一筆活動紀錄，說明看板時間已暫停或已恢復，包含操作人與操作時間"
   fail: {}
   emits: []
   requires: []
