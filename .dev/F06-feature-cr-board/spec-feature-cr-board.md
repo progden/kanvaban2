@@ -48,6 +48,25 @@
 
 ## Feature: Feature／CR 追蹤表
 
+### Use Case 定義
+```usecase
+- id: uc-view-feature-cr-board
+  name: 檢視 Feature／CR 追蹤表
+  roles: [r-user]
+  crud: {board: R, card: R}
+  pre: {}
+  post:
+    - "標籤格式為「^F\\d{2}$」的 `card` 視為 Feature 卡；其狀態依所在 Stage 的角色顯示：角色為 Done 顯示「已完成」、角色為 Start 顯示「開發中」"
+    - "標籤格式為「^CR-\\d{3}$」的 `card` 視為 CR 卡；帶有「affects:F\\d{2}$」標籤時，顯示在對應 Feature 底下，並依所在 Stage 角色顯示狀態（例如角色為 Start 顯示「開發中」）"
+    - "CR 卡的「affects」標籤指到不存在的 Feature 編號時，該 `card` 列入 orphan CR 清單"
+    - "`card` 同時帶有兩個 Feature 標籤時，顯示一筆警告訊息，且不影響其他 `card` 的 Feature／CR 統計"
+    - "`card` 的 Feature／CR 標籤比對不分大小寫，小寫標籤視同大寫標籤處理"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+```
+
 ```gherkin
 Feature: Feature／CR 追蹤表
   身為 看板使用者
@@ -58,6 +77,7 @@ Feature: Feature／CR 追蹤表
     Given 我已登入系統，並開啟 Board "產品開發看板"
     And Stage "進行中" 已設定角色為 Start，Stage "完成" 已設定角色為 Done
 
+  @uc-view-feature-cr-board
   # Related aggregate:
   #   board: read
   #   card: read
@@ -66,6 +86,7 @@ Feature: Feature／CR 追蹤表
     When 我開啟 Feature／CR 追蹤表
     Then Feature "F01" 的狀態應該顯示為「已完成」
 
+  @uc-view-feature-cr-board
   # Related aggregate:
   #   board: read
   #   card: read
@@ -74,6 +95,7 @@ Feature: Feature／CR 追蹤表
     When 我開啟 Feature／CR 追蹤表
     Then Feature "F01" 底下應該顯示一筆狀態為「開發中」的 CR "CR-004"
 
+  @uc-view-feature-cr-board
   # Related aggregate:
   #   board: read
   #   card: read
@@ -82,6 +104,7 @@ Feature: Feature／CR 追蹤表
     When 我開啟 Feature／CR 追蹤表
     Then "CR-099" 應該出現在 orphan CR 清單中
 
+  @uc-view-feature-cr-board
   # Related aggregate:
   #   board: read
   #   card: read
@@ -91,6 +114,7 @@ Feature: Feature／CR 追蹤表
     Then 應該顯示一筆警告訊息，說明該卡片有兩個 Feature 標籤
     And 其他卡片的 Feature／CR 統計不應該受影響
 
+  @uc-view-feature-cr-board
   # Related aggregate:
   #   card: read
   Scenario: Feature／CR 標籤不分大小寫
