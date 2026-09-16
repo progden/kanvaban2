@@ -13,7 +13,7 @@
 | 規格 | `spec-<模組>.md` | 系統**應該做什麼**：Use Case 合約（pre / post / fail）、領域名詞、角色、驗收 Scenario | PO | `spec-convention.md` | `spec-check` |
 | UI 短規格 | `ui-<模組>.md` | 使用者**怎麼走到 Use Case**：畫面、進入與離開、角色可見範圍、操作與觸發、呈現狀態 | 設計 + PO | `ui-convention.md` | `ui-check` |
 | 設計備忘 | `design-<模組>.md` | 系統**內部怎麼做**：API 契約、資料模型、交易邊界、效能與併發策略 | 開發 | `design-convention.md` | 無（不解析、不進 CR 影響 ID） |
-| 變更單 | `.dev/CR.md`（總表）、`.dev/cr/CR-xxx.md`（明細，選填） | 規格進入開發後**為什麼改、改了什麼、改到哪裡** | SA / 架構師 | `cr-convention.md` | `cr-check` |
+| 變更單 | `.dev/CR.md`（總表）、`.dev/cr/CR-xxx.md`（明細，選填） | 規格定稿後**為什麼改、改了什麼、改到哪裡** | SA / 架構師 | `cr-convention.md` | `cr-check` |
 
 同一模組的 spec / ui / design 三份檔案放同一目錄，`<模組>` 字串相同。
 
@@ -95,14 +95,14 @@ ID 的形式、前綴、反引號規則統一定義在 `spec-convention.md` 第 
 
 | 改動 | 需要 CR？ |
 |---|---|
-| spec 的名詞表、角色表、usecase 區塊、Scenario | 是（進入開發後） |
-| ui 的操作表、角色與權限表、進入與離開、驗收條件 | 是（進入開發後） |
+| spec 的名詞表、角色表、usecase 區塊、Scenario | 是（定稿後） |
+| ui 的操作表、角色與權限表、進入與離開、驗收條件 | 是（定稿後） |
 | ui 的目的、待確認事項；spec 的其他名詞表、待釐清 | 否 |
 | design 任何內容 | 否（實作細節由開發 PR review 把關） |
 | 任何 convention 文件 | 否，但走 PR；影響固定格式的改動要同時更新 `checks.md` 與對應腳本 |
 | `.dev/prompts/` 的提示詞 | 否 |
 
-「進入開發」以 spec 檔頭 `狀態：開發中` 為準。
+「定稿」以 spec 檔頭 `狀態：定稿` 為準；「開發中」是另一個衍生狀態（某模組有 CR 處於「待處理」），只影響 `cr-check` GH-05 的嚴格程度，不影響上表哪些改動需要 CR，見 `cr-convention.md` §1.1。
 
 ---
 
@@ -110,7 +110,7 @@ ID 的形式、前綴、反引號規則統一定義在 `spec-convention.md` 第 
 
 1. 建 `spec-<模組>.md`，依 `spec-convention.md` 寫名詞表、角色表、Feature 與 usecase 區塊；`spec-check` 無 error。
 2. 建 `ui-<模組>.md`，依 `ui-convention.md` 從 spec 盤點畫面、逐一定案；`ui-check` 無 error。
-3. spec 檔頭改 `狀態：開發中`，變更紀錄加「首版進入開發」。
+3. spec 檔頭改 `狀態：定稿`，變更紀錄加「首版定稿」。
 4. 開發期間視需要建 `design-<模組>.md`，依 `design-convention.md` 記錄實作決策。
 5. 之後所有改動走 `cr-convention.md`。
 

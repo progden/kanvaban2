@@ -56,10 +56,10 @@
 | GH-02 | error | 每個 Scenario 上方 | 必須有 `# Related aggregate:` 註解，位置在 tag 行之後、`Scenario:` 之前，至少一行 `#   <entity>: read[, write]` | `Scenario "{name}" 缺少 Aggregate 註解` |
 | GH-03 | error | 每個 gherkin 區塊開頭 | `Feature:` 後依序三行 `身為 `、`我想要 `、`以便 `；`## Feature:` 標題文字與 gherkin `Feature:` 文字相同 | `Feature "{name}" 標頭不完整：缺少 "{line}"` |
 | GH-04 | error | 每個 Scenario 的 tag 行 × 同 Feature 其他 Scenario | tag 順序：狀態 tag（`@added`／`@changed`／`@deprecated` 之一，再接 `@wip`）→ `@CR-` → `@uc-` → `@fail-`；`@added`／`@changed`／`@deprecated` 互斥；`@changed` 必有同 Feature、同 `@CR-`、同 `@uc-` 的 `@deprecated` Scenario；`@wip` 必須伴隨 `@CR-`（首版規格不掛 `@wip`） | `Scenario "{name}" tag 錯誤：{detail}` |
-| GH-05 | error | 每個 Scenario 的 tag 行 | 已進入開發的規格檔（檔頭 `狀態：開發中`）裡，掛狀態 tag 的 Scenario 必有 `@CR-`；PR diff 新增或修改的 Scenario 必有 `@CR-`（後者只在 CI 有 base 時檢查，由 `cr-check` 執行） | `Scenario "{name}" 已進入開發卻沒有 @CR- tag` |
+| GH-05 | error | 每個 Scenario 的 tag 行 | 已定稿的規格檔（檔頭 `狀態：定稿`）裡，掛狀態 tag 的 Scenario 必有 `@CR-`；此外，所屬模組「開發中」（衍生狀態：`.dev/CR.md` 有該模組的 CR 狀態為「待處理」，見 `cr-convention.md` §1.1）時，PR diff 動到的 Scenario（不論有無狀態 tag）必有 `@CR-`（後者只在 CI 有 base 時檢查，由 `cr-check` 執行） | 靜態部分：`Scenario "{name}" 規格已定稿，新增／變更卻沒有 @CR- tag`；diff 部分：`Scenario "{name}" 所屬模組正在開發中，diff 動到卻沒有 @CR- tag` |
 | GH-06 | error | Aggregate 註解 × 所屬 Use Case 的 `crud` | 註解出現的實體必須是 `crud` 的 key；註解標 `write` 的實體 `crud` 必須含 C／U／D；成功 Scenario（無 `@fail-`）另外要求 `crud` 含 C／U／D 的實體必須標 `write`。以 usecase 區塊為準 | `Scenario "{name}" 的 Aggregate 註解與 uc "{uc}" 的 crud 不一致：{detail}` |
 | GH-07 | warn | 同一 `@uc-` 的所有 Scenario 的 Then／And 步驟中的 `"..."` 字串 | 含「錯誤訊息」「確認訊息」「提示」的步驟裡，引號字串在同一 Use Case 內若有兩個以上互不相同的版本，warn（一個 Use Case 可能有多種錯誤，所以只在字串相似度高、例如編輯距離 ≤ 3 時報） | `uc "{uc}" 的訊息文字不一致："{a}" vs "{b}"` |
-| GH-08 | error | spec 檔的 H2／H3 標題 | 第一個 H2 之前恰好一行 `狀態：草稿` 或 `狀態：開發中`；固定字串標題依 SC §2 出現且次數正確：`## 名詞定義`（含 `### 實體`、`### 欄位`、`### 關係`）、`## 角色定義`、`## Aggregate 標記說明`、`## 變更紀錄` 各恰好一次；`## Feature:` 至少一次，每個下面恰好一個 `### Use Case 定義` 且在 gherkin 區塊之前；`## 待釐清` 至多一次 | `文件結構錯誤：{detail}` |
+| GH-08 | error | spec 檔的 H2／H3 標題 | 第一個 H2 之前恰好一行 `狀態：草稿` 或 `狀態：定稿`；固定字串標題依 SC §2 出現且次數正確：`## 名詞定義`（含 `### 實體`、`### 欄位`、`### 關係`）、`## 角色定義`、`## Aggregate 標記說明`、`## 變更紀錄` 各恰好一次；`## Feature:` 至少一次，每個下面恰好一個 `### Use Case 定義` 且在 gherkin 區塊之前；`## 待釐清` 至多一次 | `文件結構錯誤：{detail}` |
 | GH-09 | error | gherkin 區塊內 | 步驟文字不得含反引號（ID 引用不出現在 Gherkin） | `Scenario "{name}" 的步驟含反引號` |
 
 ---
@@ -95,7 +95,7 @@
 
 | 腳本 | 涵蓋的檢查 ID |
 |---|---|
-| `spec-check` | REF-01～REF-06、REF-08（spec 部分）、REF-09、UC-01～UC-14、GH-01～GH-04、GH-05（僅「已進入開發」判定部分）、GH-06～GH-09 |
+| `spec-check` | REF-01～REF-06、REF-08（spec 部分）、REF-09、UC-01～UC-14、GH-01～GH-04、GH-05（僅「已定稿」靜態判定部分）、GH-06～GH-09 |
 | `ui-check` | REF-07、REF-08（ui 部分）、DS-01～DS-08 |
 | `cr-check` | GH-05（diff 部分）、CR-01～CR-05 |
 

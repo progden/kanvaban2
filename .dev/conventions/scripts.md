@@ -155,14 +155,17 @@ Model
 2. **取 diff**：`git diff <base>...<head> -- '.dev/**/spec-*.md' '.dev/**/ui-*.md' '.dev/CR.md'`，得到每個檔案被改動的行號區間。
 3. **兩個版本各建一次模型**：base 版與 head 版分別跑 spec／ui 解析器（base 版從 `git show <base>:<path>` 讀）。
 4. **由行號映射到 ID**：對 head 模型，每個 usecase 項目、實體表列、畫面段落、Scenario 都有 `loc` 與行數範圍；改動行落在哪個範圍，就算該 ID 被改。Scenario 被改 → 歸到它 `@uc-` 的 ID。base 有、head 沒有的 ID → 視為「移除」；反之「新增」。
-5. **找出 PR 涉及的 CR**：head 模型裡新出現（base 沒有）的 `@CR-xxx` tag，加上 `--cr` 參數明確指定的，就是要比對的 CR 集合。沒有任何 CR 而 diff 動到了 usecase 區塊／實體表／畫面段落，且該檔已進入開發 → GH-05。
+5. **找出 PR 涉及的 CR**：head 模型裡新出現（base 沒有）的 `@CR-xxx` tag，加上 `--cr` 參數明確指定的，就是要比對的 CR 集合。沒有任何 CR 而 diff 動到了 usecase 區塊／實體表／畫面段落，且該檔所屬模組「開發中」（衍生狀態，見 4.2）→ GH-05。
 6. **比對**（CR-01）：對每張 CR，`impact` 的 ID 集合 vs 步驟 4 算出的改動 ID 集合，集合差異兩邊都報。
 7. **狀態檢查**：CR-04（狀態 vs 影響 ID 非空且存在）、CR-05（diff 新出現的 `@CR-` 其總表狀態必須是「修改規格」）。
 8. **並行衝突**（CR-02）：head 模型裡同一 Feature 的 `@changed` Scenario，若兩個對應同一個 `@deprecated`（同 `@uc-`、同 Scenario 名稱），且兩者的 CR 都是進行中 → 報。
 
-### 4.2 「已進入開發」判定
+### 4.2 「已定稿」與「開發中」判定
 
-GH-05 與 `cr-check` 步驟 5 都需要判定某個 spec 檔是否已進入開發。判定：spec 檔頭的 `狀態：` 行為「開發中」（`spec-convention.md` §2.1）；缺少此行或值不是「草稿」／「開發中」由 GH-08 報。實作為 `SpecFile.in_development`，三支腳本共用。
+兩個不同的判定，`cr-convention.md` §1.1 有完整定義：
+
+- **已定稿**：spec 檔頭的 `狀態：` 行為「定稿」（`spec-convention.md` §2.1）；缺少此行或值不是「草稿」／「定稿」由 GH-08 報。實作為 `SpecFile.finalized`，三支腳本共用。GH-05 的靜態部分（`spec-check` 也會跑）用這個判定：已定稿的檔裡，掛狀態 tag 的 Scenario 必有 `@CR-`。
+- **開發中（衍生狀態）**：該 spec 所屬模組（`spec-<模組>`）在 `.dev/CR.md` 裡是否有 CR 狀態為「待處理」。實作為 `Model.module_in_active_development(module)`，只有 `cr-check`（有 `--base`、能讀到 CR 總表）才會用到，是 GH-05 diff 部分（步驟 5）唯一的判準——已定稿但沒有模組「開發中」時，diff 動到 Scenario 卻沒 `@CR-` 不會被 GH-05 擋。
 
 ---
 

@@ -6,9 +6,9 @@
 
 | 題目 | 決定 | 寫回哪裡 |
 |---|---|---|
-| Q1 「已進入開發」的判定 | spec 檔頭一行 `狀態：草稿` 或 `狀態：開發中`（必填）；「開發中」即已進入開發，首版交付時改狀態並在變更紀錄加一列「首版進入開發」，這一步不用 CR | `spec-convention.md` §2.1、§5.1；`checks.md` GH-05／GH-08；`scripts.md` §4.2 |
+| Q1 「已進入開發」的判定 | spec 檔頭一行 `狀態：草稿` 或 `狀態：定稿`（必填）；「定稿」代表結構性改動要走 CR，首版交付時改狀態並在變更紀錄加一列「首版定稿」，這一步不用 CR。**2026-09-17 修訂**：原本「開發中」直接寫在檔頭、且是 GH-05 擋 PR diff 的唯一判準，導致格式性遷移（不改行為）也會被 GH-05 擋下（見 OQ-10）；改成兩層——檔頭只到「定稿」，「開發中」變成衍生狀態（該模組在 `.dev/CR.md` 有 CR 狀態為「待處理」才算），只有這個衍生狀態才觸發 GH-05 的 diff 保護 | `spec-convention.md` §2.1、§5.1；`cr-convention.md` §1.1；`checks.md` GH-05／GH-08；`scripts.md` §4.2；`scripts/speccheck/model.py`（`SpecFile.finalized`、`Model.module_in_active_development`） |
 | Q2 `pre`／`post`／`fail` 句型 | 不限制句型，每句至少一個反引號 ID；唯一例外是 `fail` 的固定句「拒絕，資料不變」。累積真實句子後再考慮歸納句型 | `spec-convention.md` §2.4；`checks.md` UC-03 |
-| Q3 首版是否要求 usecase 區塊齊全 | 要，從第一版就齊全；腳本對草稿與開發中的檔一視同仁（草稿只差在不需要 CR） | `spec-convention.md` §5.1 |
+| Q3 首版是否要求 usecase 區塊齊全 | 要，從第一版就齊全；腳本對草稿與定稿的檔一視同仁（草稿只差在不需要 CR） | `spec-convention.md` §5.1 |
 | Q4 腳本語言 | Python 3.10+ + PyYAML，實作於 `scripts/`；行號用 `yaml.compose` 的 node mark，Markdown 表格與圍欄自寫解析 | `scripts.md`、`scripts/README.md` |
 | Q5 檔名 | 既有後端設計備忘 `design.md` 改名 `design-<模組>.md`（已改，並修正彼此的相對連結）；UI 短規格叫 `ui-<模組>.md`，腳本叫 `ui-check` | `ui-design-convention.md`、`spec-convention.md` §1、`scripts.md`、CLAUDE.md |
 | Q6 實體 ID 的粒度 | 實體不等於 aggregate：一個 aggregate 是一棵實體樹，樹根是 aggregate root。所有有身分的實體都列在實體表，加「所屬 Aggregate」欄（給人看，腳本不解析）；Aggregate 註解與 `crud` 可寫任何實體 ID | `spec-convention.md` §2.2、§9 |

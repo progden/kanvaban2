@@ -211,7 +211,7 @@ Feature → UseCase → Entity → Screen 的追溯矩陣**不手寫、不進版
 
 ## 命名慣例
 
-- Screen ID `s-<對象>-<型態或動作>`：`s-swimlane-list`、`s-card-edit`、`s-swimlane-delete-dialog`。一旦進入開發就不改名；要改視為移除 + 新增，走 CR。
+- Screen ID `s-<對象>-<型態或動作>`：`s-swimlane-list`、`s-card-edit`、`s-swimlane-delete-dialog`。規格一旦定稿就不改名；要改視為移除 + 新增，走 CR。
 - 移除的畫面直接刪掉整段；若還有其他畫面的「進入與離開」引用它，`ui-check` 會報 error，一併清掉。
 - 畫面名稱用「對象 + 動作或型態」：泳道列表、卡片編輯、刪除 Swimlane 對話框。
 - 操作名稱用動詞開頭，跟 spec 的 Use Case `name` 一致：刪除 Swimlane、設定顏色標記。

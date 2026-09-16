@@ -61,7 +61,7 @@ python3 -m unittest discover -s scripts/tests   # 腳本的測試
 
 - **docs-convention.md**（入口）：定義 spec／ui／design／CR 四種文件各自的斷言主詞與邊界（MECE）、引用方向只能單向（`spec ← ui ← design`、`CR → spec/ui`）、誰在什麼時候讀哪份。規則衝突時以各自 convention 為準，邊界該寫在哪份文件的爭議以本文件為準。
 - **spec-convention.md**（規格檔怎麼寫）
-  - 第一個 H2 之前必有一行 `狀態：草稿` 或 `狀態：開發中`；「開發中」之後的改動都要走 CR。
+  - 第一個 H2 之前必有一行 `狀態：草稿` 或 `狀態：定稿`；「定稿」之後的結構性改動都要走 CR。「開發中」不是檔頭值，是衍生狀態：某模組在 `.dev/CR.md` 有 CR 狀態為「待處理」才算——只有這時候 `cr-check` 的 GH-05 才會嚴格擋「PR diff 動到卻沒有 `@CR-`」的 Scenario。**CR 狀態改成「待處理」／改回「處理完成」是保護開關，不是文書作業**：進入真正開發、驗收完成這兩個時間點都要同步更新 `.dev/CR.md` 的狀態欄，漏改會讓這個模組失去 GH-05 保護，或誤擋其他模組的格式性修訂。
   - 段落標題是固定字串（`## 名詞定義`、`## 角色定義`、`## Aggregate 標記說明`、`## 變更紀錄`、`## Feature:`、`### Use Case 定義`、`## 待釐清`），以前綴比對，後面可接括號。
   - 名詞定義拆三張表：實體（ID 純小寫，含 aggregate 內部實體，加「所屬 Aggregate」欄）、欄位（`entity.attr`）、關係（來源／目標／min／max）；非實體名詞放「其他名詞」表，沒有 ID。
   - 每個 Feature 在 Gherkin 之前有一個 ```usecase 區塊（YAML）：`id`／`name`／`roles`／`crud`／`pre`／`post` 必填，`fail`／`emits`／`requires`／`calls-sync` 欄位要在可空。
@@ -71,7 +71,7 @@ python3 -m unittest discover -s scripts/tests   # 腳本的測試
   - **反引號只給六種 ID 用**（entity、`entity.attr`、`r-`、`uc-`、`ev-`、`s-`）；程式碼名稱改用「」，檔案路徑是唯一例外。Gherkin 步驟裡不用反引號。
   - 失敗結果寫成 `Then 拒絕，訊息為 "..."，且資料不變`；Feature 標頭「身為 <角色名稱>」的名稱必須在角色表。
 - **ui-convention.md**（`ui-<模組>.md` 怎麼寫）：畫面標題 `## s-<id>：<名稱>`，八個固定段落，資料表來源填 Attribute ID、操作表觸發填 UseCase ID、角色表填 Role ID、導覽用 Screen ID；操作表「失敗時」欄只寫呈現方式（依 `uc-xxx` p2 引用 fail key，不重述業務結果）；驗收條件斷言主詞只能是畫面元素或是否觸發 `uc-xxx`，不寫領域狀態；ui 檔不定義新概念；畫面總表與追溯矩陣由 `--report` 生成，不手寫。
-- **cr-convention.md**（流程）：規格進入開發後，改 Scenario、名詞表、角色表、usecase 區塊、ui 的操作／角色／導覽／驗收條件都要先開 CR（`CR-<三位數>`）；總表 `.dev/CR.md` 的「影響 ID」欄列受影響的 Entity／UseCase／Screen，`cr-check` 用它對照 PR diff；`design-<模組>.md` 的改動不算，不需 CR。**本 repo 目前沒有 `.dev/CR.md`**，既有規格裡的 `@CR-001`～`@CR-004` 會被 REF-06 報未登記，遷移時要一併建立。
+- **cr-convention.md**（流程）：規格定稿後，改 Scenario、名詞表、角色表、usecase 區塊、ui 的操作／角色／導覽／驗收條件都要先開 CR（`CR-<三位數>`）；總表 `.dev/CR.md` 的「影響 ID」欄列受影響的 Entity／UseCase／Screen，`cr-check` 用它對照 PR diff；`design-<模組>.md` 的改動不算，不需 CR。`.dev/CR.md` 的「狀態」欄不只是紀錄：改成「待處理」代表這個模組真的有人在開發，`cr-check` 的 GH-05 才會嚴格保護它（§1.1）；忘記更新等於沒保護到，或誤擋別的模組。
 - **checks.md** / **scripts.md** / **llm-review.md** / **open-questions.md**：檢查清單（ID 對應 `scripts/speccheck/checks/`）、腳本規格、LLM 語意 review 清單、待決事項。
 - **spec 遷移 loop**（`.dev/loops/spec-migration-loop/`）：無人值守把六份 spec 遷到新格式。規則書 `spec-migration-prompt.md`、任務清單 `spec-migration-tasks.md`，啟動 `./.dev/loops/spec-migration-loop/run-spec-migration-loop.sh`（自動切到 `loop/spec-migration` 分支），執行期檔案在同目錄 `runtime/`（不進版控）；改 loop 腳本後用 `rehearsal/rehearse.sh` 以假 claude 演練。
 - **git-convension.md**：commit 格式 `[類型](scope) 摘要 (#票號)`，類型為 `spec/design`、`dev`、`test`、`docs`、`chore`、`revert`；摘要用中文祈使句，50 字內，句尾不加標點。
