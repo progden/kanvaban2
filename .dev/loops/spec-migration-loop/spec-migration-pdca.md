@@ -527,3 +527,28 @@
 
 ### Act
 - 完成：下一個任務 T2.09（[F02] 遷移程序 10～11 與收尾：正文反引號清理（含「Aggregate 事件盤點」「實作備註」段落）、`design.md` 稱呼改實際檔名、變更紀錄改格式並追加 CR-005；F02 全檔 0 error）。
+
+## Iteration 21 — 2026-09-16 22:50 — T2.09
+
+### Plan
+本輪任務 T2.09：完成 F02 遷移程序 10～11 與收尾——正文反引號清理（含「Aggregate 事件盤點」「實作備註」段落）、`## 實作備註（留給 design.md）` 改為實際檔名 `design-user-membership.md`、變更紀錄改成四欄格式並追加 CR-005 一列。要改的檔案：`.dev/F02-user-membership/spec-user-membership.md`。驗收條件：`errors(F02)=0`、`errors(F01)=0`。預期 error 數變化：F02 由 18 降為 0，F01 維持 0，全部 spec 由 176 降為 158。
+
+### Do
+- commit `447d9dc [spec/design](user-membership) 完成 F02 正文反引號清理與變更紀錄收尾`
+- 低影響假設：「Aggregate 標記說明」段落的 `read`／`write` 改為「read」「write」（比照 F01 既有寫法）；正文中非六種 ID 的程式碼／類別名稱（`User`、`BoardMembership`、`Card.assignee`、`assignTo`、`addAssignee`、`archivedAt`、`Label`、`Owner`／`Member`）反引號改為「」，檔案路徑（`spec-kanban-basic.md`、`cr-convention.md`、`spec-workload.md`、`.dev/F04-board-clock/spec-board-clock.md`、`design-user-membership.md` 等）維持反引號
+- 變更紀錄：2026-09-13 的兩列票號欄從 `F05` 改為留空，摘要開頭加「（原票號 F05）」；追加一列 `2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（uc-create-user…uc-view-board-activity-log）`
+- `## 實作備註（留給 \`design.md\`）` 改為 `## 實作備註（留給 \`design-user-membership.md\`）`
+- 未新增 OQ
+
+### Check
+- `./scripts/spec-check`：158 error(s), 0 warning(s)
+- `tools error-count .dev/F02-user-membership/spec-user-membership.md`：開工前 18 → 收尾時 0
+- `tools error-count .dev/F01-basic-kanban/spec-kanban-basic.md`：0（不變）
+- `tools accept-check spec-migration-tasks.md T2.09`：無輸出，rc=0
+- `tools gherkin-diff`：Gherkin 行為與遷移前一致（216 行），rc=0
+- `tools tag-diff`：rc=0
+- `tools changelog-check`：rc=0
+- 驗收條件 `errors(F02)=0`、`errors(F01)=0` 皆達成
+
+### Act
+完成：F02 全檔 0 error，六份 spec 已完成 F01／F02 兩份。下一個任務：T2.10（[F03] 遷移程序 1～6）。
