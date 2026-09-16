@@ -779,7 +779,7 @@ F02 是尚未進入開發的規格，可以直接補上操作人記錄；F01 的
   crud: {board: R, board-membership: R}
   pre: {}
   post:
-    - "`board` 的活動紀錄依時間由新到舊列出，每一筆都顯示操作人與動作內容"
+    - "該看板的活動紀錄（合併 `board` 與 `board-membership` 的紀錄）依時間由新到舊列出，每一筆都顯示操作人與動作內容"
     - "最上面一筆對應最近發生的事件，例如邀請成員加入看板的 `board-membership` 異動"
   fail: {}
   emits: []
