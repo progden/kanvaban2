@@ -401,3 +401,30 @@
 
 ### Act
 完成：下一個任務 T2.05（[F02]「Board 權限管理」usecase 區塊＋tag＋Aggregate 註解）。
+
+## Iteration 16 — 2026-09-16 21:30 — T2.05
+
+### Plan
+本輪任務：T2.05（[F02]「Board 權限管理」usecase 區塊＋tag＋Aggregate 註解）。要改的檔案：`.dev/F02-user-membership/spec-user-membership.md` 的「Board 權限管理」Feature（去掉 H2 標題多餘的括號說明、補 usecase 區塊、5 個 Scenario 掛 tag、Aggregate 註解 boardMembership 改 board-membership）。驗收條件：`errors(F02#Board 權限管理)=0`。預期 error 數：F02 由 59 降、全部 spec 由 217 降。
+
+### Do
+- commit 3ecb805：`[spec/design](user-membership) 遷移 Board 權限管理至 usecase 區塊`。
+- commit f1d4115：`[spec/design](user-membership) 標註 Board 權限管理拆分決定 OQ-06 於待釐清`。
+- 高影響假設 OQ-06（見 `spec-migration-open-questions.md`）：本 Feature 5 個 Scenario 因 GH-01（`@uc-` 必須指向同 Feature 的 usecase）與 UC-06（每個 uc 至少一個成功 Scenario）無法沿用「Board 建立與成員邀請」的 uc-invite-member／uc-change-member-role 或 F01 的 uc-add-swimlane／uc-add-card，改在本 Feature 新立 5 個專屬 uc：
+  - `uc-reject-invite-by-member`／`uc-reject-role-change-by-member`／`uc-reject-structure-change-by-member`：crud 全 R（比照原 Aggregate 註解只標 read）、roles 留空、fail 留空（無獨立失敗 Scenario 可掛 `@fail-`，該 Scenario 本身視為「成功」= 正確拒絕）。
+  - `uc-delete-board`：crud `{board: D, card: D, board-membership: R}`、roles `[r-board-owner]`、pre 記錄「操作者是 Owner」、fail 留空（同一 Scenario 內含失敗嘗試與成功刪除，比照 F01 uc-rename-swimlane「有 pre 無 fail」的既有寫法，避免違反 UC-06「至少一個成功 Scenario」）。
+  - `uc-member-add-card`：crud `{board-membership: R, card: C}`、roles `[r-board-member]`（F02 角色表已明定 Member 可新增卡片）。
+- 低影響假設：H2 標題「Board 權限管理（Owner 與 Member 的權限差異）」依規範改為與 gherkin `Feature:` 名稱相同的「Board 權限管理」（括號說明移除，文字意思沒有遺失，僅是標題格式對齊）；Aggregate 註解 `boardMembership` 全部改名為實體 ID `board-membership`。
+
+### Check
+- `./scripts/spec-check`（全部 spec）最後一行：開工前 `237 error(s), 0 warning(s)`（見上輪 last-verify）→ 收尾時 `204 error(s), 0 warning(s)`。
+- `tools error-count .dev/F02-user-membership/spec-user-membership.md`：開工前 59 → 收尾時 46。
+- `tools error-count '.dev/F02-user-membership/spec-user-membership.md#Board 權限管理'`：0。
+- `tools accept-check spec-migration-tasks.md T2.05`：exit 0，無輸出。
+- `tools gherkin-diff .dev/F02-user-membership/spec-user-membership.md`：exit 0，「Gherkin 行為與遷移前一致（216 行）」。
+- `tools tag-diff`：exit 0，無輸出。
+- `tools changelog-check`：exit 0，無輸出。
+- 逐條對照驗收條件：`errors(F02#Board 權限管理)=0` 已達成（`accept-check` 確認）。
+
+### Act
+完成：下一個任務 T2.06（[F02]「Board 存取權限」usecase 區塊＋tag＋Aggregate 註解）。

@@ -45,7 +45,7 @@
 | T2.02 | done | [F02] 「建立使用者帳號」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#建立使用者帳號)=0` | T2.01 |
 | T2.03 | done | [F02] 「使用者登入與登出」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#使用者登入與登出)=0` | T2.02 |
 | T2.04 | done | [F02] 「Board 建立與成員邀請」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#Board 建立與成員邀請)=0` | T2.03 |
-| T2.05 | todo | [F02] 「Board 權限管理」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#Board 權限管理)=0` | T2.04 |
+| T2.05 | done | [F02] 「Board 權限管理」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#Board 權限管理)=0` | T2.04 |
 | T2.06 | todo | [F02] 「Board 存取權限」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#Board 存取權限)=0` | T2.05 |
 | T2.07 | todo | [F02] 「卡片負責人指派」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#卡片負責人指派)=0` | T2.06 |
 | T2.08 | todo | [F02] 「檢視看板活動紀錄」usecase 區塊＋tag＋Aggregate 註解；若 F01／F02 各 uc 有 `emits` 活動紀錄事件，這裡的 uc 以 `requires` 接上 | `errors(F02#檢視看板活動紀錄)=0` | T2.07 |
