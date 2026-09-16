@@ -697,6 +697,7 @@ Board／Swimlane／Stage／Card 既有事件的操作人記錄已隨 CR-001／CR
 
 - OQ-04：角色定義將「卡片負責人指派」「檢視看板活動紀錄」「Board 存取權限」三個 Feature 改用通用角色 r-system-user，不套用 r-board-member（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
 - OQ-05：修正 OQ-04，「卡片負責人指派」「檢視看板活動紀錄」改沿用 F01 已定義的 r-user（看板使用者），不新設角色（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
+- OQ-06：「Board 權限管理」Feature 的 5 個 Scenario 因 GH-01（uc 必須屬於同一 Feature）與 UC-06（每個 uc 至少一個成功 Scenario）而拆成 5 個本 Feature 專屬的新 uc，不重用「Board 建立與成員邀請」的 uc-invite-member 等既有 uc（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
 - `Label`（標籤）Aggregate 設計不在本文件範圍內，將於獨立的 Feature 文件中處理。
 
 ## 實作備註（留給 `design.md`）
