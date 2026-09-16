@@ -229,3 +229,30 @@ llm-review：G1 需要的 F01 每個 Feature 抽查已在 `9f436a3` 那則完成
 - F02 的權限拒絕寫成獨立 uc，`uc-member-add-card` 跟 F01 `uc-add-card` 重複，建議遷移後開 CR 重整。F04 `uc-guard-clock-monotonicity` 也是同類問題，建議在同一個 CR 裡改成各寫入 uc 的 fail。
 - PDCA Iteration 11 的標題被改過。
 - `uc-delete-card`、`uc-remove-member` 的活動紀錄記在被刪除或被移除的 Aggregate 上。
+
+## Review — 2026-09-16 21:43 — 2bb4c97
+### 範圍
+`b3b5747`..`2bb4c97`，涵蓋上一則審查的 commit `deddef1`、D-06（`9dccb2d`、`193e2d5`、`da08941`）、D-07（`f75b0fc`、`2698c90`）、T2.16（`1bbe7b4`、`a845e91`）、T2.17（`4ae17eb`、`23fd810`）、T2.18（`93b2c97`、`2bb4c97`）。`last-verify.md` 是 PASS，沒有警告（F01～F04 都是 0 error，F05 剩 13，F06 剩 30，總數 100 → 43，warning 0）。期間 OQ 檔新增 OQ-08、OQ-09。`tools actionable` 的結果原本是 T2.19，不是關卡；本次開了 D-08，會排在 T2.19 之前。
+
+### 發現
+1. **低**｜F05 `uc-drag-assign-card-owner` 的 post 第二句｜只寫「`card.assignees` 維持不變」。但本檔待釐清第一行已經定案「靜默忽略，不提示、不重複新增、不產生活動紀錄」，F02 同一個操作的 `uc-assign-card-owner-by-drag` 也寫了「且不產生新的活動紀錄」。OQ-09 說 post 只依 Scenario 推導，但本檔其他 uc（例如 F04 的 Owner 限制）也會採用檔內已定案的決議。已開 **D-08** 補上這句。第一句不補活動紀錄，因為本檔沒有依據。
+2. **低**｜D-06 的驗收條件與實際結果不一致｜D-06 要求「F03 spec 不再含 `design.md`」，但這跟規則書的 `changelog-check`（摘要只能換引號、在前後加註）衝突。驗證失敗後，Iteration 31 改成保留原文，並在句尾加註「（`design.md` 即 `design-kanban-widgets.md`）」。現在的寫法符合規則書，資訊也完整，接受現狀，不開任務。這次是我在上一則審查裡把驗收條件寫錯了；以後遇到變更紀錄裡的檔名，應該指定「句尾加註」的做法。
+3. **低**｜PDCA Iteration 31 標題「FAIL修正 + D-07」不符合格式｜這個標題已經提交，PDCA 只能追加，所以沒辦法修正。Iteration 32 已記錄這個限制，列入需人工事後處理。
+4. **鐵則 1**：T2.16 把 F04 正文、變更紀錄兩列、決議紀錄兩則裡的反引號換成「」，逐段對照後沒有改字；檔案路徑 `spec-kanban-basic.md` 保留反引號；「board-clock.feature」不是本 repo 的檔案，換成「」可以接受。F04 待釐清原有兩行保留，另外追加 OQ-08。F05（T2.17、T2.18）名詞表 3 列逐字搬到「其他名詞」；`boardMembership` → `board-membership` 只改 ID；「身為看板的使用者」→「身為 看板使用者」比照 F03、F04；變更紀錄與待釐清原文沒有動，只追加 OQ-09。Gherkin 只加了 `@uc-` tag 並改 Aggregate 註解的 ID，步驟沒有變。期間沒有 F 編號修正。
+5. **鐵則 2 抽查**：F05 `uc-view-workload` 的四句 post 分別對到四個查詢 Scenario 的 Then（顯示 3、兩人各含 A、未指派 2、Done 不計入）；`crud` `{board: R, board-membership: R, card: R}` 是四個 Scenario 註解的聯集。`uc-drag-assign-card-owner` 的 `crud` `{board-membership: R, card: U}` 跟註解一致，兩句 post 各自對到一個拖曳 Scenario；`pre.p1` 跟 F02 同義 uc 相同。`roles: [r-user]` 對應 Feature 標頭，不是憑空加上的。
+6. **拆分粒度**：查詢 4 個 Scenario 歸成一個讀取 uc，拖曳 2 個 Scenario 歸成一個寫入 uc，讀取 Scenario 沒有被塞進寫入 uc，合理。
+7. **跨模組一致**：F05 實體、欄位、關係、角色表都留空，引用 F01、F02 的 `board`、`card`、`board-membership`、`card.assignees`、`r-user`，沒有重複定義。`uc-drag-assign-card-owner` 和 F02 `uc-assign-card-owner-by-drag` 是同一個操作卻有兩個 ID（OQ-09），跟 OQ-06、OQ-08 同類，列入需人工事後處理。
+8. **OQ 品質**：OQ-08 符合 D-07 的指定內容（模組 F04，提到 `uc-guard-clock-monotonicity` 和 GH-01，採用維持現狀）。OQ-09 屬於高影響（重複 uc），記成 OQ 是對的，選項也是在 GH-01 限制下驚訝最小的做法。
+9. **D-07 完成度**：OQ 檔最後一列（當時）是 F04；F04 待釐清有 OQ-08 那行；usecase、gherkin 都沒有動，達成。
+10. **PDCA 與實際結果**：各輪 Check 的 error 數跟 `last-verify.md` 一致（100 → 62 → … → 43）。Iteration 30 在 `changelog-check` 失敗的情況下仍標為完成，後來由驗證輪攔下，Iteration 31 已修正。
+
+### 待審任務處理
+沒有 `proposed` 的 D-xx。
+
+### 關卡摘要
+不適用：下一個任務是 D-08，接著才是 T2.19。
+
+**需人工事後處理**（沿用前幾則並新增兩項）：
+- F02 的權限拒絕寫成獨立 uc，`uc-member-add-card` 跟 F01 `uc-add-card` 重複；F04 `uc-guard-clock-monotonicity`（OQ-08）、F05 `uc-drag-assign-card-owner` 與 F02 `uc-assign-card-owner-by-drag` 重複（OQ-09），都是同類問題，建議遷移後開同一個 CR 重整，並檢討 GH-01 是否要允許跨 Feature 引用。
+- PDCA Iteration 11、Iteration 31 的標題格式有誤。
+- `uc-delete-card`、`uc-remove-member` 的活動紀錄記在被刪除或被移除的 Aggregate 上。
