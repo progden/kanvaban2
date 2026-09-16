@@ -82,7 +82,7 @@
 - id: uc-add-swimlane
   name: 新增 Swimlane
   roles: [r-user]
-  crud: {board: R, swimlane: C}
+  crud: {board: RU, swimlane: C}
   pre:
     p1: "`swimlane.name` 非空"
   post:
@@ -97,7 +97,7 @@
 - id: uc-rename-swimlane
   name: 重新命名 Swimlane
   roles: [r-user]
-  crud: {swimlane: U}
+  crud: {board: U, swimlane: U}
   pre:
     p1: "指定的 `swimlane` 存在"
   post:
@@ -111,7 +111,7 @@
 - id: uc-reorder-swimlane
   name: 拖曳調整 Swimlane 順序
   roles: [r-user]
-  crud: {swimlane: U}
+  crud: {board: U, swimlane: U}
   pre:
     p1: "`board` 中依序存在多個 `swimlane`"
   post:
@@ -125,7 +125,7 @@
 - id: uc-delete-swimlane
   name: 刪除 Swimlane
   roles: [r-user]
-  crud: {swimlane: D, card: D}
+  crud: {board: U, swimlane: D, card: D}
   pre:
     p1: "`board` 中的 `swimlane` 數量大於 1"
   post:
@@ -151,7 +151,7 @@ Feature: Swimlane 管理
 
   @CR-001 @uc-add-swimlane
   # Related aggregate:
-  #   board: read
+  #   board: read, write
   #   swimlane: write
   Scenario: 新增一個 Swimlane
     Given 看板目前有 1 個 Swimlane "預設泳道"
@@ -173,6 +173,7 @@ Feature: Swimlane 管理
 
   @CR-001 @uc-rename-swimlane
   # Related aggregate:
+  #   board: read, write
   #   swimlane: read, write
   Scenario: 重新命名 Swimlane
     Given 看板中存在一個 Swimlane "緊急項目"
@@ -182,6 +183,7 @@ Feature: Swimlane 管理
 
   @CR-001 @uc-reorder-swimlane
   # Related aggregate:
+  #   board: read, write
   #   swimlane: read, write
   Scenario: 拖曳調整 Swimlane 順序
     Given 看板中依序存在 Swimlane "A"、"B"、"C"
@@ -191,6 +193,7 @@ Feature: Swimlane 管理
 
   @CR-001 @uc-delete-swimlane
   # Related aggregate:
+  #   board: read, write
   #   swimlane: read, write
   #   card: read, write
   Scenario: 刪除空的 Swimlane
@@ -201,6 +204,7 @@ Feature: Swimlane 管理
 
   @CR-001 @uc-delete-swimlane
   # Related aggregate:
+  #   board: read, write
   #   swimlane: read, write
   #   card: read, write
   Scenario: 刪除包含卡片的 Swimlane 需要確認
@@ -230,7 +234,7 @@ Feature: Swimlane 管理
 - id: uc-add-stage
   name: 新增 Stage
   roles: [r-user]
-  crud: {board: R, stage: C}
+  crud: {board: RU, stage: C}
   pre:
     p1: "`board` 存在"
   post:
@@ -244,7 +248,7 @@ Feature: Swimlane 管理
 - id: uc-rename-stage
   name: 重新命名 Stage
   roles: [r-user]
-  crud: {stage: U}
+  crud: {board: U, stage: U}
   pre:
     p1: "指定的 `stage` 存在"
   post:
@@ -258,7 +262,7 @@ Feature: Swimlane 管理
 - id: uc-reorder-stage
   name: 拖曳調整 Stage 順序
   roles: [r-user]
-  crud: {stage: U}
+  crud: {board: U, stage: U}
   pre:
     p1: "`board` 中依序存在多個 `stage`"
   post:
@@ -272,7 +276,7 @@ Feature: Swimlane 管理
 - id: uc-delete-stage
   name: 刪除 Stage
   roles: [r-user]
-  crud: {stage: D, card: U}
+  crud: {board: U, stage: D, card: U}
   pre:
     p1: "`board` 中的 `stage` 數量大於 1"
   post:
@@ -288,7 +292,7 @@ Feature: Swimlane 管理
 - id: uc-set-stage-role
   name: 設定 Stage 角色
   roles: [r-user]
-  crud: {stage: U}
+  crud: {board: U, stage: U}
   pre:
     p1: "指定的 `stage` 存在"
   post:
@@ -314,7 +318,7 @@ Feature: Stage（階段）管理
 
   @CR-001 @uc-add-stage
   # Related aggregate:
-  #   board: read
+  #   board: read, write
   #   stage: write
   Scenario: 新增一個 Stage
     When 我點擊「新增 Stage」按鈕
@@ -325,7 +329,7 @@ Feature: Stage（階段）管理
 
   @CR-001 @uc-add-stage
   # Related aggregate:
-  #   board: read
+  #   board: read, write
   #   stage: write
   Scenario: 新增 Stage 時未指定插入位置，預設加到最後面
     When 我點擊「新增 Stage」按鈕
@@ -337,6 +341,7 @@ Feature: Stage（階段）管理
 
   @CR-001 @uc-rename-stage
   # Related aggregate:
+  #   board: read, write
   #   stage: read, write
   Scenario: 重新命名 Stage
     When 我將 Stage "待辦" 重新命名為 "規劃中"
@@ -345,6 +350,7 @@ Feature: Stage（階段）管理
 
   @CR-001 @uc-reorder-stage
   # Related aggregate:
+  #   board: read, write
   #   stage: read, write
   Scenario: 拖曳調整 Stage 順序
     When 我將 Stage "完成" 拖曳到 "待辦" 的左側
@@ -353,6 +359,7 @@ Feature: Stage（階段）管理
 
   @CR-001 @uc-delete-stage
   # Related aggregate:
+  #   board: read, write
   #   stage: read, write
   #   card: read, write
   Scenario: 刪除空的 Stage
@@ -363,6 +370,7 @@ Feature: Stage（階段）管理
 
   @CR-001 @uc-delete-stage
   # Related aggregate:
+  #   board: read, write
   #   stage: read, write
   #   card: read, write
   Scenario: 刪除包含卡片的 Stage 需要先轉移卡片
@@ -385,6 +393,7 @@ Feature: Stage（階段）管理
 
   @added @CR-003 @uc-set-stage-role
   # Related aggregate:
+  #   board: read, write
   #   stage: read, write
   Scenario: 設定 Stage 角色
     Given 看板目前所有 Stage 的角色皆為 NONE
@@ -501,6 +510,7 @@ Feature: Card（卡片）編輯
 
 ## 待釐清 / 未來擴充（Open Questions）
 
+- OQ-01：活動紀錄不另立 uc、不 emits 事件，改由各 uc 的 post 與 board 的 crud/Aggregate 註解表達（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
 - Swimlane / Stage 是否需要支援「顏色標記」以利辨識？
 - 卡片是否需要支援子任務（Checklist）或附件？
 - 是否需要「已封存（Archived）」的卡片與泳道狀態，而非直接刪除？
