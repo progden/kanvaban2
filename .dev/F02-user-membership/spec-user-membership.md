@@ -488,6 +488,7 @@ Board／Swimlane／Stage／Card 既有事件的操作人記錄已隨 CR-001／CR
 
 ## 待釐清 / 未來擴充（Open Questions）
 
+- OQ-04：角色定義將「卡片負責人指派」「檢視看板活動紀錄」「Board 存取權限」三個 Feature 改用通用角色 r-system-user，不套用 r-board-member（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
 - `Label`（標籤）Aggregate 設計不在本文件範圍內，將於獨立的 Feature 文件中處理。
 
 ## 實作備註（留給 `design.md`）
