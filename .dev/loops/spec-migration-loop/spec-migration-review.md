@@ -30,3 +30,49 @@
 
 ### 關卡摘要
 不適用（下一個任務是 D-01，之後是 T1.04）。
+
+## Review — 2026-09-16 19:47 — 25c2bb7
+### 範圍
+`f1ed1c7`..`25c2bb7`，任務 D-01、T1.04、T1.05、T1.06。`last-verify.md` 無失敗、無警告（沒有 F 編號修正，也沒有單輪改多份 spec）。OQ 檔期間內新增 OQ-01、OQ-02。下一個任務是 G1，本則附關卡摘要。
+
+### 發現
+1. **高**｜F01 `uc-delete-card`（Card（卡片）編輯）｜`pre.p2` 寫成「使用者於確認訊息中選擇取消」，方向反了。pre 是成功要滿足的條件，照這樣寫，成功 Scenario「刪除卡片需要確認」（使用者按確認）反而不滿足 pre，p2 不成立時的 fail 也變成「沒按取消就拒絕」，意思顛倒。執行輪為了遷就，把 post 寫成「使用者確認後，…移除」，把條件塞進 post。另外，這個 Scenario 最後一步「該操作應該被記錄為一筆活動紀錄」在 post 裡漏掉了，其他 5 個 Card uc 都有寫。OQ-02 的歸類決定（取消當成 fail-p2，註解維持 read）本身合理，要修的只是措辭；OQ 檔只能追加，所以另外追加一列更正 → **D-02**。
+2. **低**｜「卡片標題不可為空」的 Aggregate 註解｜`card: write` 改成 `card: read`。遷移程序 9 規定失敗 Scenario 只標 read，屬於允許的對齊，不算順手修正，接受。
+3. **低**｜變更紀錄 CR-004「開發完成」那列｜摘要裡的反引號改成「」。這是遷移程序 10 要求的清理，`changelog-check` 也通過，文字意思沒變，接受。
+4. **低**｜OQ-01 與規則書遷移程序 7 的關係｜程序 7 寫「emits／requires 只在 Scenario 明說『該操作應該被記錄為活動紀錄』這類跨 uc 效果時才填」，暗示活動紀錄可以用 emits 表達，OQ-01 採用了另一個選項 (b)。這是上次審查 D-01 指定的方向，依據是 F02 備份實作備註裡的 `Board.activityLog`／`Card.activityLog`，維持不變，列入「需人工事後處理」。
+5. **低**｜llm-review L-05｜`uc-add-card` 沒有「指定的 `swimlane`／`stage` 存在」這條 pre（欄位表寫「建立時必填」），`uc-move-card-*` 也沒寫「目的 `swimlane`／`stage` 存在」。原規格沒有對應的失敗 Scenario，依鐵則 2 不能補，不開任務，列入人工事後處理。
+6. **低**｜`uc-delete-swimlane` 的「刪除包含卡片的 Swimlane 需要確認」也有確認步驟，但沒有對應的 pre，跟 D-02 修正後的 `uc-delete-card` 寫法不同。差別在於 Swimlane 沒有「取消」的 Scenario，所以沒有 fail 需要對應，可以接受。範本規則：只有存在取消 Scenario 時，才把「確認」寫成 pre。
+
+llm-review 抽查（F01 每個 Feature 至少一個 uc）：
+- `uc-delete-swimlane`：L-01 只有一句 pre，無重疊；L-02 兩個成功 Scenario 的 Then 各自對到 post 三句，fail Scenario 只讓 p1 不成立；L-05 目前的失敗 Scenario 只有一個，沒有遺漏；L-06 p1 保住 `board`→`swimlane` min=1，刪卡片符合 `card.swimlane` 恰好 1 的語意。
+- `uc-set-stage-role`：L-01、L-05 無問題（沒有 fail）；L-02 兩段 When/Then 對到 post 三句；L-06 post 第二句保住「START、DONE 各至多一個」。
+- `uc-delete-card`：L-01 修正前 p2 與成功 Scenario 矛盾（發現 1）；L-02 post 少了活動紀錄（發現 1）；L-05、L-06 無問題。
+- `uc-add-card`：L-05 見發現 5，其餘無問題。
+
+其他檢查過、未發現偏差的面向：
+- 鐵則 1：gherkin 步驟、狀態 tag、`@CR-` 都沒動，待釐清原有的 5 行保留，名詞表在這段期間沒有變動。
+- F 編號：沒有修正。
+- 鐵則 2：Card 的 6 個 uc，roles 都是 `r-user`（依據「身為」行）；`crud` 都能對到 Aggregate 註解。`uc-move-card-stage` 的 post 保留原文「狀態異動」的措辭，沒有改寫。
+- 拆分粒度：一個 When 動作對一個 uc，跨 Swimlane 與跨 Stage 移動分成兩個 uc，合理（Then 的紀錄內容不同）。
+- 保留原文：留言沒有另立實體，記成低影響假設，合理（原名詞表沒有這個詞）。
+- 任務完成度：D-01 的 9 個 crud 都含 `board: U`，9 個成功註解都補回 `board: read, write`，OQ-01 已登記。T1.05 全文確實沒有 `design.md`。PDCA 裡的數字與 `last-verify`（283）一致。
+
+### 待審任務處理
+期間內沒有 `proposed` 的 D-xx。
+
+### 關卡摘要
+**G1 要確認的事**：F01 能不能當其餘模組的範本，看四點：usecase 拆分粒度、pre／post 措辭、實體粒度、角色表。
+
+**目前狀態**：F01 是 0 error、1 warning（UC-13：沒有 uc 建立 `board`，F02「Board 建立與成員邀請」遷移後應該會消失，T2.04 時要確認）。範本規則：
+- 拆分粒度：一個 When 動作一個 uc，成功與失敗 Scenario 放同一個 uc。
+- 活動紀錄：寫成 post 一句，並對所屬 Aggregate（`board` 或 `card`）標 U／write，不用 emits（OQ-01）。
+- 使用者取消：當成「確認」這條 pre 不成立的 fail（OQ-02＋D-02）。
+- 失敗 Scenario 只標 read。
+- 實體：4 個，`swimlane`／`stage` 屬於 `board`，留言不另立實體。
+- 角色：只有 `r-user` 一個。F02 要把 Owner／Member 權限定成角色時，要決定 F01 的 uc 是否一併改 roles。依規則書，roles 只能來自「身為」行或 F02 已寫明的權限；若要改 F01，必須開 D-xx。
+
+**關卡前必須修正**：**D-02**（`uc-delete-card` 的 pre 方向與 post 缺漏）。這一項是範本的一部分，不修的話 F02～F06 會照抄錯誤寫法，所以不同意自動核准，D-02 完成後才放行。
+
+**需人工事後處理**：
+- OQ-01 的選擇與規則書遷移程序 7 的暗示不同（發現 4），T2.01／T2.08 要沿用 OQ-01。若人工改採 emits，F01 的 9＋5 個 uc 都要回頭改。
+- 發現 5 提到 `swimlane`／`stage` 存在性沒有 pre，若要補，需開 CR 並新增 Scenario。
