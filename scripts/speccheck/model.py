@@ -195,7 +195,7 @@ class ChangeLogRow:
 class SpecFile:
     path: str
     module: str
-    status: Optional[str] = None  # 「狀態：草稿／開發中」那一行的值（缺少或值不合法由 GH-08 報）
+    status: Optional[str] = None  # 「狀態：草稿／定稿」那一行的值（缺少或值不合法由 GH-08 報）
     entities: list[Entity] = field(default_factory=list)
     attributes: list[Attribute] = field(default_factory=list)
     relations: list[Relation] = field(default_factory=list)
@@ -207,9 +207,12 @@ class SpecFile:
     entity_loc_range: dict[str, tuple[int, int]] = field(default_factory=dict)
 
     @property
-    def in_development(self) -> bool:
-        """「已進入開發」判定：檔頭「狀態：」行為「開發中」。"""
-        return (self.status or "").strip() == "開發中"
+    def finalized(self) -> bool:
+        """「已定稿」判定：檔頭「狀態：」行為「定稿」。定稿代表結構性改動要走 CR（GH-05 靜態部分的判準）；
+
+        是否有人「真的在開發」是另一件事，見 `Model.module_in_active_development`。
+        """
+        return (self.status or "").strip() == "定稿"
 
     @property
     def usecases(self) -> list[UseCase]:
@@ -352,3 +355,12 @@ class Model:
             if s.module == module:
                 return s
         return None
+
+    def module_in_active_development(self, module: str) -> bool:
+        """「開發中」（衍生狀態，`cr-convention.md` 定義）：該模組目前是否有 CR 狀態為「待處理」。
+
+        「待處理」代表規格 PR 已合併、真的有開發 PR 在動這個模組（`cr-convention.md` §4.3），
+        是拉式訊號，不是靠 spec 檔頭猜的。只有這個狀態下 GH-05 的 diff 部分才會擋。
+        """
+        target = f"spec-{module}"
+        return any(target in c.modules and c.status == "待處理" for c in self.crs)

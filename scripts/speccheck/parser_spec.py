@@ -45,17 +45,17 @@ def parse_spec(path: str) -> SpecFile:
     h2s = [h for h in headings if h.level == 2]
     first_h2 = h2s[0].index if h2s else len(lines)
 
-    # 「狀態：草稿／開發中」行（第一個 H2 之前，必填）
+    # 「狀態：草稿／定稿」行（第一個 H2 之前，必填）
     for i in range(first_h2):
         if fmap[i] is None:
             m = STATUS_RE.match(lines[i].strip())
             if m:
                 spec.status = m.group(1)
-                if spec.status not in ("草稿", "開發中"):
-                    spec.structure_errors.append((i + 1, f"「狀態：」的值必須是「草稿」或「開發中」，實際「{spec.status}」"))
+                if spec.status not in ("草稿", "定稿"):
+                    spec.structure_errors.append((i + 1, f"「狀態：」的值必須是「草稿」或「定稿」，實際「{spec.status}」"))
                 break
     if spec.status is None:
-        spec.structure_errors.append((1, "第一個 H2 之前缺少「狀態：草稿」或「狀態：開發中」這一行"))
+        spec.structure_errors.append((1, "第一個 H2 之前缺少「狀態：草稿」或「狀態：定稿」這一行"))
 
     counts = {k: 0 for k in H2_FIXED}
     feature_count = 0

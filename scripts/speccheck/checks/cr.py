@@ -184,16 +184,20 @@ def cr_05(model: Model) -> list[Finding]:
 
 
 def gh_05_diff(model: Model) -> list[Finding]:
-    """GH-05 的 diff 部分：已進入開發的檔裡，被 diff 動到的 Scenario 必有 @CR-。"""
+    """GH-05 的 diff 部分：模組正在開發中（衍生狀態，見 `Model.module_in_active_development`）時，
+
+    被 diff 動到的 Scenario 必有 @CR-。「開發中」不是看檔頭，是看該模組是否有 CR 狀態為「待處理」
+    （`cr-convention.md`「開發中（衍生狀態）」一節）——沒有真的在開發的模組，格式性的改動不擋。
+    """
     if model.diff is None:
         return []
     out = []
     ctx: DiffContext = model.diff
     for spec in model.specs:
-        if not spec.in_development:
+        if not model.module_in_active_development(spec.module):
             continue
         for sc in spec.scenarios:
             start = sc.tag_loc.line if sc.tag_loc else sc.loc.line
             if _touched(ctx, spec.path, start, sc.end_line) and not sc.crs:
-                out.append(finding(sc.loc, "error", "GH-05", f'Scenario "{sc.name}" 已進入開發卻沒有 @CR- tag'))
+                out.append(finding(sc.loc, "error", "GH-05", f'Scenario "{sc.name}" 所屬模組正在開發中，diff 動到卻沒有 @CR- tag'))
     return out

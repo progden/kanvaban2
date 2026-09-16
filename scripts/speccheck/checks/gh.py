@@ -103,15 +103,15 @@ def gh_04(model: Model) -> list[Finding]:
     return out
 
 
-@check("GH-05", ("spec-check", "cr-check"), "error", "已進入開發的變更必有 @CR-")
+@check("GH-05", ("spec-check", "cr-check"), "error", "已定稿的新增／變更 Scenario、以及開發中模組被 diff 動到的 Scenario，必有 @CR-")
 def gh_05(model: Model) -> list[Finding]:
     out = []
     for spec in model.specs:
-        if not spec.in_development:
+        if not spec.finalized:
             continue
         for sc in spec.scenarios:
             if sc.status_tags and not sc.crs:
-                out.append(finding(_loc(sc), "error", "GH-05", f'Scenario "{sc.name}" 已進入開發卻沒有 @CR- tag'))
+                out.append(finding(_loc(sc), "error", "GH-05", f'Scenario "{sc.name}" 規格已定稿，新增／變更卻沒有 @CR- tag'))
     # diff 部分（cr-check 有 base 時）由 checks/cr.py 的 gh_05_diff 補上
     if model.diff is not None:
         from .cr import gh_05_diff
