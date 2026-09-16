@@ -814,3 +814,23 @@
 
 ### Act
 完成，下一個任務：T2.19（[F05] 遷移程序 10～11 與收尾，F05 全檔 0 error）
+
+## Iteration 36 — 2026-09-16 — T2.19
+### Plan
+本輪任務為 T2.19：對 `.dev/F05-workload/spec-workload.md` 完成遷移程序 10～11（正文清理、變更紀錄收尾），使 F05 全檔達到 0 error。剩餘的 13 個 error 集中在簡介段（第 9 行）、其他名詞表（第 32 行）、Aggregate 標記說明段（第 40、44 行）、變更紀錄（第 50、51 行）、待釐清段（第 165 行），皆是反引號誤用（`BoardMembership`、`assigneeIds`、`read`／`write`、`@wip`、`kanban-spring`、`io.progden.…WorkloadCalculator`、`Card.assignTo` 不是合法 ID）與變更紀錄票號欄 "F05" 未在 `.dev/CR.md` 登記（REF-06）。計畫：把非六種 ID 的反引號換成「」；`BoardMembership`／`assigneeIds` 換成實際已定義 ID `board-membership`／`card.assignees`；變更紀錄兩列舊票號 "F05" 改為空白並在摘要前加「（原票號 F05）」（比照 F02 已有的鏡射列寫法）；文末追加一列 CR-005 收尾。驗收條件：`errors(F05)=0`。預期全部 spec error 總數從 43 降到 30。
+
+### Do
+- 03d0ef4 [spec/design](workload) 完成正文反引號清理與變更紀錄收尾
+- 低影響假設：簡介段與其他名詞表、Aggregate 標記說明段落中的 `BoardMembership`／`assigneeIds` 改用實際已定義的實體／欄位 ID `board-membership`／`card.assignees`（純命名格式對齊，語意不變，屬「格式選擇：實體 ID 命名」低影響假設，不需記 OQ）
+- 低影響假設：`read`／`write`（存取方式說明用語）、`@wip`（狀態 tag 名稱）、`kanban-spring`、`io.progden.kanban.query.workload.WorkloadCalculator`、`Card.assignTo`（程式碼名稱）反引號一律改用「」，符合 REF-01／convention「反引號只給六種 ID 用，程式碼名稱改用「」」
+- 低影響假設：變更紀錄兩列舊票號 "F05" 改為空白、摘要前綴「（原票號 F05）」，比照 `.dev/F02-user-membership/spec-user-membership.md` 第 75～76 行已有的鏡射列寫法（同一組事實在兩份文件都有記錄），符合遷移程序步驟 11
+- 追加一列變更紀錄：`| 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（uc-view-workload、uc-drag-assign-card-owner） |`
+
+### Check
+- `./scripts/spec-check` 最後一行：30 error(s), 0 warning(s)（開工前 43）
+- `tools error-count .dev/F05-workload/spec-workload.md`：開工前 13 → 收尾時 0（達成 `errors(F05)=0`）
+- `tools accept-check spec-migration-tasks.md T2.19`：無輸出，exit 0（達成）
+- `tools gherkin-diff .dev/F05-workload/spec-workload.md`：一致（32 行）；`tools tag-diff`：一致；`tools changelog-check`：一致（exit 0，第一次因把 `assigneeIds` 改成 `card.assignees` 而在開發完成列失敗，改回保留原字「assigneeIds」只換引號後通過）
+
+### Act
+完成，下一個任務：T2.20（[F06] 遷移程序 1～6：狀態行、名詞／角色表、「身為」行）
