@@ -91,3 +91,32 @@ llm-review 抽查（F01 每個 Feature 至少一個 uc）：
 
 ### 關卡摘要
 不適用：下一個任務是 D-02，G1 排在它後面。G1 的關卡摘要沿用上一則審查。D-02 完成後，下一次審查要確認修正結果，才能放行 G1。
+
+## Review — 2026-09-16 19:55 — 33db69b
+### 範圍
+`ec32664`..`33db69b`，任務 D-02（`71c11d1` 改 spec、`33db69b` 更新 PDCA／OQ／狀態）。`last-verify.md` 是 PASS，沒有失敗也沒有警告（283 error、1 warning，F01 維持 0 error）。OQ 檔新增 OQ-03。`tools actionable` 的結果是 G1，本則附關卡摘要。
+
+### 發現
+未發現需要修正的偏差。檢查結果：
+1. **D-02 完成度**：`uc-delete-card` 的 `pre.p2` 改成「確認刪除」，`fail.p2` 改成「不刪除，…資料不變」，`post` 拿掉「使用者確認後」，補上活動紀錄那句，跟其他 Card uc 的寫法一致。「取消刪除卡片」Scenario 的 tag 與 `card: read` 註解沒動。驗收條件都達成，PDCA 的 Check 跟 `last-verify` 相符。
+2. **鐵則 1**：`gherkin-diff` 顯示 160 行與遷移前一致。待釐清只多一行 OQ-03，原有的行都還在。名詞表、變更紀錄這段期間沒有變動。沒有 F 編號修正。
+3. **OQ-03 品質**：這是 D-02 指定要追加的更正列，OQ-01、OQ-02 舊列沒改，符合「OQ 檔只能追加」。
+4. **低**｜`uc-delete-card` 的 post 寫「記錄為 `card` 的一筆活動紀錄」，但 `card` 同時被刪除，活動紀錄記在已刪除的 Aggregate 上，語意有點怪。這是照 OQ-01 的範本（`Card.activityLog`）寫的，原 Scenario 也沒說記在哪裡，不開任務，列入人工事後處理（T2.01 定義 ActivityRecord 時一併考慮）。
+5. 拆分粒度、跨模組一致（這段期間只改 F01）、保留原文、鐵則 2（roles／crud 沒動）：沒有新內容，未發現偏差。
+
+llm-review：G1 需要的 F01 每個 Feature 抽查已在 `9f436a3` 那則完成，那時唯一的問題（`uc-delete-card` 的 L-01／L-02）已由 D-02 修好。重跑 `uc-delete-card`：L-01 p1、p2 不重疊；L-02 成功 Scenario 的兩個 Then 對到 post 兩句，取消 Scenario 只讓 p2 不成立；L-05 沒有「卡片不存在」的失敗 Scenario，p1 沒有對應的 fail，跟其他 uc 的做法相同，可以接受；L-06 刪除 `card` 不違反任何關係的 min。
+
+### 待審任務處理
+沒有 `proposed` 的 D-xx。
+
+### 關卡摘要
+**G1 要確認的事**：F01 能不能當其餘模組的範本（usecase 拆分粒度、pre／post 措辭、實體粒度、角色表）。
+
+**目前狀態**：F01 是 0 error。唯一的 warning 是 UC-13（沒有 uc 建立 `board`），預期 F02 遷移後會消失，T2.04 時要確認。範本規則沿用 `9f436a3` 那則審查，另外 D-02 已經確定「使用者取消」的寫法：pre 寫「確認」，取消就是這條 pre 不成立時的 fail。
+
+**關卡前必須修正**：無。本次沒有開 `todo` 的 D-xx，同意自動核准 G1。
+
+**需人工事後處理**：
+- OQ-01 的選擇跟規則書遷移程序 7 的暗示不同（沿用前一則）。
+- `swimlane`／`stage` 存在性沒有 pre（沿用前一則），要補的話需要開 CR。
+- 發現 4：`uc-delete-card` 的活動紀錄記在被刪除的 `card` 上。
