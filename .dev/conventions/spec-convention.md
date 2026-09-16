@@ -1,18 +1,5 @@
 # 規格文件撰寫規範（Spec Convention）
 
-> **本次修訂摘要**（對應 `.dev/prompts/improve-convention-prompt.md` 的設計決策）
->
-> | 修訂處 | 對應決策 |
-> |------|------|
-> | 第 2 節：名詞定義拆成實體／欄位／關係三張表、新增「角色定義」、每個 Feature 底下新增「Use Case 定義」、段落標題改為固定字串 | D3(1)(2)(3) |
-> | 第 3.1 節：Feature 標頭「身為」後的角色名稱必須在角色表存在 | D3(2) |
-> | 第 4 節：Aggregate 註解的名稱必須是實體表的 ID，標記語意與 usecase 區塊的 `crud` 對齊 | D3(4) |
-> | 第 5 節：新增 `@uc-`、`@fail-` tag 與固定順序，範例全部更新 | D3(4) |
-> | 第 8 節：檢查清單拆成「腳本檢查」與「人工判斷」 | D1 |
-> | 新增第 9 節「ID 與反引號規則」 | D2 |
->
-> 既有的 spec 檔尚未依本版格式遷移，遷移前腳本檢查不會通過；遷移順序見 `open-questions.md` Q10。
-
 本文件定義專案中以 BDD / Gherkin 撰寫規格文件的方式，包含：文件結構、Gherkin 撰寫規則、Aggregate 標記、變更管理（tag 與流程）、何時該拆新 feature 檔，以及讓腳本能解析規格的 ID 規則。
 
 規格文件視同程式碼：進版控、走 PR、用 tag 標狀態，不依賴口頭或記憶來區分「哪些做完、哪些沒做、哪些改過」。
@@ -32,9 +19,9 @@
 | 一個模組一份文件 | 例如 `spec-kanban-basic.md`、`spec-approval-flow.md` |
 | 文件格式 | Markdown，Gherkin 內容放在 ```gherkin 程式碼區塊中；Use Case 定義放在 ```usecase 程式碼區塊中（內容為 YAML） |
 | 一份文件可含多個 Feature | 以 `---` 分隔，每個 Feature 一個 `## Feature:` 標題 |
-| Feature 對應 `.feature` 檔 | 若導入自動化測試，每個 `## Feature:` 區塊 1:1 對應一個 `.feature` 檔，內容直接複製程式碼區塊 |
+| Feature 對應 `.feature` 檔 | 若導入自動化測試，每個 `## Feature:` 區塊 1:1 對應一個 `.feature` 檔，內容直接複製程式碼區塊。這份 `.feature` 執行於應用層／API，不經 UI；UI 層的測試來源是 `ui-<模組>.md` 的驗收條件 |
 | 檔名 | 規格文件一律以 `spec-` 開頭，後接模組名：`spec-<模組>.md`，小寫英文 + 連字號。對應的 `.feature` 檔同樣以 `spec-` 開頭：`spec-<模組>-<feature>.feature`，例如 `spec-kanban-basic-card-editing.feature` |
-| 配套的 UI 短規格 | 同目錄下的 `ui-<模組>.md`，格式見 `ui-design-convention.md`；它只引用本文件定義的 ID，不定義新的實體、角色或 Use Case |
+| 配套的 UI 短規格 | 同目錄下的 `ui-<模組>.md`，格式見 `ui-convention.md`；它只引用本文件定義的 ID，不定義新的實體、角色或 Use Case |
 | 段落標題 | 第 2 節列出的段落標題是**固定字串**，腳本靠它們切段；不得改寫、翻譯或調整層級 |
 
 ---
@@ -277,31 +264,33 @@ Feature: <功能名稱>
 
 ### 3.3 Scenario 命名
 
-- 描述「行為 + 結果」，不描述 UI 操作：`刪除包含卡片的 Swimlane 需要先轉移卡片` ✅，`點擊刪除按鈕` ❌
+- 描述「行為 + 結果」，不描述 UI 操作：`刪除包含卡片的 Swimlane 需要先轉移卡片` ✅，`點擊刪除按鈕` ❌；整個 Scenario 全文（不只名稱）都適用，依 3.4 的禁字規則
 - 錯誤情境直接寫出規則：`Swimlane 名稱不可為空`、`看板至少保留一個 Stage`
 - 一個 Scenario 只驗證一個行為
 - 每個 Scenario 都屬於恰好一個 Use Case，以 `@uc-<id>` tag 標示（第 5 節）
 
 ### 3.4 步驟撰寫
 
+Gherkin 步驟用意圖與領域結果語言撰寫，不是 UI 操作語言：
+
 | 關鍵字 | 用途 | 語氣 |
 |--------|------|------|
-| Given | 前置狀態 | 「看板中存在…」「我正在…」 |
-| When | 使用者動作 | 「我點擊…」「我輸入…」「我將…拖曳到…」 |
-| Then | 可觀察的結果 | 「應該顯示…」「不應該…」 |
+| Given | 領域前置狀態 | 「看板中存在…」「卡片 "X" 屬於泳道 "Y"」 |
+| When | 使用者意圖（對應一個 Use Case，一次交易） | 「我刪除該 Swimlane 並指定目的泳道為 "…"」「我將卡片移到…」 |
+| Then | 領域結果或 Use Case 回傳結果 | 「Swimlane "X" 不存在」「拒絕，訊息為 "…"，且資料不變」 |
 | And | 延續上一個關鍵字 | — |
 
-- 多階段互動（例如刪除 → 確認 → 刪除）允許 `When / Then / When / Then` 交錯，不需要拆成兩個 Scenario。
+- 一個 Scenario 只包含一個 When（一次交易）。確認、取消、視窗開關等互動由 `ui-<模組>.md` 操作表的「需確認？」欄承接，不進 spec。
 - 步驟中的具名資料（名稱、標題、訊息文字、日期）一律用半形雙引號：`"緊急項目"`、`"2026-09-20"`。
-- UI 元件名稱用中文引號：`「新增 Swimlane」按鈕`。
-- 錯誤訊息與確認訊息寫出完整固定文字，作為驗收依據：`系統應該顯示錯誤訊息 "Swimlane 名稱不可為空"`。同一個 Use Case 的所有 Scenario 裡，同一種錯誤的訊息文字要一致（腳本會對 Then 步驟裡的引號字串做比對並 warn）。
+- 失敗結果寫成 `Then 拒絕，訊息為 "..."，且資料不變`（或 `結果為 "..."`）；訊息文字視為 Use Case 的回傳值，不用「顯示」。同一個 Use Case 的所有 Scenario 裡，同一種錯誤的訊息文字要一致（腳本會對 Then 步驟裡的引號字串做比對並 warn，見 GH-07）。
+- Given / When / Then / And 步驟不得出現「點擊、輸入、拖曳、顯示、畫面、按鈕、視窗、對話框、提示我」（建議新增檢查 GH-08，error）。
 - Gherkin 步驟裡**不用反引號**。步驟文字給人讀，ID 的引用只出現在 usecase 區塊、名詞表、角色表與 ui 檔（第 9 節）。
 - 多欄位輸入使用資料表：
 
 **格式範例**（Scenario 步驟中的資料表）：
 
 ```gherkin
-And 我填寫以下欄位：
+And 我建立卡片，欄位如下：
   | 欄位     | 內容                     |
   | 描述     | 設計符合品牌風格的登入頁面 |
   | 負責人   | 小明                     |
@@ -381,8 +370,8 @@ Scenario: ...
   #   swimlane: read, write
   Scenario: 為 Swimlane 設定顏色標記
     Given 看板中存在一個 Swimlane "緊急項目"
-    When 我為該 Swimlane 選擇顏色 "紅色"
-    Then 該 Swimlane 的標題列應該顯示紅色標記
+    When 我將該 Swimlane 的顏色設定為 "紅色"
+    Then 該 Swimlane 的顏色應該為 "紅色"
 ```
 
 ### 5.3 情境 B：變更既有 Scenario
@@ -396,12 +385,11 @@ Scenario: ...
   # Related aggregate:
   #   swimlane: read, write
   #   card: read, write
-  Scenario: 刪除包含卡片的 Swimlane 需要確認
+  Scenario: 刪除包含卡片的 Swimlane 會一併刪除卡片
     Given 看板中存在一個 Swimlane "本週優先"，其中包含 3 張卡片
-    When 我嘗試刪除該 Swimlane
-    Then 系統應該顯示確認訊息，告知該 Swimlane 內有 3 張卡片將一併被刪除
-    When 我確認刪除
-    Then 該 Swimlane 與其所有卡片都應該被移除
+    When 我刪除該 Swimlane
+    Then Swimlane "本週優先" 不存在
+    And 原屬該 Swimlane 的 3 張卡片不存在
 
   @changed @wip @CR-024 @uc-delete-swimlane
   # Related aggregate:
@@ -409,22 +397,20 @@ Scenario: ...
   #   card: read, write
   Scenario: 刪除包含卡片的 Swimlane 需要先轉移卡片
     Given 看板中存在一個 Swimlane "本週優先"，其中包含 3 張卡片
-    When 我嘗試刪除該 Swimlane
-    Then 系統應該提示我選擇一個目的 Swimlane 來接收這 3 張卡片
-    When 我選擇目的 Swimlane 為 "預設泳道"
-    Then 這 3 張卡片應該被移動到 "預設泳道"
-    And Swimlane "本週優先" 應該被刪除
+    And 看板中存在一個 Swimlane "預設泳道"
+    When 我刪除該 Swimlane 並指定目的 Swimlane 為 "預設泳道"
+    Then Swimlane "本週優先" 不存在
+    And 這 3 張卡片應該屬於 "預設泳道"
 
   @added @wip @CR-024 @uc-delete-swimlane @fail-p2
   # Related aggregate:
   #   swimlane: read
   #   card: read
-  Scenario: 未選擇目的 Swimlane 時不可刪除包含卡片的 Swimlane
+  Scenario: 未指定目的 Swimlane 時不可刪除包含卡片的 Swimlane
     Given 看板中存在一個 Swimlane "本週優先"，其中包含 3 張卡片
-    When 我嘗試刪除該 Swimlane
-    And 我沒有選擇目的 Swimlane 就確認刪除
-    Then 系統應該顯示錯誤訊息 "請選擇接收卡片的目的 Swimlane"
-    And Swimlane "本週優先" 與其中的 3 張卡片都不應該被移除
+    When 我刪除該 Swimlane 而未指定目的 Swimlane
+    Then 拒絕，訊息為 "請選擇接收卡片的目的 Swimlane"
+    And Swimlane "本週優先" 與其中的 3 張卡片都仍然存在
 ```
 
 開發者看到同票號的 `@deprecated` + `@changed` 就知道「這條是要蓋掉那條」；`@fail-p2` 則指向 usecase 區塊 `pre.p2`「目的泳道已指定」不成立時的行為。
@@ -504,7 +490,7 @@ Scenario: ...
 
 ### 8.2 人工判斷（腳本做不到的）
 
-- [ ] Scenario 名稱描述行為與結果，非 UI 操作
+- [ ] Scenario 全文不含 UI 操作（禁字由 GH-08 擋，這裡看語意上是否仍在描述互動）
 - [ ] 錯誤 / 確認訊息是完整固定文字，不是「顯示錯誤」這種概述
 - [ ] usecase 區塊的 `pre` 各句互斥、沒有重疊或包含
 - [ ] 每個 Scenario 的 Given／Then 真的體現對應的 `pre`／`post`
@@ -532,10 +518,22 @@ Scenario: ...
 
 規則：
 
-- 沒有 Operation、UserStory、Constraint 這些獨立概念。前置／後置條件是 UseCase 的欄位；user story 就是 Feature 標頭那三行。
+- 沒有 Operation、UserStory、Constraint 這些獨立概念。前置／後置條件是 UseCase 的欄位；user story 就是 Feature 標頭那三行。跨多個 Use Case 的操作序列（多步驟流程）由 `ui-<模組>.md` 的「進入與離開」與「流程」類型畫面表達，spec 不描述。
 - 腳本依前綴判斷種類：`r-`、`uc-`、`ev-`、`s-` 四種前綴保留給對應概念，實體 ID 不得以這四個前綴開頭；含 `.` 的視為 Attribute，其餘視為 Entity。
 - 反引號 ID 會出現的地方：usecase 區塊的 `pre`／`post`／`fail`、名詞表與角色表以外的說明文字、變更紀錄摘要、ui 檔的表格與段落、CR 的影響範圍欄位。**Gherkin 步驟裡不出現反引號**（3.4）。
 - 引用其他模組的 ID 直接寫同一個 ID；腳本一次讀取所有 `spec-*.md` 與 `ui-*.md` 後才做參照檢查，所以跨檔引用不需要額外宣告。要知道某個 ID 定義在哪個模組，看 `spec-check --report` 的「外部引用」表。
 - ID 一旦進入開發就不改名；要改名視為「移除 + 新增」，走 CR。
 - 反引號裡的字串若不符合上述任何一種形式（例如 `Instant.now()`、`BoardClock`），腳本回報 error（REF-01）。這類程式碼層級的名稱屬於後端設計文件的範圍，不該出現在規格檔。
 - 唯一例外是**檔案路徑**：反引號內容含 `/` 或以 `.md` 結尾（例如 `.dev/F04-board-clock/spec-board-clock.md`）時視為檔案引用，腳本略過不解析。
+
+---
+
+## 變更紀錄
+
+- 名詞定義拆成實體／欄位／關係三張表、新增「角色定義」、每個 Feature 底下新增「Use Case 定義」、段落標題改為固定字串。
+- Feature 標頭「身為」後的角色名稱必須在角色表存在。
+- Aggregate 註解的名稱必須是實體表的 ID，標記語意與 usecase 區塊的 `crud` 對齊。
+- 新增 `@uc-`、`@fail-` tag 與固定順序，範例全部更新。
+- 檢查清單拆成「腳本檢查」與「人工判斷」。
+- 新增第 9 節「ID 與反引號規則」。
+- Gherkin 步驟改為意圖與領域結果語言，禁止 UI 操作用詞，一個 Scenario 限一個 When。
