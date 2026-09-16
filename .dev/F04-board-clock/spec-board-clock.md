@@ -190,3 +190,4 @@ Feature: 看板時間管理
 
 - 多人同時開啟同一個 Board 時，時鐘是 Board 共用狀態，一人調整後其他人畫面是否即時反映（推播或輪詢），依現有「即時同步」Open Question（見 F01）尚未決定，本文件不重複展開。
 - User 建立、BoardMembership（邀請／角色變更）事件是否也需要一個「系統時鐘」的模擬能力：已確認本次範圍不含，維持系統時間，若未來有需求另開規格。
+- OQ-08：`uc-guard-clock-monotonicity` 的建模歸屬（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）。
