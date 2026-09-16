@@ -655,3 +655,23 @@
 
 ### Act
 完成，下一個任務：T2.14（[F04] 遷移程序 1～6：狀態行、名詞／角色表、「身為」行；「決議紀錄」段落保留）。
+
+## Iteration 27 — 2026-09-16 21:30 — T2.14
+### Plan
+本輪任務 T2.14：對 `.dev/F04-board-clock/spec-board-clock.md` 執行遷移程序 1～6（狀態行、實體／欄位／關係／其他名詞表、角色定義表、Feature 標頭「身為」行），「決議紀錄」段落保留不動。驗收條件：`errors(F04;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0`。預期 F04 error 數從 54 下降（新增結構會解鎖部分檢查，其餘 UC／GH-01 等 tag／usecase 相關 error 留到 T2.15～T2.16）。
+
+### Do
+- a1cc822 [spec/design](board-clock) 遷移狀態行與名詞角色表至新格式
+- 低影響假設：Feature 標頭「身為看板的使用者」改為「身為 看板使用者」，對應 F01 已定義的 `r-user`（看板使用者），不新設角色，角色定義表留空（沿用 F03 對 `r-user` 的處理方式）
+- 實體／欄位／關係表暫填空表頭（本模組 Board Clock 是 `board` aggregate 內部狀態，非獨立實體，是否需要拆出欄位留待 T2.15 依 usecase 推導時再決定）
+- 未新增 OQ；未動「決議紀錄」與「待釐清」段落
+
+### Check
+- `./scripts/spec-check`（全部）最後一行：110 error(s), 0 warning(s)（開工前 116）
+- `tools error-count .dev/F04-board-clock/spec-board-clock.md`：開工前 54 → 收尾時 48
+- `tools accept-check spec-migration-tasks.md T2.14`：無輸出，exit 0（達成）
+- `tools gherkin-diff`：一致（43 行）；`tools tag-diff`：一致；`tools changelog-check`：一致
+- 驗收條件逐條確認：GH-08／REF-03／REF-04／REF-05／REF-08／REF-09 均為 0（已在 F04 error 明細中確認不再出現這些代碼）
+
+### Act
+完成，下一個任務：T2.15（[F04]「看板時間管理」usecase 區塊＋tag＋Aggregate 註解）
