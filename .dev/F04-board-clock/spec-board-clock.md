@@ -53,6 +53,52 @@ Board Clock 是 F03（標準圖表）計算 `asOf`、Aging、逾期判斷的時�
 
 ## Feature: 看板時間管理
 
+### Use Case 定義
+```usecase
+- id: uc-adjust-board-clock
+  name: 調整看板時間
+  roles: [r-board-owner]
+  crud: {board: U}
+  pre:
+    p1: "我是該 `board` 的 Owner"
+  post:
+    - "`board` 的看板時間更新為指定時間"
+    - "該操作被記錄為 `board` 的一筆活動紀錄，包含操作人與操作時間"
+  fail:
+    p1: "拒絕，顯示錯誤訊息「只有 Owner 可以調整看板時間」，`board` 的看板時間維持不變"
+  emits: []
+  requires: []
+  calls-sync: []
+
+- id: uc-guard-clock-monotonicity
+  name: 看板時間早於最後事件時阻擋寫入
+  roles: [r-user]
+  crud: {board: U}
+  pre:
+    p1: "看板時間不早於該 `board` 最後一筆事件的發生時間"
+  post:
+    - "允許在 `board` 底下建立新事件，新事件的時間戳記使用目前的看板時間"
+  fail:
+    p1: "拒絕，顯示錯誤訊息「看板時間早於最後一筆事件（13:00），無法建立新事件」，不建立新事件，`board` 資料不變"
+  emits: []
+  requires: []
+  calls-sync: []
+
+- id: uc-pause-resume-board-clock
+  name: 暫停或恢復看板時間
+  roles: [r-board-owner]
+  crud: {board: U}
+  pre:
+    p1: "我是該 `board` 的 Owner"
+  post:
+    - "`board` 的看板時間狀態切換為 PAUSED 或 REALTIME"
+    - "該操作被記錄為 `board` 的一筆活動紀錄，包含操作人與操作時間"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+```
+
 ```gherkin
 Feature: 看板時間管理
   身為 看板使用者
@@ -63,6 +109,7 @@ Feature: 看板時間管理
     Given 我已登入系統，並開啟 Board "產品開發看板"
     And 看板時間目前為 2026-09-12 11:00:00
 
+  @uc-guard-clock-monotonicity
   # Related aggregate:
   #   board: read, write
   Scenario: 把看板時間調整到未來後建立卡片，事件時間應為調整後的時間
@@ -70,6 +117,7 @@ Feature: 看板時間管理
     And 我建立一張卡片 "A"
     Then 卡片 "A" 的建立時間應該是 2026-09-12 13:00:00
 
+  @uc-adjust-board-clock
   # Related aggregate:
   #   board: read, write
   Scenario: 看板時間可以往回調整
@@ -77,6 +125,7 @@ Feature: 看板時間管理
     When 我將看板時間調整為 2026-09-12 12:00:00
     Then 看板時間應該顯示 2026-09-12 12:00:00
 
+  @uc-guard-clock-monotonicity @fail-p1
   # Related aggregate:
   #   board: read
   Scenario: 看板時間早於最後一筆事件時，不可建立新事件
@@ -86,6 +135,7 @@ Feature: 看板時間管理
     Then 系統應該顯示錯誤訊息 "看板時間早於最後一筆事件（13:00），無法建立新事件"
     And 不應該建立新的卡片
 
+  @uc-pause-resume-board-clock
   # Related aggregate:
   #   board: write
   Scenario: 暫停看板時間
@@ -93,6 +143,7 @@ Feature: 看板時間管理
     And 我等待 10 秒
     Then 看板時間應該仍顯示 2026-09-12 11:00:00
 
+  @uc-pause-resume-board-clock
   # Related aggregate:
   #   board: write
   Scenario: 恢復看板時間
@@ -100,6 +151,7 @@ Feature: 看板時間管理
     When 我恢復看板時間
     Then 看板時間應該從 2026-09-12 11:00:00 繼續隨系統時間前進
 
+  @uc-adjust-board-clock @fail-p1
   # Related aggregate:
   #   board: read
   Scenario: 非 Owner 嘗試調整看板時間
@@ -108,6 +160,7 @@ Feature: 看板時間管理
     Then 系統應該顯示錯誤訊息 "只有 Owner 可以調整看板時間"
     And 看板時間應該維持不變
 
+  @uc-adjust-board-clock
   # Related aggregate:
   #   board: write
   Scenario: 調整看板時間應記錄一筆活動紀錄
@@ -115,6 +168,7 @@ Feature: 看板時間管理
     When 我將看板時間調整為 2026-09-12 13:00:00
     Then 應該新增一筆活動紀錄，說明看板時間被調整為 2026-09-12 13:00:00
 
+  @uc-pause-resume-board-clock
   # Related aggregate:
   #   board: write
   Scenario: 暫停或恢復看板時間應記錄一筆活動紀錄
