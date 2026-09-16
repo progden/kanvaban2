@@ -29,7 +29,7 @@
 
 | ID | 狀態 | 任務 | 驗收條件 | 依賴 |
 |----|------|------|----------|------|
-| T1.01 | todo | [F01] 遷移程序 1～6：狀態行、名詞定義三張表＋其他名詞、角色定義、三個 Feature 的「身為」行與 `## Feature:` 標題（實體 ID 含所屬 Aggregate；原名詞表的說明文字分流到四張表，不刪） | `errors(F01;GH-08,REF-03,REF-04,REF-05,REF-09)=0`；原名詞表每一列說明都能在新表找到（PDCA Check 逐列對照） | T0.02 |
+| T1.01 | done | [F01] 遷移程序 1～6：狀態行、名詞定義三張表＋其他名詞、角色定義、三個 Feature 的「身為」行與 `## Feature:` 標題（實體 ID 含所屬 Aggregate；原名詞表的說明文字分流到四張表，不刪） | `errors(F01;GH-08,REF-03,REF-04,REF-05,REF-09)=0`；原名詞表每一列說明都能在新表找到（PDCA Check 逐列對照） | T0.02 |
 | T1.02 | todo | [F01] 「Swimlane 管理」Feature 的 usecase 區塊＋該 Feature 全部 Scenario 的 `@uc-`／`@fail-` tag 與 Aggregate 註解對齊（遷移程序 7～9） | `errors(F01#Swimlane 管理)=0` | T1.01 |
 | T1.03 | todo | [F01] 同上，「Stage（階段）管理」 | `errors(F01#Stage（階段）管理)=0` | T1.02 |
 | T1.04 | todo | [F01] 同上，「Card（卡片）編輯」 | `errors(F01#Card（卡片）編輯)=0` | T1.03 |

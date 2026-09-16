@@ -81,3 +81,33 @@
 
 ### Act
 完成，下一個任務：T1.01（[F01] 遷移程序 1～6）。
+
+## Iteration 3 — 2026-09-16 21:00 — T1.01
+### Plan
+本輪任務 T1.01：對 `.dev/F01-basic-kanban/spec-kanban-basic.md` 執行遷移程序 1～6：加狀態行、把原名詞表拆成實體／欄位／關係／其他名詞四張表、新增角色定義表、修正三個 Feature 的「身為」行與 `## Feature:` 標題。只改這一份檔案。驗收條件：`errors(F01;GH-08,REF-03,REF-04,REF-05,REF-09)=0`；原名詞表五列說明都要能在新表找到。預期 F01 error 數會從 84 明顯下降（GH-08／REF-03～05／REF-09 這批結構性錯誤消失），但 UC-01 等 usecase 相關錯誤（留給 T1.02～04）仍會存在。
+
+### Do
+- commit feea843 `[spec/design](basic-kanban) 遷移名詞定義、角色定義與 Feature 標頭至新格式`
+- 實體表：`board`（root，含 Swimlane、Stage）、`swimlane`（board）、`stage`（board）、`card`（root），說明文字照搬原名詞表對應列。
+- 欄位表：`swimlane.name`（非空）、`stage.name`、`stage.role`（enum NONE/START/DONE，START/DONE 各至多一個）、`card.title`（非空）、`card.description`、`card.due-date`、`card.labels`、`card.swimlane`（ref，建立時必填）、`card.stage`（ref，建立時必填）——皆可指到既有 Scenario 步驟或原名詞表。
+- 關係表：`board`→`swimlane`（1..n，對應「看板至少保留一個 Swimlane」Scenario）、`board`→`stage`（1..n，同理）、`swimlane`→`card`（0..n）、`stage`→`card`（0..n）。
+- 其他名詞：「Stage 角色（role）」「操作時間（occurredAt）」照搬原文，僅去除 code 反引號改「」（`BoardClock.now()` → 「BoardClock.now()」），檔案路徑維持反引號。
+- 角色定義：只設一個 `r-user`（看板使用者），因三個 Feature 的「身為」原文皆相同（低影響假設，純命名選擇，寫入 state）。
+- 三個 Feature 的「身為看板的使用者」改為「身為 看板使用者」（gherkin-diff 會忽略此行，已用工具確認）。
+- 修正 H2 標題與 gherkin `Feature:` 名稱不一致的兩處（原文只在 H2，不動 gherkin，屬遷移程序步驟 6 允許的修改，非 F 編號偏移）：
+  - 「## Feature: Stage 管理」→「## Feature: Stage（階段）管理」（對齊 gherkin `Feature: Stage（階段）管理`）
+  - 「## Feature: Card 編輯」→「## Feature: Card（卡片）編輯」（對齊 gherkin `Feature: Card（卡片）編輯`）
+- 低影響假設：`card.due-date` 用 kebab-case 而非原詞 dueDate，因欄位 ID 格式（`ATTR_RE`）不允許大寫字母；留言（新增留言 Scenario）與活動紀錄未建立獨立實體，沿用 fixture 範例作法（後續 uc 的 crud 直接標 `card: U`／`board: U`），因 Aggregate 註解與原名詞表都未把它們列為獨立名詞。
+- gherkin 區塊內容（Feature/Background/Scenario/步驟/tag/Aggregate 註解）完全未動，只改了 H2 標題文字與「身為」行。
+
+### Check
+- `tools gherkin-diff .dev/F01-basic-kanban/spec-kanban-basic.md`：exit 0，「Gherkin 行為與遷移前一致（160 行）」。
+- `tools tag-diff` 同檔：exit 0，無輸出。
+- `tools changelog-check` 同檔：exit 0，無輸出（本輪未改變更紀錄）。
+- `tools error-count`：F01 開工前 84 → 收尾 38。
+- `tools accept-check <tasks> T1.01`：exit 0，通過。
+- `./scripts/spec-check`：`321 error(s), 4 warning(s)`（全部 error 總數 433 → 321）。
+- 原名詞表 5 列逐列對照：Board／Swimlane／Stage／Card 說明搬到實體表對應列（文字不變）；Stage 角色（role）、操作時間（occurredAt）搬到其他名詞表（文字不變，僅去反引號）——全部找到，無遺漏。
+
+### Act
+完成，下一個任務：T1.02（[F01]「Swimlane 管理」Feature 的 usecase 區塊＋tag／Aggregate 註解對齊）。
