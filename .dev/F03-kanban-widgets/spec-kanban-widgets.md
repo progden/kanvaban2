@@ -9,8 +9,23 @@
 
 核心只回傳計算後的資料（既有決策），前端負責畫圖。所有圖表都以 `asOf`（= Board Clock 目前時間，見 [`spec-board-clock.md`](../F04-board-clock/spec-board-clock.md)）為基準，不使用瀏覽器時間。所有圖表都依賴 Stage 是否已設定 `Start`／`Done` 角色（見 CR-003，`spec-kanban-basic.md`「Stage 管理」Feature）。
 
+狀態：開發中
+
 ## 名詞定義
 
+### 實體
+| ID | 名詞 | 所屬 Aggregate | 說明 |
+|---|---|---|---|
+
+### 欄位
+| ID | 型別／格式 | 限制 | 說明 |
+|---|---|---|---|
+
+### 關係
+| 來源 | 目標 | min | max | 說明 |
+|---|---|---|---|---|
+
+### 其他名詞
 | 名詞 | 說明 |
 |------|------|
 | Lead Time | 卡片從建立到完成（進入 Done 角色的 Stage）所經過的時間 |
@@ -20,6 +35,10 @@
 | Throughput | 單位時間（日／週）內完成（進入 Done）的卡片數量 |
 | CFD（Cumulative Flow Diagram，累積流量圖） | 每天各 Stage 累積卡片數量隨時間變化的圖 |
 | asOf | 圖表計算基準時間，取自 Board Clock 目前時間 |
+
+## 角色定義
+| ID | 名稱 | 說明 |
+|---|---|---|
 
 ## Aggregate 標記說明
 
@@ -41,7 +60,7 @@
 
 ```gherkin
 Feature: Cycle Time 與 Lead Time 分析
-  身為看板的使用者
+  身為 看板使用者
   我想要檢視卡片從開始到完成花費的時間
   以便評估團隊的交付速度與承諾交期
 
@@ -83,7 +102,7 @@ Feature: Cycle Time 與 Lead Time 分析
 
 ```gherkin
 Feature: WIP 與 Aging WIP 監控
-  身為看板的使用者
+  身為 看板使用者
   我想要檢視各 Stage 目前的卡片數量，以及進行中卡片已經停留多久
   以便及早發現流程卡住的地方
 
@@ -115,7 +134,7 @@ Feature: WIP 與 Aging WIP 監控
 
 ```gherkin
 Feature: Throughput 與累積流量圖
-  身為看板的使用者
+  身為 看板使用者
   我想要檢視單位時間完成的卡片數量與各 Stage 卡片數量隨時間的變化
   以便掌握團隊的產出趨勢與流程瓶頸
 
@@ -146,7 +165,7 @@ Feature: Throughput 與累積流量圖
 
 ```gherkin
 Feature: 截止日期提醒
-  身為看板的使用者
+  身為 看板使用者
   我想要檢視已逾期或即將到期的卡片
   以便優先處理有時間壓力的工作項目
 
