@@ -2,11 +2,11 @@
 
 | 編號 | 標題 | 類型 | 提出人 | 提出日期 | 影響模組 | 影響 ID | 狀態 | 完成日期 | 明細 |
 |------|------|------|--------|----------|----------|---------|------|----------|------|
-| CR-001 | Board/Card 補上操作人記錄 | 變更 | SA | 2026-09-12 | spec-kanban-basic、spec-user-membership | | 處理完成 | 2026-09-12 | |
-| CR-002 | 卡片負責人改為多選 | 變更 | SA | 2026-09-12 | spec-kanban-basic、spec-user-membership | | 處理完成 | 2026-09-12 | |
-| CR-003 | Stage 新增角色標記（Start／Done） | 新增 | SA | 2026-09-13 | spec-kanban-basic | | 處理完成 | 2026-09-13 | |
-| CR-004 | 事件時間改用 Board Clock | 變更 | SA | 2026-09-13 | spec-kanban-basic、spec-user-membership、spec-board-clock | | 處理完成 | 2026-09-13 | |
-| CR-005 | 規格格式遷移至 usecase 區塊 | 變更 | SA | 2026-09-16 | spec-kanban-basic、spec-user-membership、spec-kanban-widgets、spec-board-clock、spec-workload、spec-feature-cr-board | | 修改規格 | | |
+| CR-001 | Board/Card 補上操作人記錄 | 變更 | SA | 2026-09-12 | spec-kanban-basic、spec-user-membership | `board`、`card`、`uc-add-swimlane`、`uc-rename-swimlane`、`uc-reorder-swimlane`、`uc-delete-swimlane`、`uc-add-stage`、`uc-rename-stage`、`uc-reorder-stage`、`uc-delete-stage`、`uc-add-card`、`uc-edit-card`、`uc-move-card-swimlane`、`uc-move-card-stage`、`uc-delete-card` | 處理完成 | 2026-09-12 | |
+| CR-002 | 卡片負責人改為多選 | 變更 | SA | 2026-09-12 | spec-kanban-basic、spec-user-membership | `card`、`uc-edit-card`、`uc-set-card-assignees`(新增)、`uc-list-card-assignee-candidates`(新增)、`uc-view-card-assignees`(新增)、`uc-list-cards-by-assignee`(新增)、`uc-assign-card-owner-by-drag`(新增) | 處理完成 | 2026-09-12 | |
+| CR-003 | Stage 新增角色標記（Start／Done） | 新增 | SA | 2026-09-13 | spec-kanban-basic | `stage`、`uc-set-stage-role`(新增) | 處理完成 | 2026-09-13 | |
+| CR-004 | 事件時間改用 Board Clock | 變更 | SA | 2026-09-13 | spec-kanban-basic、spec-user-membership、spec-board-clock | `board`、`card`、`uc-adjust-board-clock`(新增)、`uc-guard-clock-monotonicity`(新增)、`uc-pause-resume-board-clock`(新增) | 處理完成 | 2026-09-13 | |
+| CR-005 | 規格格式遷移至 usecase 區塊 | 變更 | SA | 2026-09-16 | spec-kanban-basic、spec-user-membership、spec-kanban-widgets、spec-board-clock、spec-workload、spec-feature-cr-board | `board`、`board-membership`、`card`、`stage`、`swimlane`、`user`、`uc-add-card`、`uc-add-comment`、`uc-add-stage`、`uc-add-swimlane`、`uc-adjust-board-clock`、`uc-assign-card-owner-by-drag`、`uc-change-member-role`、`uc-create-board`、`uc-create-user`、`uc-delete-board`、`uc-delete-card`、`uc-delete-stage`、`uc-delete-swimlane`、`uc-drag-assign-card-owner`、`uc-edit-card`、`uc-guard-clock-monotonicity`、`uc-invite-member`、`uc-list-card-assignee-candidates`、`uc-list-cards-by-assignee`、`uc-login`、`uc-logout`、`uc-member-add-card`、`uc-move-card-stage`、`uc-move-card-swimlane`、`uc-pause-resume-board-clock`、`uc-reject-board-access-by-nonmember`、`uc-reject-invite-by-member`、`uc-reject-role-change-by-member`、`uc-reject-structure-change-by-member`、`uc-remove-member`、`uc-rename-stage`、`uc-rename-swimlane`、`uc-reorder-stage`、`uc-reorder-swimlane`、`uc-set-card-assignees`、`uc-set-stage-role`、`uc-view-aging-wip`、`uc-view-board-activity-log`、`uc-view-board-list`、`uc-view-card-assignees`、`uc-view-cfd`、`uc-view-cycle-lead-time`、`uc-view-duedate-reminder`、`uc-view-feature-cr-board`、`uc-view-throughput`、`uc-view-wip`、`uc-view-workload` | 修改規格 | | |
 
 ### CR-001：Board/Card 補上操作人記錄
 - 背景：Swimlane／Stage／Card 會改變狀態的情境，原本沒有記錄是誰做的操作，F02 要做活動紀錄需要這份資料。
