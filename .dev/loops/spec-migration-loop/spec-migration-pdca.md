@@ -738,3 +738,23 @@
 
 ### Act
 完成，下一個任務：T2.16（[F04] 遷移程序 10～11 與收尾，F04 全檔 0 error）
+
+## Iteration 32 — 2026-09-16 — T2.16
+### Plan
+上一輪驗證 FAIL 項目為「[4] PDCA 標題格式錯誤：`## Iteration 31 — 2026-09-16 23:05 — FAIL修正 + D-07`」。查 `check_pdca_append` 實作（`spec-migration-tools.py:188-205`）：格式檢查只針對「本輪新追加」的區段（`check_append` 以 `head_text.startswith(base_text)` 判定舊內容），Iteration 31 的標題已隨上一輪 commit 定案，屬於本輪的 `base`（不可修改的舊內容），依鐵則 4／檔案地圖「PDCA…只能追加」不能回頭改寫；因此該格式錯誤無法回溯修正，只能確保本輪新追加的標題本身格式正確（不再重蹈覆轍），並在本則記錄此限制。本輪任務依 `actionable` 為 T2.16：對 `.dev/F04-board-clock/spec-board-clock.md` 執行遷移程序 10～11（正文反引號清理、變更紀錄收尾加 CR-005 列）。驗收條件：`errors(F04)=0`。預期 F04 error 數從 38 降到 0，全部 spec error 總數從 100 降到約 62。
+
+### Do
+- 說明：Iteration 31 標題格式錯誤（`FAIL修正 + D-07` 不符 `<任務編號>` 單值格式）已無法回溯修正，見上述 Plan；本則標題改回單一任務編號格式
+- 1bbe7b4 [spec/design](board-clock) 完成正文反引號清理與變更紀錄收尾
+- 遷移程序 10（正文清理）：簡介「`asOf`」、Aggregate 標記說明「`read`／`write`」「`BoardClock`」「`Board`」「`write`」、其他名詞表「`occurredAt`」、變更紀錄兩列與決議紀錄兩則裡的程式碼名稱（`kanban-core`、`BoardClock`、`Board`、`Board.now()`、`adjustClock`、`pauseClock`、`resumeClock`、`BOARD_CLOCK_BEHIND_LAST_EVENT`、`Card`、`OperationContext(operatorId, now)`、`Board.newEventTime()`、`kanban-spring`、`BoardMembership`、`activityLog`、`stageTransitions`、`ArrayList`、`sequence`、`CardTimeline`）改為「」；`spec-kanban-basic.md` 為既有 `.md` 檔案路徑，維持反引號；`board-clock.feature` 因 REF-01 會誤判為 entity.attr（跑 spec-check 後才發現），非本 repo 現存檔案，改為「board-clock.feature」而非保留反引號
+- 遷移程序 11（變更紀錄收尾）：F04 變更紀錄原已是四欄格式（日期／票號／類型／摘要），無需改表格結構；末尾追加一列 `| 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（uc-adjust-board-clock、uc-guard-clock-monotonicity、uc-pause-resume-board-clock） |`
+- 未新增 OQ；未動 gherkin、usecase 區塊、Aggregate 註解、決議紀錄／待釐清的原有條目文字（僅換引號）
+
+### Check
+- `./scripts/spec-check`（全部）最後一行：62 error(s), 0 warning(s)（開工前 100）
+- `tools error-count .dev/F04-board-clock/spec-board-clock.md`：開工前 38 → 收尾時 0
+- `tools accept-check spec-migration-tasks.md T2.16`：無輸出，exit 0（達成，`errors(F04)=0`）
+- `tools gherkin-diff`：一致（43 行）；`tools tag-diff`：一致；`tools changelog-check`：一致（exit 0）
+
+### Act
+完成，下一個任務：T2.17（[F05] 遷移程序 1～6：狀態行、名詞／角色表、「身為」行）
