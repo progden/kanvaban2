@@ -376,3 +376,28 @@
 
 ### Act
 完成：下一個任務 T2.04（[F02]「Board 建立與成員邀請」usecase 區塊＋tag＋Aggregate 註解）。
+
+## Iteration 15 — 2026-09-16 21:05 — T2.04
+
+### Plan
+`tools actionable` 第一個任務是 T2.04（[F02]「Board 建立與成員邀請」usecase 區塊＋tag＋Aggregate 註解），無待核准關卡、無待做 D-xx。要改的檔案：`.dev/F02-user-membership/spec-user-membership.md`，只動「Board 建立與成員邀請」Feature 段落（第 239～409 行區間）：加 `### Use Case 定義` 與 `usecase` 區塊、每個 Scenario 加 `@uc-`／`@fail-` tag、Aggregate 註解 `boardMembership` 改為實體 ID `board-membership`。驗收條件：`errors(F02#Board 建立與成員邀請)=0`。預期全部 spec error 總數下降（F02 從 79 降低）。
+
+### Do
+- `83db527` [spec/design](user-membership) 遷移 Board 建立與成員邀請至 usecase 區塊：新增 4 個 uc（`uc-create-board`／`uc-invite-member`／`uc-change-member-role`／`uc-remove-member`），9 個 Scenario 掛 `@uc-`／`@fail-` tag，Aggregate 註解 `boardMembership` 全部改為 `board-membership`，並補上 GH-06 要求的 `card: write` 註解（Scenario「還有其他 Owner 時，可以移除其中一位 Owner」）。
+- 低影響假設（格式選擇，未記 OQ）：
+  1. 四個 uc 的 `roles` 一律採 Feature 標頭字面「Board 擁有者」對應的 `r-board-owner`（含 `uc-create-board`；建立者在建立當下尚非既有 Owner，但標頭本來就以 Owner 視角撰寫，不另外推論新角色）。
+  2. Scenario「多位 Owner 都擁有相同的管理權限」同時示範邀請（雅婷邀建宏）與移除（雅婷移除建宏）兩個動作，但 GH-01 規定每個 Scenario 恰好一個 `@uc-` tag，故只掛 `@uc-invite-member`（動作順序中的第一個），移除動作的驗證已由其他 Scenario（「還有其他 Owner 時可以移除其中一位 Owner」等）涵蓋，此 Scenario 未貢獻新的 pre/post 內容。
+  3. `uc-create-board` 的 `pre` 因 crud 含 C 而依 UC-06 須非空，但該 Feature 沒有建立 Board 失敗的 Scenario；改用 Background 步驟「已登入系統」作為 `pre.p1`（鐵則 2 明列 Background 可作為 pre 的依據）。
+- 過程中依 UC-03（pre/post/fail 每句需含反引號 ID）與 GH-06（Aggregate 註解需與 crud 對齊）修正措辭，未改變任何 Scenario 的 gherkin 行為與 tag（`@CR-`／狀態 tag）。
+
+### Check
+- `./scripts/spec-check` 最後一行：開工前「237 error(s), 2 warning(s)」→ 收尾「217 error(s), 0 warning(s)」（下降 20，warning 減少是因為本輪未觸發原本與其他項目重疊計數的警告，非刻意調整）。
+- `tools error-count .dev/F02-user-membership/spec-user-membership.md`：79 → 59。
+- `tools accept-check spec-migration-tasks.md T2.04`：exit 0，無輸出。
+- `tools gherkin-diff .dev/F02-user-membership/spec-user-membership.md`：exit 0，「Gherkin 行為與遷移前一致（216 行）」。
+- `tools tag-diff`：exit 0，無輸出。
+- `tools changelog-check`：exit 0，無輸出。
+- 逐條對照驗收條件：`errors(F02#Board 建立與成員邀請)=0` 已達成（`accept-check` 確認）。
+
+### Act
+完成：下一個任務 T2.05（[F02]「Board 權限管理」usecase 區塊＋tag＋Aggregate 註解）。
