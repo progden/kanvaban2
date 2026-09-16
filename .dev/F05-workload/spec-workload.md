@@ -86,7 +86,7 @@
   calls-sync: []
 ```
 
-拖曳追加負責人的兩個 Scenario 與 `spec-user-membership.md`「卡片負責人指派」Feature 的 `uc-assign-card-owner-by-drag` 是同一個操作；但 GH-01 要求「@uc-」tag 只能指向同一 Feature 內的 usecase，本文件另立 `uc-drag-assign-card-owner`，「pre」「post」只依本 Feature 的 Scenario 步驟推導（見 OQ-09）。
+拖曳追加負責人的兩個 Scenario 與 `spec-user-membership.md`「卡片負責人指派」Feature 的 `uc-assign-card-owner-by-drag` 是同一個操作；但 GH-01 要求「@uc-」tag 只能指向同一 Feature 內的 usecase，本文件另立 `uc-drag-assign-card-owner`，「pre」「post」依本 Feature 的 Scenario 步驟與本檔待釐清的定案推導（見 OQ-09）。
 
 ```gherkin
 Feature: 人員工作量檢視
