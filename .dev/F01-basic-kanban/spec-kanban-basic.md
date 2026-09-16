@@ -492,11 +492,12 @@ Feature: Stage（階段）管理
   crud: {card: D}
   pre:
     p1: "`card` 存在"
-    p2: "使用者於刪除 `card` 的確認訊息中選擇取消"
+    p2: "使用者於刪除 `card` 的確認訊息中確認刪除"
   post:
-    - "使用者確認後，該 `card` 從看板中移除"
+    - "該 `card` 從看板中移除"
+    - "該操作被記錄為 `card` 的一筆活動紀錄，包含操作人與操作時間"
   fail:
-    p2: "拒絕，該 `card` 不被移除，資料不變"
+    p2: "不刪除，該 `card` 仍存在於看板中，資料不變"
   emits: []
   requires: []
   calls-sync: []
@@ -607,6 +608,7 @@ Feature: Card（卡片）編輯
 
 - OQ-01：活動紀錄不另立 uc、不 emits 事件，改由各 uc 的 post 與 board 的 crud/Aggregate 註解表達（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
 - OQ-02：「取消刪除卡片」歸入 uc-delete-card 的 fail 分支（@fail-p2），不視為需要 card: write 的成功 Scenario（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
+- OQ-03：uc-delete-card 的 pre.p2 措辭修正為「確認刪除」，「取消」改記在 fail.p2（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
 - Swimlane / Stage 是否需要支援「顏色標記」以利辨識？
 - 卡片是否需要支援子任務（Checklist）或附件？
 - 是否需要「已封存（Archived）」的卡片與泳道狀態，而非直接刪除？
