@@ -352,3 +352,27 @@
 
 ### Act
 完成：下一個任務 T2.04（[F02]「Board 建立與成員邀請」usecase 區塊＋tag＋Aggregate 註解）。
+
+## Iteration 14 — 2026-09-16 20:30 — D-03
+
+### Plan
+`tools actionable` 第一個任務是已核准的 D-03（規則書「本輪開始時若有可執行的 D-xx，先做 D-xx」）。要改的檔案：`.dev/F02-user-membership/spec-user-membership.md`（角色表 `r-system-user` 說明刪除「指派卡片負責人、檢視看板活動紀錄」；「卡片負責人指派」「檢視看板活動紀錄」兩個 Feature 標頭改為「身為 看板使用者」；`## 待釐清` 追加一行指向 OQ-05）、`.dev/loops/spec-migration-loop/spec-migration-open-questions.md`（表尾追加 OQ-05）。驗收條件：`errors(F02;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0`、`errors(F01)=0`、`errors(F02#建立使用者帳號)=0`、`errors(F02#使用者登入與登出)=0`，以及標頭文字、角色表內容、OQ 檔末列的文字條件。預期全部 spec error 總數維持 237（不動業務邏輯，只改角色描述文字與標頭引用的角色名稱，兩者都不影響既有 usecase 區塊的檢查）。
+
+### Do
+- `db3dffa` [spec/design](user-membership) 修正卡片負責人與活動紀錄角色沿用 F01 r-user：角色表 `r-system-user` 說明移除「指派卡片負責人、檢視看板活動紀錄」；「卡片負責人指派」「檢視看板活動紀錄」兩個 Feature 的 gherkin 標頭「身為」改為「看板使用者」（沿用 F01 已定義的 `r-user`，F02 角色表不重列）；「Board 存取權限」維持「身為 系統使用者」不動。
+- 在 `spec-migration-open-questions.md` 表尾追加 `OQ-05`（修正 OQ-04：跨模組共用 F01 的 `r-user`，而非另設 `r-system-user` 涵蓋卡片負責人與活動紀錄），OQ-04 原列未改動。
+- F02 `## 待釐清` 追加一行指向 OQ-05，OQ-04 該行保留。
+- 無新增其他低影響假設；無新增 D-xx。
+
+### Check
+- `./scripts/spec-check` 最後一行：開工前「237 error(s), 2 warning(s)」→ 收尾「237 error(s), 2 warning(s)」（不變，符合預期，本任務只改角色描述與標頭引用，不影響 error 數）。
+- `tools error-count .dev/F02-user-membership/spec-user-membership.md`：79 → 79。
+- `tools error-count .dev/F01-basic-kanban/spec-kanban-basic.md`：0 → 0。
+- `tools accept-check spec-migration-tasks.md D-03`：exit 0，無輸出。
+- `tools gherkin-diff .dev/F02-user-membership/spec-user-membership.md`：exit 0，「Gherkin 行為與遷移前一致（216 行）」。
+- `tools tag-diff`：exit 0，無輸出。
+- `tools changelog-check`：exit 0，無輸出。
+- 逐條對照驗收條件：全部達成（`accept-check` 涵蓋機械條件；文字條件已人工核對標頭與角色表內容）。
+
+### Act
+完成：下一個任務 T2.04（[F02]「Board 建立與成員邀請」usecase 區塊＋tag＋Aggregate 註解）。
