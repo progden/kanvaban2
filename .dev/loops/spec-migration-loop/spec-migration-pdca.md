@@ -482,3 +482,26 @@
 
 ### Act
 - 完成：下一個任務 T2.08（[F02]「檢視看板活動紀錄」usecase 區塊＋tag＋Aggregate 註解；若 F01／F02 各 uc 有 emits 活動紀錄事件，這裡的 uc 以 requires 接上）
+
+## Iteration 19 — 2026-09-16 22:10 — D-04
+
+### Plan
+本輪任務：D-04（[F02] 修正 T2.04～T2.06 的兩處 usecase 內容）。要改的檔案：`.dev/F02-user-membership/spec-user-membership.md`（「Board 建立與成員邀請」「Board 權限管理」「Board 存取權限」三個 usecase 區塊）、`.dev/loops/spec-migration-loop/spec-migration-open-questions.md`（末尾追加一列）。驗收條件：`errors(F02#Board 建立與成員邀請)=0`；`errors(F02#Board 權限管理)=0`；`errors(F02#Board 存取權限)=0`；`errors(F01)=0`；活動紀錄措辭與拒絕類 uc roles 依任務描述修正；OQ 檔追加一列。預期 error 數變化：純措辭與 roles 修正，全部 spec error 數預期維持 184（不變動）。
+
+### Do
+- commit 0afeb51：`[spec/design](user-membership) 修正活動紀錄措辭並補上拒絕類 uc 的角色`
+  - `uc-invite-member`／`uc-change-member-role`／`uc-remove-member` 的 post 活動紀錄句開頭「該 `board` 產生一筆活動紀錄」改為「該操作被記錄為 `board-membership` 的一筆活動紀錄」，其餘文字不變；三個 uc 的 `crud` 未加 `board`（依任務指示不改）。
+  - `uc-reject-invite-by-member`／`uc-reject-role-change-by-member`／`uc-reject-structure-change-by-member` 的 `roles` 由 `[]` 改為 `[r-board-member]`；`uc-reject-board-access-by-nonmember` 的 `roles` 由 `[]` 改為 `[r-system-user]`。
+- OQ 檔末尾追加 OQ-07（模組 F02，說明 4 個拒絕類 uc 的 roles 依 Background／Feature 標頭補上），F02「## 待釐清」追加一行指向 OQ-07；此變更與任務清單／state/PDCA 一併於收尾 commit 提交（不算獨立 spec 內容變更）。
+- 無新增低影響假設；無 F 編號修正。
+
+### Check
+- `./scripts/spec-check`（不帶參數）最後一行：開工前 `184 error(s), 0 warning(s)` → 收尾時 `184 error(s), 0 warning(s)`（符合預期，純措辭／roles 修正不影響 error 數）
+- `tools error-count .dev/F02-user-membership/spec-user-membership.md`：26 → 26（不變）
+- `./scripts/spec-check | grep F02-user-membership`：error 行僅出現在「名詞定義」段（239 行前）與「卡片負責人指派」之後（601 行後），「Board 建立與成員邀請」（239～411）、「Board 權限管理」（412～539）、「Board 存取權限」（540～599）三段落 0 error
+- `tools accept-check ... D-04`：rc=0（通過）
+- `tools gherkin-diff`：一致（216 行）；`tools tag-diff`：rc=0；`tools changelog-check`：rc=0
+- 逐條驗收條件：`errors(F02#Board 建立與成員邀請)=0` 達成；`errors(F02#Board 權限管理)=0` 達成；`errors(F02#Board 存取權限)=0` 達成；`errors(F01)=0` 達成（F01 未改動，維持 0）；活動紀錄措辭僅剩 1 句「該 `board` 產生一筆活動紀錄」（`uc-create-board`）、3 句含「`board-membership` 的一筆活動紀錄」達成；F02 spec 不再有 `roles: []` 達成；OQ 檔最後一列為 OQ-07、模組 F02、內容提到 OQ-06 與 roles 達成
+
+### Act
+- 完成：下一個任務 T2.08（[F02]「檢視看板活動紀錄」usecase 區塊＋tag＋Aggregate 註解；若有 emits 事件用 requires 接上）
