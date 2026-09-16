@@ -41,7 +41,57 @@ Scenario 改動走 `@deprecated`／`@changed` 並存，reviewer 一眼看到新�
 | B. 逐模組遷，腳本以 allowlist 放行未遷移檔 | `spec-check` 加 `--legacy <glob>` 列出尚未遷移的檔，這些檔只跑舊規則；遷一個拿掉一個 | 可分批；腳本多一個模式要維護 |
 | C. 先遷 F01，其餘等腳本實作完 | F01 作為範本手工遷，驗證規範可寫；腳本已做出來，再用它輔助遷其餘五個 | 最務實；中間有一段時間規範與檔案不一致 |
 
-**建議 C**：F01 是所有 CR 的來源、也是範例情境（Swimlane）所在。F01 的遷移本身開一張 CR（例如 CR-005「規格格式遷移至 usecase 區塊」），影響 ID 列全部實體與 uc；同一個 PR 建立 `.dev/CR.md` 並登記 CR-001～CR-005。**尚未執行。**
+**已決定為 A（2026-09-17）**：一個 PR 遷六個模組。F01 已上線的部分照規範仍要開 CR（例如 CR-005「規格格式遷移至 usecase 區塊」，影響 ID 列全部實體與 uc）；同一個 PR 建立 `.dev/CR.md` 並登記 CR-001～CR-005。**尚未執行。**
+
+---
+
+## Q11. Use Case 的 Scenario 要不要拆成「domain 層」與「UI 確認層」兩種
+
+複核 spec 遷移 loop 的 OQ-02（`uc-delete-card` 的「取消刪除卡片」該歸入哪個分支）時，使用者提出更根本的疑問：現行規範把「使用者按刪除 → 系統跳確認框 → 使用者確認/取消」全部寫在同一個 Feature、同一個 Scenario 裡（`spec-convention.md` 第 294 行：「多階段互動（例如刪除 → 確認 → 刪除）允許 `When / Then / When / Then` 交錯，不需要拆成兩個 Scenario」），並讓「取消」算進 use case 的 `fail` 分支。使用者認為確認框是**呼叫 use case 之前**的 UI 閘門，取消根本沒有進入 domain 層，不該算進 use case 的失敗案例；應該拆成兩層：
+
+- **Domain 層**（use case 本身，對應現行 usecase 區塊）：只管指令進來之後的事，例如
+
+  ```gherkin
+  Feature: Delete Card
+
+    Scenario: 刪除存在的卡片
+      Given 看板上有卡片 "C1"
+      When 執行 DeleteCard(C1)
+      Then 卡片 "C1" 不存在
+      And 發出 CardDeleted 事件
+
+    Scenario: 刪除不存在的卡片
+      Given 看板上沒有卡片 "C9"
+      When 執行 DeleteCard(C9)
+      Then 回傳 CardNotFound
+      And 看板狀態不變
+  ```
+
+- **UI 層**（User Story，管畫面互動與確認框，不代表 domain 的失敗案例）：
+
+  ```gherkin
+  Feature: 卡片刪除確認
+
+    Scenario: 確認後刪除
+      Given 使用者對卡片 "C1" 按下刪除
+      When 使用者在確認對話框選「確認」
+      Then 系統執行 DeleteCard(C1)
+
+    Scenario: 取消刪除
+      Given 使用者對卡片 "C1" 按下刪除
+      When 使用者在確認對話框選「取消」
+      Then 對話框關閉
+      And 未執行 DeleteCard
+      And 卡片 "C1" 仍然存在
+  ```
+
+這會動到的範圍不只 `uc-delete-card` 一處，F01「刪除包含卡片的 Swimlane 需要確認」、F02「移除仍是負責人的成員」都是同一種「確認框」模式，全部要一起改。牽涉：
+
+- `spec-convention.md` 的 Gherkin 撰寫規範要新增「UI 層 Scenario」的寫法與 tag 規則（要不要掛 `@uc-`？如果不掛，GH-01「Scenario 必掛 `@uc-`」要不要放寬？）
+- `ui-<模組>.md` 現在只列畫面元件與操作表（對照 UseCase ID），不是 Gherkin；UI 層 Scenario 該放進 `spec-<模組>.md` 還是 `ui-<模組>.md`，或是兩者間新增一種文件？
+- 已遷移完成的 F01、F02 這幾個 Feature 要重寫，且已經有 `@CR-001` 等既有 tag，改動範圍要不要另開 CR
+
+**現狀：本題尚未決定，先擱置。OQ-02 仍照現行規範（confirm 併入同一 Scenario、取消算 fail 分支）處理。**
 
 ---
 
