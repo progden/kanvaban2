@@ -180,6 +180,32 @@ Feature: WIP 與 Aging WIP 監控
 
 ## Feature: Throughput 與累積流量圖
 
+### Use Case 定義
+```usecase
+- id: uc-view-throughput
+  name: 檢視 Throughput 圖表
+  roles: [r-user]
+  crud: {board: R, card: R}
+  pre: {}
+  post:
+    - "以使用者選擇的單位時間（日／週）分組，顯示各期間內進入 Done 的 `card` 數量"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+- id: uc-view-cfd
+  name: 檢視累積流量圖
+  roles: [r-user]
+  crud: {board: R, card: R}
+  pre: {}
+  post:
+    - "顯示每一天、每個 Stage 的累積 `card` 數量"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+```
+
 ```gherkin
 Feature: Throughput 與累積流量圖
   身為 看板使用者
@@ -190,6 +216,7 @@ Feature: Throughput 與累積流量圖
     Given 我已登入系統，並開啟 Board "產品開發看板"
     And Stage "進行中" 已設定角色為 Start，Stage "完成" 已設定角色為 Done
 
+  @uc-view-throughput
   # Related aggregate:
   #   board: read
   #   card: read
@@ -199,6 +226,7 @@ Feature: Throughput 與累積流量圖
     Then 2026-09-10 的完成數應該顯示為 2
     And 2026-09-11 的完成數應該顯示為 1
 
+  @uc-view-cfd
   # Related aggregate:
   #   board: read
   #   card: read
@@ -211,6 +239,22 @@ Feature: Throughput 與累積流量圖
 
 ## Feature: 截止日期提醒
 
+### Use Case 定義
+```usecase
+- id: uc-view-duedate-reminder
+  name: 檢視截止日期提醒圖表
+  roles: [r-user]
+  crud: {board: R, card: R}
+  pre: {}
+  post:
+    - "截止日期早於看板目前時間、尚未完成的 `card` 顯示於「已逾期」清單"
+    - "截止日期與看板目前時間相差在門檻天數內、尚未完成的 `card` 顯示於「即將到期」清單，門檻天數由使用者於查詢時設定"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+```
+
 ```gherkin
 Feature: 截止日期提醒
   身為 看板使用者
@@ -221,6 +265,7 @@ Feature: 截止日期提醒
     Given 我已登入系統，並開啟 Board "產品開發看板"
     And 看板時間目前為 2026-09-12
 
+  @uc-view-duedate-reminder
   # Related aggregate:
   #   board: read
   #   card: read
@@ -229,6 +274,7 @@ Feature: 截止日期提醒
     When 我開啟逾期提醒圖表
     Then 卡片 "E" 應該出現在「已逾期」清單中
 
+  @uc-view-duedate-reminder
   # Related aggregate:
   #   board: read
   #   card: read
