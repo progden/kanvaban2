@@ -70,7 +70,7 @@
 |----|------|------|----------|------|
 | T3.01 | done | 全部 spec 一起跑 `spec-check` 到 0 error（REF-08 重複定義、跨模組引用、事件配對） | `errors(all)=0` | T2.22 |
 | T3.02 | done | `.dev/CR.md` 回填 CR-001～CR-004 的影響 ID（依各 spec 掛該 `@CR-` 的 Scenario 所屬 uc 與相關實體）；CR-005 影響 ID 列出本次遷移改動到的全部實體與 uc；跑 `cr-check` 到通過 | `crcheck(CR-005)=0`；`errors(all)=0` | T3.01 |
-| T3.03 | todo | 把 `./scripts/spec-check --report` 的輸出貼進 PDCA 供人工檢視；PDCA 同一則依模組整理 OQ 檔的全部 OQ-xx（編號、一句話、採用的選項） | PDCA 本則含 CRUD 矩陣、角色 × UseCase 矩陣、事件表與 OQ 摘要 | T3.02 |
+| T3.03 | done | 把 `./scripts/spec-check --report` 的輸出貼進 PDCA 供人工檢視；PDCA 同一則依模組整理 OQ 檔的全部 OQ-xx（編號、一句話、採用的選項） | PDCA 本則含 CRUD 矩陣、角色 × UseCase 矩陣、事件表與 OQ 摘要 | T3.02 |
 | G2 | todo | 關卡：審查輪做 `llm-review.md` L-01、L-02、L-05、L-06 抽查（每模組至少一個 uc），偏差開 D-xx 或記入審查紀錄 | 腳本建立 `runtime/gates/G2.approved` | T3.03 |
 | T3.04 | todo | 最終確認並建立 `runtime/DONE` | `errors(all)=0`；`crcheck(CR-005)=0`；任務清單除本任務外無 todo／doing／blocked／proposed | G2 |
 

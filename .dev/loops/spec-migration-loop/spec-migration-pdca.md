@@ -951,3 +951,219 @@
 
 ### Act
 未完成：T3.02 標記 `blocked`（環境限制，見 OQ-10）。剩餘工作：人工檢視 OQ-10，決定是否另開 CR 調整 `gh_05_diff`（排除純格式遷移触发的 GH-05），或接受 `crcheck(CR-005)` 在本次遷移中無法歸零、改用其他方式驗收 T3.02。下一個可執行任務：無（`actionable` 目前僅剩 T3.02，已 blocked）；待人工處理 OQ-10 後把 T3.02 改回 `todo` 再繼續 T3.03、T3.04。
+
+## Iteration 43 — 2026-09-17 08:30 — T3.03
+### Plan
+本輪任務：T3.03（把 `./scripts/spec-check --report` 的輸出貼進 PDCA 供人工檢視；同一則依模組整理 OQ 檔的全部 OQ-xx，含編號、一句話、採用的選項）。不改任何 spec 或 CR.md，只在本則 Do／Check 貼報表輸出與 OQ 摘要。驗收條件：PDCA 本則含 CRUD 矩陣、角色 × UseCase 矩陣、事件表與 OQ 摘要。預期 error 數變化：無（不改規格，維持 0）。
+
+### Do
+未修改任何規格或 `.dev/CR.md`；僅執行 `./scripts/spec-check --report`（不寫檔，純輸出）並貼於下方。無新增假設、無新增 OQ。
+
+`./scripts/spec-check --report` 完整輸出：
+
+## CRUD 矩陣
+| Feature | UseCase | board | board-membership | card | stage | swimlane | user |
+|---|---|---|---|---|---|---|---|
+| Swimlane 管理 | uc-add-swimlane | RU |  |  |  | C |  |
+| Swimlane 管理 | uc-rename-swimlane | U |  |  |  | U |  |
+| Swimlane 管理 | uc-reorder-swimlane | U |  |  |  | U |  |
+| Swimlane 管理 | uc-delete-swimlane | U |  | D |  | D |  |
+| Stage（階段）管理 | uc-add-stage | RU |  |  | C |  |  |
+| Stage（階段）管理 | uc-rename-stage | U |  |  | U |  |  |
+| Stage（階段）管理 | uc-reorder-stage | U |  |  | U |  |  |
+| Stage（階段）管理 | uc-delete-stage | U |  | U | D |  |  |
+| Stage（階段）管理 | uc-set-stage-role | U |  |  | U |  |  |
+| Card（卡片）編輯 | uc-add-card | R |  | C |  |  |  |
+| Card（卡片）編輯 | uc-edit-card |  |  | U |  |  |  |
+| Card（卡片）編輯 | uc-move-card-swimlane | R |  | U |  |  |  |
+| Card（卡片）編輯 | uc-move-card-stage | R |  | U |  |  |  |
+| Card（卡片）編輯 | uc-add-comment |  |  | U |  |  |  |
+| Card（卡片）編輯 | uc-delete-card |  |  | D |  |  |  |
+| 建立使用者帳號 | uc-create-user |  |  |  |  |  | C |
+| 使用者登入與登出 | uc-login |  |  |  |  |  | R |
+| 使用者登入與登出 | uc-logout |  |  |  |  |  | R |
+| Board 建立與成員邀請 | uc-create-board | C | C |  |  |  |  |
+| Board 建立與成員邀請 | uc-invite-member |  | C |  |  |  |  |
+| Board 建立與成員邀請 | uc-change-member-role |  | U |  |  |  |  |
+| Board 建立與成員邀請 | uc-remove-member |  | D | U |  |  |  |
+| Board 權限管理 | uc-reject-invite-by-member |  | R |  |  |  |  |
+| Board 權限管理 | uc-reject-role-change-by-member |  | R |  |  |  |  |
+| Board 權限管理 | uc-reject-structure-change-by-member | R | R |  |  |  |  |
+| Board 權限管理 | uc-delete-board | D | R | D |  |  |  |
+| Board 權限管理 | uc-member-add-card |  | R | C |  |  |  |
+| Board 存取權限 | uc-view-board-list |  | R |  |  |  |  |
+| Board 存取權限 | uc-reject-board-access-by-nonmember | R | R |  |  |  |  |
+| 卡片負責人指派 | uc-set-card-assignees |  | R | U |  |  |  |
+| 卡片負責人指派 | uc-list-card-assignee-candidates |  | R |  |  |  |  |
+| 卡片負責人指派 | uc-view-card-assignees |  |  | R |  |  |  |
+| 卡片負責人指派 | uc-list-cards-by-assignee |  |  | R |  |  |  |
+| 卡片負責人指派 | uc-assign-card-owner-by-drag |  | R | U |  |  |  |
+| 檢視看板活動紀錄 | uc-view-board-activity-log | R | R |  |  |  |  |
+| Cycle Time 與 Lead Time 分析 | uc-view-cycle-lead-time | R |  | R |  |  |  |
+| WIP 與 Aging WIP 監控 | uc-view-wip | R |  | R |  |  |  |
+| WIP 與 Aging WIP 監控 | uc-view-aging-wip | R |  | R |  |  |  |
+| Throughput 與累積流量圖 | uc-view-throughput | R |  | R |  |  |  |
+| Throughput 與累積流量圖 | uc-view-cfd | R |  | R |  |  |  |
+| 截止日期提醒 | uc-view-duedate-reminder | R |  | R |  |  |  |
+| 看板時間管理 | uc-adjust-board-clock | U |  |  |  |  |  |
+| 看板時間管理 | uc-guard-clock-monotonicity | U |  |  |  |  |  |
+| 看板時間管理 | uc-pause-resume-board-clock | U |  |  |  |  |  |
+| 人員工作量檢視 | uc-view-workload | R | R | R |  |  |  |
+| 人員工作量檢視 | uc-drag-assign-card-owner |  | R | U |  |  |  |
+| Feature／CR 追蹤表 | uc-view-feature-cr-board | R |  | R |  |  |  |
+
+## 角色 × UseCase
+| UseCase | r-board-member | r-board-owner | r-system-user | r-user |
+|---|---|---|---|---|
+| uc-add-swimlane |  |  |  | ✓ |
+| uc-rename-swimlane |  |  |  | ✓ |
+| uc-reorder-swimlane |  |  |  | ✓ |
+| uc-delete-swimlane |  |  |  | ✓ |
+| uc-add-stage |  |  |  | ✓ |
+| uc-rename-stage |  |  |  | ✓ |
+| uc-reorder-stage |  |  |  | ✓ |
+| uc-delete-stage |  |  |  | ✓ |
+| uc-set-stage-role |  |  |  | ✓ |
+| uc-add-card |  |  |  | ✓ |
+| uc-edit-card |  |  |  | ✓ |
+| uc-move-card-swimlane |  |  |  | ✓ |
+| uc-move-card-stage |  |  |  | ✓ |
+| uc-add-comment |  |  |  | ✓ |
+| uc-delete-card |  |  |  | ✓ |
+| uc-create-user |  |  | ✓ |  |
+| uc-login |  |  | ✓ |  |
+| uc-logout |  |  | ✓ |  |
+| uc-create-board |  | ✓ |  |  |
+| uc-invite-member |  | ✓ |  |  |
+| uc-change-member-role |  | ✓ |  |  |
+| uc-remove-member |  | ✓ |  |  |
+| uc-reject-invite-by-member | ✓ |  |  |  |
+| uc-reject-role-change-by-member | ✓ |  |  |  |
+| uc-reject-structure-change-by-member | ✓ |  |  |  |
+| uc-delete-board |  | ✓ |  |  |
+| uc-member-add-card | ✓ |  |  |  |
+| uc-view-board-list |  |  | ✓ |  |
+| uc-reject-board-access-by-nonmember |  |  | ✓ |  |
+| uc-set-card-assignees |  |  |  | ✓ |
+| uc-list-card-assignee-candidates |  |  |  | ✓ |
+| uc-view-card-assignees |  |  |  | ✓ |
+| uc-list-cards-by-assignee |  |  |  | ✓ |
+| uc-assign-card-owner-by-drag |  |  |  | ✓ |
+| uc-view-board-activity-log |  |  |  | ✓ |
+| uc-view-cycle-lead-time |  |  |  | ✓ |
+| uc-view-wip |  |  |  | ✓ |
+| uc-view-aging-wip |  |  |  | ✓ |
+| uc-view-throughput |  |  |  | ✓ |
+| uc-view-cfd |  |  |  | ✓ |
+| uc-view-duedate-reminder |  |  |  | ✓ |
+| uc-adjust-board-clock |  | ✓ |  |  |
+| uc-guard-clock-monotonicity |  |  |  | ✓ |
+| uc-pause-resume-board-clock |  | ✓ |  |  |
+| uc-view-workload |  |  |  | ✓ |
+| uc-drag-assign-card-owner |  |  |  | ✓ |
+| uc-view-feature-cr-board |  |  |  | ✓ |
+
+## 事件表
+| Event | emits | requires |
+|---|---|---|
+
+## 追溯矩陣
+| Feature | UseCase | Entity |
+|---|---|---|
+| Swimlane 管理 | uc-add-swimlane | board(RU)、swimlane(C) |
+| Swimlane 管理 | uc-rename-swimlane | board(U)、swimlane(U) |
+| Swimlane 管理 | uc-reorder-swimlane | board(U)、swimlane(U) |
+| Swimlane 管理 | uc-delete-swimlane | board(U)、swimlane(D)、card(D) |
+| Stage（階段）管理 | uc-add-stage | board(RU)、stage(C) |
+| Stage（階段）管理 | uc-rename-stage | board(U)、stage(U) |
+| Stage（階段）管理 | uc-reorder-stage | board(U)、stage(U) |
+| Stage（階段）管理 | uc-delete-stage | board(U)、stage(D)、card(U) |
+| Stage（階段）管理 | uc-set-stage-role | board(U)、stage(U) |
+| Card（卡片）編輯 | uc-add-card | board(R)、card(C) |
+| Card（卡片）編輯 | uc-edit-card | card(U) |
+| Card（卡片）編輯 | uc-move-card-swimlane | board(R)、card(U) |
+| Card（卡片）編輯 | uc-move-card-stage | board(R)、card(U) |
+| Card（卡片）編輯 | uc-add-comment | card(U) |
+| Card（卡片）編輯 | uc-delete-card | card(D) |
+| 建立使用者帳號 | uc-create-user | user(C) |
+| 使用者登入與登出 | uc-login | user(R) |
+| 使用者登入與登出 | uc-logout | user(R) |
+| Board 建立與成員邀請 | uc-create-board | board(C)、board-membership(C) |
+| Board 建立與成員邀請 | uc-invite-member | board-membership(C) |
+| Board 建立與成員邀請 | uc-change-member-role | board-membership(U) |
+| Board 建立與成員邀請 | uc-remove-member | board-membership(D)、card(U) |
+| Board 權限管理 | uc-reject-invite-by-member | board-membership(R) |
+| Board 權限管理 | uc-reject-role-change-by-member | board-membership(R) |
+| Board 權限管理 | uc-reject-structure-change-by-member | board(R)、board-membership(R) |
+| Board 權限管理 | uc-delete-board | board(D)、card(D)、board-membership(R) |
+| Board 權限管理 | uc-member-add-card | board-membership(R)、card(C) |
+| Board 存取權限 | uc-view-board-list | board-membership(R) |
+| Board 存取權限 | uc-reject-board-access-by-nonmember | board(R)、board-membership(R) |
+| 卡片負責人指派 | uc-set-card-assignees | card(U)、board-membership(R) |
+| 卡片負責人指派 | uc-list-card-assignee-candidates | board-membership(R) |
+| 卡片負責人指派 | uc-view-card-assignees | card(R) |
+| 卡片負責人指派 | uc-list-cards-by-assignee | card(R) |
+| 卡片負責人指派 | uc-assign-card-owner-by-drag | card(U)、board-membership(R) |
+| 檢視看板活動紀錄 | uc-view-board-activity-log | board(R)、board-membership(R) |
+| Cycle Time 與 Lead Time 分析 | uc-view-cycle-lead-time | board(R)、card(R) |
+| WIP 與 Aging WIP 監控 | uc-view-wip | board(R)、card(R) |
+| WIP 與 Aging WIP 監控 | uc-view-aging-wip | board(R)、card(R) |
+| Throughput 與累積流量圖 | uc-view-throughput | board(R)、card(R) |
+| Throughput 與累積流量圖 | uc-view-cfd | board(R)、card(R) |
+| 截止日期提醒 | uc-view-duedate-reminder | board(R)、card(R) |
+| 看板時間管理 | uc-adjust-board-clock | board(U) |
+| 看板時間管理 | uc-guard-clock-monotonicity | board(U) |
+| 看板時間管理 | uc-pause-resume-board-clock | board(U) |
+| 人員工作量檢視 | uc-view-workload | board(R)、board-membership(R)、card(R) |
+| 人員工作量檢視 | uc-drag-assign-card-owner | board-membership(R)、card(U) |
+| Feature／CR 追蹤表 | uc-view-feature-cr-board | board(R)、card(R) |
+
+## 外部引用
+| 模組 | 引用的 ID | 定義於 |
+|---|---|---|
+| user-membership | board | spec-kanban-basic.md |
+| user-membership | card | spec-kanban-basic.md |
+| user-membership | r-user | spec-kanban-basic.md |
+| kanban-widgets | card | spec-kanban-basic.md |
+| kanban-widgets | r-user | spec-kanban-basic.md |
+| kanban-widgets | board | spec-kanban-basic.md |
+| board-clock | board | spec-kanban-basic.md |
+| board-clock | r-board-owner | spec-user-membership.md |
+| board-clock | r-user | spec-kanban-basic.md |
+| workload | board-membership | spec-user-membership.md |
+| workload | card | spec-kanban-basic.md |
+| workload | r-user | spec-kanban-basic.md |
+| workload | card.assignees | spec-user-membership.md |
+| workload | board | spec-kanban-basic.md |
+| workload | uc-assign-card-owner-by-drag | spec-user-membership.md |
+| feature-cr-board | card | spec-kanban-basic.md |
+| feature-cr-board | r-user | spec-kanban-basic.md |
+| feature-cr-board | board | spec-kanban-basic.md |
+
+OQ 摘要（依模組；「採用」為 `spec-migration-open-questions.md` 表格中的「採用」欄摘要）：
+
+- **F01**
+  - OQ-01：活動紀錄該獨立成 uc 還是併入原 uc？採用 (b) 併入各 uc 自身 post 與 crud（board: U），不另立 uc、不用 emits/requires。
+  - OQ-02：「取消刪除卡片」該算獨立成功 Scenario 還是 uc-delete-card 的失敗分支？採用 (b) 視為失敗分支，補 pre.p2／fail.p2，掛 `@fail-p2`。
+  - OQ-03：OQ-02 的 p2 措辭方向寫反，如何修正？採用 (b) 把 p2 改為「確認刪除」、fail.p2 改為「不刪除，資料不變」，post 同步修正。
+- **F02**
+  - OQ-04：「卡片負責人指派」等三個 Feature 該套用 r-board-member 還是新角色？採用 (b) 新設 r-system-user 供五個無權限差異的 Feature 共用，r-board-owner／r-board-member 只用於權限明確不同的兩個 Feature。
+  - OQ-05：OQ-04 的 r-system-user 是否該改沿用 F01 的 r-user？採用 (b)：「卡片負責人指派」「檢視看板活動紀錄」改用既有 r-user，不重列；r-system-user 說明收斂為僅涵蓋帳號／登入登出／Board 存取。
+  - OQ-06：「Board 權限管理」5 個 Scenario（3 個拒絕＋刪除 Board＋Member 新增卡片）如何歸入 uc？採用 (b) 新立 5 個本 Feature 專屬 uc。
+  - OQ-07：OQ-06 中 4 個拒絕類 uc 的 roles 是否該留空？採用 (b) 依 Background／Feature 標頭補上 r-board-member／r-system-user。
+- **F04**
+  - OQ-08：時鐘單調性檢查該分散進 F01 各寫入 uc 還是獨立 uc？採用 (a) 維持 T2.15 現狀，`uc-guard-clock-monotonicity` 獨立於 F04，crud 只標 board: U。
+- **F05**
+  - OQ-09：與 F02 `uc-assign-card-owner-by-drag` 幾乎相同的兩個拖曳 Scenario 該跨檔引用還是另立 uc？採用 (b) 本檔新立 `uc-drag-assign-card-owner`，只依本 Feature 的 Given／Then 推導。
+- **跨模組（CR.md／cr-check）**
+  - OQ-10：`gh_05_diff` 與鐵則 1（禁止新增 `@CR-` tag）矛盾，68 個 Scenario 因遷移新增 tag 被判定 GH-05 error。採用 (c) 維持 T3.02 blocked，CR-005 影響 ID 依 CR-01 精準比對（已達成），不補掛 `@CR-005`、不修改受保護的 `scripts/**`。
+  - OQ-11：人工在 loop 之外檢視 OQ-10，如何解開矛盾？採用 (c) 把 spec 狀態欄拆成「草稿／定稿」兩值（檔頭）與「開發中」（衍生，依 `.dev/CR.md` 是否有 CR 狀態「待處理」判定），`gh_05_diff` 改依衍生狀態判定；六個模組目前皆非「開發中」，`cr-check`（含 `--cr CR-005`）已回到 0 error(s)、0 warning(s)，T3.02 解除 blocked 並標 done。
+
+### Check
+- `./scripts/spec-check`（不帶參數）最後一行：`0 error(s), 0 warning(s)`（開工前與收尾時皆同，未修改任何規格）。
+- `tools error-count`：F01～F06、`all` 均維持 0，無變化。
+- `tools accept-check spec-migration-tasks.md T3.03`：無輸出，exit 0。
+- 驗收條件「PDCA 本則含 CRUD 矩陣、角色 × UseCase 矩陣、事件表與 OQ 摘要」：本則 Do 已完整貼出 `--report` 四張表（CRUD 矩陣、角色 × UseCase、事件表、追溯矩陣、外部引用）與依模組整理的 OQ-01～OQ-11 摘要，達成。
+
+### Act
+完成：T3.03 done。下一個任務：T3.04。

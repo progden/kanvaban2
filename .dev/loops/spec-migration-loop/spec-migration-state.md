@@ -1,11 +1,11 @@
 # spec 遷移狀態快照（每輪覆寫，20 行內）
 
-- 更新：2026-09-17（人工介入，loop 之外）
-- 目前階段：階段 3（跨模組收尾），T3.02 已解除 blocked
-- 上一輪任務：T3.02（`.dev/CR.md` 回填 CR-001～CR-005 影響 ID，跑 `cr-check` 到通過）｜結果：done（見 OQ-11：人工把 spec 狀態欄拆成「定稿」（檔頭）／「開發中」（衍生，`.dev/CR.md` 有 CR 狀態「待處理」才算），`gh_05_diff` 改用衍生狀態判定；六個模組目前都沒有「待處理」CR，`cr-check`（含 `--cr CR-005`）0 error(s)、0 warning(s)，未補掛任何 `@CR-005`）
-- 下一個任務：T3.03（把 `./scripts/spec-check --report` 輸出貼進 PDCA；PDCA 整理 OQ 檔全部 OQ-xx 摘要，含新增的 OQ-11）
-- 進行中任務的剩餘工作：無，T3.02 已 done
-- 已遷移完成的模組：F01～F06 全部完成，全檔 0 error；`./scripts/spec-check` 總計 0 error(s)、0 warning(s)；六份 spec 檔頭已改「狀態：定稿」
+- 更新：2026-09-17（執行輪，T3.03）
+- 目前階段：階段 3（跨模組收尾）
+- 上一輪任務：T3.03（把 `./scripts/spec-check --report` 輸出貼進 PDCA；PDCA 同一則依模組整理 OQ 檔全部 OQ-xx）｜結果：done（未改任何 spec／CR.md，PDCA Iteration 43 已貼出 CRUD 矩陣、角色 × UseCase 矩陣、事件表、追溯矩陣、外部引用，以及 OQ-01～OQ-11 依模組摘要）
+- 下一個任務：G2（關卡，審查輪依 `llm-review.md` L-01、L-02、L-05、L-06 抽查，偏差開 D-xx 或記入審查紀錄；核准後才輪到 T3.04）
+- 進行中任務的剩餘工作：無，T3.03 已 done
+- 已遷移完成的模組：F01～F06 全部完成，全檔 0 error；`./scripts/spec-check` 總計 0 error(s)、0 warning(s)；`cr-check --cr CR-005` 0 error(s)、0 warning(s)
 - 已定義的共用 ID：無新增
-- 最近 3 條假設：OQ-11（人工決議，見 `spec-migration-open-questions.md`：spec 狀態拆兩層解決 OQ-10 矛盾，改動 `spec-convention.md`／`cr-convention.md`／`scripts/speccheck/model.py`／`checks/gh.py`／`checks/cr.py`，屬遷移完成後的規範修訂，非遷移輪次本身）
-- 待注意：恢復 loop 前先確認 `runtime/baseline`、`runtime/gates/G1.approved` 等執行期檔案仍有效；下一輪從 T3.03 開始（`actionable` 應回報 T3.03）
+- 最近 3 條假設：無新增（本輪不涉及假設分級，OQ 檔維持 OQ-01～OQ-11）
+- 待注意：G2 是關卡，不由執行輪單獨佔一輪；審查輪跑完若無待修 D-xx 會自動核准（或達 `GATE_MAX_REVIEWS` 次數後核准），下一個執行輪在收尾 commit 把 G2 標 done 後直接進 T3.04（最終確認並建立 `runtime/DONE`）
