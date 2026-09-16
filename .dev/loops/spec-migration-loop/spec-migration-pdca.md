@@ -261,3 +261,25 @@
 
 ### Act
 完成，下一個任務：G1（關卡：審查輪檢視 F01 是否可作為其餘模組的範本）。G1 尚未核准（`runtime/gates/` 目前無 `.approved` 檔），由 loop 排程審查輪處理，本輪不動作。
+
+## Iteration 10 — 2026-09-16 — D-02
+
+### Plan
+上一輪驗證 PASS，actionable 第一項為 D-02（`[F01] 修正 uc-delete-card 的 pre／post`），G1 尚未核准（無 approved 檔）。本輪任務 D-02：修正 `.dev/F01-basic-kanban/spec-kanban-basic.md` 的 `uc-delete-card` usecase 區塊——`pre.p2` 方向寫反（原文要求「選擇取消」才算 pre 成立），改為「確認刪除」；`fail.p2`、`post` 隨之調整；並在 OQ 檔追加一列（不可改 OQ-01、OQ-02 舊列）、F01「待釐清」追加一行指向新 OQ。驗收條件：`errors(F01)=0`；spec 內 `uc-delete-card` 不再含「選擇取消」、含「確認刪除」與「活動紀錄」；OQ 檔最後一列模組為 F01、提到 `uc-delete-card`。預期 error 數不變（F01 修正前後皆 0，整體仍 283）。
+
+### Do
+- `71c11d1` [spec/design](basic-kanban) 修正刪除卡片 usecase 的 pre/post 措辭方向：`uc-delete-card` 的 `pre.p2` 改為「使用者於刪除 `card` 的確認訊息中確認刪除」；`fail.p2` 改為「不刪除，該 `card` 仍存在於看板中，資料不變」；`post` 第一句改為「該 `card` 從看板中移除」，新增第二句「該操作被記錄為 `card` 的一筆活動紀錄，包含操作人與操作時間」；「取消刪除卡片」Scenario 的 tag／註解不變。F01「待釐清」追加一行指向 OQ-03。
+- OQ 檔（`.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）表尾追加 OQ-03：情況為 OQ-02 採用內容中 `pre.p2` 措辭方向寫反，成功 Scenario（刪除卡片需要確認）反而不滿足 pre；採用 (b) 改為確認刪除方向；依據 F01「刪除卡片需要確認」與「取消刪除卡片」兩個 Scenario。OQ-01、OQ-02 舊列未改動。
+- 無低影響假設；無新增 D-xx。
+
+### Check
+- `./scripts/spec-check` 最後一行：「283 error(s), 1 warning(s)」（開工前與收尾相同，未變動）。
+- `tools error-count .dev/F01-basic-kanban/spec-kanban-basic.md`：0 → 0。
+- `tools accept-check <tasks> D-02`：無輸出，通過。
+- `tools gherkin-diff`：exit 0，「Gherkin 行為與遷移前一致（160 行）」。
+- `tools tag-diff`：exit 0，無輸出。
+- `tools changelog-check`：exit 0，無輸出。
+- 逐條對照驗收條件：`errors(F01)=0`、spec 內文字改動、OQ 檔最後一列模組為 F01 且提到 `uc-delete-card`，皆已達成。
+
+### Act
+完成，下一個任務：G1（關卡：審查輪核准後才能標 done，進入 T2.01）。本輪未核准 G1，交由審查輪處理。
