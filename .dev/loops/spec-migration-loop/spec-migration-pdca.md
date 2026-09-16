@@ -505,3 +505,25 @@
 
 ### Act
 - 完成：下一個任務 T2.08（[F02]「檢視看板活動紀錄」usecase 區塊＋tag＋Aggregate 註解；若有 emits 事件用 requires 接上）
+
+## Iteration 20 — 2026-09-16 22:30 — T2.08
+### Plan
+- 任務：T2.08，遷移「檢視看板活動紀錄」Feature 的 usecase 區塊＋tag＋Aggregate 註解。
+- 要改的檔案：`.dev/F02-user-membership/spec-user-membership.md`（新增 usecase 區塊、Scenario 掛 `@uc-view-board-activity-log`、Aggregate 註解改實體 ID）。
+- 驗收條件：`errors(F02#檢視看板活動紀錄)=0`。
+- 預期 error 數變化：F02 從 26 降至更低（新增結構會解鎖更多檢查，但本 Feature 只有 1 個 Scenario、無 emits，預期小幅下降）。
+
+### Do
+- `047a9fb` `[spec/design](user-membership) 遷移檢視看板活動紀錄至 usecase 區塊`
+- 新增 `uc-view-board-activity-log`：roles `[r-user]`（依 OQ-05 沿用 F01 的 `r-user`）；crud `{board: R, board-membership: R}`（依 Given 步驟「user1 建立了這個 Board」「user1 邀請 雅婷 加入這個 Board」，Aggregate 註解原本只列 `boardMembership: read`，補上 `board: read` 並改為 kebab-case 實體 ID，對齊 crud）；pre 空（Background 只是測試資料設置，無驗證性前置條件）；post 兩句分別對應 Then 的「活動紀錄依時間由新到舊列出」與「最上面一筆應該是…」，依 UC-03 規則各補上 `board`／`board-membership` 的 ID 引用；emits／requires 皆空（F01、F02 目前所有 uc 的 `emits` 都是 `[]`，沒有可 `requires` 的事件）。
+- 低影響格式清理（遷移程序步驟 10，隨本 Feature 一併處理）：Feature 後方敘述段落的反引號 ``Board.activityLog``／``Card.activityLog``／``kanban-core``／``kanban-spring`` 不是六種合法 ID，改為「」；`design.md` 改為實際檔名 `design-user-membership.md`。
+- 未新增 OQ。
+
+### Check
+- `./scripts/spec-check` 最後一行：`176 error(s), 0 warning(s)`（開工前 184）。
+- `tools error-count .dev/F02-user-membership/spec-user-membership.md`：開工前 26 → 收尾時 18。
+- `tools accept-check … T2.08`：rc=0（`errors(F02#檢視看板活動紀錄)=0` 達成）。
+- `tools gherkin-diff`：一致（216 行）；`tools tag-diff`：rc=0；`tools changelog-check`：rc=0。
+
+### Act
+- 完成：下一個任務 T2.09（[F02] 遷移程序 10～11 與收尾：正文反引號清理（含「Aggregate 事件盤點」「實作備註」段落）、`design.md` 稱呼改實際檔名、變更紀錄改格式並追加 CR-005；F02 全檔 0 error）。
