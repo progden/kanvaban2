@@ -1,0 +1,107 @@
+# 人員 Workload 表使用案例（BDD）
+
+本文件涵蓋看板成員的工作量檢視：
+
+- 依成員統計目前手上有幾張進行中的卡片
+- 未指派負責人的卡片統計
+- 拖曳指派負責人（追加單一負責人）
+
+依賴 F02（`spec-user-membership.md`）的 `BoardMembership`、卡片多選負責人（`assigneeIds`，CR-002），以及 CR-003 的 Stage 角色（用於判斷卡片是否已完成）。
+
+## 名詞定義
+
+| 名詞 | 說明 |
+|------|------|
+| Active Card（進行中卡片） | 未刪除、且目前所在 Stage 的角色不是 Done 的卡片 |
+| Workload | 某成員名下 Active Card 的數量 |
+| 未指派（Unassigned） | `assigneeIds` 為空的 Active Card |
+
+## Aggregate 標記說明
+
+每個 Scenario 上方以 Gherkin 註解標記會存取哪些 Aggregate 以及存取方式（`read` / `write`），格式與判定原則同 `spec-kanban-basic.md`。本文件用到的 Aggregate：
+
+- `board`：讀取 Stage 角色設定與卡片分佈。
+- `boardMembership`：讀取看板成員清單。
+- `card`：讀取／寫入卡片的 `assigneeIds`。
+
+## 變更紀錄（Change Log）
+
+| 日期 | 票號 | 類型 | 摘要 |
+|------|------|------|------|
+| 2026-09-13 | F05 | 變更 | 「拖曳成員頭像到卡片上，追加該成員為負責人」Scenario 移除 `@wip`（對應的「拖曳追加單一負責人」情境已在 `spec-user-membership.md` 的「卡片負責人指派」Feature 補上）；新增「拖曳已經是負責人的成員頭像到卡片上，不重複新增」Scenario，定案 Open Question「拖曳到已是負責人的卡片」為靜默忽略、不提示、不重複新增 |
+| 2026-09-13 | F05 | 開發完成 | `kanban-spring` 新增 `io.progden.kanban.query.workload.WorkloadCalculator`，依 Active Card（非 Done Stage）的 `assigneeIds` 分組統計工作量與未指派數量；追加負責人 use case 已在 `spec-user-membership.md` 開發完成。F05 四個查詢 Scenario 與兩個拖曳追加 Scenario 皆已完成，階段 5 結束 |
+
+---
+
+## Feature: 人員工作量檢視
+
+```gherkin
+Feature: 人員工作量檢視
+  身為看板的使用者
+  我想要檢視每位成員目前手上有幾張進行中的卡片
+  以便平衡團隊的工作分配
+
+  Background:
+    Given 我已登入系統，並開啟 Board "產品開發看板"
+    And 看板成員包含 "雅婷" 與 "志明"
+    And Stage "完成" 已設定角色為 Done
+
+  # Related aggregate:
+  #   board: read
+  #   boardMembership: read
+  #   card: read
+  Scenario: 檢視單一負責人的工作量
+    Given "雅婷" 是 3 張進行中卡片的負責人
+    When 我開啟 Workload 表
+    Then "雅婷" 的工作量應該顯示為 3
+
+  # Related aggregate:
+  #   board: read
+  #   boardMembership: read
+  #   card: read
+  Scenario: 多位負責人的卡片，每人各算一張
+    Given 卡片 "A" 的負責人同時是 "雅婷" 與 "志明"，且尚未完成
+    When 我開啟 Workload 表
+    Then "雅婷" 的工作量應該包含卡片 "A"
+    And "志明" 的工作量應該包含卡片 "A"
+
+  # Related aggregate:
+  #   board: read
+  #   card: read
+  Scenario: 檢視未指派負責人的卡片數量
+    Given 有 2 張進行中卡片沒有指派任何負責人
+    When 我開啟 Workload 表
+    Then "未指派" 的卡片數量應該顯示為 2
+
+  # Related aggregate:
+  #   board: read
+  #   card: read
+  Scenario: 已完成的卡片不計入工作量
+    Given "雅婷" 是 1 張已進入 Done 角色 Stage 的卡片的負責人
+    When 我開啟 Workload 表
+    Then "雅婷" 的工作量不應該包含該卡片
+
+  # Related aggregate:
+  #   boardMembership: read
+  #   card: write
+  Scenario: 拖曳成員頭像到卡片上，追加該成員為負責人
+    Given 卡片 "B" 目前的負責人只有 "志明"
+    When 我將 "雅婷" 的頭像拖曳到卡片 "B" 上
+    Then 卡片 "B" 的負責人應該包含 "志明" 與 "雅婷"
+
+  # Related aggregate:
+  #   boardMembership: read
+  #   card: write
+  Scenario: 拖曳已經是負責人的成員頭像到卡片上，不重複新增
+    Given 卡片 "B" 目前的負責人是 "志明" 與 "雅婷"
+    When 我將 "雅婷" 的頭像拖曳到卡片 "B" 上
+    Then 卡片 "B" 的負責人應該仍然只有 "志明" 與 "雅婷"
+```
+
+---
+
+## 待釐清 / 未來擴充（Open Questions，已定案）
+
+- 拖曳到已經是負責人的卡片：已定案為靜默忽略，不提示、不重複新增、不產生活動紀錄（見上方 Change Log 與 Scenario）。
+- Workload 是否需要加權（例如依卡片估點計算，而非單純張數）：F01 目前沒有卡片估點欄位，需另開規格與 CR，刻意不做，超出本次範圍。
+- 「拖曳追加單一負責人」的實際操作方式：已定案為 F02「指派多位負責人」Scenario 的追加變形（呼叫既有 `Card.assignTo`，追加而非覆蓋），對應 Scenario 已補在 `spec-user-membership.md` 的「卡片負責人指派」Feature。
