@@ -137,3 +137,28 @@
 
 ### Act
 完成，下一個任務：T1.03（[F01] 同上，「Stage（階段）管理」）。
+
+## Iteration 5 — 2026-09-16 22:20 — T1.03
+### Plan
+本輪任務 T1.03：遷移 F01「Stage（階段）管理」Feature 至 usecase 區塊。要改 `.dev/F01-basic-kanban/spec-kanban-basic.md` 該 Feature 段落：新增 `### Use Case 定義` 區塊、為每個 Scenario 補 `@uc-`／`@fail-` tag、調整 `# Related aggregate:` 註解對齊實體 ID 與 crud。驗收條件：`errors(F01#Stage（階段）管理)=0`。預期 F01 error 數從 29 降到個位數／0（Card Feature 尚未遷移，仍會有殘留 error 屬於下一個任務範圍）。
+
+### Do
+- commit fe980e2 `[spec/design](basic-kanban) 遷移 Stage（階段）管理 Feature 至 usecase 區塊`
+- 依「同一 When 動作」分組出 5 個 uc：`uc-add-stage`（新增一個 Stage + 新增 Stage 時未指定插入位置）、`uc-rename-stage`（重新命名 Stage）、`uc-reorder-stage`（拖曳調整 Stage 順序）、`uc-delete-stage`（刪除空的 Stage + 刪除包含卡片的 Stage 需要先轉移卡片 + 看板至少保留一個 Stage）、`uc-set-stage-role`（設定 Stage 角色）。
+- pre／post／fail 逐句對應原 Scenario 步驟：`uc-add-stage.pre.p1`=board 存在（無失敗情境，純結構性前提）、`post`=新 stage 依指定位置插入序列（未指定時加到最後）；`uc-delete-stage.pre.p1`=board 中 stage 數量大於 1（對應「看板至少保留一個 Stage」失敗 Scenario）、`post` 含「若該 stage 內有 card，card.stage 更新為使用者選擇的目的 stage」（對應「刪除包含卡片的 Stage 需要先轉移卡片」情境：轉移而非刪除，與 Swimlane 不同）；`uc-set-stage-role.post` 含「若原本已有其他 stage 角色相同，自動變回 NONE」（對應情境中第二次設定 START 時前一個 Stage 角色自動變回 NONE 的文字）。
+- 低影響假設（寫入 state）：
+  1. Aggregate 註解由原本沿用的 `board:` 改為對應實體層級（`stage:`／`card:`），與 uc 的 crud 對齊（同 T1.02 做法，理由同：UC-07／GH-06 要求 crud 含 C/U/D 的實體標 write，且註解實體須是 crud 的 key）。
+  2. 「刪除空的 Stage」情境的 `card` 註解由原本 `read` 改為 `read, write`：因 `uc-delete-stage` 的 `crud.card = U`（涵蓋「刪除包含卡片」情境會轉移 card），比照 T1.02 對 Swimlane 的相同處理，不分該次情境卡片數是否為 0。
+  3. 「該操作應該被記錄為活動紀錄」併入各 uc 自身 post，不另立 log uc（同 T1.02 理由：GH-01 一個 Scenario 僅一個 `@uc-` tag、鐵則 1 禁止新增 Scenario 導致無法給 log uc 建立成功 Scenario）。
+
+### Check
+- `./scripts/spec-check` 最後一行：開工前「312 error(s), 3 warning(s)」→ 收尾「302 error(s), 2 warning(s)」。
+- `tools error-count .dev/F01-basic-kanban/spec-kanban-basic.md`：29 → 19（剩餘 19 個 error 全部屬於尚未遷移的「Card（卡片）編輯」Feature 與跨檔正文反引號清理，非本任務範圍）。
+- `tools accept-check <tasks> T1.03`：無輸出，通過（`errors(F01#Stage（階段）管理)=0`）。
+- `tools gherkin-diff`：exit 0，「Gherkin 行為與遷移前一致（160 行）」。
+- `tools tag-diff`：exit 0，無輸出（僅新增 `@uc-`／`@fail-`，未動狀態 tag／`@CR-`）。
+- `tools changelog-check`：exit 0，無輸出（變更紀錄留給 T1.05 一次補上 CR-005 列）。
+- 逐條對照驗收條件：`errors(F01#Stage（階段）管理)=0` 已達成。
+
+### Act
+完成，下一個任務：T1.04（[F01] 同上，「Card（卡片）編輯」）。
