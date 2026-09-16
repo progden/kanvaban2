@@ -353,3 +353,32 @@ G2 的 llm-review 抽查（L-01、L-02、L-05、L-06），每個模組至少一�
 - `uc-delete-card`、`uc-remove-member` 的活動紀錄記在被刪除或被移除的 Aggregate 上。
 - OQ-11 的「狀態」欄應為人工決議。
 - 5 個雙 When Scenario、L-05 規格缺口，以及 `uc-delete-card` 的「取消刪除」fail。
+
+## Review — 2026-09-17 02:47 — 8bfbe9e
+### 範圍
+`2034e96`..`8bfbe9e`，涵蓋上一則審查的 commit `2034e96`、D-13（`197ea13`、`325ca3a`）、D-14（`dd2fc44`、`8bfbe9e`）。`last-verify.md` 是 PASS，沒有警告；`./scripts/spec-check` 實跑 0 error、0 warning；六份 spec 的 `gherkin-diff` 都回 0；`cr-check --base <baseline> --cr CR-005` 0 error。期間 OQ 檔沒有新增。`tools actionable` 的結果是 G2，本次要產出關卡摘要。
+
+### 發現
+未發現偏差。檢查過的面向：
+1. **鐵則 1**：期間 spec 只改了 F04 兩個 usecase 的 post 與 F05 一段說明文字。gherkin、tag、Aggregate 註解、名詞表、待釐清、變更紀錄都沒動，也沒有 F 編號修正。
+2. **D-13 完成度與依據**：`uc-pause-resume-board-clock` 拆出的兩句 post，分別對應 Scenario「暫停看板時間」的 Then（等 10 秒後仍是 11:00:00）與「恢復看板時間」的 Then（從 11:00:00 繼續隨系統時間前進）。兩個 uc 活動紀錄句補的說明內容，對應「調整看板時間應記錄一筆活動紀錄」「暫停或恢復看板時間應記錄一筆活動紀錄」的 Then。「包含操作人與操作時間」是原本就有的句子，依據是變更紀錄與決議紀錄提到的 CR-001 慣例，不是新增的內容。`crud`、pre、fail 都沒動。
+3. **D-14 完成度**：說明段已改成新句，舊句已移除；usecase 區塊沒動。改寫後的說明跟 D-08 補上的 post（依本檔待釐清的定案）一致。
+4. **拆分粒度、跨模組一致**：期間沒有新增或拆分 uc，也沒有改動實體、關係或角色表。
+5. **OQ 品質**：期間沒有新增 OQ，兩個任務本來就規定不新增 OQ，PDCA 裡也沒有應記而沒記的決定。
+6. **PDCA 與實際結果**：Iteration 47、48 的 Check（0 → 0、accept-check 通過、gherkin-diff 一致）跟 `last-verify.md` 與本次實跑結果一致。時間戳（12:00）晚於實際時間，跟前兩則指出的是同一類低影響問題，不開任務。
+7. **llm-review（G2）**：上一則審查已對六個模組各至少一個 uc 跑過 L-01、L-02、L-05、L-06，發現的 5 項偏差（D-10～D-14）本期都已完成，本次也逐項確認過修正內容。F04 的兩個 uc 本次重跑 L-01／L-02：post 每句都能指到 Scenario 的 Then，pre p1 能指到「非 Owner 嘗試調整看板時間」，沒有新的偏差。
+
+### 待審任務處理
+沒有 `proposed` 的 D-xx。
+
+### 關卡摘要
+**G2**：確認六個模組的 usecase 區塊，語意上與 Scenario 一致（llm-review L-01、L-02、L-05、L-06 抽查），且 `errors(all)=0`、`crcheck(CR-005)=0`。
+- 目前狀態：機械條件都通過（spec-check 0 error、0 warning；cr-check CR-005 0 error；六份 gherkin-diff 一致）。上一則審查開出的 D-10～D-14 都已完成並確認。
+- 本次沒有開新的 D-xx，同意自動核准 G2。
+
+**需人工事後處理**（沿用上一則，本期沒有新增）：
+- 重複或不當拆出的 uc（F02 權限拒絕類 uc、`uc-member-add-card`、OQ-08、OQ-09），建議遷移後開同一個 CR 重整，並檢討 GH-01 是否要允許跨 Feature 引用。
+- PDCA Iteration 11、31 的標題格式；Iteration 43～48 的時間戳不可信。
+- `uc-delete-card`、`uc-remove-member` 的活動紀錄記在被刪除或被移除的 Aggregate 上。
+- OQ-11 的「狀態」欄應為人工決議。
+- 5 個雙 When Scenario（含 F04「暫停或恢復看板時間應記錄一筆活動紀錄」）、L-05 規格缺口，以及 `uc-delete-card` 的「取消刪除」fail。
