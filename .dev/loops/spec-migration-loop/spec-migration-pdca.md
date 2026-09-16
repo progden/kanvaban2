@@ -1268,3 +1268,24 @@ OQ 摘要（依模組；「採用」為 `spec-migration-open-questions.md` 表�
 
 ### Act
 完成：下一個任務 G2（尚未核准，需等待核准才能繼續）
+
+## Iteration 49 — 2026-09-17 — G2, T3.04
+### Plan
+本輪開工前發現 `runtime/gates/G2.approved` 已存在（上一輪審查輪已核准，見 733fee1），依規則先把任務清單 G2 標為 done，再重跑 `actionable` 取得本輪真正任務：T3.04（最終確認並建立 `runtime/DONE`）。驗收條件：`errors(all)=0`；`crcheck(CR-005)=0`；任務清單除 T3.04 外無 todo／doing／blocked／proposed。預期 error 數維持 0。
+
+### Do
+- 任務清單：G2 狀態改為 done（僅改狀態欄）；確認後 T3.04 為 actionable 唯一任務
+- 確認 `./scripts/spec-check`：`0 error(s), 0 warning(s)`
+- 確認 `tools accept-check spec-migration-tasks.md T3.04`：exit 0（`errors(all)=0`、`crcheck(CR-005)=0` 皆用 `runtime/baseline` 為 base 驗證通過）
+- 確認任務清單除 T3.04 外全部 done（無 todo／doing／blocked／proposed）
+- 任務清單：T3.04 狀態改為 done
+- 無新增假設、無新增 OQ
+
+### Check
+- `./scripts/spec-check`：`0 error(s), 0 warning(s)`
+- `tools accept-check spec-migration-tasks.md T3.04`：exit 0（達成）
+- 任務清單逐列檢查：T0～T3、G1、G2、D-01～D-14 全部 done，僅 T3.04 由 todo→done
+- 逐條對照驗收條件：`errors(all)=0` 達成；`crcheck(CR-005)=0` 達成；任務清單無其餘未完成項 達成
+
+### Act
+T3.04 驗收條件全部達成，建立空檔 `runtime/DONE`（不進版控）。spec 遷移 loop 全部任務完成。
