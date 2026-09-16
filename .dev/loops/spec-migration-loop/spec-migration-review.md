@@ -256,3 +256,29 @@ llm-review：G1 需要的 F01 每個 Feature 抽查已在 `9f436a3` 那則完成
 - F02 的權限拒絕寫成獨立 uc，`uc-member-add-card` 跟 F01 `uc-add-card` 重複；F04 `uc-guard-clock-monotonicity`（OQ-08）、F05 `uc-drag-assign-card-owner` 與 F02 `uc-assign-card-owner-by-drag` 重複（OQ-09），都是同類問題，建議遷移後開同一個 CR 重整，並檢討 GH-01 是否要允許跨 Feature 引用。
 - PDCA Iteration 11、Iteration 31 的標題格式有誤。
 - `uc-delete-card`、`uc-remove-member` 的活動紀錄記在被刪除或被移除的 Aggregate 上。
+
+## Review — 2026-09-16 22:05 — ac6c0f1
+### 範圍
+`2bb4c97`..`ac6c0f1`，涵蓋上一則審查的 commit `4f4d11a`、D-08（`73d8082`、`8367eaf`）、T2.19（`03d0ef4`、`4805c69`）、T2.20（`a500412`、`c7de9c3`）、T2.21（`9b2a133`、`a796369`）、T2.22（`870af9b`、`ac6c0f1`）。`last-verify.md` 是 PASS，沒有警告（F01～F06 都是 0 error，總數 43 → 0，warning 0）；`./scripts/spec-check` 實跑結果也是 0 error、0 warning。期間 OQ 檔沒有新增列。`tools actionable` 的結果原本是 T3.01，不是關卡；本次開了 D-09，會排在 T3.01 之前。
+
+### 發現
+1. **低**｜F06 變更紀錄 2026-09-13「開發完成」那列｜F06 舊表只有兩欄（日期／內容），沒有票號。T2.22 比照 F05 在摘要開頭加上「（原票號 F06）」，但原文沒有這個票號，等於捏造了資訊。規則書程序 11 的「原本不是四欄的表格照此對應」是指欄位對應，不是要求補一個原本沒有的票號。已開 **D-09**，只移除這段註記；摘要保留「開發完成：」前綴，以符合 `changelog-check`。
+2. **低**｜F05 簡介段、其他名詞表、Aggregate 標記說明｜T2.19 把 `BoardMembership`、`assigneeIds` 改成已定義的 ID `board-membership`、`card.assignees`，屬於「實體 ID 命名」這類低影響的格式對齊，意思沒變，可以接受。變更紀錄裡的「assigneeIds」照規則保留原字，只換了引號。「讀取／寫入卡片的 `card.assignees`」讀起來有點重複，但不影響意思，不開任務。
+3. **鐵則 1**：F05、F06 的 `gherkin-diff`、`tag-diff`、`changelog-check` 都一致（本次實跑 F06 `changelog-check` exit 0）。F06 名詞表 5 列逐字搬到「其他名詞」，只把反引號換成「」；範例標籤「F01」「CR-003」「affects:F01」都沒有被當成 F 編號改動。F06 的簡介段與待釐清原文都保留。期間沒有 F 編號修正。
+4. **鐵則 2 抽查**：F06 `uc-view-feature-cr-board` 的 5 句 post 分別對到 5 個 Scenario 的 Then（已完成、CR 開發中、orphan、雙 Feature 警告、大小寫）。第一句「角色為 Start 顯示開發中」出自其他名詞表的「狀態」定義與第二個 Scenario，有依據；沒有寫 Scenario 沒有出現的 NONE／未開發，做法保守。`crud` `{board: R, card: R}` 是 5 個 Scenario 註解的聯集（最後一個只有 `card: read`）。`roles: [r-user]` 對應標頭「身為 看板使用者」。`pre: {}` 跟 F03、F05 的讀取 uc 一致。
+5. **拆分粒度**：F06 的 5 個 Scenario 都是「開啟 Feature／CR 追蹤表」這一個讀取動作，歸成一個 uc，合理；沒有 fail 也合理。
+6. **跨模組一致**：F06 的實體、欄位、關係、角色表都留空，引用 F01 的 `board`、`card`、`r-user`，沒有重複定義；「身為看板的使用者」→「身為 看板使用者」比照 F03～F05。全部 spec 合跑 0 error，REF-08 沒有重複定義。
+7. **D-08 完成度**：post 第二句已照指定修改，第一句、`crud`、gherkin 都沒有動，達成。
+8. **OQ 品質**：期間沒有新增 OQ。T2.19～T2.22 在 PDCA 記的都是格式層級的低影響假設，沒有該記 OQ 卻漏記的高影響決定。
+9. **PDCA 與實際結果**：各輪 Check 的 error 數跟 `last-verify.md` 一致（43 → 30 → 15 → 8 → 0）。Iteration 36 記錄了 `changelog-check` 第一次失敗、改回原字後才通過，紀錄屬實。
+
+### 待審任務處理
+沒有 `proposed` 的 D-xx。
+
+### 關卡摘要
+不適用：下一個任務是 D-09，接著是 T3.01（G2 在 T3.03 之後）。
+
+**需人工事後處理**（沿用前幾則）：
+- F02 的權限拒絕寫成獨立 uc，`uc-member-add-card` 跟 F01 `uc-add-card` 重複；F04 `uc-guard-clock-monotonicity`（OQ-08）、F05 `uc-drag-assign-card-owner` 與 F02 `uc-assign-card-owner-by-drag` 重複（OQ-09），都是同類問題，建議遷移後開同一個 CR 重整，並檢討 GH-01 是否要允許跨 Feature 引用。
+- PDCA Iteration 11、Iteration 31 的標題格式有誤。
+- `uc-delete-card`、`uc-remove-member` 的活動紀錄記在被刪除或被移除的 Aggregate 上。
