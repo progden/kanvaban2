@@ -215,3 +215,27 @@
 
 ### Act
 完成，下一個任務：T1.05（[F01] 遷移程序 10～11：正文反引號清理、`design.md` 稱呼改為 `design-kanban-basic.md`、變更紀錄改四欄格式並追加 CR-005 一列）。
+
+## Iteration 8 — 2026-09-16 23:40 — T1.05
+
+### Plan
+本輪任務 T1.05：遷移程序 10～11，清理 F01 正文（gherkin／usecase 區塊以外）不合法的反引號用法，並把變更紀錄補上 CR-005 一列。要改 `.dev/F01-basic-kanban/spec-kanban-basic.md` 的「Aggregate 標記說明」段落（`board:`、`read`、`write`）、變更紀錄 CR-004 那列（`kanban-core`、`Board`、`Card`、`Board.now()`、`Board.newEventTime()`、`Instant.now()`）、「待釐清」段落（`@fail-p2`），並追加 CR-005 一列。確認全文無 `design.md` 舊稱呼需要改名（檢查後本檔未提及 design.md）。驗收條件：`errors(F01;REF-01,REF-06)=0`；變更紀錄最後一列票號為 CR-005。預期 F01 error 數從 9 降到 0（`./scripts/spec-check` 逐條核對確認 9 個 REF-01 error 全屬本輪範圍）。
+
+### Do
+- commit dcac04e `[spec/design](basic-kanban) 清理正文反引號並補登 CR-005 變更紀錄`
+- 反引號改「」：`board:`→「board:」、`read`→「read」、`write`→「write」（Aggregate 標記說明段落）；`kanban-core`→「kanban-core」、`Board`／`Card`→「Board」／「Card」、`Board.now()`／`Board.newEventTime()`→「Board.now()」／「Board.newEventTime()」、`Instant.now()`→「Instant.now()」（CR-004 變更紀錄列）；`@fail-p2`（待釐清段落 OQ-02 那行）直接去除反引號，不換成「」（因為它不是程式碼名稱，是 tag 引用，前後文已有中文說明）。
+- 變更紀錄追加一列：`| 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（列出本檔全部 15 個 uc-* ID） |`（`.dev/CR.md` 的 CR-005 已在 T0.02 登記，本輪不改 CR.md）。
+- 低影響假設（未另記 OQ）：`@fail-p2` 的反引號單純去除而非換成「」，因為它前後已有「歸入 uc-delete-card 的 fail 分支」等中文描述，不需要額外標記符號。
+- 確認全文搜尋 `design.md` 無結果，本檔沒有需要改名的舊稱呼，遷移程序第 10 點該項不適用於 F01。
+
+### Check
+- `./scripts/spec-check` 最後一行：開工前「293 error(s), 1 warning(s)」→ 收尾「283 error(s), 1 warning(s)」。
+- `tools error-count .dev/F01-basic-kanban/spec-kanban-basic.md`：9 → 0。
+- `tools accept-check <tasks> T1.05`：無輸出，通過（`errors(F01;REF-01,REF-06)=0`；變更紀錄最後一列票號 CR-005）。
+- `tools gherkin-diff`：exit 0，「Gherkin 行為與遷移前一致（160 行）」。
+- `tools tag-diff`：exit 0，無輸出。
+- `tools changelog-check`：exit 0，無輸出（原有列文字全數保留，僅追加新列）。
+- 逐條對照驗收條件：`errors(F01;REF-01,REF-06)=0` 與「變更紀錄最後一列票號為 CR-005」皆已達成。
+
+### Act
+完成，下一個任務：T1.06（[F01] 收尾：F01 全檔 0 error，修掉剩餘項目）。F01 目前已無 error（僅剩 UC-13 warn：實體 "board" 沒有任何 Use Case 建立它），下一輪確認是否需處理或記為可接受的 warn。
