@@ -57,7 +57,7 @@
 | T2.14 | done | [F04] 遷移程序 1～6：狀態行、名詞／角色表、「身為」行；「決議紀錄」段落保留 | `errors(F04;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0` | T2.13 |
 | T2.15 | done | [F04] 「看板時間管理」usecase 區塊＋tag＋Aggregate 註解 | `errors(F04#看板時間管理)=0` | T2.14 |
 | T2.16 | done | [F04] 遷移程序 10～11 與收尾，F04 全檔 0 error | `errors(F04)=0` | T2.15 |
-| T2.17 | todo | [F05] 遷移程序 1～6：狀態行、名詞／角色表、「身為」行 | `errors(F05;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0` | T2.16 |
+| T2.17 | done | [F05] 遷移程序 1～6：狀態行、名詞／角色表、「身為」行 | `errors(F05;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0` | T2.16 |
 | T2.18 | todo | [F05] 「人員工作量檢視」usecase 區塊＋tag＋Aggregate 註解（拖曳追加負責人的 Scenario 屬於哪個 uc，依 F02「卡片負責人指派」已定義的 uc 判斷，不重複定義） | `errors(F05#人員工作量檢視)=0` | T2.17 |
 | T2.19 | todo | [F05] 遷移程序 10～11 與收尾，F05 全檔 0 error | `errors(F05)=0` | T2.18 |
 | T2.20 | todo | [F06] 遷移程序 1～6：狀態行、名詞／角色表、「身為」行 | `errors(F06;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0` | T2.19 |

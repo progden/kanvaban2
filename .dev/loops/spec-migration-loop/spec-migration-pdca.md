@@ -758,3 +758,23 @@
 
 ### Act
 完成，下一個任務：T2.17（[F05] 遷移程序 1～6：狀態行、名詞／角色表、「身為」行）
+
+## Iteration 33 — 2026-09-16 — T2.17
+### Plan
+本輪任務為 T2.17：對 `.dev/F05-workload/spec-workload.md` 執行遷移程序 1～6（狀態行、名詞定義表拆分為實體／欄位／關係／其他名詞、角色定義表、Feature「身為」行）。要改的段落：簡介後加狀態行；`## 名詞定義` 拆成四張子表（實體／欄位／關係留空，因 F05 無新實體／欄位／關係；其他名詞表內容原封不動搬入）；新增空的 `## 角色定義`；gherkin「身為看板的使用者」改為「身為 看板使用者」以對齊 F01 已定義的 `r-user`。驗收條件：`errors(F05;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0`。預期全部 spec error 總數從 62 降到約 56。
+
+### Do
+- 4ae17eb [spec/design](workload) 遷移狀態行與名詞角色表至新格式
+- 低影響假設：F05 無新實體／欄位／關係（`board`、`board-membership`、`card` 皆為 F01／F02 已定義實體，Active Card／Workload／未指派為計算概念而非實體，比照 F03「其他名詞」處理方式），三張子表留空
+- 低影響假設：角色表維持空表，沿用 F01 已定義的 `r-user`（名稱「看板使用者」），不新增本地角色；比照 F02「身為 看板使用者」（`spec-user-membership.md:671,792`）與 F04（commit a1cc822）同類處理
+- 本輪刻意不動「## Aggregate 標記說明」段落內文（`boardMembership`、`read`/`write` 反引號）與 gherkin 區塊內的 Aggregate 註解、usecase 區塊，留給 T2.18／T2.19（比照 F04 T2.14 commit a1cc822 的範圍切法）
+- 未新增 OQ
+
+### Check
+- `./scripts/spec-check`（全部）最後一行：56 error(s), 0 warning(s)（開工前 62）
+- `tools error-count .dev/F05-workload/spec-workload.md`：開工前 32 → 收尾時 26
+- `tools accept-check spec-migration-tasks.md T2.17`：無輸出，exit 0（達成）
+- `tools gherkin-diff .dev/F05-workload/spec-workload.md`：一致（32 行）；`tools tag-diff`：一致；`tools changelog-check`：一致（exit 0）
+
+### Act
+完成，下一個任務：T2.18（[F05]「人員工作量檢視」usecase 區塊＋tag＋Aggregate 註解）
