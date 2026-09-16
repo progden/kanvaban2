@@ -1249,3 +1249,22 @@ OQ 摘要（依模組；「採用」為 `spec-migration-open-questions.md` 表�
 
 ### Act
 完成：下一個任務 D-14
+
+## Iteration 48 — 2026-09-17 12:00 — D-14
+### Plan
+本輪任務 D-14：修改 `.dev/F05-workload/spec-workload.md` 中 `uc-drag-assign-card-owner` 下方說明段，使其與 D-08 已補上的 post（「且不產生新的活動紀錄」）一致；改法採「保留 D-08 的 post，改說明段」：把「「pre」「post」只依本 Feature 的 Scenario 步驟推導（見 OQ-09）」改為「「pre」「post」依本 Feature 的 Scenario 步驟與本檔待釐清的定案推導（見 OQ-09）」。usecase 區塊、gherkin 都不動，不新增 OQ。驗收條件：`errors(F05)=0`；F05 spec 含新句且不含舊句。預期 error 數不變（開工前、收尾皆 0）。
+
+### Do
+- dd2fc44 [spec/design](workload) 修正拖曳追加負責人 usecase 說明段與 D-08 一致
+- 只改第 89 行的說明段文字，未動 usecase 區塊（pre/post/crud）與 gherkin
+- 無新增假設、無新增 OQ
+
+### Check
+- `./scripts/spec-check`：`0 error(s), 0 warning(s)`
+- `tools error-count .dev/F05-workload/spec-workload.md`：開工前 0 → 收尾 0
+- `tools accept-check spec-migration-tasks.md D-14`：exit 0（達成）
+- `gherkin-diff`：一致（32 行）；`tag-diff`：無差異；`changelog-check`：通過
+- 逐條對照：`errors(F05)=0` 達成；新句已寫入且舊句已移除
+
+### Act
+完成：下一個任務 G2（尚未核准，需等待核准才能繼續）
