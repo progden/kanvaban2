@@ -675,3 +675,26 @@
 
 ### Act
 完成，下一個任務：T2.15（[F04]「看板時間管理」usecase 區塊＋tag＋Aggregate 註解）
+
+## Iteration 28 — 2026-09-16 22:15 — T2.15
+### Plan
+本輪任務 T2.15：對 `.dev/F04-board-clock/spec-board-clock.md` 的「看板時間管理」Feature 執行遷移程序 7～9（usecase 區塊、Scenario tag、Aggregate 註解與 crud 對齊）。驗收條件：`errors(F04#看板時間管理)=0`。預期 F04 error 數從 48 下降（該 Feature 段落的 UC-0x／GH-01／GH-06 等 error 解除）。
+
+### Do
+- 70834eb [spec/design](board-clock) 新增看板時間管理 Feature 的 usecase 區塊
+- 新增 3 個 uc：`uc-adjust-board-clock`（調整看板時間，roles: r-board-owner，pre/fail 依 Scenario「看板時間可以往回調整」「非 Owner 嘗試調整看板時間」「調整看板時間應記錄一筆活動紀錄」推導）、`uc-guard-clock-monotonicity`（看板時間早於最後事件時阻擋寫入，roles: r-user，依 Scenario「把看板時間調整到未來後建立卡片」（成功）與「看板時間早於最後一筆事件時，不可建立新事件」（失敗）推導）、`uc-pause-resume-board-clock`（暫停或恢復看板時間，roles: r-board-owner，依 Scenario「暫停看板時間」「恢復看板時間」「暫停或恢復看板時間應記錄一筆活動紀錄」推導）
+- 低影響假設：Scenario「把看板時間調整到未來後建立卡片，事件時間應為調整後的時間」原本 When 動作是「調整看板時間」，但因 GH-01（每個 Scenario 恰一個 `@uc-`）與 UC-06（每個 uc 至少一個成功 Scenario）的組合限制——若歸入 `uc-adjust-board-clock`，`uc-guard-clock-monotonicity` 就沒有成功 Scenario（唯一的守門情境是失敗案例）——改將此 Scenario 歸入 `uc-guard-clock-monotonicity`，因為它是文件中唯一能證明「時鐘未落後最後事件時，允許寫入新事件」的案例；`uc-adjust-board-clock` 的調整動作仍由「看板時間可以往回調整」「調整看板時間應記錄一筆活動紀錄」兩個 Scenario 提供成功案例，行為未受影響，純屬 uc 歸屬的格式選擇
+- 低影響假設：「暫停」「恢復」因 Scenario「暫停或恢復看板時間應記錄一筆活動紀錄」在同一情境內依序操作兩個動作、受 GH-01 限制只能掛一個 `@uc-`，故合併為單一 uc `uc-pause-resume-board-clock`（同 F01 Swimlane/Stage 若干「重新命名」與「排序」分開、但此處因單一 Scenario 橫跨兩動作而必須合併的情況）
+- `uc-adjust-board-clock`、`uc-pause-resume-board-clock` 的 Owner 限制 pre 依本文件既有「決議紀錄」段落（「僅 Owner 可操作，且每次調整／暫停／恢復都記錄一筆活動紀錄」）與對應 Scenario 的 Given／Then 推導，非新增假設
+- `uc-guard-clock-monotonicity` 的 fail.p1 逐字引用 Scenario 原文錯誤訊息「看板時間早於最後一筆事件（13:00），無法建立新事件」
+- Aggregate 註解（`# Related aggregate:`）與所有 Scenario tag 行的既有內容核對後與新 uc 的 `crud` 完全一致，未需修改任何一行
+- 未新增 OQ；未動「決議紀錄」與「待釐清」段落
+
+### Check
+- `./scripts/spec-check`（全部）最後一行：100 error(s), 0 warning(s)（開工前 110）
+- `tools error-count .dev/F04-board-clock/spec-board-clock.md`：開工前 48 → 收尾時 38
+- `tools accept-check spec-migration-tasks.md T2.15`：無輸出，exit 0（達成，`errors(F04#看板時間管理)=0`）
+- `tools gherkin-diff`：一致（43 行）；`tools tag-diff`：一致；`tools changelog-check`：一致
+
+### Act
+完成，下一個任務：T2.16（[F04] 遷移程序 10～11 與收尾，F04 全檔 0 error）
