@@ -174,3 +174,31 @@ llm-review：G1 需要的 F01 每個 Feature 抽查已在 `9f436a3` 那則完成
 **需人工事後處理**：
 - 發現 3：F02 的權限拒絕寫成獨立 uc，`uc-member-add-card` 與 F01 `uc-add-card` 重複，`uc-delete-board` 的拒絕分支沒辦法表達。建議遷移後開 CR 重整。
 - 沿用前幾則：PDCA Iteration 11 標題被改過；`uc-delete-card` 的活動紀錄記在被刪除的 `card` 上（`uc-remove-member` 改完 D-04 後也會有同樣情況）。
+
+## Review — 2026-09-16 23:55 — 5ceb374
+### 範圍
+`4015d2a`..`5ceb374`，涵蓋 D-04（`0afeb51`、`497095e`）、T2.08（`047a9fb`、`51d0baa`）、T2.09（`447d9dc`、`31f816d`）、T2.10（`fc93168`、`4a58229`）、T2.11（`adfee4d`、`5ceb374`），以及上一則審查的 commit `a1bf2af`。`last-verify.md` 是 PASS，沒有警告（F01、F02 都是 0 error，F03 42 → 24，總數 184 → 140，warning 0）。OQ 檔新增 OQ-07。`tools actionable` 的結果原本是 T2.12，不是關卡；本次開了 D-05，它會排在 T2.12 之前。
+
+### 發現
+1. **中**｜F02 `uc-view-board-activity-log` 的 post 第一句｜寫成「`board` 的活動紀錄依時間由新到舊列出」，但第二句又說最上面一筆是 `board-membership` 的異動。依 OQ-01 和剛完成的 D-04，邀請成員的紀錄屬於 `board-membership`，不屬於 `board`，所以這句跟 D-04 矛盾。Feature 後面的說明也寫明這個畫面是「把 Board、每張 Card、BoardMembership 的事件合併成一份」的跨 aggregate 投影。已開 **D-05**，改成「該看板的活動紀錄（合併 `board` 與 `board-membership` 的紀錄）」。`crud` 沒有列 `card`，這跟 Scenario 一致（Scenario 只涉及建立 Board 和邀請成員），不需要改。
+2. **低**｜F02 變更紀錄｜2026-09-13 有兩列的票號欄原本是 `F05`，T2.09 把票號欄清空，摘要開頭改成「（原票號 F05）」。原本的資訊還在，也沒有被誤當成 F 編號修正，可以接受，不開任務。F03 變更紀錄的票號欄也寫 `F03`，T2.13 收尾時應比照這個做法。
+3. **低**｜F03 三個讀取 uc 的 `pre: {}`｜兩個 Feature 的 Background 都寫了「Stage 已設定角色為 Start／Done」，簡介也說所有圖表都依賴這個設定。這可以寫成 pre，但 Scenario 沒有描述這個條件不成立時的分支，留空不算錯，不開任務。
+4. **低**｜F03 `uc-view-aging-wip` 的 post｜「從進入 Start 到看板時間目前的時間所經過的時間」讀起來不順，但意思對得上 Scenario（「看板時間目前為 2026-09-12」、年齡 11 天）和其他名詞表的 Aging（到 `asOf` 為止），不開任務。
+5. **鐵則 1**：F02、F03 的 `gherkin-diff` 一致（216 行、65 行），`tag-diff` 通過。F03 原名詞表 7 列逐字搬到「其他名詞」，實體、欄位、關係、角色表留空，沒有重列 F01 的定義（REF-08）。F03 標頭「身為看板的使用者」改成「身為 看板使用者」，對應 F01 的 `r-user`，名稱相符。F02 正文的反引號改成「」，只換符號沒有改字；`design.md` 改成 `design-user-membership.md`，已確認該檔有「### 8. 尚未實作：「檢視看板活動紀錄」統一活動列表」，「第 8 點」的引用仍然正確。待釐清原有的行都在，只多了 OQ-07。沒有 F 編號修正。
+6. **鐵則 2 抽查**：`uc-view-cycle-lead-time` 的三句 post 分別對到三個 Scenario 的 Then（Lead 4 天／Cycle 3 天、Cycle 顯示「無」和排除的卡片數、以最後一次完成時間為準）。`uc-view-wip` 對到各 Stage 的卡片數。`uc-view-board-activity-log` 的 Aggregate 註解從 `boardMembership: read` 改成 `board: read`＋`board-membership: read`，多出來的 `board: read` 有依據（Scenario 的 Given 是建立 Board，而且要讀 `board` 的紀錄），可以接受。
+7. **拆分粒度**：Cycle／Lead Time 的三個 Scenario 都是同一個 When，歸成一個 uc；WIP 和 Aging WIP 開的是不同圖表，拆成兩個 uc。都合理，讀取 Scenario 也沒有被塞進寫入 uc。
+8. **跨模組一致**：F03 只引用 `board`、`card`、`r-user`，沒有重複定義。
+9. **D-04 完成度**：三句 post 已改成 `board-membership`，不再有 `roles: []`，四個拒絕 uc 的角色符合指定，OQ-07 是最後一列並提到 OQ-06 和 roles。都達成了。
+10. **OQ 品質**：OQ-07 是 D-04 指定要記的更正列，內容合格。T2.10、T2.11 的決定（留空表、uc 分組）屬於低影響，只記在 PDCA 是合理的。
+11. **PDCA 與實際結果**：各輪 Check 的 error 數跟 `last-verify.md` 的變化一致（158 → 149 → 140）。
+
+### 待審任務處理
+沒有 `proposed` 的 D-xx。
+
+### 關卡摘要
+不適用：下一個任務是 D-05，接著才是 T2.12。
+
+**需人工事後處理**（沿用前幾則）：
+- F02 的權限拒絕寫成獨立 uc，`uc-member-add-card` 跟 F01 `uc-add-card` 重複，建議遷移後開 CR 重整。
+- PDCA Iteration 11 的標題被改過。
+- `uc-delete-card`、`uc-remove-member` 的活動紀錄記在被刪除或被移除的 Aggregate 上。
