@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+"""演練用的假 claude：不花 token，只模擬 loop 需要的檔案變動，用來測試 loop 腳本與驗證腳本本身。
+
+行為由環境變數 FAKE_MODE 決定：
+  ok      執行輪：把第一個可執行任務標 done（已核准的關卡連同下一個任務）、覆寫 state、追加 PDCA、commit
+  bad     執行輪：不改任務狀態，只追加 PDCA 並修改受保護的規範檔（每輪都違規，用來測連續失敗停止）
+審查輪（提示詞含「審查輪」）一律追加審查紀錄並 commit。
+摘要呼叫（帶 --tools）只印一句話。
+"""
+import datetime
+import os
+import re
+import subprocess
+import sys
+
+LOOP = ".dev/loops/spec-migration-loop"
+LEDGER = f"{LOOP}/spec-migration-tasks.md"
+PDCA = f"{LOOP}/spec-migration-pdca.md"
+STATE = f"{LOOP}/spec-migration-state.md"
+REVIEW = f"{LOOP}/spec-migration-review.md"
+TOOLS = ["python3", f"{LOOP}/spec-migration-tools.py"]
+
+
+def sh(*args):
+    return subprocess.run(args, check=True, capture_output=True, text=True).stdout
+
+
+def set_status(ids):
+    text = open(LEDGER, encoding="utf-8").read()
+    for tid in ids:
+        text = re.sub(rf"(?m)^\| {re.escape(tid)} \| \w+ \|", f"| {tid} | done |", text)
+    open(LEDGER, "w", encoding="utf-8").write(text)
+
+
+def exec_round():
+    ids = sh(*TOOLS, "actionable", LEDGER).split()
+    if not ids:
+        return "沒有可執行任務"
+    done = [ids[0]]
+    if ids[0].startswith("G"):
+        if not os.path.exists(f"{LOOP}/runtime/gates/{ids[0]}.approved"):
+            return f"{ids[0]} 尚未核准，本輪不動作"
+        # 已核准的關卡先標 done，再重算下一個任務
+        set_status(done)
+        nxt = sh(*TOOLS, "actionable", LEDGER).split()
+        done += nxt[:1]
+    if os.environ.get("FAKE_MODE") == "bad":
+        done = [ids[0]]  # 違規的一輪不前進，同一個任務反覆失敗
+    else:
+        set_status(done)
+    n = len(re.findall(r"(?m)^## Iteration ", open(PDCA, encoding="utf-8").read()))
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    out = subprocess.run(["./scripts/spec-check"], capture_output=True, text=True).stdout
+    last = out.strip().split("\n")[-1]
+    with open(PDCA, "a", encoding="utf-8") as f:
+        f.write(f"\n## Iteration {n} — {now} — {done[-1]}\n### Plan\n演練：標記 {', '.join(done)}\n\n"
+                f"### Do\n（假 claude）\n\n### Check\n{last}\n\n### Act\n下一個任務\n")
+    open(STATE, "w", encoding="utf-8").write(f"# 演練 state\n\n- 上一輪任務：{', '.join(done)}\n")
+    if os.environ.get("FAKE_MODE") == "bad":
+        with open(".dev/conventions/spec-convention.md", "a", encoding="utf-8") as f:
+            f.write("\n演練：違規修改規範\n")
+        sh("git", "add", ".dev/conventions/spec-convention.md")
+    sh("git", "add", LEDGER, PDCA, STATE)
+    sh("git", "commit", "-q", "-m", f"[docs](loops) 演練完成 {' '.join(done)}")
+    return f"完成 {', '.join(done)}"
+
+
+def review_round():
+    head = sh("git", "rev-parse", "--short", "HEAD").strip()
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    with open(REVIEW, "a", encoding="utf-8") as f:
+        f.write(f"\n## Review — {now} — {head}\n### 範圍\n演練\n\n### 發現\n未發現偏差\n\n"
+                f"### 待審任務處理\n無\n\n### 關卡摘要\n同意自動核准\n")
+    sh("git", "add", REVIEW)
+    sh("git", "commit", "-q", "-m", "[docs](loops) 演練追加審查紀錄")
+    return "審查完成，未發現偏差"
+
+
+def main():
+    args = sys.argv[1:]
+    prompt = args[args.index("-p") + 1] if "-p" in args else ""
+    if "--tools" in args:
+        print("演練摘要：本輪處理第一個候選任務")
+        return 0
+    with open(os.environ.get("FAKE_CALLS", "/dev/null"), "a", encoding="utf-8") as f:
+        f.write(("review" if "審查輪" in prompt.split("\n")[0] else "exec") + "\n")
+    result = review_round() if "審查輪" in prompt.split("\n")[0] else exec_round()
+    print('{"type":"result","result":"%s"}' % result)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

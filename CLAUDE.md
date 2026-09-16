@@ -29,6 +29,7 @@ python3 -m unittest discover -s scripts/tests   # 腳本的測試
 
 - `spec-<模組>.md`：BDD 規格（Gherkin + usecase 區塊），是行為的唯一依據，`spec-check` 解析它
 - `ui-<模組>.md`（選填，目前尚無）：UI 短規格，依 `ui-design-convention.md`，`ui-check` 解析它
+- `legacy-spec-<模組>.md`：遷移前的規格備份（spec 遷移 loop 用來比對行為），不被腳本掃描、不可修改，遷移確認後可刪
 - `design-<模組>.md`（F01～F04 有）：**後端**領域模型設計備忘，不被任何腳本解析；spec 內文仍以舊名 `design.md` 稱呼它，遷移時一併改
 
 | 編號 | 模組 | 重點 |
@@ -64,6 +65,7 @@ python3 -m unittest discover -s scripts/tests   # 腳本的測試
 - **ui-design-convention.md**（`ui-<模組>.md` 怎麼寫）：畫面標題 `## s-<id>：<名稱>`，八個固定段落，資料表來源填 Attribute ID、操作表觸發填 UseCase ID、角色表填 Role ID、導覽用 Screen ID；ui 檔不定義新概念；畫面總表與追溯矩陣由 `--report` 生成，不手寫。
 - **cr-convention.md**（流程）：規格進入開發後，改 Scenario、名詞表、角色表、usecase 區塊、ui 的操作／角色／導覽都要先開 CR（`CR-<三位數>`）；總表 `.dev/CR.md` 的「影響 ID」欄列受影響的 Entity／UseCase／Screen，`cr-check` 用它對照 PR diff。**本 repo 目前沒有 `.dev/CR.md`**，既有規格裡的 `@CR-001`～`@CR-004` 會被 REF-06 報未登記，遷移時要一併建立。
 - **checks.md** / **scripts.md** / **llm-review.md** / **open-questions.md**：檢查清單（ID 對應 `scripts/speccheck/checks/`）、腳本規格、LLM 語意 review 清單、待決事項。
+- **spec 遷移 loop**（`.dev/loops/spec-migration-loop/`）：無人值守把六份 spec 遷到新格式。規則書 `spec-migration-prompt.md`、任務清單 `spec-migration-tasks.md`，啟動 `./.dev/loops/spec-migration-loop/run-spec-migration-loop.sh`（自動切到 `loop/spec-migration` 分支），執行期檔案在同目錄 `runtime/`（不進版控）；改 loop 腳本後用 `rehearsal/rehearse.sh` 以假 claude 演練。
 - **git-convension.md**：commit 格式 `[類型](scope) 摘要 (#票號)`，類型為 `spec/design`、`dev`、`test`、`docs`、`chore`、`revert`；摘要用中文祈使句，50 字內，句尾不加標點。
 
 ## 腳本（`scripts/`）
