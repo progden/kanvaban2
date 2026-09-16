@@ -853,3 +853,23 @@
 
 ### Act
 完成，下一個任務：T2.21（[F06]「Feature／CR 追蹤表」usecase 區塊＋tag＋Aggregate 註解）
+
+## Iteration 38 — 2026-09-16 — T2.21
+### Plan
+本輪任務為 T2.21：對 `.dev/F06-feature-cr-board/spec-feature-cr-board.md` 的「Feature／CR 追蹤表」Feature 新增 usecase 區塊、掛 `@uc-` tag、確認 Aggregate 註解與 crud 對齊。五個 Scenario 都是同一個讀取操作（開啟追蹤表）的不同觀察面向（狀態顯示、CR 對應 Feature、orphan、格式警告、大小寫不敏感），判斷為單一 usecase `uc-view-feature-cr-board`，`crud` 為 `{board: R, card: R}`（對齊既有 Aggregate 註解，皆為 read）。驗收條件：`errors(F06#Feature／CR 追蹤表)=0`。預期 F06 全檔 error 數下降但不歸零（正文與變更紀錄的反引號、CR 登記留給 T2.22）。
+
+### Do
+- 9b2a133 [spec/design](feature-cr-board) 新增追蹤表 usecase 區塊與 tag
+- 低影響假設：五個 Scenario 判斷為同一交易/讀取操作，合併為單一 usecase `uc-view-feature-cr-board`（比照 F03／F05 純讀取 usecase 的分組原則：同一 When 動作「開啟 Feature／CR 追蹤表」的所有 Scenario 屬同一 uc）
+- 低影響假設：`fail` 留空、不掛 `@fail-`，因五個 Scenario 都是同一讀取操作的不同輸出（狀態顯示、orphan、警告、大小寫），不是「操作被拒絕」的驗證失敗情境（比照 F03／F05 純讀取 usecase 前例）
+- 低影響假設：`post` 只列 Scenario 實際展示的行為（Stage 角色 Done／Start 對應「已完成」／「開發中」），未引用「其他名詞」表中 Scenario 未展示的 NONE／「未開發」對應，避免無 Scenario 依據的推導（鐵則 2）
+
+### Check
+- `./scripts/spec-check` 最後一行：8 error(s), 0 warning(s)（開工前 15）
+- `tools error-count .dev/F06-feature-cr-board/spec-feature-cr-board.md`：開工前 15 → 收尾時 8（剩餘為「Aggregate 標記說明」段落 `read`／`write` 被誤判為 Entity 反引號、變更紀錄段落反引號、REF-06 CR 未登記，留給 T2.22）
+- `tools accept-check spec-migration-tasks.md T2.21`：無輸出，exit 0（達成）
+- `tools gherkin-diff .dev/F06-feature-cr-board/spec-feature-cr-board.md`：一致（27 行，exit 0）；`tools tag-diff`：一致（exit 0）；`tools changelog-check`：一致（exit 0，本輪未改變更紀錄）
+- 其餘 F01～F05 error-count 均為 0，未受本輪影響
+
+### Act
+完成，下一個任務：T2.22（[F06] 遷移程序 10～11 與收尾：正文反引號清理、變更紀錄改四欄，F06 全檔 0 error）
