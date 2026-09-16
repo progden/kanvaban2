@@ -79,12 +79,33 @@
 
 ## Feature: 建立使用者帳號
 
+### Use Case 定義
+```usecase
+- id: uc-create-user
+  name: 建立帳號
+  roles: [r-system-user]
+  crud: {user: C}
+  pre:
+    p1: "`user.password` 長度不可超過 40 字"
+    p2: "`user.username` 在系統中不可重複"
+  post:
+    - "新的 `user` 建立成功，`user.username`、`user.display-name`、`user.password` 依輸入值設定；`user.display-name` 未指定時預設為 `user.username`"
+    - "`user.display-name` 可以與其他 `user` 的顯示名字重複"
+  fail:
+    p1: "拒絕，不建立新的 `user`"
+    p2: "拒絕，不建立新的 `user`"
+  emits: []
+  requires: []
+  calls-sync: []
+```
+
 ```gherkin
 Feature: 建立使用者帳號
   身為 系統使用者
   我想要建立一個帳號，密碼規則越單純越好
   以便快速取得系統存取權而不被過度嚴格的密碼規則卡住
 
+  @uc-create-user
   # Related aggregate:
   #   user: write
   Scenario: 建立帳號時密碼可以留白
@@ -92,27 +113,31 @@ Feature: 建立使用者帳號
     Then 該帳號應該建立成功
     And 我應該能用空白密碼登入這個帳號
 
+  @uc-create-user
   # Related aggregate:
   #   user: write
   Scenario: 密碼長度剛好 40 字可以建立成功
     When 我建立一個帳號 "user3"，密碼長度為 40 個字，包含英文大小寫與符號
     Then 該帳號應該建立成功
 
+  @uc-create-user @fail-p1
   # Related aggregate:
-  #   user: write
+  #   user: read
   Scenario: 密碼長度超過 40 字則建立失敗
     When 我建立一個帳號 "user4"，密碼長度為 41 個字
     Then 系統應該顯示錯誤訊息 "密碼長度不可超過 40 個字"
     And 該帳號不應該被建立
 
+  @uc-create-user @fail-p2
   # Related aggregate:
-  #   user: write
+  #   user: read
   Scenario: 帳號 ID（username）不可重複
     Given 系統中已存在帳號 "user1"
     When 我嘗試建立另一個帳號 "user1"
     Then 系統應該顯示錯誤訊息 "此帳號已被使用"
     And 不應該建立新的帳號
 
+  @uc-create-user
   # Related aggregate:
   #   user: write
   Scenario: 建立帳號需要同時提供帳號 ID 與顯示名字
@@ -120,6 +145,7 @@ Feature: 建立使用者帳號
     Then 該帳號應該建立成功
     And 該帳號的顯示名字應該是 "王小明"
 
+  @uc-create-user
   # Related aggregate:
   #   user: read, write
   Scenario: 顯示名字可以與其他帳號重複，帳號 ID 不可以
