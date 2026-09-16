@@ -298,7 +298,7 @@ Feature: Swimlane 管理
     p1: "指定的 `stage` 存在"
   post:
     - "`stage.role` 更新為指定角色"
-    - "若 `board` 中原本已有其他 `stage` 的角色與新設定的角色相同，該 `stage` 的角色自動變回 NONE"
+    - "若新角色為 START 或 DONE，且 `board` 中原本已有其他 `stage` 持有該角色，該其他 `stage` 的角色自動變回 NONE"
     - "該操作被記錄為 `board` 的一筆活動紀錄，包含操作人與操作時間"
   fail: {}
   emits: []
@@ -463,7 +463,7 @@ Feature: Stage（階段）管理
   roles: [r-user]
   crud: {board: R, card: U}
   pre:
-    p1: "`card` 存在於指定的 `stage`"
+    p1: "`card` 存在，且位於來源 `stage`"
   post:
     - "`card.stage` 更新為目的 `stage`"
     - "卡片的狀態異動被記錄，包含操作人、異動時間與異動前後的 `stage`"
