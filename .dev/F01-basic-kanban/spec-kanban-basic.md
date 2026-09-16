@@ -410,6 +410,97 @@ Feature: Stage（階段）管理
 
 ## Feature: Card（卡片）編輯
 
+### Use Case 定義
+```usecase
+- id: uc-add-card
+  name: 建立新卡片
+  roles: [r-user]
+  crud: {board: R, card: C}
+  pre:
+    p1: "`card.title` 非空"
+  post:
+    - "新的 `card` 出現在指定的 `swimlane` 與 `stage` 交會格中"
+    - "`card.title` 顯示為輸入的標題"
+    - "該操作被記錄為 `card` 的一筆活動紀錄，包含操作人與操作時間"
+  fail:
+    p1: "拒絕，不建立新的 `card`"
+  emits: []
+  requires: []
+  calls-sync: []
+
+- id: uc-edit-card
+  name: 編輯卡片詳細內容
+  roles: [r-user]
+  crud: {card: U}
+  pre:
+    p1: "指定的 `card` 存在"
+  post:
+    - "`card.description`、`card.due-date`、`card.labels` 更新為編輯的欄位內容"
+    - "卡片縮圖顯示 `card.due-date`"
+    - "該操作被記錄為 `card` 的一筆活動紀錄，包含操作人與操作時間"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+
+- id: uc-move-card-swimlane
+  name: 卡片跨 Swimlane 移動
+  roles: [r-user]
+  crud: {board: R, card: U}
+  pre:
+    p1: "`card` 存在於指定的 `swimlane` 與 `stage`"
+  post:
+    - "`card.swimlane` 更新為目的 `swimlane`"
+    - "該操作被記錄為 `card` 的一筆活動紀錄，包含操作人與操作時間"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+
+- id: uc-move-card-stage
+  name: 卡片跨 Stage 移動
+  roles: [r-user]
+  crud: {board: R, card: U}
+  pre:
+    p1: "`card` 存在於指定的 `stage`"
+  post:
+    - "`card.stage` 更新為目的 `stage`"
+    - "卡片的狀態異動被記錄，包含操作人、異動時間與異動前後的 `stage`"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+
+- id: uc-add-comment
+  name: 為卡片新增留言
+  roles: [r-user]
+  crud: {card: U}
+  pre:
+    p1: "`card` 存在"
+  post:
+    - "新增的留言加入 `card` 的留言列表中"
+    - "留言連同留言者與留言時間一併保存於 `card`"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+
+- id: uc-delete-card
+  name: 刪除卡片
+  roles: [r-user]
+  crud: {card: D}
+  pre:
+    p1: "`card` 存在"
+    p2: "使用者於刪除 `card` 的確認訊息中選擇取消"
+  post:
+    - "使用者確認後，該 `card` 從看板中移除"
+  fail:
+    p2: "拒絕，該 `card` 不被移除，資料不變"
+  emits: []
+  requires: []
+  calls-sync: []
+```
+
 ```gherkin
 Feature: Card（卡片）編輯
   身為 看板使用者
@@ -421,7 +512,7 @@ Feature: Card（卡片）編輯
     And 我已開啟一個名為 "產品開發看板" 的看板
     And 看板中存在 Swimlane "本週優先" 與 Stage "待辦"、"進行中"、"完成"
 
-  @CR-001
+  @CR-001 @uc-add-card
   # Related aggregate:
   #   board: read
   #   card: write
@@ -433,14 +524,15 @@ Feature: Card（卡片）編輯
     And 卡片標題應該顯示為 "設計登入頁面"
     And 該操作應該被記錄為一筆活動紀錄，包含操作人與操作時間
 
+  @uc-add-card @fail-p1
   # Related aggregate:
-  #   card: write
+  #   card: read
   Scenario: 卡片標題不可為空
     When 我嘗試新增一張標題為空的卡片
     Then 系統應該顯示錯誤訊息 "卡片標題不可為空"
     And 不應該建立新的卡片
 
-  @CR-001 @CR-002
+  @CR-001 @CR-002 @uc-edit-card
   # Related aggregate:
   #   card: read, write
   Scenario: 編輯卡片詳細內容（不含負責人）
@@ -456,7 +548,7 @@ Feature: Card（卡片）編輯
     And 卡片縮圖應該顯示截止日期 "2026-09-20"
     And 該操作應該被記錄為一筆活動紀錄，包含操作人與操作時間
 
-  @CR-001
+  @CR-001 @uc-move-card-swimlane
   # Related aggregate:
   #   board: read
   #   card: read, write
@@ -468,7 +560,7 @@ Feature: Card（卡片）編輯
     And 該卡片不應該再出現在 Swimlane "本週優先" 中
     And 該操作應該被記錄為一筆活動紀錄，包含操作人與操作時間
 
-  @CR-001
+  @CR-001 @uc-move-card-stage
   # Related aggregate:
   #   board: read
   #   card: read, write
@@ -478,6 +570,7 @@ Feature: Card（卡片）編輯
     Then 該卡片應該顯示於 Stage "進行中"
     And 卡片的狀態異動應該被記錄，包含操作人、異動時間與異動前後的 Stage
 
+  @uc-add-comment
   # Related aggregate:
   #   card: read, write
   Scenario: 為卡片新增留言
@@ -486,7 +579,7 @@ Feature: Card（卡片）編輯
     Then 該留言應該顯示在卡片的留言列表中
     And 留言應該記錄留言者與留言時間
 
-  @CR-001
+  @CR-001 @uc-delete-card
   # Related aggregate:
   #   card: read, write
   Scenario: 刪除卡片需要確認
@@ -497,6 +590,7 @@ Feature: Card（卡片）編輯
     Then 該卡片應該從看板中移除
     And 該操作應該被記錄為一筆活動紀錄，包含操作人與操作時間
 
+  @uc-delete-card @fail-p2
   # Related aggregate:
   #   card: read
   Scenario: 取消刪除卡片
@@ -511,6 +605,7 @@ Feature: Card（卡片）編輯
 ## 待釐清 / 未來擴充（Open Questions）
 
 - OQ-01：活動紀錄不另立 uc、不 emits 事件，改由各 uc 的 post 與 board 的 crud/Aggregate 註解表達（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
+- OQ-02：「取消刪除卡片」歸入 uc-delete-card 的 fail 分支（`@fail-p2`），不視為需要 card: write 的成功 Scenario（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
 - Swimlane / Stage 是否需要支援「顏色標記」以利辨識？
 - 卡片是否需要支援子任務（Checklist）或附件？
 - 是否需要「已封存（Archived）」的卡片與泳道狀態，而非直接刪除？
