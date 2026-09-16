@@ -574,3 +574,25 @@
 
 ### Act
 完成：F03 遷移程序 1～6 完成。下一個任務：T2.11（[F03] 「Cycle Time 與 Lead Time 分析」與「WIP 與 Aging WIP 監控」兩個 Feature 的 usecase 區塊＋tag＋Aggregate 註解）。
+
+## Iteration 23 — 2026-09-16 23:40 — T2.11
+### Plan
+本輪任務 T2.11：為 F03「Cycle Time 與 Lead Time 分析」「WIP 與 Aging WIP 監控」兩個 Feature 補 usecase 區塊、Scenario 掛 `@uc-` tag；不改 Aggregate 註解內容（本來就是 board/card read，維持）。驗收條件：`errors(F03#Cycle Time 與 Lead Time 分析)=0`、`errors(F03#WIP 與 Aging WIP 監控)=0`。預期 F03 error 數從 33 下降。
+
+### Do
+- adfee4d [spec/design](kanban-widgets) 新增 Cycle/Lead Time 與 WIP 兩個 Feature 的 usecase 區塊
+- 分組判斷（低影響假設）：「Cycle Time 與 Lead Time 分析」3 個 Scenario 皆為同一個 When 動作（開啟 Cycle Time / Lead Time 圖表），合併為單一 uc `uc-view-cycle-lead-time`；「WIP 與 Aging WIP 監控」的兩個 Scenario 分屬不同圖表（WIP 圖表／Aging WIP 圖表），拆成 `uc-view-wip`、`uc-view-aging-wip` 兩個 uc。
+- 低影響假設：UC-03 要求 pre/post/fail 每句至少引用一個 ID，於 post 描述中對「卡片」補上 `card` 反引號（例如「已完成的 `card` 顯示 Lead Time…」），文字語意未改動，只是加註 ID 引用。
+- 未新增 OQ。
+
+### Check
+- `./scripts/spec-check`：140 error(s), 0 warning(s)（上一輪 149）
+- `tools error-count .dev/F03-kanban-widgets/spec-kanban-widgets.md`：開工前 33 → 收尾時 24
+- `tools accept-check spec-migration-tasks.md T2.11`：無輸出（通過）
+- `tools gherkin-diff`：Gherkin 行為與遷移前一致
+- `tools tag-diff`：無輸出（通過）
+- `tools changelog-check`：無輸出（通過）
+- 驗收條件 `errors(F03#Cycle Time 與 Lead Time 分析)=0`、`errors(F03#WIP 與 Aging WIP 監控)=0`：達成
+
+### Act
+完成：下一個任務 T2.12（[F03] 「Throughput 與累積流量圖」與「截止日期提醒」兩個 Feature 的 usecase 區塊＋tag＋Aggregate 註解）。
