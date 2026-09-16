@@ -30,3 +30,33 @@
 
 ### Act
 下一個任務：T0.01。
+
+---
+
+## Iteration 1 — 2026-09-16 15:00 — T0.01
+
+### Plan
+本輪任務：T0.01（確認 baseline 與起點，純確認性任務，不改任何 spec 檔）。驗收條件：PDCA 本則 Check 含 baseline hash、六份備份檔名、各檔 error 數與 `spec-check` 結果行。預期 error 數不變（461）。
+
+### Do
+- 確認 `runtime/baseline` 存在，內容為 `3038528d4656e64e176809ab2ad0a794b74e84c3`（對應 git log 最新 commit）。
+- 確認六份 `legacy-spec-*.md` 備份皆存在（F01～F06，見 Check）。
+- 跑 `tools errors-json` 取得各檔起點 error 數。
+- 本輪未修改任何 spec 或 CR.md，只更新任務清單狀態與本 PDCA。
+
+### Check
+- baseline hash：`3038528d4656e64e176809ab2ad0a794b74e84c3`
+- 六份備份檔：
+  - `.dev/F01-basic-kanban/legacy-spec-kanban-basic.md`
+  - `.dev/F02-user-membership/legacy-spec-user-membership.md`
+  - `.dev/F03-kanban-widgets/legacy-spec-kanban-widgets.md`
+  - `.dev/F04-board-clock/legacy-spec-board-clock.md`
+  - `.dev/F05-workload/legacy-spec-workload.md`
+  - `.dev/F06-feature-cr-board/legacy-spec-feature-cr-board.md`
+- 各檔 error 數（`tools errors-json`）：F01 107、F02 141、F03 62、F04 66、F05 44、F06 41、all 461
+- `./scripts/spec-check` 最後一行：`461 error(s), 0 warning(s)`
+- `tools accept-check <tasks> T0.01`：exit 0，符合驗收條件
+- `gherkin-diff`／`tag-diff`／`changelog-check`：本輪未改任何 spec，不適用
+
+### Act
+完成：T0.01。下一個任務：T0.02。

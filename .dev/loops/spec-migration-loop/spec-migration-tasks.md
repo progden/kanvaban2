@@ -22,7 +22,7 @@
 
 | ID | 狀態 | 任務 | 驗收條件 | 依賴 |
 |----|------|------|----------|------|
-| T0.01 | todo | 確認 baseline 與起點：`runtime/baseline` 由 loop 腳本寫入，確認它存在且是某個 commit；確認六份 `legacy-spec-*.md` 備份存在；把 `tools errors-json` 的結果（每個檔的 error 數）貼進 PDCA 作為起點 | PDCA 本則 Check 含 baseline hash、六份備份檔名、各檔 error 數與 `spec-check` 結果行 | — |
+| T0.01 | done | 確認 baseline 與起點：`runtime/baseline` 由 loop 腳本寫入，確認它存在且是某個 commit；確認六份 `legacy-spec-*.md` 備份存在；把 `tools errors-json` 的結果（每個檔的 error 數）貼進 PDCA 作為起點 | PDCA 本則 Check 含 baseline hash、六份備份檔名、各檔 error 數與 `spec-check` 結果行 | — |
 | T0.02 | todo | 建立 `.dev/CR.md`：表頭依 `cr-convention.md` §6；登記 CR-001～CR-004（依各 spec 變更紀錄填標題、類型、日期、影響模組，狀態「處理完成」，影響 ID 先空）與 CR-005「規格格式遷移至 usecase 區塊」（類型「變更」、狀態「修改規格」、影響模組六份 spec，影響 ID 先空）；每筆下方寫背景／變更內容／驗收標準 | `.dev/CR.md` 存在且主表有 CR-001～CR-005 五列；`errors(F01;REF-06)=0` | T0.01 |
 
 ## 階段 1：F01 作為範本
