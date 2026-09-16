@@ -614,3 +614,23 @@
 
 ### Act
 完成。下一個任務：T2.12（[F03] 「Throughput 與累積流量圖」與「截止日期提醒」兩個 Feature 的 usecase 區塊＋tag＋Aggregate 註解）。
+
+## Iteration 25 — 2026-09-16 12:00 — T2.12
+### Plan
+本輪任務 T2.12：為 F03「Throughput 與累積流量圖」「截止日期提醒」兩個 Feature 補上 usecase 區塊、`@uc-` tag、Aggregate 註解對齊。要改的檔案：`.dev/F03-kanban-widgets/spec-kanban-widgets.md`（兩個 Feature 區塊）。驗收條件：`errors(F03#Throughput 與累積流量圖)=0`、`errors(F03#截止日期提醒)=0`。預期 error 數：F03 從 24 降到約 16（本任務範圍外的正文清理／變更紀錄／CR 登記錯誤仍會留著）。
+
+### Do
+- bc58b01 [spec/design](kanban-widgets) 新增 Throughput 與截止日期提醒兩 Feature 的 usecase 區塊
+- Throughput 與累積流量圖：拆成兩個 uc（`uc-view-throughput` 對應「檢視每日完成卡片數量」Scenario；`uc-view-cfd` 對應「檢視累積流量圖」Scenario），因兩者對應不同 When 動作（開啟 Throughput 圖表 vs 開啟 CFD 圖表），純讀取、`roles: [r-user]`、`crud: {board: R, card: R}`。低影響假設，未記 OQ。
+- 截止日期提醒：兩個 Scenario（已逾期、即將到期）合併為單一 `uc-view-duedate-reminder`，因兩者共用同一個 When 動作「我開啟逾期提醒圖表」，符合遷移程序第 7 條分組原則。`post` 的門檻天數措辭沿用 `## 待釐清` 段落已定案的「由使用者於查詢時傳入參數」結論。低影響假設，未記 OQ。
+- 未做 F 編號修正。
+
+### Check
+- `./scripts/spec-check`（不帶參數）最後一行：`132 error(s), 0 warning(s)`（開工前 140）。
+- `tools error-count .dev/F03-kanban-widgets/spec-kanban-widgets.md`：開工前 24 → 收尾時 16。
+- `tools accept-check <tasks> T2.12`：rc=0，無輸出，通過。
+- `tools gherkin-diff`：一致（0）。`tools tag-diff`：一致（0）。`tools changelog-check`：一致（0）。
+- 驗收條件 `errors(F03#Throughput 與累積流量圖)=0`、`errors(F03#截止日期提醒)=0` 均達成。
+
+### Act
+完成，下一個任務：T2.13（[F03] 遷移程序 10～11 與收尾，F03 全檔 0 error）。

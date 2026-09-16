@@ -52,7 +52,7 @@
 | T2.09 | done | [F02] 遷移程序 10～11 與收尾：正文反引號清理（含「Aggregate 事件盤點」「實作備註」段落）、`design.md` 稱呼改實際檔名、變更紀錄改格式並追加 CR-005；F02 全檔 0 error | `errors(F02)=0`；`errors(F01)=0` | T2.08 |
 | T2.10 | done | [F03] 遷移程序 1～6：狀態行、名詞／角色表（只引用 F01／F02 已定義的實體與角色）、四個 Feature 的「身為」行 | `errors(F03;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0` | T2.09 |
 | T2.11 | done | [F03] 「Cycle Time 與 Lead Time 分析」與「WIP 與 Aging WIP 監控」兩個 Feature 的 usecase 區塊＋tag＋Aggregate 註解（讀取類 uc） | `errors(F03#Cycle Time 與 Lead Time 分析)=0`；`errors(F03#WIP 與 Aging WIP 監控)=0` | T2.10 |
-| T2.12 | todo | [F03] 「Throughput 與累積流量圖」與「截止日期提醒」兩個 Feature 的 usecase 區塊＋tag＋Aggregate 註解 | `errors(F03#Throughput 與累積流量圖)=0`；`errors(F03#截止日期提醒)=0` | T2.11 |
+| T2.12 | done | [F03] 「Throughput 與累積流量圖」與「截止日期提醒」兩個 Feature 的 usecase 區塊＋tag＋Aggregate 註解 | `errors(F03#Throughput 與累積流量圖)=0`；`errors(F03#截止日期提醒)=0` | T2.11 |
 | T2.13 | todo | [F03] 遷移程序 10～11 與收尾，F03 全檔 0 error | `errors(F03)=0` | T2.12 |
 | T2.14 | todo | [F04] 遷移程序 1～6：狀態行、名詞／角色表、「身為」行；「決議紀錄」段落保留 | `errors(F04;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0` | T2.13 |
 | T2.15 | todo | [F04] 「看板時間管理」usecase 區塊＋tag＋Aggregate 註解 | `errors(F04#看板時間管理)=0` | T2.14 |
