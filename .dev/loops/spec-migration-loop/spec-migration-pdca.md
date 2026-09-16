@@ -428,3 +428,28 @@
 
 ### Act
 完成：下一個任務 T2.06（[F02]「Board 存取權限」usecase 區塊＋tag＋Aggregate 註解）。
+
+## Iteration 17 — 2026-09-16 20:34 — T2.06
+
+### Plan
+本輪任務：T2.06（[F02]「Board 存取權限」usecase 區塊＋tag＋Aggregate 註解）。要改的檔案：`.dev/F02-user-membership/spec-user-membership.md` 的「Board 存取權限」Feature（usecase 區塊、兩個 Scenario 的 `@uc-` tag、Aggregate 註解 `boardMembership` → `board-membership`、H2 標題對齊 gherkin Feature 名稱）。驗收條件：`errors(F02#Board 存取權限)=0`。預期 error 數：F02 由 46 降至約 38～40，全部 spec 由 204 下降。
+
+### Do
+- commit 8ab537e：`[spec/design](user-membership) 遷移 Board 存取權限至 usecase 區塊`。
+- 依「Board 列表只顯示我有權限的 Board」（純讀取）與「非成員嘗試直接開啟 Board 應該被拒絕」（純拒絕，Aggregate 原本只標 read）兩個不同 When 動作，新立 2 個本 Feature 專屬 uc：
+  - `uc-view-board-list`：crud `{board-membership: R}`、roles `[r-system-user]`（比照 Feature 標頭「身為 系統使用者」）、pre 留空（Background 已涵蓋登入，無額外前置條件）。
+  - `uc-reject-board-access-by-nonmember`：crud `{board: R, board-membership: R}`、roles 留空（比照 OQ-06 對純拒絕 uc 的既有決定：crud 全 R、roles 留空）、pre 記錄「操作者不是該 board 的 board-membership 成員」。
+- UC-03 要求 post 句至少含一個反引號 ID：`uc-reject-board-access-by-nonmember` 的 post 原句「系統顯示錯誤訊息「你沒有權限存取這個看板」」補上「，操作者仍無法存取該 `board`」（僅重述 Then 已表達的拒絕事實，不新增行為）。
+- 低影響假設：H2 標題「Board 存取權限（我的 Board 列表）」依規範（遷移程序 6）改為與 gherkin `Feature:` 名稱相同的「Board 存取權限」（括號說明移除，文字意思沒有遺失）；Aggregate 註解 `boardMembership` 改名為實體 ID `board-membership`。
+
+### Check
+- `./scripts/spec-check`（全部 spec）最後一行：開工前 `204 error(s), 0 warning(s)` → 收尾時 `197 error(s), 0 warning(s)`。
+- `tools error-count .dev/F02-user-membership/spec-user-membership.md`：開工前 46 → 收尾時 39。
+- `tools accept-check spec-migration-tasks.md T2.06`：exit 0，無輸出。
+- `tools gherkin-diff .dev/F02-user-membership/spec-user-membership.md`：exit 0，「Gherkin 行為與遷移前一致（216 行）」。
+- `tools tag-diff`：exit 0，無輸出。
+- `tools changelog-check`：exit 0，無輸出。
+- 逐條對照驗收條件：`errors(F02#Board 存取權限)=0` 已達成（`accept-check` 確認）。
+
+### Act
+完成：下一個任務 T2.07（[F02]「卡片負責人指派」usecase 區塊＋tag＋Aggregate 註解）。
