@@ -931,3 +931,23 @@
 
 ### Act
 完成：T3.01 done。下一個任務：T3.02（`.dev/CR.md` 回填 CR-001～CR-005 影響 ID，跑 cr-check 到通過）。
+
+## Iteration 42 — 2026-09-16 23:20 — T3.02
+### Plan
+本輪任務：T3.02（`.dev/CR.md` 回填 CR-001～CR-004 的影響 ID、CR-005 影響 ID 列出本次遷移改動到的全部實體與 uc，跑 `cr-check` 到通過）。要改的檔案：`.dev/CR.md`（既有的表頭、標題、類型、提出人、日期、狀態等欄位由 T0.02 已建立，本輪只填「影響 ID」欄）。驗收條件：`crcheck(CR-005)=0`；`errors(all)=0`。預期：`errors(all)` 維持 0；`crcheck(CR-005)` 是否能歸零待驗證。
+
+### Do
+- commit 64ee2fb `[chore](cr) 回填 CR-001 至 CR-005 影響 ID`：CR-001～CR-004 依各自 `@CR-` Scenario 所屬 uc 與相關實體填影響 ID；CR-005 影響 ID 填全部 6 個實體（`board`、`board-membership`、`card`、`stage`、`swimlane`、`user`）與全部 47 個 uc（依 `./scripts/spec-check --report` CRUD 矩陣與各 spec CR-005 變更紀錄列彙整），未動其他既有欄位（標題／類型／提出人／日期／狀態／明細，以及各筆下方背景／變更內容／驗收標準區塊，皆維持 T0.02 原文）。
+- 執行 `./scripts/cr-check --base <baseline> --cr CR-005` 驗證：CR-01（影響 ID 對照 diff）、CR-03、CR-04、CR-05 均 0 error，確認 CR-005 影響 ID 清單與實際 diff 動到的 ID 完全一致；但整體回傳 68 error，全部為 GH-05（`checks/cr.py: gh_05_diff`）：六份規格中被 diff 動到（多數只因新增 `@uc-`／`@fail-` tag 行）、且目前沒有掛任何 `@CR-` 的 Scenario，一律視為「已進入開發卻沒有 @CR- tag」，與檢查用哪張 CR 無關。
+- 判斷：要讓 GH-05 通過的唯一辦法是替這 68 個 Scenario 補掛 `@CR-005`，但鐵則 1／`tools tag-diff`（`verify-spec-migration.sh` 第 7 項，fail 級）明文禁止在遷移中新增任何 `@CR-` tag；`gh_05_diff` 屬 `scripts/**`，鐵則 3 下不可修改。判定為「環境限制」（規範／腳本本身矛盾），記 OQ-10（見 `spec-migration-open-questions.md`），任務標 `blocked`。
+- 未修改任何 spec 檔案（T3.02 依規則書「執行單位」只可碰 `.dev/CR.md`）。
+
+### Check
+- `./scripts/spec-check`（不帶參數）最後一行：`0 error(s), 0 warning(s)`（開工前與收尾時皆同）；`errors(all)=0` 達成。
+- `./scripts/cr-check --base <baseline> --cr CR-005`：`68 error(s), 0 warning(s)`，全部為 GH-05；`crcheck(CR-005)=0` **未達成**。
+- 各檔 error 數（`tools error-count`）：F01～F06 均為 0，開工前＝收尾時，無倒退。
+- `tools accept-check spec-migration-tasks.md T3.02`：仍會回報 `crcheck(CR-005)` 未通過（預期，任務已標 blocked）。
+- OQ-10 已追加（表格末尾一列，含「採用」「依據」兩欄）；`.dev/CR.md` 未再修改（本則收尾只動 task/state/PDCA/OQ 檔）。
+
+### Act
+未完成：T3.02 標記 `blocked`（環境限制，見 OQ-10）。剩餘工作：人工檢視 OQ-10，決定是否另開 CR 調整 `gh_05_diff`（排除純格式遷移触发的 GH-05），或接受 `crcheck(CR-005)` 在本次遷移中無法歸零、改用其他方式驗收 T3.02。下一個可執行任務：無（`actionable` 目前僅剩 T3.02，已 blocked）；待人工處理 OQ-10 後把 T3.02 改回 `todo` 再繼續 T3.03、T3.04。
