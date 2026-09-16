@@ -6,20 +6,53 @@
 - Stage（階段 / 欄位）管理
 - Card（卡片）編輯
 
+狀態：開發中
+
 ## 名詞定義
 
+### 實體
+| ID | 名詞 | 所屬 Aggregate | 說明 |
+|---|---|---|---|
+| board | Board（看板） | board（root） | 整體工作區，包含多個 Swimlane 與 Stage |
+| swimlane | Swimlane（泳道） | board | 橫向分組，用於區分不同類別的工作（例如：專案、優先度、負責團隊） |
+| stage | Stage（階段） | board | 縱向欄位，代表工作流程狀態（例如：待辦、進行中、完成） |
+| card | Card（卡片） | card（root） | 代表一項工作項目，隸屬於某個 Swimlane 與 Stage 的交會格 |
+
+### 欄位
+| ID | 型別／格式 | 限制 | 說明 |
+|---|---|---|---|
+| swimlane.name | string | 非空 | 泳道名稱 |
+| stage.name | string | | 階段名稱 |
+| stage.role | enum(NONE, START, DONE) | 同一 `board` 中 START、DONE 各至多一個 | Stage 在流程中的意義，預設 NONE |
+| card.title | string | 非空 | 卡片標題 |
+| card.description | string | | 卡片描述 |
+| card.due-date | date | | 截止日期 |
+| card.labels | string（多值） | | 標籤 |
+| card.swimlane | ref swimlane | 建立時必填 | 卡片所屬泳道 |
+| card.stage | ref stage | 建立時必填 | 卡片所屬階段 |
+
+### 關係
+| 來源 | 目標 | min | max | 說明 |
+|---|---|---|---|---|
+| board | swimlane | 1 | n | 看板至少保留一個 Swimlane |
+| board | stage | 1 | n | 看板至少保留一個 Stage |
+| swimlane | card | 0 | n | 一個泳道可以有多張卡片 |
+| stage | card | 0 | n | 一個階段可以有多張卡片 |
+
+### 其他名詞
 | 名詞 | 說明 |
-|------|------|
-| Board（看板） | 整體工作區，包含多個 Swimlane 與 Stage |
-| Swimlane（泳道） | 橫向分組，用於區分不同類別的工作（例如：專案、優先度、負責團隊） |
-| Stage（階段） | 縱向欄位，代表工作流程狀態（例如：待辦、進行中、完成） |
-| Card（卡片） | 代表一項工作項目，隸屬於某個 Swimlane 與 Stage 的交會格 |
-| Stage 角色（role） | 標記某個 Stage 在流程中的意義：`NONE`（無特殊意義，預設）、`START`（進入此欄視為開始計時）、`DONE`（進入此欄視為完成）。同一個 Board 中 `START`、`DONE` 各至多一個 |
-| 操作時間（occurredAt） | 本文件所有 Scenario 中「事件發生時間」、「活動紀錄時間」等描述，一律代表該 Board 的 Board Clock 當下時間（`BoardClock.now()`），而非系統實際時間；詳見 `.dev/F04-board-clock/spec-board-clock.md` |
+|---|---|
+| Stage 角色（role） | 標記某個 Stage 在流程中的意義：NONE（無特殊意義，預設）、START（進入此欄視為開始計時）、DONE（進入此欄視為完成）。同一個 Board 中 START、DONE 各至多一個 |
+| 操作時間（occurredAt） | 本文件所有 Scenario 中「事件發生時間」、「活動紀錄時間」等描述，一律代表該 Board 的 Board Clock 當下時間（「BoardClock.now()」），而非系統實際時間；詳見 `.dev/F04-board-clock/spec-board-clock.md` |
+
+## 角色定義
+| ID | 名稱 | 說明 |
+|---|---|---|
+| r-user | 看板使用者 | 可操作看板（Swimlane、Stage）與卡片的一般使用者 |
 
 ## Aggregate 標記說明
 
-Board（含 Swimlane、Stage）與 Card 是兩個獨立的 Aggregate。每個 Scenario 前方以 Gherkin 註解標記該情境會存取哪個 Aggregate、以及是「讀取」還是「寫入」，格式如下：
+`board`（含 `swimlane`、`stage`）與 `card` 是兩個獨立的 Aggregate。每個 Scenario 前方以 Gherkin 註解標記該情境會存取哪個 Aggregate、以及是「讀取」還是「寫入」，格式如下：
 
 ```gherkin
 # Related aggregate:
@@ -46,7 +79,7 @@ Board（含 Swimlane、Stage）與 Card 是兩個獨立的 Aggregate。每個 Sc
 
 ```gherkin
 Feature: Swimlane 管理
-  身為看板的使用者
+  身為 看板使用者
   我想要新增、命名、排序與刪除 Swimlane
   以便依照類別（例如團隊、優先度）將工作項目分組呈現
 
@@ -125,11 +158,11 @@ Feature: Swimlane 管理
 
 ---
 
-## Feature: Stage 管理
+## Feature: Stage（階段）管理
 
 ```gherkin
 Feature: Stage（階段）管理
-  身為看板的使用者
+  身為 看板使用者
   我想要新增、命名、排序與刪除 Stage
   以便定義工作項目在流程中會經過的各個狀態
 
@@ -222,11 +255,11 @@ Feature: Stage（階段）管理
 
 ---
 
-## Feature: Card 編輯
+## Feature: Card（卡片）編輯
 
 ```gherkin
 Feature: Card（卡片）編輯
-  身為看板的使用者
+  身為 看板使用者
   我想要建立、編輯、移動與刪除卡片
   以便追蹤每一項工作的詳細內容與進度
 
