@@ -770,6 +770,22 @@ F02 是尚未進入開發的規格，可以直接補上操作人記錄；F01 的
 
 ## Feature: 檢視看板活動紀錄
 
+### Use Case 定義
+```usecase
+- id: uc-view-board-activity-log
+  name: 檢視看板活動紀錄
+  roles: [r-user]
+  crud: {board: R, board-membership: R}
+  pre: {}
+  post:
+    - "`board` 的活動紀錄依時間由新到舊列出，每一筆都顯示操作人與動作內容"
+    - "最上面一筆對應最近發生的事件，例如邀請成員加入看板的 `board-membership` 異動"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+```
+
 ```gherkin
 Feature: 檢視看板活動紀錄
   身為 看板使用者
@@ -780,8 +796,10 @@ Feature: 檢視看板活動紀錄
     Given 我已登入系統，帳號為 "user1"
     And 我是 Board "產品開發看板" 的 Owner
 
+  @uc-view-board-activity-log
   # Related aggregate:
-  #   boardMembership: read
+  #   board: read
+  #   board-membership: read
   Scenario: 活動紀錄依時間新到舊排序，並顯示操作人與動作
     Given "user1" 建立了這個 Board
     And "user1" 邀請 "雅婷" 加入這個 Board
@@ -790,7 +808,7 @@ Feature: 檢視看板活動紀錄
     And 最上面一筆應該是 "user1" 邀請 "雅婷" 加入看板
 ```
 
-Board／Swimlane／Stage／Card 既有事件的操作人記錄已隨 CR-001／CR-002 補上（各自記在 `Board.activityLog`／`Card.activityLog`）；但目前 `kanban-core` 每個 aggregate 只管自己的活動紀錄，還沒有一個地方把 Board、每張 Card、BoardMembership 的事件合併成一份、依時間排序的統一列表——這件事本質上是跨 aggregate 的查詢投影，留給 `kanban-spring` 有 application／persistence 層時再做（見 `design.md` 第 8 點）。本情境目前尚未實作。
+Board／Swimlane／Stage／Card 既有事件的操作人記錄已隨 CR-001／CR-002 補上（各自記在「Board.activityLog」／「Card.activityLog」）；但目前「kanban-core」每個 aggregate 只管自己的活動紀錄，還沒有一個地方把 Board、每張 Card、BoardMembership 的事件合併成一份、依時間排序的統一列表——這件事本質上是跨 aggregate 的查詢投影，留給「kanban-spring」有 application／persistence 層時再做（見 `design-user-membership.md` 第 8 點）。本情境目前尚未實作。
 
 ---
 
