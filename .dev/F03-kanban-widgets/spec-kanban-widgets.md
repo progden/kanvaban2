@@ -58,6 +58,23 @@
 
 ## Feature: Cycle Time 與 Lead Time 分析
 
+### Use Case 定義
+```usecase
+- id: uc-view-cycle-lead-time
+  name: 檢視 Cycle Time 與 Lead Time 圖表
+  roles: [r-user]
+  crud: {board: R, card: R}
+  pre: {}
+  post:
+    - "已完成的 `card` 顯示 Lead Time（從建立到進入 Done 角色 Stage 所經過的時間）與 Cycle Time（從第一次進入 Start 角色 Stage 到完成所經過的時間）"
+    - "未曾進入 Start 角色 Stage 就完成的 `card`，Cycle Time 顯示為「無」，統計摘要的平均值與百分位計算排除該 `card`，並顯示排除計算的卡片數"
+    - "`card` 離開 Done 後再次完成，完成時間以最後一次進入 Done 的時間為準"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+```
+
 ```gherkin
 Feature: Cycle Time 與 Lead Time 分析
   身為 看板使用者
@@ -68,6 +85,7 @@ Feature: Cycle Time 與 Lead Time 分析
     Given 我已登入系統，並開啟 Board "產品開發看板"
     And Stage "進行中" 已設定角色為 Start，Stage "完成" 已設定角色為 Done
 
+  @uc-view-cycle-lead-time
   # Related aggregate:
   #   board: read
   #   card: read
@@ -77,6 +95,7 @@ Feature: Cycle Time 與 Lead Time 分析
     Then 卡片 "A" 的 Lead Time 應該顯示為 4 天
     And 卡片 "A" 的 Cycle Time 應該顯示為 3 天
 
+  @uc-view-cycle-lead-time
   # Related aggregate:
   #   board: read
   #   card: read
@@ -87,6 +106,7 @@ Feature: Cycle Time 與 Lead Time 分析
     And 統計摘要的 Cycle Time 平均值與百分位計算應該排除卡片 "B"
     And 統計摘要應該顯示「排除計算的卡片數」為 1
 
+  @uc-view-cycle-lead-time
   # Related aggregate:
   #   board: read
   #   card: read
@@ -100,6 +120,32 @@ Feature: Cycle Time 與 Lead Time 分析
 
 ## Feature: WIP 與 Aging WIP 監控
 
+### Use Case 定義
+```usecase
+- id: uc-view-wip
+  name: 檢視 WIP 圖表
+  roles: [r-user]
+  crud: {board: R, card: R}
+  pre: {}
+  post:
+    - "依 Stage 分組顯示目前的 `card` 數量"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+- id: uc-view-aging-wip
+  name: 檢視 Aging WIP 圖表
+  roles: [r-user]
+  crud: {board: R, card: R}
+  pre: {}
+  post:
+    - "已進入 Start 角色 Stage、尚未進入 Done 的 `card`，顯示年齡，即從進入 Start 到看板時間目前的時間所經過的時間"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+```
+
 ```gherkin
 Feature: WIP 與 Aging WIP 監控
   身為 看板使用者
@@ -110,6 +156,7 @@ Feature: WIP 與 Aging WIP 監控
     Given 我已登入系統，並開啟 Board "產品開發看板"
     And Stage "進行中" 已設定角色為 Start，Stage "完成" 已設定角色為 Done
 
+  @uc-view-wip
   # Related aggregate:
   #   board: read
   #   card: read
@@ -118,6 +165,7 @@ Feature: WIP 與 Aging WIP 監控
     When 我開啟 WIP 圖表
     Then 應該顯示 Stage "待辦" 卡片數 3、"進行中" 卡片數 2、"完成" 卡片數 5
 
+  @uc-view-aging-wip
   # Related aggregate:
   #   board: read
   #   card: read
