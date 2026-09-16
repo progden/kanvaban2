@@ -162,3 +162,29 @@
 
 ### Act
 完成，下一個任務：T1.04（[F01] 同上，「Card（卡片）編輯」）。
+
+## Iteration 6 — 2026-09-16 22:50 — D-01
+
+### Plan
+- 本輪任務：D-01（審查輪新增，`actionable` 排在 T1.04 之前）。
+- 要改的檔案：`.dev/F01-basic-kanban/spec-kanban-basic.md`（Swimlane 管理、Stage（階段）管理的 9 個 uc 的 `crud` 補上 `board` 的 U；9 個成功 Scenario 的 Aggregate 註解補回 `board: read, write`）、`spec-migration-open-questions.md`（追加 OQ-01）。
+- 驗收條件：`errors(F01#Swimlane 管理)=0`；`errors(F01#Stage（階段）管理)=0`；OQ 檔有一列模組 F01、內容提到活動紀錄；9 個 uc 的 `crud` 都含 `board` 的 U。
+- 預期 error 數變化：不變（302 → 302，這是補結構、不是新增檢查覆蓋範圍）。
+
+### Do
+- commit 4c373be `[spec/design](basic-kanban) 補回 Swimlane 與 Stage 管理活動紀錄的 board 寫入`
+- `uc-add-swimlane`／`uc-add-stage`：`crud.board` 由 `R` 改 `RU`；`uc-rename-swimlane`／`uc-reorder-swimlane`／`uc-delete-swimlane`／`uc-rename-stage`／`uc-reorder-stage`／`uc-delete-stage`／`uc-set-stage-role`：`crud` 加上 `board: U`。
+- 對應 9 個成功 Scenario（新增/重新命名/拖曳調整/刪除空的/刪除包含卡片的，Swimlane 與 Stage 各一組，加設定 Stage 角色）的 `# Related aggregate:` 補上 `board: read, write`；失敗 Scenario（Swimlane 名稱不可為空、看板至少保留一個 Swimlane、看板至少保留一個 Stage）未動。
+- 追加 OQ-01（模組 F01，情況：活動紀錄要不要另立 uc／emits，還是併入原 uc 的 post 與 crud；採用併入原 uc 並在 crud 加 `board: U`；依據 F01 9 個 uc 的成功 Scenario 與 F02 legacy「檢視看板活動紀錄」實作備註 `Board.activityLog`／`Card.activityLog`），並在 F01 `## 待釐清` 加一行指向 OQ-01。
+
+### Check
+- `./scripts/spec-check` 最後一行：開工前「302 error(s), 2 warning(s)」→ 收尾「302 error(s), 2 warning(s)」（不變，符合預期）。
+- `tools error-count .dev/F01-basic-kanban/spec-kanban-basic.md`：19 → 19。
+- `tools accept-check <tasks> D-01`：無輸出，通過。
+- `tools gherkin-diff`：exit 0，「Gherkin 行為與遷移前一致（160 行）」。
+- `tools tag-diff`：exit 0，無輸出。
+- `tools changelog-check`：exit 0，無輸出。
+- 逐條對照驗收條件：`errors(F01#Swimlane 管理)=0`、`errors(F01#Stage（階段）管理)=0`、OQ-01 已登記、9 個 uc 的 `crud` 皆含 `board` 的 U，全部達成。
+
+### Act
+完成，下一個任務：T1.04（[F01] 同上，「Card（卡片）編輯」）。
