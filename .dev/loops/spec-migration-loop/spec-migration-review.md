@@ -326,3 +326,30 @@ G2 的 llm-review 抽查（L-01、L-02、L-05、L-06），每個模組至少一�
 - `uc-delete-card`、`uc-remove-member` 的活動紀錄，記在被刪除或被移除的 Aggregate 上。
 - OQ-11 的「狀態」欄應為人工決議。
 - 第 7 項列出的 5 個雙 When Scenario 與 L-05 規格缺口。`uc-delete-card` 把「取消刪除」當成 `@fail-p2`（OQ-02／03），依新版 ui-convention 應改由 ui 檔「需確認？」欄承接，一併處理。
+
+## Review — 2026-09-17 02:45 — 9f6df6a
+### 範圍
+`052d251`..`9f6df6a`，涵蓋上一則審查的 commit `02580f3`、D-10（`d05556a`、`afc6bee`）、D-11（`7605e74`、`8c4dacb`）、D-12（`ab2e595`、`9f6df6a`）。`last-verify.md` 是 PASS，沒有警告；`./scripts/spec-check` 實跑 0 error、0 warning。期間 OQ 檔沒有新增。`tools actionable` 的結果是 D-13、D-14、G2，下一個任務是 D-13，不是關卡。
+
+### 發現
+未發現偏差。檢查過的面向：
+1. **鐵則 1**：期間 spec 只改了三個 usecase 字句（F01 兩處、F02 一處）與 CR.md 一格。gherkin、tag、Aggregate 註解、名詞表、待釐清、變更紀錄都沒動，也沒有 F 編號修正。
+2. **D-10 完成度與依據**：`uc-set-stage-role` post 已明寫是「該其他 `stage`」，跟 Scenario「設定 Stage 角色」第二段的 Then（「待辦」自動變回 NONE）一致。「若新角色為 START 或 DONE」這個限定有依據：legacy 名詞表寫「同一個 Board 中 `START`、`DONE` 各至多一個」，NONE 沒有這個限制。`uc-move-card-stage` 的 p1 改成「位於來源 `stage`」，跟 Given 一致。
+3. **D-11 完成度**：CR-002 那列只刪了 `uc-assign-card-owner-by-drag`(新增)，其他列沒動。CR-005 仍列這個 uc，這是正確的，因為它屬於本次遷移的範圍。
+4. **D-12 完成度**：只加了 `p3`，p1、p2、post、fail 都沒動。`roles` 是 `r-board-owner`，所以這句有依據。
+5. **拆分粒度、跨模組一致**：期間沒有新增或拆分 uc，也沒有改動實體或關係表。
+6. **OQ 品質**：期間沒有新增 OQ，三個任務本來就規定不新增 OQ，PDCA 裡也沒有應記而沒記的高影響決定。
+7. **PDCA 與實際結果**：Iteration 44～46 的 Check（0 → 0、accept-check 通過）跟 `last-verify.md` 一致。Iteration 44～46 的時間戳（09:15～10:45）又晚於 `last-verify.md` 的 02:41，跟上一則指出的是同一類低影響問題，不開任務。Iteration 46 的 Do 引用 p3 時少了反引號，但 spec 本身是對的，不影響。
+
+### 待審任務處理
+沒有 `proposed` 的 D-xx。
+
+### 關卡摘要
+不適用：下一個任務是 D-13，接著是 D-14，然後才是 G2。G2 會在 D-13、D-14 完成後的審查中再判定。
+
+**需人工事後處理**（沿用上一則，本期沒有新增）：
+- 重複或不當拆出的 uc（F02 權限拒絕類 uc、`uc-member-add-card`、OQ-08、OQ-09），建議開同一個 CR 重整。
+- PDCA Iteration 11、31 的標題格式；Iteration 43～46 的時間戳不可信。
+- `uc-delete-card`、`uc-remove-member` 的活動紀錄記在被刪除或被移除的 Aggregate 上。
+- OQ-11 的「狀態」欄應為人工決議。
+- 5 個雙 When Scenario、L-05 規格缺口，以及 `uc-delete-card` 的「取消刪除」fail。
