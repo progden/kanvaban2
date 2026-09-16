@@ -1211,3 +1211,21 @@ OQ 摘要（依模組；「採用」為 `spec-migration-open-questions.md` 表�
 
 ### Act
 完成：D-11 done。下一個任務：D-12。
+
+## Iteration 46 — 2026-09-17 10:45 — D-12
+### Plan
+本輪任務：D-12。要改的檔案：`.dev/F02-user-membership/spec-user-membership.md` 的 `uc-remove-member` usecase 區塊，只加一句 `pre.p3`。驗收條件：`errors(F02)=0`；F02 spec 含「移除者是該 `board` 的 Owner」。預期 error 數變化：0 → 0。
+
+### Do
+- ab2e595 [spec/design](user-membership) 補上 uc-remove-member 的操作者是 Owner 前置條件
+- 依任務指定，在 `uc-remove-member` 的 `pre` 新增 `p3: "移除者是該 board 的 Owner"`；p1、p2、post、fail、gherkin 均未動；未新增 OQ、無低影響假設。
+
+### Check
+- `./scripts/spec-check`：`0 error(s), 0 warning(s)`
+- `tools error-count .dev/F02-user-membership/spec-user-membership.md`：開工前 0 → 收尾時 0
+- `tools accept-check D-12`：rc=0（通過）
+- `tools gherkin-diff`：一致（216 行）；`tools tag-diff`：一致；`tools changelog-check`：一致
+- 驗收條件對照：`errors(F02)=0` 達成；F02 spec 含「移除者是該 `board` 的 Owner」達成
+
+### Act
+完成：下一個任務 D-13。
