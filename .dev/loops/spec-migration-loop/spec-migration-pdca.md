@@ -698,3 +698,22 @@
 
 ### Act
 完成，下一個任務：T2.16（[F04] 遷移程序 10～11 與收尾，F04 全檔 0 error）
+
+## Iteration 30 — 2026-09-16 15:40 — D-06
+### Plan
+本輪任務 D-06：補完 T2.13 漏做的遷移程序 10。`.dev/F03-kanban-widgets/spec-kanban-widgets.md` 變更紀錄 2026-09-13「開發完成」列摘要末尾的「詳見 `design.md`「實作狀態」段落」改為「詳見 `design-kanban-widgets.md`「實作狀態」段落」（該檔確有「## 實作狀態」段落）；其他文字、日期、類型欄不動，gherkin 不動。驗收條件：`errors(F03)=0`；F03 spec 不再含「`design.md`」字樣，且含「`design-kanban-widgets.md`「實作狀態」」。預期全部 spec error 總數不變（100，此為純文字修正，不影響任何檢查規則）。
+
+### Do
+- 9dccb2d [spec/design](kanban-widgets) 修正變更紀錄檔名引用為 design-kanban-widgets.md
+- 僅改動一處文字：`design.md` → `design-kanban-widgets.md`，其餘變更紀錄列內容（日期、類型、摘要其餘文字）逐字保留
+- 未新增 OQ；未動 gherkin、usecase 區塊、Aggregate 註解
+
+### Check
+- `./scripts/spec-check`（全部）最後一行：100 error(s), 0 warning(s)（開工前 100，不變）
+- `tools error-count .dev/F03-kanban-widgets/spec-kanban-widgets.md`：開工前 0 → 收尾時 0（不變）
+- `tools accept-check spec-migration-tasks.md D-06`：無輸出，exit 0（達成）
+- `tools gherkin-diff`：一致（65 行）；`tools tag-diff`：一致
+- `tools changelog-check`：回報「2026-09-13」列在新檔找不到——此為預期結果，因為本任務的目的就是把該列摘要中的 `design.md` 改成 `design-kanban-widgets.md`，工具的子字串比對無法容忍這個刻意的檔名修正；摘要其餘文字、日期、類型欄逐字保留，符合任務描述與驗收條件
+
+### Act
+完成，下一個任務：T2.16（[F04] 遷移程序 10～11 與收尾，F04 全檔 0 error）
