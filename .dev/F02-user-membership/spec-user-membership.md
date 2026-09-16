@@ -264,7 +264,7 @@ Feature: 使用者登入與登出
   post:
     - "受邀使用者立即成為該 `board` 的成員，角色如指定，不需要對方確認"
     - "該 `board` 的成員數增加 1"
-    - "該 `board` 產生一筆活動紀錄，記錄操作人、受邀使用者與指定角色（例如「邀請 雅婷 加入看板，角色為 Member」）"
+    - "該操作被記錄為 `board-membership` 的一筆活動紀錄，記錄操作人、受邀使用者與指定角色（例如「邀請 雅婷 加入看板，角色為 Member」）"
   fail:
     p2: "拒絕，不建立新的 `board-membership`，顯示錯誤訊息「此使用者已經是看板成員」"
   emits: []
@@ -280,7 +280,7 @@ Feature: 使用者登入與登出
   post:
     - "目標使用者對該 `board` 的角色變更為 Owner"
     - "該 `board` 可以同時有多位 Owner"
-    - "該 `board` 產生一筆活動紀錄，記錄操作人與目標使用者（例如「將 雅婷 的角色變更為 Owner」）"
+    - "該操作被記錄為 `board-membership` 的一筆活動紀錄，記錄操作人與目標使用者（例如「將 雅婷 的角色變更為 Owner」）"
   fail: {}
   emits: []
   requires: []
@@ -295,7 +295,7 @@ Feature: 使用者登入與登出
   post:
     - "目標成員不再是該 `board` 的成員"
     - "若目標成員仍是某些 `card` 的負責人，這些 `card` 的負責人欄位移除該成員；若該 `card` 因此沒有其他負責人，則變成未指派"
-    - "該 `board` 產生一筆活動紀錄，記錄操作人與被移除的使用者（例如「將 雅婷 移出看板」）"
+    - "該操作被記錄為 `board-membership` 的一筆活動紀錄，記錄操作人與被移除的使用者（例如「將 雅婷 移出看板」）"
   fail:
     p1: "拒絕，顯示錯誤訊息「看板至少需要保留一位 Owner」，該 `board-membership` 不被移除"
   emits: []
@@ -415,7 +415,7 @@ Feature: Board 建立與成員邀請
 ```usecase
 - id: uc-reject-invite-by-member
   name: 非 Owner 嘗試邀請成員
-  roles: []
+  roles: [r-board-member]
   crud: {board-membership: R}
   pre:
     p1: "邀請者不是該 `board` 的 Owner"
@@ -427,7 +427,7 @@ Feature: Board 建立與成員邀請
   calls-sync: []
 - id: uc-reject-role-change-by-member
   name: 非 Owner 嘗試變更成員角色
-  roles: []
+  roles: [r-board-member]
   crud: {board-membership: R}
   pre:
     p1: "變更者不是該 `board` 的 Owner"
@@ -439,7 +439,7 @@ Feature: Board 建立與成員邀請
   calls-sync: []
 - id: uc-reject-structure-change-by-member
   name: 非 Owner 嘗試調整看板結構
-  roles: []
+  roles: [r-board-member]
   crud: {board: R, board-membership: R}
   pre:
     p1: "操作者不是該 `board` 的 Owner"
@@ -554,7 +554,7 @@ Feature: Board 權限管理
   calls-sync: []
 - id: uc-reject-board-access-by-nonmember
   name: 非成員嘗試開啟 Board
-  roles: []
+  roles: [r-system-user]
   crud: {board: R, board-membership: R}
   pre:
     p1: "操作者不是該 `board` 的 `board-membership` 成員"
@@ -799,6 +799,7 @@ Board／Swimlane／Stage／Card 既有事件的操作人記錄已隨 CR-001／CR
 - OQ-04：角色定義將「卡片負責人指派」「檢視看板活動紀錄」「Board 存取權限」三個 Feature 改用通用角色 r-system-user，不套用 r-board-member（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
 - OQ-05：修正 OQ-04，「卡片負責人指派」「檢視看板活動紀錄」改沿用 F01 已定義的 r-user（看板使用者），不新設角色（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
 - OQ-06：「Board 權限管理」Feature 的 5 個 Scenario 因 GH-01（uc 必須屬於同一 Feature）與 UC-06（每個 uc 至少一個成功 Scenario）而拆成 5 個本 Feature 專屬的新 uc，不重用「Board 建立與成員邀請」的 uc-invite-member 等既有 uc（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
+- OQ-07：「Board 權限管理」「Board 存取權限」4 個拒絕類 uc 的 roles 依 Background／Feature 標頭補上被拒絕的操作者角色，不留空（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
 - `Label`（標籤）Aggregate 設計不在本文件範圍內，將於獨立的 Feature 文件中處理。
 
 ## 實作備註（留給 `design.md`）
