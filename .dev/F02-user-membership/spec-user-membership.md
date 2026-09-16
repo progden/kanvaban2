@@ -49,7 +49,7 @@
 ## 角色定義
 | ID | 名稱 | 說明 |
 |---|---|---|
-| r-system-user | 系統使用者 | 已登入系統、未涉及特定 Board 管理／成員權限差異的一般使用者：可建立帳號、登入登出、檢視自己有權限的 Board、指派卡片負責人、檢視看板活動紀錄 |
+| r-system-user | 系統使用者 | 已登入系統、未涉及特定 Board 管理／成員權限差異的一般使用者：可建立帳號、登入登出、檢視自己有權限的 Board |
 | r-board-owner | Board 擁有者 | Board 的管理角色：可邀請／移除／升級成員、可新增／重新命名／刪除 Swimlane 與 Stage、可刪除 Board；同一個 Board 可以有多位 Owner，但至少要保留一位 |
 | r-board-member | Board 成員 | 被加入 Board 的人，只能新增／編輯／移動／刪除卡片與留言，不能碰成員管理、看板結構（Swimlane/Stage）或刪除 Board |
 
@@ -428,7 +428,7 @@ Feature: Board 存取權限
 
 ```gherkin
 Feature: 卡片負責人指派
-  身為 系統使用者
+  身為 看板使用者
   我想要從看板成員中選擇一位或多位卡片負責人
   以便清楚追蹤每張卡片由誰負責，而不是靠自由輸入文字
 
@@ -526,7 +526,7 @@ F02 是尚未進入開發的規格，可以直接補上操作人記錄；F01 的
 
 ```gherkin
 Feature: 檢視看板活動紀錄
-  身為 系統使用者
+  身為 看板使用者
   我想要看到這個看板最近發生了哪些操作、由誰執行
   以便掌握團隊協作的異動歷程
 
@@ -551,6 +551,7 @@ Board／Swimlane／Stage／Card 既有事件的操作人記錄已隨 CR-001／CR
 ## 待釐清 / 未來擴充（Open Questions）
 
 - OQ-04：角色定義將「卡片負責人指派」「檢視看板活動紀錄」「Board 存取權限」三個 Feature 改用通用角色 r-system-user，不套用 r-board-member（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
+- OQ-05：修正 OQ-04，「卡片負責人指派」「檢視看板活動紀錄」改沿用 F01 已定義的 r-user（看板使用者），不新設角色（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
 - `Label`（標籤）Aggregate 設計不在本文件範圍內，將於獨立的 Feature 文件中處理。
 
 ## 實作備註（留給 `design.md`）
