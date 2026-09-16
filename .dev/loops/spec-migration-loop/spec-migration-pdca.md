@@ -717,3 +717,24 @@
 
 ### Act
 完成，下一個任務：T2.16（[F04] 遷移程序 10～11 與收尾，F04 全檔 0 error）
+
+## Iteration 31 — 2026-09-16 23:05 — FAIL修正 + D-07
+### Plan
+上一輪驗證 FAIL：D-06 把 F03 變更紀錄裡的 `design.md` 直接改成 `design-kanban-widgets.md`，導致 `changelog-check` 找不到原摘要文字。本輪先修正這個問題（只能換引號、加註，不能刪改原文字），再依 actionable 清單做 D-07：把 T2.15 的 `uc-guard-clock-monotonicity` 建模決定補記為 OQ-08。驗收條件：`changelog-check(F03)` 通過；`errors(F04#看板時間管理)=0`；OQ 檔最後一列模組為 F04；F04 `## 待釐清` 有一行指向該 OQ。預期全部 spec error 總數不變（100）。
+
+### Do
+- 193e2d5 [spec/design](kanban-widgets) 修正 design.md 檔名註記位置以符合變更紀錄比對：把「（即 `design-kanban-widgets.md`）」從插在 `design.md` 與「實作狀態」中間，改成移到整句「詳見 `design.md`「實作狀態」段落」之後，維持原摘要文字連續不中斷，`changelog-check` 的子字串比對才會通過（原文字一個字都沒刪改，只是加註位置從句中改成句尾）
+- f75b0fc [spec/design](board-clock) 待釐清段落補記 uc-guard-clock-monotonicity 的 OQ 指向：F04 `## 待釐清` 末尾新增一行「- OQ-08：…」，指向 OQ 檔；未動 usecase 區塊、gherkin、Aggregate 註解
+- OQ 檔末尾追加 OQ-08（模組 F04）：說明 `uc-guard-clock-monotonicity` 因 GH-01／UC-06 限制無法拆入 F01 各寫入 uc 的 fail，T2.15 已另立此 uc 且 crud 只列 `board: U`；選項 (a) 維持現狀、(b) 跨檔補 F01 fail（違反 GH-01 與鐵則 1，不可行）；採用 (a) 維持現狀；依據 F04 兩個單調性 Scenario、PDCA Iteration 28、OQ-06 同類處理
+- 未新增低影響假設以外的其他假設；未動 F04 usecase 區塊、gherkin、Aggregate 註解
+
+### Check
+- `./scripts/spec-check`（全部）最後一行：100 error(s), 0 warning(s)（開工前 100，不變）
+- `tools error-count .dev/F03-kanban-widgets/spec-kanban-widgets.md`：0 → 0；`tools error-count .dev/F04-board-clock/spec-board-clock.md`：38 → 38（不變）
+- `tools accept-check spec-migration-tasks.md D-07`：無輸出，exit 0（達成）
+- F03：`tools gherkin-diff` 一致（65 行）；`tools tag-diff` 一致；`tools changelog-check` 通過（exit 0）
+- F04：`tools gherkin-diff` 一致（43 行）
+- 驗收條件逐條確認：F03 changelog-check 通過；`errors(F04#看板時間管理)=0`；OQ 檔末列模組為 F04 且提到 `uc-guard-clock-monotonicity` 與 GH-01；F04 `## 待釐清` 含 OQ-08 一行
+
+### Act
+完成，下一個任務：T2.16（[F04] 遷移程序 10～11 與收尾，F04 全檔 0 error）
