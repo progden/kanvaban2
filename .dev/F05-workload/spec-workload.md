@@ -78,7 +78,7 @@
     p1: "指定的 `card` 已存在"
   post:
     - "若該成員原本不在 `card.assignees` 中，追加為負責人，`card.assignees` 包含追加後的完整清單"
-    - "若該成員已經是 `card.assignees` 成員，`card.assignees` 維持不變"
+    - "若該成員已經是 `card.assignees` 成員，`card.assignees` 維持不變，且不產生新的活動紀錄"
   fail: {}
   emits: []
   requires: []
