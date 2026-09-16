@@ -146,3 +146,31 @@ llm-review：G1 需要的 F01 每個 Feature 抽查已在 `9f436a3` 那則完成
 不適用：下一個任務是 D-03，接著才是 T2.04。
 
 **需人工事後處理**：發現 2（PDCA Iteration 11 標題被改過，要不要接受這次改動）。
+
+## Review — 2026-09-16 20:42 — 4015d2a
+### 範圍
+`3242fcb`..`4015d2a`，涵蓋 D-03（`db3dffa`、`45afb04`）、T2.04（`83db527`、`7a26d71`）、T2.05（`3ecb805`、`f1d4115`、`9904716`）、T2.06（`8ab537e`、`7c33f0d`）、T2.07（`106adc8`、`4015d2a`）。`last-verify.md` 是 PASS，沒有警告（F01 0 error，F02 79 → 26，總數 237 → 184，warning 0）。OQ 檔新增 OQ-05、OQ-06。`tools actionable` 的結果是 T2.08，不是關卡。
+
+### 發現
+1. **中**｜F02 `uc-invite-member`、`uc-change-member-role`、`uc-remove-member` 的 post｜活動紀錄句寫成「該 `board` 產生一筆活動紀錄」，但這三個 uc 的 `crud` 沒有 `board`，Aggregate 註解也沒有 `board`（原規格就沒有）。這跟 OQ-01「活動紀錄屬於被操作的 Aggregate」不一致：F02 自己的「Aggregate 事件盤點」表把邀請／移除／升級成員列在 BoardMembership 底下。F01 的寫法是「記錄為 `card` 的一筆活動紀錄」。這次選的修法是改措辭，指向 `board-membership`，不在 crud 補 `board`，因為補了就要在註解加上原規格沒有的 `board: write`。已開 **D-04 (1)**。
+2. **中**｜OQ-06 與 T2.06 的拒絕類 uc｜`uc-reject-invite-by-member`、`uc-reject-role-change-by-member`、`uc-reject-structure-change-by-member`、`uc-reject-board-access-by-nonmember` 四個 uc 的 `roles: []`。這些不是純讀取，而是「某角色嘗試寫入被拒」，roles 留空就看不出被拒的是誰，G2 做 L-review 時也無從判斷。Background 和標頭都寫得很清楚（Member 雅婷、系統使用者），符合鐵則 2 的來源。已開 **D-04 (2)**，並要求追加 OQ 更正列。
+3. **中（需人工事後處理）**｜OQ-06 的整體建模｜受 GH-01（uc 必須在同一 Feature）和 UC-06（每個 uc 要有成功 Scenario）限制，執行輪把「權限不足被拒絕」寫成獨立的「成功」uc：pre 是「操作者不是 Owner」，post 是錯誤訊息。規則書不允許搬 Scenario，這已是可行選項裡最小驚訝的一個，OQ 也有記錄，所以不開任務。但語意上這些本該是 `uc-invite-member`、`uc-change-member-role`、F01 `uc-add-swimlane` 等 uc 的 `fail`（`uc-invite-member` 已有 `pre.p1`「邀請者是 Owner」，卻沒有對應的 fail）。同理，`uc-member-add-card` 跟 F01 `uc-add-card` 是同一個交易，卻有兩個 ID；`uc-delete-board` 的 Scenario 裡「Member 刪除被拒、錯誤訊息『只有 Owner 可以刪除看板』」沒辦法寫進 fail。遷移完成後建議開 CR，把權限拒絕改成各 uc 的 fail，Scenario 也跟著重排。
+4. **低**｜「還有其他 Owner 時，可以移除其中一位 Owner」的 Aggregate 註解新增了 `card: write`｜Scenario 沒有提到卡片，這行是為了符合 GH-06 才加的（`uc-remove-member` 的 card U 是條件式寫入）。PDCA Iteration 15 有記錄，可以接受，不開任務。
+5. **低**｜「卡片可以沒有負責人」的註解從 `card: write` 改成 `card: read`｜Scenario 確實是純顯示，改成 read 符合遷移程序 9，PDCA Iteration 18 也有記錄。可以接受。
+6. **低**｜「多位 Owner 都擁有相同的管理權限」只掛了 `@uc-invite-member`，但 Scenario 裡也有移除動作｜GH-01 限定只能掛一個 uc，移除的行為其他 Scenario 已經涵蓋，PDCA 有記錄。可以接受。
+7. **低**｜兩個 H2 標題的括號說明被移除（「（Owner 與 Member 的權限差異）」「（我的 Board 列表）」）｜這是遷移程序 6 的要求；檔案開頭的簡介清單仍保留相同文字，意思沒有遺失。
+8. **低（自欺風險）**｜PDCA Iteration 16 寫「`tools error-count '...#Board 權限管理'`：0」｜`error-count` 不支援 `#Feature`，會把整串當成檔名，所以永遠回 0。我實測過，accept-check 的 `errors(F02#…)` 判定是正確的（`F02#檢視看板活動紀錄` 目前是 8），所以驗收沒有被騙，但 PDCA 的這筆數字沒有意義。執行輪之後應改用 accept-check。
+9. **鐵則 1**：`gherkin-diff` 216 行一致，`tag-diff` 通過；沒有 F 編號修正。待釐清只多了 OQ-05、OQ-06 兩行，原有的行都還在。名詞表這段期間只改了 `r-system-user` 的說明（D-03 指定的修改）。
+10. **D-03 完成度**：兩個 Feature 標頭都是「身為 看板使用者」，角色表沒有 `r-user`，`r-system-user` 的說明已刪除兩項權限，OQ-05 在最後一列並提到 OQ-04 與 `r-user`。都達成了。
+11. **鐵則 2 抽查**：`uc-remove-member` 的 p1 對應 `@fail-p1`，p2（確認移除）有 pre 無 fail，沿用 F01 的慣例；`uc-invite-member` 的 p2 對應「邀請已經是成員的使用者」；`uc-set-card-assignees`、`uc-assign-card-owner-by-drag` 的 post 都對得到 Then（包含不重複新增、不產生活動紀錄）。沒有發現憑空出現的行為。
+12. **跨模組一致**：roles 沿用 F01 的 `r-user`，沒有重複定義實體；重複的 uc 見發現 3。
+
+### 待審任務處理
+沒有 `proposed` 的 D-xx。
+
+### 關卡摘要
+不適用：下一個任務是 D-04，接著才是 T2.08。
+
+**需人工事後處理**：
+- 發現 3：F02 的權限拒絕寫成獨立 uc，`uc-member-add-card` 與 F01 `uc-add-card` 重複，`uc-delete-board` 的拒絕分支沒辦法表達。建議遷移後開 CR 重整。
+- 沿用前幾則：PDCA Iteration 11 標題被改過；`uc-delete-card` 的活動紀錄記在被刪除的 `card` 上（`uc-remove-member` 改完 D-04 後也會有同樣情況）。
