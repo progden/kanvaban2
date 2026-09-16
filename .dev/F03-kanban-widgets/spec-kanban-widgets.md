@@ -9,7 +9,7 @@
 
 核心只回傳計算後的資料（既有決策），前端負責畫圖。所有圖表都以「asOf」（= Board Clock 目前時間，見 [`spec-board-clock.md`](../F04-board-clock/spec-board-clock.md)）為基準，不使用瀏覽器時間。所有圖表都依賴 Stage 是否已設定「Start」／「Done」角色（見 CR-003，`spec-kanban-basic.md`「Stage 管理」Feature）。
 
-狀態：開發中
+狀態：定稿
 
 ## 名詞定義
 

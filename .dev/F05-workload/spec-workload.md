@@ -8,7 +8,7 @@
 
 依賴 F02（`spec-user-membership.md`）的 `board-membership`、卡片多選負責人（`card.assignees`，CR-002），以及 CR-003 的 Stage 角色（用於判斷卡片是否已完成）。
 
-狀態：開發中
+狀態：定稿
 
 ## 名詞定義
 
