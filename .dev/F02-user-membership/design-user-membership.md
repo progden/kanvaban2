@@ -1,6 +1,6 @@
 # 核心領域模型設計（User／BoardMembership／Card 負責人）
 
-本文件記錄 `io.progden.kanban.core.domain` 套件中，F02 新增／變更部分的設計決策，對應 [`spec-user-membership.md`](./spec-user-membership.md) 描述的使用案例。技術限制、識別碼型別、不變條件回報方式等共用原則見 [`../F01-basic-kanban/design.md`](../F01-basic-kanban/design.md)，本文件只記錄 F02 新增的部分。
+本文件記錄 `io.progden.kanban.core.domain` 套件中，F02 新增／變更部分的設計決策，對應 [`spec-user-membership.md`](./spec-user-membership.md) 描述的使用案例。技術限制、識別碼型別、不變條件回報方式等共用原則見 [`../F01-basic-kanban/design-kanban-basic.md`](../F01-basic-kanban/design-kanban-basic.md)，本文件只記錄 F02 新增的部分。
 
 ## 設計決策
 
@@ -45,7 +45,7 @@
 
 ### 7. 活動紀錄（ActivityRecord，CR-001／F02 共用設計）
 
-`Board`、`Card` 各自有一份 `activityLog: List<ActivityRecord>`，設計細節見 [`../F01-basic-kanban/design.md`](../F01-basic-kanban/design.md) 5a 節（CR-001 是因為 F02 需要活動紀錄，才回頭在 F01 補上操作人）。F02 這邊新增的 `BoardMembership`／`Card.assignTo` 事件，直接沿用同一套模式：
+`Board`、`Card` 各自有一份 `activityLog: List<ActivityRecord>`，設計細節見 [`../F01-basic-kanban/design-kanban-basic.md`](../F01-basic-kanban/design-kanban-basic.md) 5a 節（CR-001 是因為 F02 需要活動紀錄，才回頭在 F01 補上操作人）。F02 這邊新增的 `BoardMembership`／`Card.assignTo` 事件，直接沿用同一套模式：
 
 - `Board.addSwimlane/renameSwimlane/.../removeStage` 補上操作人記錄（CR-001 已完成）。
 - `Card.create/edit/moveToSwimlane/moveToStage/delete/assignTo` 都會寫進 `Card` 自己的 `activityLog`（`moveToStage` 記在 `StageTransition` 裡，不是額外一筆 `ActivityRecord`，同 CR-001 的決定）。

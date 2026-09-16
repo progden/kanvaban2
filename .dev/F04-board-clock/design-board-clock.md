@@ -1,6 +1,6 @@
 # 核心領域模型設計（Board Clock）
 
-本文件記錄 `io.progden.kanban.core.domain` 套件中，F04 新增部分的設計決策，對應 [`spec-board-clock.md`](./spec-board-clock.md)。共用原則（ID 型別、不變條件回報方式）見 [`../F01-basic-kanban/design.md`](../F01-basic-kanban/design.md)。
+本文件記錄 `io.progden.kanban.core.domain` 套件中，F04 新增部分的設計決策，對應 [`spec-board-clock.md`](./spec-board-clock.md)。共用原則（ID 型別、不變條件回報方式）見 [`../F01-basic-kanban/design-kanban-basic.md`](../F01-basic-kanban/design-kanban-basic.md)。
 
 ## 設計決策
 
