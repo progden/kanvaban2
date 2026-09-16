@@ -283,3 +283,26 @@
 
 ### Act
 完成，下一個任務：G1（關卡：審查輪核准後才能標 done，進入 T2.01）。本輪未核准 G1，交由審查輪處理。
+
+## Iteration 11 — 2026-09-16 15:10 — G1、T2.01
+### Plan
+上一輪驗證 PASS，`runtime/gates/G1.approved` 已存在；先把任務清單中 G1 標為 done，再取新的 actionable 第一項 T2.01：[F02] 遷移程序 1～6（狀態行、名詞／角色表、七個 Feature 的「身為」行與 `## Feature:` 標題）。預期 F02 error 數下降（原 125），全部 spec error 總數下降（原 283）；不動 usecase 內容與 tag（那是 T2.02～T2.09）。
+
+### Do
+- G1 標為 done（審查已通過，`runtime/gates/G1.approved` 存在）。
+- `21782be` [spec/design](user-membership) 遷移名詞定義、角色定義與 Feature 標頭至新格式：名詞定義拆成 實體／欄位／關係／其他名詞 四張表（F01 已定義的 board、card 不重列，只新增 user、board-membership 兩個實體）；角色定義新增 r-system-user、r-board-owner、r-board-member 三個角色；七個 Feature 的「身為」行改寫對齊角色表名稱（gherkin 允許的例外變更）。
+- `d5db13b` [spec/design](user-membership) 標註角色分組決定 OQ-04 於待釐清。
+- 高影響假設 OQ-04：F02 角色分組依「Owner／Member 權限有寫明才分角色，否則整個模組一個角色」，只在「Board 建立與成員邀請」「Board 權限管理」兩個 Feature 用 r-board-owner／r-board-member；其餘五個 Feature（含原文寫「身為看板的成員」的「卡片負責人指派」「檢視看板活動紀錄」）改用通用角色 r-system-user，理由見 OQ 檔。
+- 低影響假設：`boardMembership` → 實體 ID `board-membership`（kebab-case）；`user.display-name`／`board.created-by`／`board-membership.role`／`card.assignees` 欄位 ID 命名；「Card 負責人（Card Owner）」原文本是「與 Board Owner 是不同概念」的非角色概念，歸入「其他名詞」而非角色表；「操作時間（occurredAt）」保留 F02 自己的版本（User／BoardMembership 維持系統時間的補充說明），不與 F01 版本合併。
+- Aggregate 註解仍留舊名 `boardMembership`（未改 `board-membership`），因程序步驟 9（Aggregate 註解與 crud 對齊）屬於後續 T2.02～T2.08 的逐 Feature 工作，本輪範圍只到程序 1～6。
+
+### Check
+- `./scripts/spec-check`（全部 spec）最後一行：開工前 `283 error(s), 1 warning(s)` → 收工時 `252 error(s), 3 warning(s)`。
+- `tools error-count .dev/F02-user-membership/spec-user-membership.md`：125 → 94。
+- `tools accept-check spec-migration-tasks.md T2.01`：exit 0，無輸出（`errors(F02;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0` 成立）。
+- `tools gherkin-diff`：F02 與備份一致（216 行）。
+- `tools tag-diff`、`tools changelog-check`：F02 均無輸出、exit 0。
+- 驗收條件：達成。
+
+### Act
+完成：下一個任務 T2.02（[F02]「建立使用者帳號」usecase 區塊＋tag＋Aggregate 註解）。

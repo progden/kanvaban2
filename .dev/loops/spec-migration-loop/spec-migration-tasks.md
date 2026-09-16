@@ -35,13 +35,13 @@
 | T1.04 | done | [F01] 同上，「Card（卡片）編輯」 | `errors(F01#Card（卡片）編輯)=0` | T1.03 |
 | T1.05 | done | [F01] 遷移程序 10～11：正文反引號清理（程式碼名稱改「」）、`design.md` 稱呼改為 `design-kanban-basic.md`、變更紀錄改四欄格式並追加 CR-005 一列 | `errors(F01;REF-01,REF-06)=0`；變更紀錄最後一列票號為 CR-005 | T1.04 |
 | T1.06 | done | [F01] 收尾：F01 全檔 0 error，修掉剩餘項目 | `errors(F01)=0` | T1.05 |
-| G1 | todo | 關卡：審查輪檢視 F01 是否可作為其餘模組的範本（usecase 拆分粒度、pre／post 措辭、實體粒度、角色表） | 腳本建立 `runtime/gates/G1.approved` | T1.06 |
+| G1 | done | 關卡：審查輪檢視 F01 是否可作為其餘模組的範本（usecase 拆分粒度、pre／post 措辭、實體粒度、角色表） | 腳本建立 `runtime/gates/G1.approved` | T1.06 |
 
 ## 階段 2：F02～F06（實體與角色跨模組共用，後面的模組只引用、不重定義）
 
 | ID | 狀態 | 任務 | 驗收條件 | 依賴 |
 |----|------|------|----------|------|
-| T2.01 | todo | [F02] 遷移程序 1～6：狀態行、名詞／角色表（F01 已定義的實體不重列；`boardMembership` 這類 camelCase 改成 kebab 實體 ID；Owner／Member 權限有寫明才分角色）、七個 Feature 的「身為」行與 `## Feature:` 標題 | `errors(F02;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0` | G1 |
+| T2.01 | done | [F02] 遷移程序 1～6：狀態行、名詞／角色表（F01 已定義的實體不重列；`boardMembership` 這類 camelCase 改成 kebab 實體 ID；Owner／Member 權限有寫明才分角色）、七個 Feature 的「身為」行與 `## Feature:` 標題 | `errors(F02;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0` | G1 |
 | T2.02 | todo | [F02] 「建立使用者帳號」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#建立使用者帳號)=0` | T2.01 |
 | T2.03 | todo | [F02] 「使用者登入與登出」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#使用者登入與登出)=0` | T2.02 |
 | T2.04 | todo | [F02] 「Board 建立與成員邀請」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#Board 建立與成員邀請)=0` | T2.03 |
