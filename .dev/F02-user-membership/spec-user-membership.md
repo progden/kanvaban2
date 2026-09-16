@@ -159,12 +159,43 @@ Feature: 建立使用者帳號
 
 ## Feature: 使用者登入與登出
 
+### Use Case 定義
+```usecase
+- id: uc-login
+  name: 登入
+  roles: [r-system-user]
+  crud: {user: R}
+  pre:
+    p1: "使用者輸入的帳號必須是系統中已存在的 `user.username`"
+    p2: "使用者輸入的密碼必須與該 `user.username` 對應的 `user.password` 相符"
+  post:
+    - "登入成功，TopBar 顯示該 `user` 的帳號名稱"
+  fail:
+    p1: "拒絕，顯示錯誤訊息 \"帳號或密碼錯誤\"，`user.username` 與 `user.password` 不變，我仍停留在登入頁面"
+    p2: "拒絕，顯示錯誤訊息 \"帳號或密碼錯誤\"，`user.username` 與 `user.password` 不變，我仍停留在登入頁面"
+  emits: []
+  requires: []
+  calls-sync: []
+- id: uc-logout
+  name: 登出
+  roles: [r-system-user]
+  crud: {user: R}
+  pre: {}
+  post:
+    - "登出成功，回到登入頁面，且不重新登入即無法存取任何 `board`"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+```
+
 ```gherkin
 Feature: 使用者登入與登出
   身為 系統使用者
   我想要用帳號密碼登入與登出
   以便安全地存取我有權限的 Board
 
+  @uc-login
   # Related aggregate:
   #   user: read
   Scenario: 使用正確帳號密碼登入
@@ -174,6 +205,7 @@ Feature: 使用者登入與登出
     Then 我應該登入成功
     And TopBar 應該顯示我的名稱 "user1"
 
+  @uc-login @fail-p2
   # Related aggregate:
   #   user: read
   Scenario: 密碼錯誤時登入失敗
@@ -183,6 +215,7 @@ Feature: 使用者登入與登出
     Then 系統應該顯示錯誤訊息 "帳號或密碼錯誤"
     And 我應該仍停留在登入頁面
 
+  @uc-login @fail-p1
   # Related aggregate:
   #   user: read
   Scenario: 帳號不存在時登入失敗
@@ -191,6 +224,9 @@ Feature: 使用者登入與登出
     And 我送出登入表單
     Then 系統應該顯示錯誤訊息 "帳號或密碼錯誤"
 
+  @uc-logout
+  # Related aggregate:
+  #   user: read
   Scenario: 登出後回到登入頁面
     Given 我已登入系統，帳號為 "user1"
     When 我點擊「登出」
