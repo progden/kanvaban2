@@ -52,7 +52,7 @@
 | 日期 | 票號 | 類型 | 摘要 |
 |------|------|------|------|
 | 2026-09-13 |  | 定案 | （原票號 F03）定案「待釐清 / 未來擴充」段落之 Open Question（詳見該段落決議說明），本規格尚未進入開發，尚無程式碼變更 |
-| 2026-09-13 |  | 開發完成 | （原票號 F03）「kanban-spring」完成四個 Feature 的查詢邏輯：Cycle Time／Lead Time（「query.timeline」）、WIP／Aging WIP（「query.wip」）、Throughput／CFD（「query.throughput」）、逾期／即將到期提醒（「query.duedate」），均以「CardTimelineProjector」重播出的「CardTimeline」為共同資料來源；JUnit5+AssertJ 單元測試逐條對應本檔 Scenario，「./mvnw verify」全綠，詳見 `design.md`「實作狀態」段落 |
+| 2026-09-13 |  | 開發完成 | （原票號 F03）「kanban-spring」完成四個 Feature 的查詢邏輯：Cycle Time／Lead Time（「query.timeline」）、WIP／Aging WIP（「query.wip」）、Throughput／CFD（「query.throughput」）、逾期／即將到期提醒（「query.duedate」），均以「CardTimelineProjector」重播出的「CardTimeline」為共同資料來源；JUnit5+AssertJ 單元測試逐條對應本檔 Scenario，「./mvnw verify」全綠，詳見 `design-kanban-widgets.md`「實作狀態」段落 |
 | 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-view-cycle-lead-time`、`uc-view-wip`、`uc-view-aging-wip`、`uc-view-throughput`、`uc-view-cfd`、`uc-view-duedate-reminder`） |
 
 ---
