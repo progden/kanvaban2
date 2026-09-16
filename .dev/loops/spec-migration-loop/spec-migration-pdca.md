@@ -893,3 +893,23 @@
 
 ### Act
 完成，下一個任務：T3.01（全部 spec 一起跑 spec-check 到 0 error：REF-08 重複定義、跨模組引用、事件配對）
+
+## Iteration 40 — 2026-09-16 22:00 — D-09
+### Plan
+本輪任務：D-09（[F06] 移除變更紀錄 2026-09-13「開發完成」列摘要開頭捏造的「（原票號 F06）」註記，只改這一處，其餘摘要文字、CR-005 列、gherkin 不動）。要改的檔案：`.dev/F06-feature-cr-board/spec-feature-cr-board.md` 第 45 行。驗收條件：`errors(F06)=0`；spec 不含「原票號 F06」字樣，且含「開發完成：「kanban-spring」新增「query.featurecrboard.FeatureCrBoardCalculator」」。預期 error 數變化：F06 維持 0，不受影響。
+
+### Do
+- c820638 [spec/design](feature-cr-board) 移除變更紀錄捏造的原票號註記
+- 無新增假設、無新增 OQ（任務本身已由審查輪判定採用「原表格沒有票號欄就不加原票號註記」）。
+
+### Check
+- `./scripts/spec-check` 最後一行：`0 error(s), 0 warning(s)`
+- `tools error-count .dev/F06-feature-cr-board/spec-feature-cr-board.md`：開工前 0 → 收尾時 0
+- `tools accept-check ... D-09`：exit 0（無輸出）
+- `gherkin-diff`：Gherkin 行為與遷移前一致（27 行），exit 0
+- `tag-diff`：exit 0
+- `changelog-check`：exit 0
+- 驗收條件：`errors(F06)=0` 達成；spec 已不含「原票號 F06」，仍含「開發完成：「kanban-spring」新增「query.featurecrboard.FeatureCrBoardCalculator」」。
+
+### Act
+完成：D-09 done。下一個任務：T3.01。
