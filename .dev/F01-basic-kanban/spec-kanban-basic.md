@@ -77,6 +77,68 @@
 
 ## Feature: Swimlane 管理
 
+### Use Case 定義
+```usecase
+- id: uc-add-swimlane
+  name: 新增 Swimlane
+  roles: [r-user]
+  crud: {board: R, swimlane: C}
+  pre:
+    p1: "`swimlane.name` 非空"
+  post:
+    - "新的 `swimlane` 出現在 `board` 最下方"
+    - "該操作被記錄為 `board` 的一筆活動紀錄，包含操作人與操作時間"
+  fail:
+    p1: "拒絕，不建立新的 `swimlane`"
+  emits: []
+  requires: []
+  calls-sync: []
+
+- id: uc-rename-swimlane
+  name: 重新命名 Swimlane
+  roles: [r-user]
+  crud: {swimlane: U}
+  pre:
+    p1: "指定的 `swimlane` 存在"
+  post:
+    - "`swimlane.name` 更新為新名稱"
+    - "該操作被記錄為 `board` 的一筆活動紀錄，包含操作人與操作時間"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+
+- id: uc-reorder-swimlane
+  name: 拖曳調整 Swimlane 順序
+  roles: [r-user]
+  crud: {swimlane: U}
+  pre:
+    p1: "`board` 中依序存在多個 `swimlane`"
+  post:
+    - "`swimlane` 的順序依拖曳結果更新"
+    - "該操作被記錄為 `board` 的一筆活動紀錄，包含操作人與操作時間"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+
+- id: uc-delete-swimlane
+  name: 刪除 Swimlane
+  roles: [r-user]
+  crud: {swimlane: D, card: D}
+  pre:
+    p1: "`board` 中的 `swimlane` 數量大於 1"
+  post:
+    - "該 `swimlane` 不再存在於 `board`"
+    - "若該 `swimlane` 內有 `card`，一併被刪除"
+    - "該操作被記錄為 `board` 的一筆活動紀錄，包含操作人與操作時間"
+  fail:
+    p1: "拒絕，該 `swimlane` 不被刪除"
+  emits: []
+  requires: []
+  calls-sync: []
+```
+
 ```gherkin
 Feature: Swimlane 管理
   身為 看板使用者
@@ -87,9 +149,10 @@ Feature: Swimlane 管理
     Given 我已登入系統
     And 我已開啟一個名為 "產品開發看板" 的看板
 
-  @CR-001
+  @CR-001 @uc-add-swimlane
   # Related aggregate:
-  #   board: read, write
+  #   board: read
+  #   swimlane: write
   Scenario: 新增一個 Swimlane
     Given 看板目前有 1 個 Swimlane "預設泳道"
     When 我點擊「新增 Swimlane」按鈕
@@ -99,45 +162,46 @@ Feature: Swimlane 管理
     And 新的 Swimlane "緊急項目" 應該出現在看板最下方
     And 該操作應該被記錄為一筆活動紀錄，包含操作人與操作時間
 
+  @uc-add-swimlane @fail-p1
   # Related aggregate:
-  #   board: write
+  #   board: read
   Scenario: Swimlane 名稱不可為空
     Given 我正在新增一個 Swimlane
     When 我沒有輸入任何名稱就確認新增
     Then 系統應該顯示錯誤訊息 "Swimlane 名稱不可為空"
     And 不應該建立新的 Swimlane
 
-  @CR-001
+  @CR-001 @uc-rename-swimlane
   # Related aggregate:
-  #   board: read, write
+  #   swimlane: read, write
   Scenario: 重新命名 Swimlane
     Given 看板中存在一個 Swimlane "緊急項目"
     When 我將該 Swimlane 重新命名為 "本週優先"
     Then 該 Swimlane 的名稱應該更新為 "本週優先"
     And 該操作應該被記錄為一筆活動紀錄，包含操作人與操作時間
 
-  @CR-001
+  @CR-001 @uc-reorder-swimlane
   # Related aggregate:
-  #   board: read, write
+  #   swimlane: read, write
   Scenario: 拖曳調整 Swimlane 順序
     Given 看板中依序存在 Swimlane "A"、"B"、"C"
     When 我將 Swimlane "C" 拖曳到 "A" 的上方
     Then Swimlane 的順序應該變為 "C"、"A"、"B"
     And 該操作應該被記錄為一筆活動紀錄，包含操作人與操作時間
 
-  @CR-001
+  @CR-001 @uc-delete-swimlane
   # Related aggregate:
-  #   board: read, write
-  #   card: read
+  #   swimlane: read, write
+  #   card: read, write
   Scenario: 刪除空的 Swimlane
     Given 看板中存在一個沒有任何卡片的 Swimlane "測試泳道"
     When 我刪除該 Swimlane
     Then 看板不應該再顯示 "測試泳道"
     And 該操作應該被記錄為一筆活動紀錄，包含操作人與操作時間
 
-  @CR-001
+  @CR-001 @uc-delete-swimlane
   # Related aggregate:
-  #   board: read, write
+  #   swimlane: read, write
   #   card: read, write
   Scenario: 刪除包含卡片的 Swimlane 需要確認
     Given 看板中存在一個 Swimlane "本週優先"，其中包含 3 張卡片
@@ -147,8 +211,9 @@ Feature: Swimlane 管理
     Then 該 Swimlane 與其所有卡片都應該被移除
     And 該操作應該被記錄為一筆活動紀錄，包含操作人與操作時間
 
+  @uc-delete-swimlane @fail-p1
   # Related aggregate:
-  #   board: read, write
+  #   swimlane: read
   Scenario: 看板至少保留一個 Swimlane
     Given 看板中只剩下 1 個 Swimlane "預設泳道"
     When 我嘗試刪除該 Swimlane
