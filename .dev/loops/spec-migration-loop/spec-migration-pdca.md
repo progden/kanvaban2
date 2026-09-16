@@ -778,3 +778,22 @@
 
 ### Act
 完成，下一個任務：T2.18（[F05]「人員工作量檢視」usecase 區塊＋tag＋Aggregate 註解）
+
+## Iteration 34 — 2026-09-16 — T2.18
+### Plan
+本輪任務為 T2.18：對 `.dev/F05-workload/spec-workload.md` 的「人員工作量檢視」Feature 補上 usecase 區塊、Scenario tag、Aggregate 註解對齊。4 個查詢 Scenario（檢視單一負責人工作量、多位負責人各算一張、檢視未指派數量、已完成卡片不計入）視為同一個「開啟 Workload 表」讀取動作，歸入新立的 `uc-view-workload`；2 個拖曳追加負責人 Scenario 需先判斷所屬 uc（依任務描述，依 F02「卡片負責人指派」Feature 已定義的 `uc-assign-card-owner-by-drag` 判斷）。Aggregate 註解的 `boardMembership` 改名為 `board-membership`（對齊 F02 實體 ID）。驗收條件：`errors(F05#人員工作量檢視)=0`。預期全部 spec error 總數從 56 降到約 50 上下。
+
+### Do
+- 93b2c97 [spec/design](workload) 新增人員工作量檢視 usecase 區塊與 tag
+- 高影響假設，記 OQ-09：F02「卡片負責人指派」Feature 已定義涵蓋相同 Scenario 文字的 `uc-assign-card-owner-by-drag`（PDCA 先前迭代記載：F02 補上這兩條 Scenario 供 F05 使用），原以為可直接讓 F05 的 Scenario 掛 `@uc-assign-card-owner-by-drag` 達成「不重複定義」；但 GH-01 規定 `@uc-` 只能指向同一 Feature 內的 usecase 區塊（`tools accept-check` 實測報「不屬於本 Feature」），REF-08 規定同一 ID 全專案只能定義一次（無法在本檔重複宣告同一 id）。改採：本文件另立本地 `uc-drag-assign-card-owner`，`pre`／`post` 只依本 Feature 的 Given／Then 推導（不含 F02 uc 才有的活動紀錄 post 句，因本檔 Scenario 的 Then 沒有寫活動紀錄斷言），並在 `## 待釐清` 加一行指向 OQ-09。此做法比照 OQ-06、OQ-08 對「GH-01 禁止跨 Feature 引用時另立專屬 uc」的既有處理方式。
+- 低影響假設：4 個查詢 Scenario（皆為「開啟 Workload 表」的不同斷言面向）合併為單一讀取 uc `uc-view-workload`，crud 取四者 Aggregate 註解聯集 `{board: R, board-membership: R, card: R}`；post 句依 UC-03 要求補上反引號 ID（`board-membership`、`card`），未新增行為文字。
+- Aggregate 標記說明段落的 `boardMembership` 改名為 `board-membership`（對齊 F02 已定義實體 ID），4 個查詢 Scenario 與 2 個拖曳 Scenario 的 Aggregate 註解同步改名，read/write 值不變。
+
+### Check
+- `./scripts/spec-check` 最後一行：43 error(s), 0 warning(s)（開工前 56）
+- `tools error-count .dev/F05-workload/spec-workload.md`：開工前 26 → 收尾時 13（剩餘皆在「人員工作量檢視」Feature 之外，正文反引號與變更紀錄留給 T2.19）；`errors(F05#人員工作量檢視)`：開工前 26 → 收尾時 0
+- `tools accept-check spec-migration-tasks.md T2.18`：無輸出，exit 0（達成）
+- `tools gherkin-diff .dev/F05-workload/spec-workload.md`：一致（32 行）；`tools tag-diff`：一致；`tools changelog-check`：一致（exit 0）
+
+### Act
+完成，下一個任務：T2.19（[F05] 遷移程序 10～11 與收尾，F05 全檔 0 error）
