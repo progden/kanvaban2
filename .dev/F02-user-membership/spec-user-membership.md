@@ -12,22 +12,50 @@
 
 本次疊代範圍排除：帳號註冊流程的其他細節（例如信箱驗證）、拒絕邀請情境（邀請即生效，沒有「待接受」的中間狀態）。
 
+狀態：開發中
+
 ## 名詞定義
 
+### 實體
+| ID | 名詞 | 所屬 Aggregate | 說明 |
+|---|---|---|---|
+| user | User（使用者） | user（root） | 可登入系統的帳號 |
+| board-membership | BoardMembership（看板成員關係） | board-membership（root） | 描述某個 `user` 對某個 `board` 的存取角色，邀請即生效，沒有待接受狀態 |
+
+### 欄位
+| ID | 型別／格式 | 限制 | 說明 |
+|---|---|---|---|
+| user.username | string | 非空、全系統不可重複 | 帳號 ID，登入用 |
+| user.display-name | string | 未指定時預設等於 `user.username` | 顯示名字，看板上顯示用，可以與其他帳號重複 |
+| user.password | string(40) | 可留白，長度上限 40 字，字元不限制（可含英文大小寫、符號） | 密碼 |
+| board.created-by | ref user | 必填 | Board 的建立者 |
+| board-membership.role | enum(Owner, Member) | | 該 `user` 對該 `board` 的角色 |
+| card.assignees | ref user（多值） | 只能選擇該看板的成員 | 卡片負責人，可複選 |
+
+### 關係
+| 來源 | 目標 | min | max | 說明 |
+|---|---|---|---|---|
+| board | board-membership | 1 | n | 建立者自動成為 Owner；同一個 Board 可以有多位 Owner，但至少要保留一位 |
+| user | board-membership | 0 | n | 一位 User 可以是多個 Board 的成員 |
+| card | user | 0 | n | 透過 `card.assignees`：一張卡片可以有多位負責人，一位成員也可以同時是多張卡片的負責人 |
+
+### 其他名詞
 | 名詞 | 說明 |
-|------|------|
-| User（使用者） | 可登入系統的帳號，具備 `username`（帳號 ID，登入用，全系統不可重複）、`displayName`（顯示名字，看板上顯示用，可以與其他帳號重複；建立時未指定則預設等於 `username`）、`password`；密碼可以留白，長度上限 40 字，字元不限制（可含英文大小寫、符號） |
+|---|---|
 | ActivityRecord（活動紀錄） | 記錄一筆操作事件的行為人、動作內容與發生時間，依附在某個 Board 之下；涵蓋這個 Board 及其下 Swimlane、Stage、Card、BoardMembership 的異動事件（見「Aggregate 事件盤點」） |
-| Board（看板） | 既有 Aggregate，新增 `createdBy` 欄位參照建立者 |
-| BoardMembership（看板成員關係） | 描述某個 User 對某個 Board 的存取角色，邀請即生效，沒有待接受狀態 |
-| Board Owner（看板擁有者） | Board 的管理角色：可邀請／移除／升級成員、可新增／重新命名／刪除 Swimlane 與 Stage、可刪除 Board；同一個 Board 可以有多位 Owner，但至少要保留一位 |
-| Board Member（看板成員） | 被加入 Board 的人，只能新增／編輯／移動／刪除卡片與留言，不能碰成員管理、看板結構（Swimlane/Stage）或刪除 Board |
 | Card 負責人（Card Owner） | Card 上代表「由誰負責這項工作」的角色，只有這一種角色（沒有 Card 層級的 Member 概念），與 Board Owner 是不同概念；一張 Card 可以有多位負責人，一位成員也可以同時是多張 Card 的負責人 |
-| 操作時間（occurredAt） | 本文件中 Board／Card 相關事件（例如卡片負責人指派）的「事件發生時間」、「活動紀錄時間」一律代表該 Board 的 Board Clock 當下時間（`BoardClock.now()`）；User 建立、BoardMembership（邀請／角色變更）維持系統時間，不受影響。詳見 `.dev/F04-board-clock/spec-board-clock.md` |
+| 操作時間（occurredAt） | 本文件中 Board／Card 相關事件（例如卡片負責人指派）的「事件發生時間」、「活動紀錄時間」一律代表該 Board 的 Board Clock 當下時間（「BoardClock.now()」）；User 建立、BoardMembership（邀請／角色變更）維持系統時間，不受影響。詳見 `.dev/F04-board-clock/spec-board-clock.md` |
+
+## 角色定義
+| ID | 名稱 | 說明 |
+|---|---|---|
+| r-system-user | 系統使用者 | 已登入系統、未涉及特定 Board 管理／成員權限差異的一般使用者：可建立帳號、登入登出、檢視自己有權限的 Board、指派卡片負責人、檢視看板活動紀錄 |
+| r-board-owner | Board 擁有者 | Board 的管理角色：可邀請／移除／升級成員、可新增／重新命名／刪除 Swimlane 與 Stage、可刪除 Board；同一個 Board 可以有多位 Owner，但至少要保留一位 |
+| r-board-member | Board 成員 | 被加入 Board 的人，只能新增／編輯／移動／刪除卡片與留言，不能碰成員管理、看板結構（Swimlane/Stage）或刪除 Board |
 
 ## Aggregate 標記說明
 
-`User`、`Board`、`BoardMembership`、`Card` 是各自獨立的 Aggregate。每個 Scenario 前方以 Gherkin 註解標記該情境會存取哪個 Aggregate、以及是「讀取」還是「寫入」，格式如下：
+`user`、`board`、`board-membership`、`card` 是各自獨立的 Aggregate。每個 Scenario 前方以 Gherkin 註解標記該情境會存取哪個 Aggregate、以及是「讀取」還是「寫入」，格式如下：
 
 ```gherkin
 # Related aggregate:
@@ -53,7 +81,7 @@
 
 ```gherkin
 Feature: 建立使用者帳號
-  身為系統的使用者
+  身為 系統使用者
   我想要建立一個帳號，密碼規則越單純越好
   以便快速取得系統存取權而不被過度嚴格的密碼規則卡住
 
@@ -107,7 +135,7 @@ Feature: 建立使用者帳號
 
 ```gherkin
 Feature: 使用者登入與登出
-  身為系統的使用者
+  身為 系統使用者
   我想要用帳號密碼登入與登出
   以便安全地存取我有權限的 Board
 
@@ -150,7 +178,7 @@ Feature: 使用者登入與登出
 
 ```gherkin
 Feature: Board 建立與成員邀請
-  身為 Board 的擁有者
+  身為 Board 擁有者
   我想要建立 Board、邀請其他使用者加入，並可以指定多位共同擁有者
   以便與團隊成員共同協作與管理
 
@@ -248,7 +276,7 @@ Feature: Board 建立與成員邀請
 
 ```gherkin
 Feature: Board 權限管理
-  身為 Board 的 Owner
+  身為 Board 擁有者
   我想要保有管理成員與看板結構的專屬權限
   以便避免一般成員誤動看板設定或成員名單
 
@@ -306,7 +334,7 @@ Feature: Board 權限管理
 
 ```gherkin
 Feature: Board 存取權限
-  身為系統的使用者
+  身為 系統使用者
   我想要只看到我有權限的 Board
   以便不被無關的 Board 干擾
 
@@ -338,7 +366,7 @@ Feature: Board 存取權限
 
 ```gherkin
 Feature: 卡片負責人指派
-  身為看板的成員
+  身為 系統使用者
   我想要從看板成員中選擇一位或多位卡片負責人
   以便清楚追蹤每張卡片由誰負責，而不是靠自由輸入文字
 
@@ -436,7 +464,7 @@ F02 是尚未進入開發的規格，可以直接補上操作人記錄；F01 的
 
 ```gherkin
 Feature: 檢視看板活動紀錄
-  身為 Board 的成員
+  身為 系統使用者
   我想要看到這個看板最近發生了哪些操作、由誰執行
   以便掌握團隊協作的異動歷程
 
