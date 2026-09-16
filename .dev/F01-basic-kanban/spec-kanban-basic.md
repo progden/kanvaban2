@@ -60,8 +60,8 @@
 #   card: read
 ```
 
-- 只列出實際會用到的 aggregate；沒用到的可以省略整行（例如純粹只操作 Card 的情境就不會有 `board:` 那行）。
-- `read` 代表需要先查詢既有資料才能決定如何寫入或驗證（例如重新命名要先找到對象、拖曳排序要先讀現有順序、刪除前要確認是否為最後一個、或是否還有卡片存在）；`write` 代表會真正新增/修改/刪除該 aggregate 的資料。
+- 只列出實際會用到的 aggregate；沒用到的可以省略整行（例如純粹只操作 Card 的情境就不會有「board:」那行）。
+- 「read」代表需要先查詢既有資料才能決定如何寫入或驗證（例如重新命名要先找到對象、拖曳排序要先讀現有順序、刪除前要確認是否為最後一個、或是否還有卡片存在）；「write」代表會真正新增/修改/刪除該 aggregate 的資料。
 
 ## 變更紀錄（Change Log）
 
@@ -71,7 +71,8 @@
 | 2026-09-12 | CR-002 | 變更 | 「編輯卡片詳細內容」移除負責人欄位，負責人改為多選、參照看板成員，改由 F02「卡片負責人指派」情境處理 |
 | 2026-09-13 | CR-003 | 新增 | Stage 新增角色標記（Start / Done），供 F03 標準圖表計算 Cycle/Lead Time 使用 |
 | 2026-09-13 | CR-004 | 變更 | 名詞定義補上「操作時間（occurredAt）」，明訂 Board/Card 事件時間一律取自 Board Clock（見 F04），既有 Scenario 文字不需修改，故不掛 Scenario 層級 tag |
-| 2026-09-13 | CR-004 | 開發完成 | `kanban-core` 的 `Board`／`Card` 事件時間已全面改用 Board Clock（`Board.now()`／`Board.newEventTime()`），不再直接呼叫 `Instant.now()`；CR-004 狀態改「處理完成」 |
+| 2026-09-13 | CR-004 | 開發完成 | 「kanban-core」的「Board」／「Card」事件時間已全面改用 Board Clock（「Board.now()」／「Board.newEventTime()」），不再直接呼叫「Instant.now()」；CR-004 狀態改「處理完成」 |
+| 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-add-swimlane`、`uc-rename-swimlane`、`uc-reorder-swimlane`、`uc-delete-swimlane`、`uc-add-stage`、`uc-rename-stage`、`uc-reorder-stage`、`uc-delete-stage`、`uc-set-stage-role`、`uc-add-card`、`uc-edit-card`、`uc-move-card-swimlane`、`uc-move-card-stage`、`uc-add-comment`、`uc-delete-card`） |
 
 ---
 
@@ -605,7 +606,7 @@ Feature: Card（卡片）編輯
 ## 待釐清 / 未來擴充（Open Questions）
 
 - OQ-01：活動紀錄不另立 uc、不 emits 事件，改由各 uc 的 post 與 board 的 crud/Aggregate 註解表達（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
-- OQ-02：「取消刪除卡片」歸入 uc-delete-card 的 fail 分支（`@fail-p2`），不視為需要 card: write 的成功 Scenario（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
+- OQ-02：「取消刪除卡片」歸入 uc-delete-card 的 fail 分支（@fail-p2），不視為需要 card: write 的成功 Scenario（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
 - Swimlane / Stage 是否需要支援「顏色標記」以利辨識？
 - 卡片是否需要支援子任務（Checklist）或附件？
 - 是否需要「已封存（Archived）」的卡片與泳道狀態，而非直接刪除？
