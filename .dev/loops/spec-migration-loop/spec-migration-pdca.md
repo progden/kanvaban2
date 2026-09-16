@@ -284,7 +284,7 @@
 ### Act
 完成，下一個任務：G1（關卡：審查輪核准後才能標 done，進入 T2.01）。本輪未核准 G1，交由審查輪處理。
 
-## Iteration 11 — 2026-09-16 15:10 — G1、T2.01
+## Iteration 11 — 2026-09-16 15:10 — T2.01
 ### Plan
 上一輪驗證 PASS，`runtime/gates/G1.approved` 已存在；先把任務清單中 G1 標為 done，再取新的 actionable 第一項 T2.01：[F02] 遷移程序 1～6（狀態行、名詞／角色表、七個 Feature 的「身為」行與 `## Feature:` 標題）。預期 F02 error 數下降（原 125），全部 spec error 總數下降（原 283）；不動 usecase 內容與 tag（那是 T2.02～T2.09）。
 
@@ -306,3 +306,25 @@
 
 ### Act
 完成：下一個任務 T2.02（[F02]「建立使用者帳號」usecase 區塊＋tag＋Aggregate 註解）。
+
+## Iteration 12 — 2026-09-16 20:15 — T2.02
+
+### Plan
+上一輪驗證 FAIL：PDCA Iteration 11 標題 `## Iteration 11 — 2026-09-16 15:10 — G1、T2.01` 不符 `HEADING` 正則（只能有一個任務編號），本輪先修正為 `T2.01`（G1 的處理已記在該則 Do 內文，不影響內容真實性）。修正後任務仍是 state 記載的 T2.02：[F02]「建立使用者帳號」usecase 區塊＋tag＋Aggregate 註解。要改的檔案：`.dev/F02-user-membership/spec-user-membership.md`（新增 `### Use Case 定義`＋```usecase 區塊 `uc-create-user`；6 個 Scenario 加 `@uc-create-user`／`@fail-p1`／`@fail-p2`；2 個失敗 Scenario 的 Aggregate 註解由 `write` 改 `read`）。驗收條件：`errors(F02#建立使用者帳號)=0`。預期 F02 error 數從 94 下降，全部 spec error 總數從 252 下降。
+
+### Do
+- 修正 `spec-migration-pdca.md` 本檔 Iteration 11 標題為 `## Iteration 11 — 2026-09-16 15:10 — T2.01`（僅標題格式，內容未動）。
+- `fc3ddd7` [spec/design](user-membership) 遷移建立使用者帳號至 usecase 區塊：新增 `uc-create-user`（`roles: [r-system-user]`、`crud: {user: C}`）；`pre.p1`＝密碼長度限制、`pre.p2`＝帳號 ID 不可重複，對應 `fail.p1`／`fail.p2`；`post` 描述帳號建立成功與欄位設定規則（含 `display-name` 預設值與可重複）；6 個 Scenario 依序加 `@uc-create-user`，其中「密碼長度超過 40 字則建立失敗」加 `@fail-p1`、「帳號 ID（username）不可重複」加 `@fail-p2`，兩者 Aggregate 註解由 `user: write` 改為 `user: read`（依遷移程序步驟 9：失敗情境只標 read，屬低影響格式對齊）。
+- 無新增 OQ、無新增 D-xx。
+
+### Check
+- `./scripts/spec-check` 最後一行：開工前「252 error(s), 3 warning(s)」→ 收尾「244 error(s), 2 warning(s)」。
+- `tools error-count .dev/F02-user-membership/spec-user-membership.md`：94 → 86。
+- `tools accept-check spec-migration-tasks.md T2.02`：exit 0，無輸出。
+- `tools gherkin-diff`：exit 0，「Gherkin 行為與遷移前一致（216 行）」。
+- `tools tag-diff`：exit 0，無輸出。
+- `tools changelog-check`：exit 0，無輸出。
+- 逐條對照驗收條件：`errors(F02#建立使用者帳號)=0` 已達成。
+
+### Act
+完成：下一個任務 T2.03（[F02]「使用者登入與登出」usecase 區塊＋tag＋Aggregate 註解）。
