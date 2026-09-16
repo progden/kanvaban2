@@ -552,3 +552,25 @@
 
 ### Act
 完成：F02 全檔 0 error，六份 spec 已完成 F01／F02 兩份。下一個任務：T2.10（[F03] 遷移程序 1～6）。
+
+## Iteration 22 — 2026-09-16 23:20 — T2.10
+
+### Plan
+本輪任務 T2.10：完成 F03 遷移程序 1～6——加狀態行、把單一名詞表拆成實體／欄位／關係／其他名詞四張表（不重列 F01 的 board、card，本輪也未新增欄位或關係，三張表留空）、加角色表（本輪未新增角色，留空，四個 Feature 的「身為」引用 F01 的 r-user）、四個 Feature 的「身為看板的使用者」改成「身為 看板使用者」。要改的檔案：`.dev/F03-kanban-widgets/spec-kanban-widgets.md`。驗收條件：`errors(F03;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0`。預期 error 數變化：F03 由 42 降到剩下缺 usecase 區塊等其他檢查項的錯誤。
+
+### Do
+- commit `fc93168 [spec/design](kanban-widgets) 遷移狀態行與名詞角色表至新格式`
+- 低影響假設：實體／欄位／關係三張子表本輪留空——board、card 已在 F01 定義，F03 沒有新增欄位或關係，重列會觸發 REF-08 重複定義；角色表本輪留空——F03 沒有新增角色，四個 Feature 的「身為」直接引用 F01 角色表已定義的「看板使用者」（r-user），不重複定義以免 REF-08 報錯；原「## 名詞定義」單一表格（Lead Time、Cycle Time、WIP、Aging、Throughput、CFD、asOf 七列）整批搬到新「### 其他名詞」子表，文字逐字保留
+- 未新增 OQ
+
+### Check
+- `./scripts/spec-check`：149 error(s), 0 warning(s)（開工前 158）
+- `tools error-count .dev/F03-kanban-widgets/spec-kanban-widgets.md`：開工前 42 → 收尾時 33
+- `tools accept-check spec-migration-tasks.md T2.10`：無輸出，rc=0
+- `tools gherkin-diff`：Gherkin 行為與遷移前一致（65 行），rc=0
+- `tools tag-diff`：rc=0
+- `tools changelog-check`：rc=0
+- 驗收條件 `errors(F03;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0` 達成
+
+### Act
+完成：F03 遷移程序 1～6 完成。下一個任務：T2.11（[F03] 「Cycle Time 與 Lead Time 分析」與「WIP 與 Aging WIP 監控」兩個 Feature 的 usecase 區塊＋tag＋Aggregate 註解）。
