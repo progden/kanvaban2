@@ -913,3 +913,21 @@
 
 ### Act
 完成：D-09 done。下一個任務：T3.01。
+
+## Iteration 41 — 2026-09-16 22:10 — T3.01
+### Plan
+本輪任務：T3.01（全部 spec 一起跑 `spec-check` 到 0 error：REF-08 重複定義、跨模組引用、事件配對）。不預期需要改任何 spec 檔案，先確認 `./scripts/spec-check` 是否已經 0 error；驗收條件：`errors(all)=0`。預期 error 數變化：0 → 0（F01～F06 上一輪起已全部 0 error）。
+
+### Do
+- 未修改任何檔案（無 commit 對應本任務本身，僅本則收尾 commit）。
+- 執行 `./scripts/spec-check`（不帶參數）確認全域結果。
+- 無新增假設、無新增 OQ。
+
+### Check
+- `./scripts/spec-check` 最後一行：`0 error(s), 0 warning(s)`（開工前與收尾時皆同）
+- `tools accept-check spec-migration-tasks.md T3.01`：無輸出，exit 0（達成）
+- 各檔 error 數（開工前＝收尾時）：F01～F06 均為 0，`all`＝0
+- 驗收條件 `errors(all)=0`：達成
+
+### Act
+完成：T3.01 done。下一個任務：T3.02（`.dev/CR.md` 回填 CR-001～CR-005 影響 ID，跑 cr-check 到通過）。
