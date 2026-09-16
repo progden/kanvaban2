@@ -596,3 +596,21 @@
 
 ### Act
 完成：下一個任務 T2.12（[F03] 「Throughput 與累積流量圖」與「截止日期提醒」兩個 Feature 的 usecase 區塊＋tag＋Aggregate 註解）。
+
+## Iteration 24 — 2026-09-16 23:55 — D-05
+### Plan
+本輪任務：D-05（[F02] 修正 `uc-view-board-activity-log` 的 post 第一句措辭，讓它跟 OQ-01、D-04 一致：看板活動紀錄是合併檢視，不是 `board` 自己的紀錄）。要改的檔案：`.dev/F02-user-membership/spec-user-membership.md`，`uc-view-board-activity-log` 的 usecase 區塊 post 第一句；只改 usecase 區塊，gherkin 與 Aggregate 註解不動。驗收條件：`errors(F02)=0`、`errors(F01)=0`、F02 spec 不再含「`board` 的活動紀錄依時間」字樣、且含「合併 `board` 與 `board-membership` 的紀錄」。預期 error 數不變（措辭修正不影響檢查）。
+
+### Do
+- a10703f `[spec/design](user-membership) 修正檢視看板活動紀錄 post 措辭`：把 post 第一句「`board` 的活動紀錄依時間由新到舊列出，每一筆都顯示操作人與動作內容」改為「該看板的活動紀錄（合併 `board` 與 `board-membership` 的紀錄）依時間由新到舊列出，每一筆都顯示操作人與動作內容」；`crud` 與第二句未動。
+- 無新增假設、無新增 OQ、無 F 編號修正。
+
+### Check
+- `./scripts/spec-check`（不帶參數）最後一行：`140 error(s), 0 warning(s)`（開工前／收尾時皆為 140，F02 一直是 0）。
+- `tools error-count .dev/F02-user-membership/spec-user-membership.md`：開工前 0 → 收尾 0；`tools error-count .dev/F01-basic-kanban/spec-kanban-basic.md`：0 → 0。
+- `tools accept-check spec-migration-tasks.md D-05`：無輸出（達成）。
+- `tools gherkin-diff`：一致（216 行）；`tools tag-diff`：rc=0；`tools changelog-check`：rc=0。
+- 驗收條件逐條對照：`errors(F02)=0` 達成；`errors(F01)=0` 達成；不含舊字樣、含新字樣，grep 驗證達成。
+
+### Act
+完成。下一個任務：T2.12（[F03] 「Throughput 與累積流量圖」與「截止日期提醒」兩個 Feature 的 usecase 區塊＋tag＋Aggregate 註解）。
