@@ -282,3 +282,47 @@ llm-review：G1 需要的 F01 每個 Feature 抽查已在 `9f436a3` 那則完成
 - F02 的權限拒絕寫成獨立 uc，`uc-member-add-card` 跟 F01 `uc-add-card` 重複；F04 `uc-guard-clock-monotonicity`（OQ-08）、F05 `uc-drag-assign-card-owner` 與 F02 `uc-assign-card-owner-by-drag` 重複（OQ-09），都是同類問題，建議遷移後開同一個 CR 重整，並檢討 GH-01 是否要允許跨 Feature 引用。
 - PDCA Iteration 11、Iteration 31 的標題格式有誤。
 - `uc-delete-card`、`uc-remove-member` 的活動紀錄記在被刪除或被移除的 Aggregate 上。
+
+## Review — 2026-09-17 02:34 — 052d251
+### 範圍
+`ac6c0f1`..`052d251`，涵蓋上一則審查的 commit `ae15bbf`、D-09（`c820638`、`c9c6827`）、T3.01（`ce81a56`）、T3.02（`64ee2fb`、`d932f4d`，人工解除 `fc4e4ed`）、T3.03（`052d251`），以及人工在 loop 外的規範／腳本修訂（`0598ece`、`282dcbc`、`98ad9ff`、`ddc0a7e`、`0d214cf`、`9fa95e4`、`b1e6aaa`）。`last-verify.md` 是 PASS，沒有警告；`./scripts/spec-check` 實跑 0 error、0 warning；`cr-check --base <baseline> --cr CR-005` 實跑 0 error。期間 OQ 檔新增 OQ-10、OQ-11。`tools actionable` 的結果原本是 **G2**，本次開了 D-10～D-14，會排在 G2 之前。
+
+G2 的 llm-review 抽查（L-01、L-02、L-05、L-06），每個模組至少一個 uc：F01 `uc-delete-swimlane`、`uc-move-card-stage`、`uc-set-stage-role`；F02 `uc-invite-member`、`uc-remove-member`、`uc-set-card-assignees`；F03 `uc-view-cycle-lead-time`、`uc-view-duedate-reminder`；F04 `uc-adjust-board-clock`、`uc-pause-resume-board-clock`；F05 `uc-view-workload`、`uc-drag-assign-card-owner`；F06 `uc-view-feature-cr-board`。由子代理逐項審查，本輪逐一回原檔核對後才採用。
+
+### 發現
+1. **中**｜F04 `uc-pause-resume-board-clock` post 第一句｜只寫「狀態切換為 PAUSED 或 REALTIME」，沒寫出「暫停看板時間」「恢復看板時間」兩個 Scenario 的 Then 實際驗證的內容：暫停後時間停住、恢復後從暫停時的時間繼續前進（L-02）。兩個 uc 的活動紀錄那句也沒寫出 Then 驗證的說明內容。已開 **D-13**。
+2. **低**｜F01 `uc-set-stage-role` post 第二句｜「該 `stage` 的角色自動變回 NONE」讀起來像是被設定的那個 Stage，跟 Scenario 的 Then 相反（L-01／L-06）。另外 `uc-move-card-stage` 的 `pre.p1`「存在於指定的 `stage`」分不出是來源還是目的。已開 **D-10**。
+3. **低**｜`.dev/CR.md` CR-002 影響 ID｜列了 `uc-assign-card-owner-by-drag`(新增)，但 F02 變更紀錄明寫這兩條拖曳 Scenario 是「不需開 CR」直接補上的，也沒有掛 `@CR-002`。T3.02 的非機械條件（依各 spec 掛 `@CR-` 的 Scenario 所屬 uc）在這裡沒有達成。已開 **D-11**。其餘列核對過：CR-001 的 13 個 uc 跟 F01 掛 `@CR-001` 的 Scenario 完全一致；CR-003 對到 `uc-set-stage-role`；CR-002 的其餘 F02 uc 屬於「卡片負責人指派」Feature（F02 活動紀錄表寫「本文件新增（CR-002…）」）；CR-004 的 F04 uc 跟 F04 變更紀錄的 CR-004「定案」列一致，雖然沒有掛 Scenario tag，但 CR-004 明細本來就寫「不掛 Scenario 層級 tag」，可以接受。
+4. **低**｜F02 `uc-remove-member` 的 `pre`｜`roles` 是 `r-board-owner`，同 Feature 的 `uc-invite-member`、`uc-change-member-role` 都有「操作者是 Owner」的 pre，只有這個 uc 沒有。已開 **D-12**，只加 pre，不加 fail。
+5. **低**｜F05 usecase 區塊下方說明段｜寫「pre、post 只依本 Feature 的 Scenario 步驟推導」，跟 D-08 依待釐清定案補上的 post 句不一致。子代理建議刪掉 D-08 補的那句，**不採用**，因為 D-08 的決定仍然成立，改成修說明段。已開 **D-14**。
+6. **不採用的子代理建議**：
+   - F02 `uc-set-card-assignees` 補「負責人必須是成員」的 pre：post 已寫「指定的看板成員集合」，而且沒有 Scenario 驗證非成員，不補。
+   - F02 `uc-invite-member` post 補「出現在受邀者的 Board 列表」：「立即成為成員」已經涵蓋，不補。
+   - F06 post 裡的「affects:F\\d{2}$」少了 `^`：這段是照 legacy 變更紀錄原文搬過來的，不修正。
+   - F03、F05 `uc-view-workload`、F06 的 L-02：post 與 Then 都能一一對上，未發現偏差。
+7. **L-05 與 Gherkin 結構問題**（規格本身的缺口，不是遷移偏差，列入需人工事後處理）：
+   - 有 5 個 Scenario 含兩個 When：F01「設定 Stage 角色」、「刪除包含卡片的 Swimlane 需要確認」；F02「多位 Owner 都擁有相同的管理權限」、「移除仍是卡片負責人的成員時需要確認」；F04「暫停或恢復看板時間應記錄一筆活動紀錄」。
+   - 缺少的失敗情境：Stage 不存在、目的 Stage 與來源相同、同一個 Stage 重複設定角色、邀請不存在的帳號、移除非成員、非 Owner 暫停／恢復、重複暫停、拖曳非成員。
+   - 其他未定義事項：截止日邊界；往回調整看板時間時寫入的活動紀錄，跟 `uc-guard-clock-monotonicity` 的單調性之間的關係。
+8. **CR-001～CR-004 單獨跑 `cr-check --cr` 各有 1 筆 CR-01**｜baseline 之後的 diff 是 CR-005 的遷移，不是這些歷史 CR 的改動，所以這是預期結果。T3.04 只驗 `crcheck(CR-005)`，不影響關卡。
+9. **鐵則 1**：期間 spec 改動只有 D-09（已照指定移除「（原票號 F06）」）與人工把六份檔頭「開發中」改成「定稿」（`b1e6aaa`，loop 外的規範修訂，見 OQ-11）。gherkin、tag 都沒動，沒有 F 編號修正。
+10. **OQ 品質**：OQ-10 屬高影響，記錄確實，已被 OQ-11 取代。OQ-11 是人工決定，但「狀態」欄寫「自動決議」，跟實際不符；OQ 檔只能追加，列入需人工事後處理。
+11. **PDCA 與實際結果**：T3.01 的 0 error 屬實。T3.03 已貼出 `--report` 的四張表，OQ 摘要也涵蓋 OQ-01～OQ-11，達成。Iteration 43 標的時間 08:30 晚於 `last-verify.md` 的 02:31，時間戳不可信，屬低影響，不開任務。
+
+### 待審任務處理
+沒有 `proposed` 的 D-xx。
+
+### 關卡摘要
+**G2**：確認六個模組的 usecase 區塊，語意上與 Scenario 一致（llm-review L-01、L-02、L-05、L-06 抽查），且 `errors(all)=0`、`crcheck(CR-005)=0`。
+- 目前狀態：機械條件都通過；語意抽查發現 5 項遷移偏差。
+- 關卡前必須修正，已開成 todo：**D-10**（F01）、**D-11**（CR.md）、**D-12**（F02）、**D-13**（F04）、**D-14**（F05）。這些任務完成後，G2 會在下一次審查時再判定，本次不同意自動核准。
+
+**需人工事後處理**（沿用前幾則並新增幾項）：
+- 以下重複或不當拆出的 uc，建議遷移後開同一個 CR 重整，並檢討 GH-01 是否要允許跨 Feature 引用：
+  - F02 權限拒絕類 uc；`uc-member-add-card` 與 F01 `uc-add-card` 重複。
+  - F04 `uc-guard-clock-monotonicity`（OQ-08）。
+  - F05 `uc-drag-assign-card-owner` 與 F02 `uc-assign-card-owner-by-drag` 重複（OQ-09）。
+- PDCA Iteration 11、Iteration 31 的標題格式有誤；Iteration 43 的時間戳有誤。
+- `uc-delete-card`、`uc-remove-member` 的活動紀錄，記在被刪除或被移除的 Aggregate 上。
+- OQ-11 的「狀態」欄應為人工決議。
+- 第 7 項列出的 5 個雙 When Scenario 與 L-05 規格缺口。`uc-delete-card` 把「取消刪除」當成 `@fail-p2`（OQ-02／03），依新版 ui-convention 應改由 ui 檔「需確認？」欄承接，一併處理。
