@@ -42,7 +42,7 @@
 
 | 日期 | 票號 | 類型 | 摘要 |
 |------|------|------|------|
-| 2026-09-13 |  | 開發完成 | （原票號 F06）開發完成：「kanban-spring」新增「query.featurecrboard.FeatureCrBoardCalculator」，解析卡片標籤（「^F\d{2}$」／「^CR-\d{3}$」／「affects:F\d{2}$」，皆不分大小寫）組出 Feature／CR 狀態、orphan CR 清單與格式錯誤警告，對應本文件五個 Scenario 測試皆綠。 |
+| 2026-09-13 |  | 開發完成 | 開發完成：「kanban-spring」新增「query.featurecrboard.FeatureCrBoardCalculator」，解析卡片標籤（「^F\d{2}$」／「^CR-\d{3}$」／「affects:F\d{2}$」，皆不分大小寫）組出 Feature／CR 狀態、orphan CR 清單與格式錯誤警告，對應本文件五個 Scenario 測試皆綠。 |
 | 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-view-feature-cr-board`） |
 
 ---
