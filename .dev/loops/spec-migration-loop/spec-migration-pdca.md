@@ -797,3 +797,20 @@
 
 ### Act
 完成，下一個任務：T2.19（[F05] 遷移程序 10～11 與收尾，F05 全檔 0 error）
+
+## Iteration 35 — 2026-09-16 — D-08
+### Plan
+本輪任務為 D-08（依「上一輪驗證 FAIL → 先修正」與「actionable 第一項優先」判斷，`actionable` 回傳 D-08 排在 T2.19 之前）：對 `.dev/F05-workload/spec-workload.md` 的 `uc-drag-assign-card-owner` usecase 區塊 post 第二句補回活動紀錄限制，使其與本檔「待釐清」段落定案（拖曳到已經是負責人的卡片：靜默忽略、不產生活動紀錄）及 F02 `uc-assign-card-owner-by-drag` 一致。只改 usecase 區塊 post 文字，gherkin、Aggregate 註解、crud 都不動，不新增 OQ。驗收條件：`errors(F05#人員工作量檢視)=0`；F05 spec 含「`card.assignees` 維持不變，且不產生新的活動紀錄」。預期全部 spec error 總數不變（43，本次只補文字不影響反引號解析）。
+
+### Do
+- 73d8082 [spec/design](workload) 補回拖曳追加負責人的活動紀錄限制
+- 依任務指定的採用方案機械式修改，未新增假設、未新增 OQ
+
+### Check
+- `./scripts/spec-check` 最後一行：43 error(s), 0 warning(s)（開工前 43，不變）
+- `tools error-count .dev/F05-workload/spec-workload.md`：開工前 13 → 收尾時 13（不變，全部剩餘 error 皆在「人員工作量檢視」Feature 之外，以 `./scripts/spec-check | grep workload` 核對：13 條 error 分布於第 9、32、40、44、50、51、165 行，皆在該 Feature 範圍外）
+- `tools accept-check spec-migration-tasks.md D-08`：無輸出，exit 0（達成）
+- `tools gherkin-diff .dev/F05-workload/spec-workload.md`：一致（32 行）；`tools tag-diff`：一致；`tools changelog-check`：一致（exit 0）
+
+### Act
+完成，下一個任務：T2.19（[F05] 遷移程序 10～11 與收尾，F05 全檔 0 error）
