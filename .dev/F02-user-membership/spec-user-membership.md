@@ -600,6 +600,71 @@ Feature: Board 存取權限
 
 ## Feature: 卡片負責人指派
 
+### Use Case 定義
+```usecase
+- id: uc-set-card-assignees
+  name: 透過編輯畫面設定卡片負責人
+  roles: [r-user]
+  crud: {card: U, board-membership: R}
+  pre:
+    p1: "指定的 `card` 已存在"
+  post:
+    - "`card.assignees` 更新為指定的看板成員集合"
+    - "卡片縮圖同步顯示 `card.assignees` 的所有成員"
+    - "該操作被記錄為 `card` 的一筆活動紀錄，記錄操作人與異動後的負責人名單（例如「將卡片負責人設定為 雅婷、建宏」、「將 建宏 從卡片負責人中移除」）"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+- id: uc-list-card-assignee-candidates
+  name: 檢視負責人候選名單
+  roles: [r-user]
+  crud: {board-membership: R}
+  pre: {}
+  post:
+    - "負責人選單只顯示該 `board` 的 `board-membership` 成員，不顯示非成員的 `user`"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+- id: uc-view-card-assignees
+  name: 檢視卡片負責人顯示狀態
+  roles: [r-user]
+  crud: {card: R}
+  pre: {}
+  post:
+    - "沒有指派負責人的 `card`，「負責人」欄位顯示為未指派，卡片縮圖不顯示負責人資訊"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+- id: uc-list-cards-by-assignee
+  name: 依負責人查詢卡片清單
+  roles: [r-user]
+  crud: {card: R}
+  pre: {}
+  post:
+    - "清單列出所有以指定成員為負責人的 `card`"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+- id: uc-assign-card-owner-by-drag
+  name: 拖曳頭像追加卡片負責人
+  roles: [r-user]
+  crud: {card: U, board-membership: R}
+  pre:
+    p1: "指定的 `card` 已存在"
+  post:
+    - "若該成員原本不在 `card.assignees` 中，追加為負責人，`card.assignees` 包含追加後的完整清單"
+    - "追加負責人時，該操作被記錄為 `card` 的一筆活動紀錄，記錄操作人與異動後的負責人名單（例如「將卡片負責人設定為 建宏、雅婷」）"
+    - "若該成員已經是 `card.assignees` 成員，`card.assignees` 維持不變，且不產生新的活動紀錄"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+```
+
 ```gherkin
 Feature: 卡片負責人指派
   身為 看板使用者
@@ -612,8 +677,9 @@ Feature: 卡片負責人指派
     And "雅婷" 與 "建宏" 都是這個看板的 Member
     And 看板中存在一張卡片 "設計登入頁面"
 
+  @uc-set-card-assignees
   # Related aggregate:
-  #   boardMembership: read
+  #   board-membership: read
   #   card: write
   Scenario: 指派多位負責人給卡片
     When 我開啟卡片 "設計登入頁面" 的詳細編輯畫面
@@ -623,22 +689,25 @@ Feature: 卡片負責人指派
     And 卡片縮圖應該同時顯示 "雅婷" 與 "建宏"
     And 應該產生一筆活動紀錄：操作人 "user1"、動作為「將卡片負責人設定為 雅婷、建宏」
 
+  @uc-list-card-assignee-candidates
   # Related aggregate:
-  #   boardMembership: read
+  #   board-membership: read
   Scenario: 負責人選單只列出這個看板的成員
     Given 存在另一個使用者 "志明"，並非這個看板的成員
     When 我開啟卡片 "設計登入頁面" 的負責人選單
     Then 選單應該顯示 "雅婷" 與 "建宏"
     And 選單不應該顯示 "志明"
 
+  @uc-view-card-assignees
   # Related aggregate:
-  #   card: write
+  #   card: read
   Scenario: 卡片可以沒有負責人
     Given 卡片 "設計登入頁面" 目前沒有指派負責人
     When 我開啟卡片的詳細編輯畫面
     Then 「負責人」欄位應該顯示為未指派
     And 卡片縮圖不應該顯示負責人資訊
 
+  @uc-set-card-assignees
   # Related aggregate:
   #   card: write
   Scenario: 從卡片移除其中一位負責人
@@ -648,6 +717,7 @@ Feature: 卡片負責人指派
     Then 卡片的負責人應該只剩下 "雅婷"
     And 應該產生一筆活動紀錄：操作人 "user1"、動作為「將 建宏 從卡片負責人中移除」
 
+  @uc-list-cards-by-assignee
   # Related aggregate:
   #   card: read
   Scenario: 一位成員同時是多張卡片的負責人
@@ -656,8 +726,9 @@ Feature: 卡片負責人指派
     When 我查看 "雅婷" 負責的卡片清單
     Then 清單應該同時包含 "設計登入頁面" 與 "撰寫 API 文件"
 
+  @uc-assign-card-owner-by-drag
   # Related aggregate:
-  #   boardMembership: read
+  #   board-membership: read
   #   card: write
   Scenario: 拖曳成員頭像到卡片上，追加該成員為負責人
     Given 卡片 "設計登入頁面" 目前的負責人只有 "建宏"
@@ -665,8 +736,9 @@ Feature: 卡片負責人指派
     Then 卡片 "設計登入頁面" 的負責人應該包含 "建宏" 與 "雅婷"
     And 應該產生一筆活動紀錄：操作人 "user1"、動作為「將卡片負責人設定為 建宏、雅婷」
 
+  @uc-assign-card-owner-by-drag
   # Related aggregate:
-  #   boardMembership: read
+  #   board-membership: read
   #   card: write
   Scenario: 拖曳已經是負責人的成員頭像到卡片上，不重複新增
     Given 卡片 "設計登入頁面" 目前的負責人是 "雅婷" 與 "建宏"
