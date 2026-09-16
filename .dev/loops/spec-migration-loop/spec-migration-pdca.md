@@ -453,3 +453,32 @@
 
 ### Act
 完成：下一個任務 T2.07（[F02]「卡片負責人指派」usecase 區塊＋tag＋Aggregate 註解）。
+
+## Iteration 18 — 2026-09-16 21:50 — T2.07
+
+### Plan
+本輪任務：T2.07「卡片負責人指派」usecase 區塊＋tag＋Aggregate 註解。要改的檔案：`.dev/F02-user-membership/spec-user-membership.md`（該 Feature 段落）。驗收條件：`errors(F02#卡片負責人指派)=0`。預期 error 數變化：F02 由 39 降到約 30 以下；全部 spec 由 197 下降。
+
+### Do
+- commit 106adc8：`[spec/design](user-membership) 遷移卡片負責人指派至 usecase 區塊`
+- 低影響假設：依「同一個 When 動作」原則，把備份的 7 條 Scenario 拆成 5 個 uc：
+  - `uc-set-card-assignees`（編輯畫面設定／移除負責人並儲存，涵蓋「指派多位負責人給卡片」「從卡片移除其中一位負責人」）
+  - `uc-list-card-assignee-candidates`（負責人選單只列出看板成員，讀取）
+  - `uc-view-card-assignees`（卡片可以沒有負責人的顯示狀態，讀取）
+  - `uc-list-cards-by-assignee`（依負責人查詢卡片清單，讀取）
+  - `uc-assign-card-owner-by-drag`（拖曳頭像追加負責人，含 idempotent 不重複新增，涵蓋「拖曳成員頭像到卡片上，追加該成員為負責人」「拖曳已經是負責人的成員頭像到卡片上，不重複新增」）
+  roles 皆為 `[r-user]`，依 D-03／OQ-04／OQ-05 既有決議。
+- 低影響假設：三個讀取型 uc（`uc-view-card-assignees`、`uc-list-cards-by-assignee`）的 post 原本想直接引用 `` `card.assignees` ``，但 UC-07 規定 post 出現的 `entity.attr` 其 `crud.entity` 必須含 C/U；這兩個 uc 是純讀取（crud 只有 `card: R`），改用「未指派負責人的 `card`」「以指定成員為負責人的 `card`」等不含屬性反引號的描述，語意不變。
+- 低影響假設：Aggregate 註解 `boardMembership` → `board-membership`（沿用既有共用實體 ID）；Scenario「卡片可以沒有負責人」原本標記 `card: write`，因改屬讀取 uc（`uc-view-card-assignees`），依遷移程序步驟 9 對齊改為 `card: read`。
+- 無新增 OQ-xx（沿用既有 D-03／OQ-04／OQ-05 決議，未出現新的高影響判斷）。
+- 無 F 編號偏移修正。
+
+### Check
+- `./scripts/spec-check`（不帶參數）最後一行：開工前 `197 error(s), 0 warning(s)` → 收尾時 `184 error(s), 0 warning(s)`
+- `tools error-count .dev/F02-user-membership/spec-user-membership.md`：開工前 39 → 收尾時 26
+- `tools accept-check ... T2.07`：rc=0（通過）
+- `tools gherkin-diff`：一致（216 行）；`tools tag-diff`：rc=0；`tools changelog-check`：rc=0
+- 驗收條件 `errors(F02#卡片負責人指派)=0` 達成
+
+### Act
+- 完成：下一個任務 T2.08（[F02]「檢視看板活動紀錄」usecase 區塊＋tag＋Aggregate 註解；若 F01／F02 各 uc 有 emits 活動紀錄事件，這裡的 uc 以 requires 接上）

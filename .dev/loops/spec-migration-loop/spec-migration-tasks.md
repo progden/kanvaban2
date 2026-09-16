@@ -47,7 +47,7 @@
 | T2.04 | done | [F02] 「Board 建立與成員邀請」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#Board 建立與成員邀請)=0` | T2.03 |
 | T2.05 | done | [F02] 「Board 權限管理」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#Board 權限管理)=0` | T2.04 |
 | T2.06 | done | [F02] 「Board 存取權限」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#Board 存取權限)=0` | T2.05 |
-| T2.07 | todo | [F02] 「卡片負責人指派」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#卡片負責人指派)=0` | T2.06 |
+| T2.07 | done | [F02] 「卡片負責人指派」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#卡片負責人指派)=0` | T2.06 |
 | T2.08 | todo | [F02] 「檢視看板活動紀錄」usecase 區塊＋tag＋Aggregate 註解；若 F01／F02 各 uc 有 `emits` 活動紀錄事件，這裡的 uc 以 `requires` 接上 | `errors(F02#檢視看板活動紀錄)=0` | T2.07 |
 | T2.09 | todo | [F02] 遷移程序 10～11 與收尾：正文反引號清理（含「Aggregate 事件盤點」「實作備註」段落）、`design.md` 稱呼改實際檔名、變更紀錄改格式並追加 CR-005；F02 全檔 0 error | `errors(F02)=0`；`errors(F01)=0` | T2.08 |
 | T2.10 | todo | [F03] 遷移程序 1～6：狀態行、名詞／角色表（只引用 F01／F02 已定義的實體與角色）、四個 Feature 的「身為」行 | `errors(F03;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0` | T2.09 |
