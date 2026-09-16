@@ -5,7 +5,7 @@
 - 每個 Board 擁有自己的時鐘，可調整到未來、可暫停，取代系統時間作為 Board／Card 事件的時間來源
 - 時鐘的單調性限制：可以往回調閱讀歷史，但不可以在調回過去後寫入新事件
 
-Board Clock 是 F03（標準圖表）計算 `asOf`、Aging、逾期判斷的時間基準，也是 CR-004（事件時間戳來源改為 Board Clock）的規格依據。
+Board Clock 是 F03（標準圖表）計算「asOf」、Aging、逾期判斷的時間基準，也是 CR-004（事件時間戳來源改為 Board Clock）的規格依據。
 
 狀態：開發中
 
@@ -26,7 +26,7 @@ Board Clock 是 F03（標準圖表）計算 `asOf`、Aging、逾期判斷的時�
 ### 其他名詞
 | 名詞 | 說明 |
 |------|------|
-| Board Clock（看板時鐘） | 某個 Board 專屬的「現在」時間來源，取代系統時間（wall clock）作為該 Board 底下所有事件的 `occurredAt` |
+| Board Clock（看板時鐘） | 某個 Board 專屬的「現在」時間來源，取代系統時間（wall clock）作為該 Board 底下所有事件的「occurredAt」 |
 | REALTIME 模式 | 看板時鐘隨系統時間正常前進，可能帶有一個時間偏移量（offset） |
 | PAUSED 模式 | 看板時鐘停在某個固定時間點，不隨系統時間前進 |
 | 單調性（Monotonicity） | 新事件的發生時間不得早於該 Board 已存在的最後一筆事件時間 |
@@ -37,17 +37,18 @@ Board Clock 是 F03（標準圖表）計算 `asOf`、Aging、逾期判斷的時�
 
 ## Aggregate 標記說明
 
-每個 Scenario 上方以 Gherkin 註解標記會存取哪些 Aggregate 以及存取方式（`read` / `write`），格式與判定原則同 `spec-kanban-basic.md`。本文件用到的 Aggregate：
+每個 Scenario 上方以 Gherkin 註解標記會存取哪些 Aggregate 以及存取方式（「read」／「write」），格式與判定原則同 `spec-kanban-basic.md`。本文件用到的 Aggregate：
 
-- `board`：`BoardClock` 是 `Board` aggregate 內部狀態（不是獨立 aggregate），調整時鐘即為對 `Board` 的 `write`。
+- `board`：「BoardClock」是「Board」 aggregate 內部狀態（不是獨立 aggregate），調整時鐘即為對「Board」的「write」。
 
 ## 變更紀錄（Change Log）
 
 | 日期 | 票號 | 類型 | 摘要 |
 |------|------|------|------|
 | 2026-09-13 | CR-004 | 定案 | Open Question 定案：調整／暫停／恢復看板時間限 Owner 並記錄活動紀錄，補上對應 Scenario；PAUSED 模式排序沿用既有 ArrayList 插入順序，不新增 sequence 欄位（見決議紀錄） |
-| 2026-09-13 | CR-004 | 開發中 | `kanban-core` 完成 `BoardClock`（`Board` 內部值物件）與 `Board.now()`／`adjustClock`／`pauseClock`／`resumeClock`；既有 `Board` 寫入方法的單調性檢查已生效（`BOARD_CLOCK_BEHIND_LAST_EVENT`）。對應 Cucumber Scenario（`board-clock.feature`）以 Board 既有寫入動作作為「新事件」的測試替身，全綠。`Card` 尚未改用 `Board.now()`，`kanban-spring` 呼叫端尚未串接，留待下一輪。 |
-| 2026-09-13 | CR-004 | 開發完成 | `Card` 全部寫入方法改用呼叫端傳入的 `OperationContext(operatorId, now)`，時間來源改為 `Board.newEventTime()`；`board-clock.feature`「不可寫入新事件」情境改用真正建立卡片驗證。`kanban-spring` 目前仍無 application 層程式碼，呼叫端串接留待該層實際開發時再處理，不阻塞本次結案。CR-004 狀態改「處理完成」。 |
+| 2026-09-13 | CR-004 | 開發中 | 「kanban-core」完成「BoardClock」（「Board」內部值物件）與「Board.now()」／「adjustClock」／「pauseClock」／「resumeClock」；既有「Board」寫入方法的單調性檢查已生效（「BOARD_CLOCK_BEHIND_LAST_EVENT」）。對應 Cucumber Scenario（「board-clock.feature」）以 Board 既有寫入動作作為「新事件」的測試替身，全綠。「Card」尚未改用「Board.now()」，「kanban-spring」呼叫端尚未串接，留待下一輪。 |
+| 2026-09-13 | CR-004 | 開發完成 | 「Card」全部寫入方法改用呼叫端傳入的「OperationContext(operatorId, now)」，時間來源改為「Board.newEventTime()」；「board-clock.feature」「不可寫入新事件」情境改用真正建立卡片驗證。「kanban-spring」目前仍無 application 層程式碼，呼叫端串接留待該層實際開發時再處理，不阻塞本次結案。CR-004 狀態改「處理完成」。 |
+| 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-adjust-board-clock`、`uc-guard-clock-monotonicity`、`uc-pause-resume-board-clock`） |
 
 ---
 
@@ -183,8 +184,8 @@ Feature: 看板時間管理
 
 ## 決議紀錄
 
-- 2026-09-13：Open Question「調整／暫停／恢復看板時間是否需要記錄活動紀錄、是否限 Owner」定案採用草稿預設值：僅 Owner 可操作，且每次調整／暫停／恢復都記錄一筆活動紀錄。依據：與 CLAUDE.md「只有 Owner 能改看板結構」既有慣例一致（權限檢查由呼叫端查 `BoardMembership` 後決定是否呼叫 `Board` 的方法，`kanban-core` 本身不做權限判斷），且與 CR-001 已上線的「Board/Card 操作人活動紀錄」慣例一致。已補上對應 Scenario 與驗收標準（見上）。
-- 2026-09-13：Open Question「PAUSED 模式下多個事件取得相同 `occurredAt` 時的排序」定案為：沿用現有 event store 實作方式（`Board`/`Card` 的 `activityLog`／`stageTransitions` 皆為 `ArrayList`，只會 append、不會重新排序，插入順序本身即是決定性的次序），不另外新增顯式 `sequence` 欄位。依據：最小驚訝、YAGNI——現有實作已能提供決定性排序，未來若查詢端（如 F03 `CardTimeline` 投影）需要依 `occurredAt` 重新排序時，才需要在該處另外設計穩定排序（stable sort，保留原始插入順序作為次要鍵），不需要現在就在領域模型加欄位。CR-004 開發階段不需為此另外補欄位。
+- 2026-09-13：Open Question「調整／暫停／恢復看板時間是否需要記錄活動紀錄、是否限 Owner」定案採用草稿預設值：僅 Owner 可操作，且每次調整／暫停／恢復都記錄一筆活動紀錄。依據：與 CLAUDE.md「只有 Owner 能改看板結構」既有慣例一致（權限檢查由呼叫端查「BoardMembership」後決定是否呼叫「Board」的方法，「kanban-core」本身不做權限判斷），且與 CR-001 已上線的「Board/Card 操作人活動紀錄」慣例一致。已補上對應 Scenario 與驗收標準（見上）。
+- 2026-09-13：Open Question「PAUSED 模式下多個事件取得相同「occurredAt」時的排序」定案為：沿用現有 event store 實作方式（「Board」/「Card」的「activityLog」／「stageTransitions」皆為「ArrayList」，只會 append、不會重新排序，插入順序本身即是決定性的次序），不另外新增顯式「sequence」欄位。依據：最小驚訝、YAGNI——現有實作已能提供決定性排序，未來若查詢端（如 F03「CardTimeline」投影）需要依「occurredAt」重新排序時，才需要在該處另外設計穩定排序（stable sort，保留原始插入順序作為次要鍵），不需要現在就在領域模型加欄位。CR-004 開發階段不需為此另外補欄位。
 
 ## 待釐清 / 未來擴充（Open Questions）
 
