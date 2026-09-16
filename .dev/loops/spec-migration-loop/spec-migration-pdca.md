@@ -111,3 +111,29 @@
 
 ### Act
 完成，下一個任務：T1.02（[F01]「Swimlane 管理」Feature 的 usecase 區塊＋tag／Aggregate 註解對齊）。
+
+## Iteration 4 — 2026-09-16 21:40 — T1.02
+### Plan
+本輪任務 T1.02：對 `.dev/F01-basic-kanban/spec-kanban-basic.md` 的「Swimlane 管理」Feature 執行遷移程序 7～9：新增 `### Use Case 定義` ＋ ```usecase 區塊、為全部 7 個 Scenario 掛 `@uc-`／`@fail-` tag、Aggregate 註解對齊 crud。只改這一份檔案、這一個 Feature。驗收條件：`errors(F01#Swimlane 管理)=0`。預期 F01 error 數從 38 下降（UC-01／UC-06 等結構性錯誤消失），全部 spec 總數從 321 略降。
+
+### Do
+- commit eeea867 `[spec/design](basic-kanban) 遷移 Swimlane 管理 Feature 至 usecase 區塊`
+- 依「同一 When 動作」分組出 4 個 uc：`uc-add-swimlane`（新增一個 Swimlane + Swimlane 名稱不可為空）、`uc-rename-swimlane`（重新命名 Swimlane）、`uc-reorder-swimlane`（拖曳調整 Swimlane 順序）、`uc-delete-swimlane`（刪除空的 Swimlane + 刪除包含卡片的 Swimlane 需要確認 + 看板至少保留一個 Swimlane）。
+- pre／post／fail 逐句對應原 Scenario 步驟：`uc-add-swimlane.pre.p1`=名稱非空（對應失敗 Scenario）、`post`=新 swimlane 出現在 board 最下方；`uc-delete-swimlane.pre.p1`=board 中 swimlane 數量大於 1（對應「看板至少保留一個 Swimlane」失敗 Scenario）、`post` 含「若該 swimlane 內有 card，一併被刪除」（對應「刪除包含卡片的 Swimlane」情境文字：兩者一併移除，非移動到別的 swimlane）。
+- 低影響假設（純格式／crud 對齊選擇，寫入 state）：
+  1. Aggregate 註解改採實體層級（`swimlane:`／`card:`），不再沿用 T1.01 遺留的 `board:` 寫法，因為 GH-06 要求「註解出現的實體必須是 crud 的 key」，而 `uc-rename-swimlane`／`uc-reorder-swimlane`／`uc-delete-swimlane` 的 post 直接更新 `swimlane.name` 等屬性，UC-07 要求 crud 含該實體的 C/U；沿用純 `board:` 標法會同時違反 UC-07 與 GH-06。改動範圍僅限本 Feature 7 個 Scenario 的 `# Related aggregate:` 註解，不影響 gherkin 行為文字（屬鐵則 1 允許的例外）。
+  2. 「該操作應該被記錄為一筆活動紀錄」不另立 `uc-log-swimlane-activity`（原本嘗試過，見下方失敗記錄），改成把這句話併入各主要 uc 自己的 `post`（引用 `board` 這個 ID 以滿足 UC-03「每句至少一個反引號 ID」）。原因：(a) GH-01 規定一個 Scenario 只能有一個 `@uc-` tag，若要讓「新增一個 Swimlane」同時對應 `uc-add-swimlane` 與 `uc-log-swimlane-activity` 需要掛兩個 tag，違反 GH-01；(b) 無法為 log uc 另外造一個「成功 Scenario」（鐵則 1 禁止新增 Scenario），會觸發 UC-06「沒有成功 Scenario」。故活動紀錄直接寫進既有 uc 的 post，不視為跨 uc 效果，`emits`／`requires` 皆留空。
+  3. 「刪除空的 Swimlane」情境的 `card` 註解由原本 `read` 改為 `read, write`：因 `uc-delete-swimlane` 的 `crud.card = D`（涵蓋「刪除包含卡片」情境會真正刪除 card），而 GH-06 規定「成功 Scenario 另外要求 crud 含 C/U/D 的實體必須標 write」，此規則對整個 uc 的每個成功 Scenario 一致套用，不分「該次是否真的刪到卡片」；即使該情境卡片數為 0，仍視為對 card 有寫入意圖（cascade delete 影響筆數為 0）。
+- 中途嘗試並放棄的做法：先建立獨立 `uc-log-swimlane-activity`（crud `{board: U}`，`requires` 列出其他 4 個 uc 的 emits 事件），但因上述原因 (a)(b) 會導致 GH-01／UC-06 報錯，故刪除該 uc，改用假設 2 的做法。
+
+### Check
+- `./scripts/spec-check` 最後一行：開工前「321 error(s), 4 warning(s)」→ 收尾「312 error(s), 3 warning(s)」。
+- `tools error-count .dev/F01-basic-kanban/spec-kanban-basic.md`：38 → 29。
+- `tools accept-check <tasks> T1.02`：無輸出，通過（`errors(F01#Swimlane 管理)=0`）。
+- `tools gherkin-diff`：exit 0，「Gherkin 行為與遷移前一致（160 行）」。
+- `tools tag-diff`：exit 0，無輸出（僅新增 `@uc-`／`@fail-`，未動狀態 tag／`@CR-`）。
+- `tools changelog-check`：exit 0，無輸出（本輪未改變更紀錄，留給後續任務一次補上 CR-005 列）。
+- 逐條對照驗收條件：`errors(F01#Swimlane 管理)=0` 已達成。
+
+### Act
+完成，下一個任務：T1.03（[F01] 同上，「Stage（階段）管理」）。
