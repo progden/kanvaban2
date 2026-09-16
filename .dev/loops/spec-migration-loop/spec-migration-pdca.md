@@ -239,3 +239,25 @@
 
 ### Act
 完成，下一個任務：T1.06（[F01] 收尾：F01 全檔 0 error，修掉剩餘項目）。F01 目前已無 error（僅剩 UC-13 warn：實體 "board" 沒有任何 Use Case 建立它），下一輪確認是否需處理或記為可接受的 warn。
+
+## Iteration 9 — 2026-09-16 — T1.06
+
+### Plan
+本輪任務 T1.06：[F01] 收尾，確認 F01 全檔 0 error。驗收條件：`errors(F01)=0`。預期不需修改 spec 內容（T1.05 已把 error 數降到 0），本輪只需核對並將任務標記完成。
+
+### Do
+- 無 spec 檔改動（本輪未 commit `.dev/F01-basic-kanban/spec-kanban-basic.md`）。
+- 核對結果：`tools error-count .dev/F01-basic-kanban/spec-kanban-basic.md` = 0；`./scripts/spec-check` 對該檔僅剩 1 筆 warn（UC-13：實體 "board" 沒有任何 Use Case 建立它）。UC-13 是 warn 非 error，且 Board 建立不在 F01 六份 Scenario 範圍內（沒有對應 Given/When 步驟可推導 usecase），依鐵則 2 不可自行補行為，接受此 warn 留存，不記 OQ（非高影響假設，屬檢查工具對「Board 由誰／如何建立」本就不在此規格範圍的正常提示）。
+- `tools accept-check <tasks> T1.06`：無輸出，通過。
+
+### Check
+- `./scripts/spec-check` 最後一行：「283 error(s), 1 warning(s)」（與上一輪相同，未變動任何 spec 檔）。
+- `tools error-count .dev/F01-basic-kanban/spec-kanban-basic.md`：0 → 0（開工前已是 0）。
+- `tools accept-check T1.06`：通過。
+- `tools gherkin-diff`：exit 0，「Gherkin 行為與遷移前一致（160 行）」。
+- `tools tag-diff`：exit 0，無輸出。
+- `tools changelog-check`：exit 0，無輸出。
+- 逐條對照驗收條件：`errors(F01)=0` 已達成。
+
+### Act
+完成，下一個任務：G1（關卡：審查輪檢視 F01 是否可作為其餘模組的範本）。G1 尚未核准（`runtime/gates/` 目前無 `.approved` 檔），由 loop 排程審查輪處理，本輪不動作。
