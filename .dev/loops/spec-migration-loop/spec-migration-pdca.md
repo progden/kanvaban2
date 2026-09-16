@@ -634,3 +634,24 @@
 
 ### Act
 完成，下一個任務：T2.13（[F03] 遷移程序 10～11 與收尾，F03 全檔 0 error）。
+
+## Iteration 26 — 2026-09-16 12:00 — T2.13
+### Plan
+本輪任務 T2.13：完成 F03 遷移程序第 10 步（正文反引號清理、`design.md`→`design-kanban-widgets.md`）與第 11 步（變更紀錄改四欄格式並補 CR-005 列）。要改的檔案：`.dev/F03-kanban-widgets/spec-kanban-widgets.md`（簡介段落、其他名詞表、Aggregate 標記說明、變更紀錄、待釐清段落）。驗收條件：`errors(F03)=0`。預期 error 數：F03 從 16 降到 0。
+
+### Do
+- 3e96c78 [spec/design](kanban-widgets) 完成正文反引號清理與變更紀錄收尾
+- 正文反引號清理：`asOf`、`Start`／`Done`、`read`／`write`、`kanban-spring`、`query.timeline`／`query.wip`／`query.throughput`／`query.duedate`、`CardTimelineProjector`、`CardTimeline`、`./mvnw verify` 等非六種 ID 的反引號改成「」；`spec-kanban-basic.md`、`design-kanban-widgets.md` 等檔案路徑保留反引號（規範例外）。低影響格式選擇，未記 OQ。
+- 變更紀錄改四欄格式（本檔已是四欄）：舊兩列票號欄原填 `F03`（非 `CR-xxx`），依遷移程序第 11 條改為留空並在摘要開頭加「（原票號 F03）」；追加一列 `2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（六個 uc）`。低影響格式選擇，未記 OQ。
+- 例外：變更紀錄歷史列（2026-09-13 開發完成列）中提到的 `design.md` 未依第 10 條改成 `design-kanban-widgets.md`——`tools changelog-check` 要求該列摘要文字對舊檔逐字保留（只能換引號、加註，不能刪改字詞），若替換檔名會使 `design.md` 不再是舊摘要的子字串而判定失敗；判斷鐵則 1 對變更紀錄逐字保留的要求優先於第 10 條的正文改寫，因此該處保留原文 `design.md`。低影響格式選擇（規則衝突時的優先順序判斷），未記 OQ。
+- 未做 F 編號修正。
+
+### Check
+- `./scripts/spec-check`（不帶參數）最後一行：`116 error(s), 0 warning(s)`（開工前 132）。
+- `tools error-count .dev/F03-kanban-widgets/spec-kanban-widgets.md`：開工前 16 → 收尾時 0。
+- `tools accept-check <tasks> T2.13`：rc=0，無輸出，通過。
+- `tools gherkin-diff`：一致（0）。`tools tag-diff`：一致（0）。`tools changelog-check`：一致（0）。
+- 驗收條件 `errors(F03)=0` 達成。
+
+### Act
+完成，下一個任務：T2.14（[F04] 遷移程序 1～6：狀態行、名詞／角色表、「身為」行；「決議紀錄」段落保留）。
