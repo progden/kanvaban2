@@ -6,7 +6,7 @@
 - 未指派負責人的卡片統計
 - 拖曳指派負責人（追加單一負責人）
 
-依賴 F02（`spec-user-membership.md`）的 `BoardMembership`、卡片多選負責人（`assigneeIds`，CR-002），以及 CR-003 的 Stage 角色（用於判斷卡片是否已完成）。
+依賴 F02（`spec-user-membership.md`）的 `board-membership`、卡片多選負責人（`card.assignees`，CR-002），以及 CR-003 的 Stage 角色（用於判斷卡片是否已完成）。
 
 狀態：開發中
 
@@ -29,7 +29,7 @@
 |------|------|
 | Active Card（進行中卡片） | 未刪除、且目前所在 Stage 的角色不是 Done 的卡片 |
 | Workload | 某成員名下 Active Card 的數量 |
-| 未指派（Unassigned） | `assigneeIds` 為空的 Active Card |
+| 未指派（Unassigned） | `card.assignees` 為空的 Active Card |
 
 ## 角色定義
 | ID | 名稱 | 說明 |
@@ -37,18 +37,19 @@
 
 ## Aggregate 標記說明
 
-每個 Scenario 上方以 Gherkin 註解標記會存取哪些 Aggregate 以及存取方式（`read` / `write`），格式與判定原則同 `spec-kanban-basic.md`。本文件用到的 Aggregate：
+每個 Scenario 上方以 Gherkin 註解標記會存取哪些 Aggregate 以及存取方式（「read」／「write」），格式與判定原則同 `spec-kanban-basic.md`。本文件用到的 Aggregate：
 
 - `board`：讀取 Stage 角色設定與卡片分佈。
 - `board-membership`：讀取看板成員清單。
-- `card`：讀取／寫入卡片的 `assigneeIds`。
+- `card`：讀取／寫入卡片的 `card.assignees`。
 
 ## 變更紀錄（Change Log）
 
 | 日期 | 票號 | 類型 | 摘要 |
 |------|------|------|------|
-| 2026-09-13 | F05 | 變更 | 「拖曳成員頭像到卡片上，追加該成員為負責人」Scenario 移除 `@wip`（對應的「拖曳追加單一負責人」情境已在 `spec-user-membership.md` 的「卡片負責人指派」Feature 補上）；新增「拖曳已經是負責人的成員頭像到卡片上，不重複新增」Scenario，定案 Open Question「拖曳到已是負責人的卡片」為靜默忽略、不提示、不重複新增 |
-| 2026-09-13 | F05 | 開發完成 | `kanban-spring` 新增 `io.progden.kanban.query.workload.WorkloadCalculator`，依 Active Card（非 Done Stage）的 `assigneeIds` 分組統計工作量與未指派數量；追加負責人 use case 已在 `spec-user-membership.md` 開發完成。F05 四個查詢 Scenario 與兩個拖曳追加 Scenario 皆已完成，階段 5 結束 |
+| 2026-09-13 |  | 變更 | （原票號 F05）「拖曳成員頭像到卡片上，追加該成員為負責人」Scenario 移除「@wip」（對應的「拖曳追加單一負責人」情境已在 `spec-user-membership.md` 的「卡片負責人指派」Feature 補上）；新增「拖曳已經是負責人的成員頭像到卡片上，不重複新增」Scenario，定案 Open Question「拖曳到已是負責人的卡片」為靜默忽略、不提示、不重複新增 |
+| 2026-09-13 |  | 開發完成 | （原票號 F05）「kanban-spring」新增「io.progden.kanban.query.workload.WorkloadCalculator」，依 Active Card（非 Done Stage）的「assigneeIds」分組統計工作量與未指派數量；追加負責人 use case 已在 `spec-user-membership.md` 開發完成。F05 四個查詢 Scenario 與兩個拖曳追加 Scenario 皆已完成，階段 5 結束 |
+| 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-view-workload`、`uc-drag-assign-card-owner`） |
 
 ---
 
@@ -162,5 +163,5 @@ Feature: 人員工作量檢視
 
 - 拖曳到已經是負責人的卡片：已定案為靜默忽略，不提示、不重複新增、不產生活動紀錄（見上方 Change Log 與 Scenario）。
 - Workload 是否需要加權（例如依卡片估點計算，而非單純張數）：F01 目前沒有卡片估點欄位，需另開規格與 CR，刻意不做，超出本次範圍。
-- 「拖曳追加單一負責人」的實際操作方式：已定案為 F02「指派多位負責人」Scenario 的追加變形（呼叫既有 `Card.assignTo`，追加而非覆蓋），對應 Scenario 已補在 `spec-user-membership.md` 的「卡片負責人指派」Feature。
+- 「拖曳追加單一負責人」的實際操作方式：已定案為 F02「指派多位負責人」Scenario 的追加變形（呼叫既有「Card.assignTo」，追加而非覆蓋），對應 Scenario 已補在 `spec-user-membership.md` 的「卡片負責人指派」Feature。
 - OQ-09：本文件「拖曳成員頭像到卡片上，追加該成員為負責人」等兩個 Scenario 另立 `uc-drag-assign-card-owner`，未沿用 `spec-user-membership.md` 已定義的同義 `uc-assign-card-owner-by-drag`（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）。
