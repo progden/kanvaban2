@@ -202,3 +202,30 @@ llm-review：G1 需要的 F01 每個 Feature 抽查已在 `9f436a3` 那則完成
 - F02 的權限拒絕寫成獨立 uc，`uc-member-add-card` 跟 F01 `uc-add-card` 重複，建議遷移後開 CR 重整。
 - PDCA Iteration 11 的標題被改過。
 - `uc-delete-card`、`uc-remove-member` 的活動紀錄記在被刪除或被移除的 Aggregate 上。
+
+## Review — 2026-09-16 21:30 — b3b5747
+### 範圍
+`5ceb374`..`b3b5747`，涵蓋上一則審查的 commit `bf4917b`、D-05（`a10703f`、`5e88a98`）、T2.12（`bc58b01`、`756f93d`）、T2.13（`3e96c78`、`7862177`）、T2.14（`a1cc822`、`5efd762`）、T2.15（`70834eb`、`b3b5747`）。`last-verify.md` 是 PASS，沒有警告（F01～F03 都是 0 error，F04 剩 38，總數 140 → 100，warning 0）。期間 OQ 檔沒有新增列。`tools actionable` 的結果原本是 T2.16，不是關卡；本次開了 D-06、D-07，會排在 T2.16 之前。
+
+### 發現
+1. **中**｜F04 `uc-guard-clock-monotonicity`｜單調性檢查其實是所有 `board` 底下寫入（例如 F01 `uc-add-card`）共同的前置條件，不是獨立交易。受 GH-01／UC-06 限制，執行輪另外開了一個 uc，還把 When 是「調整看板時間＋建立卡片」的 Scenario 歸給它當成功案例；`crud` 只有 `board: U`，沒有列出實際建立的 `card`（沿用原註解）。這跟 OQ-06 同類，屬於高影響的建模決定，但只記在 PDCA Iteration 28，標成「低影響假設」，沒有記 OQ。已開 **D-07**，要求補記 OQ，並在 F04 待釐清加一行；內容維持現狀。
+2. **低**｜F03 變更紀錄 2026-09-13「開發完成」那列｜T2.13 清理了這列的反引號，卻漏做遷移程序 10：「詳見 `design.md`「實作狀態」段落」沒有改成 `design-kanban-widgets.md`（該檔確有「## 實作狀態」）。已開 **D-06**。
+3. **低**｜F04 `uc-adjust-board-clock`、`uc-pause-resume-board-clock` 的 `pre.p1`（Owner）｜「看板時間可以往回調整」「暫停看板時間」「恢復看板時間」這幾個 Scenario 的 Given 沒有寫 Owner，這個限制來自本檔「決議紀錄」，而且有「非 Owner 嘗試調整看板時間」這個 fail Scenario。有依據，可以接受。`uc-pause-resume-board-clock` 有 p1、沒有 fail，這跟 F01 的慣例一致。
+4. **低**｜F04 暫停／恢復合併成一個 uc｜「暫停或恢復看板時間應記錄一筆活動紀錄」這個 Scenario 在同一個情境裡先暫停再恢復，GH-01 只允許掛一個 uc，所以合併有必要，粒度可以接受。
+5. **低**｜F04 兩個 uc 的 post「包含操作人與操作時間」｜Scenario 的 Then 只寫「說明看板時間被調整為…」，但決議紀錄提到沿用 CR-001 的操作人活動紀錄慣例，寫法跟 F01 一致，可以接受。活動紀錄記在 `board` 上，符合 OQ-01（BoardClock 是 Board 內部狀態）。
+6. **鐵則 1**：F03（65 行）、F04（43 行）的 `gherkin-diff` 一致，沒有 F 編號修正。F03 變更紀錄票號欄的 `F03` 比照 F02 的做法，改成摘要開頭的「（原票號 F03）」，資訊沒有遺失；新增的 CR-005 列已在 `.dev/CR.md` 登記。F04 名詞表的 4 列逐字搬到「其他名詞」；「決議紀錄」與待釐清都保留；F04 標頭「身為看板的使用者」改成「身為 看板使用者」，比照 F03 的做法。F03 正文只把反引號換成「」，沒有改字。
+7. **鐵則 2 抽查**：F03 `uc-view-throughput` 對應「選擇以『日』為單位」和各日完成數；`uc-view-cfd` 的 post 幾乎是 Then 的原文；`uc-view-duedate-reminder` 的兩句 post 分別對到兩個 Scenario，其中「門檻天數由使用者於查詢時設定」出自本檔待釐清的 2026-09-13 決議，有依據。F04 `uc-guard-clock-monotonicity` 的 fail.p1 跟錯誤訊息逐字相同。沒有發現憑空出現的 roles，F04 的 `r-board-owner` 沿用 F02 的定義。
+8. **跨模組一致**：F03、F04 沒有重複定義實體或角色，實體與角色表都留空；`r-user`、`r-board-owner` 分別引用 F01、F02。
+9. **D-05 完成度**：post 第一句已照指定修改，第二句和 `crud` 都沒有動，達成。
+10. **PDCA 與實際結果**：各輪 Check 的 error 數跟 `last-verify.md` 一致（F04 48 → 38，總數 110 → 100）。
+
+### 待審任務處理
+沒有 `proposed` 的 D-xx。
+
+### 關卡摘要
+不適用：下一個任務是 D-06，接著是 D-07，然後才是 T2.16。
+
+**需人工事後處理**（沿用前幾則並新增一項）：
+- F02 的權限拒絕寫成獨立 uc，`uc-member-add-card` 跟 F01 `uc-add-card` 重複，建議遷移後開 CR 重整。F04 `uc-guard-clock-monotonicity` 也是同類問題，建議在同一個 CR 裡改成各寫入 uc 的 fail。
+- PDCA Iteration 11 的標題被改過。
+- `uc-delete-card`、`uc-remove-member` 的活動紀錄記在被刪除或被移除的 Aggregate 上。
