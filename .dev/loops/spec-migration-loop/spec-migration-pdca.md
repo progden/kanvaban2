@@ -1191,3 +1191,23 @@ OQ 摘要（依模組；「採用」為 `spec-migration-open-questions.md` 表�
 
 ### Act
 完成：D-10 done。下一個任務：D-11。
+
+## Iteration 45 — 2026-09-17 10:00 — D-11
+
+### Plan
+本輪任務 D-11：`.dev/CR.md` 的 CR-002 影響 ID 移除 `uc-assign-card-owner-by-drag`(新增)，只改這一處（CR-001、CR-003～CR-005 與明細不動）。依據：F02 變更紀錄 2026-09-13「（原票號 F05）」那列已明寫兩條拖曳 Scenario「本檔尚未進入開發，可直接補上，不需開 CR」，且這兩條 Scenario 未掛 `@CR-002`，不應算進 CR-002 影響 ID。驗收條件：`crcheck(CR-005)=0`、`errors(all)=0`、CR-002 那列不含 `uc-assign-card-owner-by-drag`。預期 error 數不變（0 → 0）。
+
+### Do
+- `7605e74` [chore](cr) 移除 CR-002 影響 ID 中誤列的拖曳負責人 usecase
+- 只刪除 CR-002 該列末尾的 `、\`uc-assign-card-owner-by-drag\`(新增)`，CR-002 其餘欄位、CR-001／CR-003～CR-005 與明細段落未動。
+- 無新增假設、無新增 OQ。
+
+### Check
+- `./scripts/spec-check`：`0 error(s), 0 warning(s)`
+- `./scripts/cr-check --base <baseline> --cr CR-005`：`0 error(s), 0 warning(s)`
+- `tools accept-check spec-migration-tasks.md D-11`：exit 0（無輸出）
+- `git diff` 確認只改 CR-002 那一行，其餘 CR 列與明細未變
+- 驗收條件逐項達成：`crcheck(CR-005)=0` ✓、`errors(all)=0` ✓、CR-002 那列不含 `uc-assign-card-owner-by-drag` ✓
+
+### Act
+完成：D-11 done。下一個任務：D-12。
