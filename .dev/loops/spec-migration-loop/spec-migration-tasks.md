@@ -43,7 +43,7 @@
 |----|------|------|----------|------|
 | T2.01 | done | [F02] 遷移程序 1～6：狀態行、名詞／角色表（F01 已定義的實體不重列；`boardMembership` 這類 camelCase 改成 kebab 實體 ID；Owner／Member 權限有寫明才分角色）、七個 Feature 的「身為」行與 `## Feature:` 標題 | `errors(F02;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0` | G1 |
 | T2.02 | done | [F02] 「建立使用者帳號」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#建立使用者帳號)=0` | T2.01 |
-| T2.03 | todo | [F02] 「使用者登入與登出」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#使用者登入與登出)=0` | T2.02 |
+| T2.03 | done | [F02] 「使用者登入與登出」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#使用者登入與登出)=0` | T2.02 |
 | T2.04 | todo | [F02] 「Board 建立與成員邀請」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#Board 建立與成員邀請)=0` | T2.03 |
 | T2.05 | todo | [F02] 「Board 權限管理」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#Board 權限管理)=0` | T2.04 |
 | T2.06 | todo | [F02] 「Board 存取權限」usecase 區塊＋tag＋Aggregate 註解 | `errors(F02#Board 存取權限)=0` | T2.05 |

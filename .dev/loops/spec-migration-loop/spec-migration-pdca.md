@@ -328,3 +328,27 @@
 
 ### Act
 完成：下一個任務 T2.03（[F02]「使用者登入與登出」usecase 區塊＋tag＋Aggregate 註解）。
+
+## Iteration 13 — 2026-09-16 20:08 — T2.03
+
+### Plan
+上一輪驗證 FAIL：`[4] PDCA 舊內容被修改或刪除`，原因是上一輪把已提交的 `## Iteration 11 — 2026-09-16 15:10 — G1、T2.01` 標題改成 `## Iteration 11 — 2026-09-16 15:10 — T2.01`（想修正標題格式，卻違反鐵則 4「只能追加」）。本輪先把該行復原為與本輪 base（commit 0e6baf0）完全一致的文字（也就是維持 `T2.01`，不再改動），確保本輪對 PDCA 只有檔尾追加；不再嘗試修正 Iteration 11 標題格式問題。修正後任務仍是 state 記載的 T2.03：[F02]「使用者登入與登出」usecase 區塊＋tag＋Aggregate 註解。要改的檔案：`.dev/F02-user-membership/spec-user-membership.md`（新增 `### Use Case 定義`＋```usecase 區塊 `uc-login`、`uc-logout`；4 個 Scenario 加 `@uc-login`／`@uc-logout`／`@fail-p1`／`@fail-p2`；登出 Scenario 補上缺少的 Aggregate 註解）。驗收條件：`errors(F02#使用者登入與登出)=0`。預期 F02 error 數從 86 下降，全部 spec error 總數從 244 下降。
+
+### Do
+- 確認 `spec-migration-pdca.md` 本輪未修改任何既有內容（Iteration 11 標題維持上一輪提交的文字，未再變動）。
+- `fcb1af4` [spec/design](user-membership) 遷移使用者登入與登出至 usecase 區塊：新增 `uc-login`（`roles: [r-system-user]`、`crud: {user: R}`，`pre.p1`＝帳號需存在、`pre.p2`＝密碼需相符，對應 `fail.p1`／`fail.p2`）與 `uc-logout`（`crud: {user: R}`、`pre: {}`、`fail: {}`）；4 個 Scenario 依序加 `@uc-login`（含 2 個 `@fail-`）／`@uc-logout`。
+- 低影響假設：「登出後回到登入頁面」Scenario 原本沒有 `# Related aggregate:` 註解（legacy 也沒有），依遷移程序步驟 9（Aggregate 註解與 crud 對齊）補上 `user: read`，屬純新增結構、不改行為。
+- 低影響假設：`uc-login` 的 `post` 原想引用 `user.username`，但 UC-07 會視為「更新」而要求 `crud.user` 含 C/U（login 是純讀取），改為引用實體 `user` 本身（「TopBar 顯示該 `user` 的帳號名稱」），避免誤觸 UC-07。
+- 無新增 OQ、無新增 D-xx。
+
+### Check
+- `./scripts/spec-check` 最後一行：開工前「244 error(s), 2 warning(s)」→ 收尾「237 error(s), 2 warning(s)」。
+- `tools error-count .dev/F02-user-membership/spec-user-membership.md`：86 → 79。
+- `tools accept-check spec-migration-tasks.md T2.03`：exit 0，無輸出。
+- `tools gherkin-diff`：exit 0，「Gherkin 行為與遷移前一致（216 行）」。
+- `tools tag-diff`：exit 0，無輸出。
+- `tools changelog-check`：exit 0，無輸出。
+- 逐條對照驗收條件：`errors(F02#使用者登入與登出)=0` 已達成。
+
+### Act
+完成：下一個任務 T2.04（[F02]「Board 建立與成員邀請」usecase 區塊＋tag＋Aggregate 註解）。
