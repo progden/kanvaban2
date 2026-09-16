@@ -834,3 +834,22 @@
 
 ### Act
 完成，下一個任務：T2.20（[F06] 遷移程序 1～6：狀態行、名詞／角色表、「身為」行）
+
+## Iteration 37 — 2026-09-16 — T2.20
+### Plan
+本輪任務為 T2.20：對 `.dev/F06-feature-cr-board/spec-feature-cr-board.md` 完成遷移程序 1～6（狀態行、名詞定義拆三張表＋其他名詞、角色定義、「身為」行）。原名詞定義表五項（Feature 卡、CR 卡、affects 標籤、狀態、orphan CR）皆非實體，本模組只讀取 F01 已定義的 `board`／`card`，不新增任何實體／欄位／關係，故三張新表留空，原五項整表搬到「其他名詞」；原「身為看板的使用者」比照 F01 已定義的 `r-user`（名稱「看板使用者」），角色定義表留空、header 改為「身為 看板使用者」。驗收條件：`errors(F06;GH-08,REF-03,REF-04,REF-05,REF-08,REF-09)=0`。預期這幾項 check 由非零降到 0，F06 全檔 error 數會下降但不歸零（GH-01、UC-01 留給 T2.21）。
+
+### Do
+- a500412 [spec/design](feature-cr-board) 遷移狀態行與名詞角色表至新格式
+- 低影響假設：F06「名詞定義」原表五項非實體，全部歸入「其他名詞」，反引號改為「」，說明文字不變（比照 F05 對 Active Card 等名詞的處理）
+- 低影響假設：F06「實體／欄位／關係」三張表留空（本模組未新增任何實體，只讀取 F01 的 `board`、`card`），比照 F03／F04／F05 前例
+- 低影響假設：F06「角色定義」表留空，沿用 F01 已定義的 `r-user`（名稱「看板使用者」），header 改為「身為 看板使用者」（比照 F05 對 `r-user` 的引用方式）
+
+### Check
+- `./scripts/spec-check` 最後一行：15 error(s), 0 warning(s)（開工前 30）
+- `tools error-count .dev/F06-feature-cr-board/spec-feature-cr-board.md`：開工前 30 → 收尾時 15（剩餘皆為 GH-01「缺少 @uc- tag」，待 T2.21 補 usecase 區塊與 tag）
+- `tools accept-check spec-migration-tasks.md T2.20`：無輸出，exit 0（達成）
+- `tools gherkin-diff .dev/F06-feature-cr-board/spec-feature-cr-board.md`：一致（27 行）；`tools tag-diff`：一致；`tools changelog-check`：一致（exit 0，本輪未改變更紀錄）
+
+### Act
+完成，下一個任務：T2.21（[F06]「Feature／CR 追蹤表」usecase 區塊＋tag＋Aggregate 註解）
