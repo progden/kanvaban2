@@ -537,7 +537,34 @@ Feature: Board 權限管理
 
 ---
 
-## Feature: Board 存取權限（我的 Board 列表）
+## Feature: Board 存取權限
+
+### Use Case 定義
+```usecase
+- id: uc-view-board-list
+  name: 檢視我的 Board 列表
+  roles: [r-system-user]
+  crud: {board-membership: R}
+  pre: {}
+  post:
+    - "列表只顯示我是 Owner 或 Member 的 `board`，不顯示我沒有權限的 `board`"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+- id: uc-reject-board-access-by-nonmember
+  name: 非成員嘗試開啟 Board
+  roles: []
+  crud: {board: R, board-membership: R}
+  pre:
+    p1: "操作者不是該 `board` 的 `board-membership` 成員"
+  post:
+    - "系統顯示錯誤訊息「你沒有權限存取這個看板」，操作者仍無法存取該 `board`"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+```
 
 ```gherkin
 Feature: Board 存取權限
@@ -548,8 +575,9 @@ Feature: Board 存取權限
   Background:
     Given 我已登入系統，帳號為 "user1"
 
+  @uc-view-board-list
   # Related aggregate:
-  #   boardMembership: read
+  #   board-membership: read
   Scenario: Board 列表只顯示我有權限的 Board
     Given 我是 Board "產品開發看板" 的 Owner
     And 我是 Board "行銷活動排程" 的 Member
@@ -558,9 +586,10 @@ Feature: Board 存取權限
     Then 列表應該顯示 "產品開發看板" 與 "行銷活動排程"
     And 列表不應該顯示 "客服問題追蹤"
 
+  @uc-reject-board-access-by-nonmember
   # Related aggregate:
   #   board: read
-  #   boardMembership: read
+  #   board-membership: read
   Scenario: 非成員嘗試直接開啟 Board 應該被拒絕
     Given 存在一個我沒有權限的 Board "客服問題追蹤"
     When 我嘗試直接開啟 Board "客服問題追蹤"
