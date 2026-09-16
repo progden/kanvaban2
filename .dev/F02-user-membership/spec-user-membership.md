@@ -409,7 +409,72 @@ Feature: Board 建立與成員邀請
 
 ---
 
-## Feature: Board 權限管理（Owner 與 Member 的權限差異）
+## Feature: Board 權限管理
+
+### Use Case 定義
+```usecase
+- id: uc-reject-invite-by-member
+  name: 非 Owner 嘗試邀請成員
+  roles: []
+  crud: {board-membership: R}
+  pre:
+    p1: "邀請者不是該 `board` 的 Owner"
+  post:
+    - "系統顯示錯誤訊息「只有 Owner 可以邀請成員」，不建立新的 `board-membership`"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+- id: uc-reject-role-change-by-member
+  name: 非 Owner 嘗試變更成員角色
+  roles: []
+  crud: {board-membership: R}
+  pre:
+    p1: "變更者不是該 `board` 的 Owner"
+  post:
+    - "系統顯示錯誤訊息「只有 Owner 可以變更成員角色」，`board-membership` 的角色不變"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+- id: uc-reject-structure-change-by-member
+  name: 非 Owner 嘗試調整看板結構
+  roles: []
+  crud: {board: R, board-membership: R}
+  pre:
+    p1: "操作者不是該 `board` 的 Owner"
+  post:
+    - "系統顯示錯誤訊息「只有 Owner 可以調整看板結構」，`board` 的 Swimlane 數量不變"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+- id: uc-delete-board
+  name: 刪除 Board
+  roles: [r-board-owner]
+  crud: {board: D, card: D, board-membership: R}
+  pre:
+    p1: "操作者是該 `board` 的 Owner"
+  post:
+    - "該 `board` 不再存在"
+    - "該 `board` 底下的所有 Swimlane、Stage 與 `card` 都一併被刪除"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+- id: uc-member-add-card
+  name: 一般成員新增卡片
+  roles: [r-board-member]
+  crud: {board-membership: R, card: C}
+  pre:
+    p1: "操作者是該 `board` 的 `board-membership` 成員"
+  post:
+    - "新的 `card` 建立成功"
+  fail: {}
+  emits: []
+  requires: []
+  calls-sync: []
+```
 
 ```gherkin
 Feature: Board 權限管理
@@ -422,32 +487,36 @@ Feature: Board 權限管理
     And 我是 Board "產品開發看板" 的 Owner
     And "雅婷" 是這個 Board 的 Member
 
+  @uc-reject-invite-by-member
   # Related aggregate:
-  #   boardMembership: read
+  #   board-membership: read
   Scenario: Member 無法邀請其他成員
     Given 系統中存在帳號 "建宏"
     When "雅婷" 嘗試邀請 "建宏" 加入這個 Board
     Then 系統應該顯示錯誤訊息 "只有 Owner 可以邀請成員"
     And "建宏" 不應該成為這個 Board 的成員
 
+  @uc-reject-role-change-by-member
   # Related aggregate:
-  #   boardMembership: read
+  #   board-membership: read
   Scenario: Member 無法移除或升級成員
     When "雅婷" 嘗試將自己升級為 "Owner"
     Then 系統應該顯示錯誤訊息 "只有 Owner 可以變更成員角色"
 
+  @uc-reject-structure-change-by-member
   # Related aggregate:
   #   board: read
-  #   boardMembership: read
+  #   board-membership: read
   Scenario: Member 無法新增、重新命名或刪除 Swimlane 與 Stage
     Given 看板目前有 1 個 Swimlane "預設泳道"
     When "雅婷" 嘗試新增一個 Swimlane
     Then 系統應該顯示錯誤訊息 "只有 Owner 可以調整看板結構"
     And 看板的 Swimlane 數量不應該改變
 
+  @uc-delete-board
   # Related aggregate:
   #   board: read, write
-  #   boardMembership: read
+  #   board-membership: read
   #   card: read, write
   Scenario: 只有 Owner 可以刪除 Board，刪除後底下的資料一併刪除
     Given 這個 Board 有 2 個 Swimlane、3 個 Stage，以及數張卡片
@@ -457,8 +526,9 @@ Feature: Board 權限管理
     Then 這個 Board 應該不再存在
     And 這個 Board 底下的所有 Swimlane、Stage 與卡片都應該一併被刪除
 
+  @uc-member-add-card
   # Related aggregate:
-  #   boardMembership: read
+  #   board-membership: read
   #   card: write
   Scenario: Member 可以正常新增與編輯卡片
     When "雅婷" 在這個 Board 新增一張卡片 "撰寫測試案例"
