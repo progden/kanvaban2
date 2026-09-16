@@ -8,7 +8,7 @@
 - Board 存取權限（我能看到哪些 Board）
 - Card 負責人指派（只有 Owner 角色，限定看板成員，可多選）
 
-本功能的設計結論：新增 `User`、`BoardMembership` 兩個 Aggregate Root；`Card.assignee` 由自由文字改為參照看板成員，並改為可複選、只有負責人（Owner）角色，沒有另外的 Member 概念。
+本功能的設計結論：新增「User」、「BoardMembership」兩個 Aggregate Root；「Card.assignee」由自由文字改為參照看板成員，並改為可複選、只有負責人（Owner）角色，沒有另外的 Member 概念。
 
 本次疊代範圍排除：帳號註冊流程的其他細節（例如信箱驗證）、拒絕邀請情境（邀請即生效，沒有「待接受」的中間狀態）。
 
@@ -64,16 +64,17 @@
 ```
 
 - 只列出實際會用到的 aggregate；沒用到的可以省略整行。
-- `read` 代表需要先查詢既有資料才能決定如何寫入或驗證；`write` 代表會真正新增/修改/刪除該 aggregate 的資料。
+- 「read」代表需要先查詢既有資料才能決定如何寫入或驗證；「write」代表會真正新增/修改/刪除該 aggregate 的資料。
 
 ## 變更紀錄（Change Log）
 
 | 日期 | 票號 | 類型 | 摘要 |
 |------|------|------|------|
 | 2026-09-13 | CR-004 | 變更 | 名詞定義補上「操作時間（occurredAt）」，明訂 Board/Card 事件時間一律取自 Board Clock（見 F04），User／BoardMembership 事件維持系統時間；既有 Scenario 文字不需修改，故不掛 Scenario 層級 tag |
-| 2026-09-13 | CR-004 | 開發完成 | `kanban-core` 的 `Board`／`Card` 事件時間已全面改用 Board Clock；User／BoardMembership 事件維持系統時間不受影響。CR-004 狀態改「處理完成」 |
-| 2026-09-13 | F05 | 新增 | 「卡片負責人指派」Feature 補上「拖曳成員頭像到卡片上，追加該成員為負責人」與「拖曳已經是負責人的成員頭像到卡片上，不重複新增」兩條 Scenario，供 F05 人員 Workload 表的拖曳追加負責人操作使用；本檔尚未進入開發，可直接補上，不需開 CR。「拖曳已存在負責人不重複新增」採靜默忽略、不產生活動紀錄的假設，理由：與「指派多位負責人」情境的「負責人集合」語意一致（`assignTo` 追加時本來就是集合操作，重複元素不改變集合，不視為一次有效變更），對應 `spec-workload.md` Open Question 的定案 |
-| 2026-09-13 | F05 | 開發完成 | `kanban-core` 的 `Card` 新增 `addAssignee`（追加單一負責人，重複則靜默忽略、不產生活動紀錄），對應上述兩條 Scenario 的實作 |
+| 2026-09-13 | CR-004 | 開發完成 | 「kanban-core」的「Board」／「Card」事件時間已全面改用 Board Clock；User／BoardMembership 事件維持系統時間不受影響。CR-004 狀態改「處理完成」 |
+| 2026-09-13 |  | 新增 | （原票號 F05）「卡片負責人指派」Feature 補上「拖曳成員頭像到卡片上，追加該成員為負責人」與「拖曳已經是負責人的成員頭像到卡片上，不重複新增」兩條 Scenario，供 F05 人員 Workload 表的拖曳追加負責人操作使用；本檔尚未進入開發，可直接補上，不需開 CR。「拖曳已存在負責人不重複新增」採靜默忽略、不產生活動紀錄的假設，理由：與「指派多位負責人」情境的「負責人集合」語意一致（「assignTo」追加時本來就是集合操作，重複元素不改變集合，不視為一次有效變更），對應 `spec-workload.md` Open Question 的定案 |
+| 2026-09-13 |  | 開發完成 | （原票號 F05）「kanban-core」的「Card」新增「addAssignee」（追加單一負責人，重複則靜默忽略、不產生活動紀錄），對應上述兩條 Scenario 的實作 |
+| 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-create-user`…`uc-view-board-activity-log`） |
 
 ---
 
@@ -818,9 +819,9 @@ Board／Swimlane／Stage／Card 既有事件的操作人記錄已隨 CR-001／CR
 - OQ-05：修正 OQ-04，「卡片負責人指派」「檢視看板活動紀錄」改沿用 F01 已定義的 r-user（看板使用者），不新設角色（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
 - OQ-06：「Board 權限管理」Feature 的 5 個 Scenario 因 GH-01（uc 必須屬於同一 Feature）與 UC-06（每個 uc 至少一個成功 Scenario）而拆成 5 個本 Feature 專屬的新 uc，不重用「Board 建立與成員邀請」的 uc-invite-member 等既有 uc（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
 - OQ-07：「Board 權限管理」「Board 存取權限」4 個拒絕類 uc 的 roles 依 Background／Feature 標頭補上被拒絕的操作者角色，不留空（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
-- `Label`（標籤）Aggregate 設計不在本文件範圍內，將於獨立的 Feature 文件中處理。
+- 「Label」（標籤）Aggregate 設計不在本文件範圍內，將於獨立的 Feature 文件中處理。
 
-## 實作備註（留給 `design.md`）
+## 實作備註（留給 `design-user-membership.md`）
 
-- 刪除 Board 對使用者而言是「底下的 Swimlane、Stage、Card 全部一併刪除」（如上述 Scenario），但實作上第一版可以用**封存（archive）**取代真正的實體刪除（例如加一個 `archivedAt` 欄位），行為上仍表現為使用者看不到、找不到這些資料即可，不必真的刪除資料列。
-- 角色只有 `Owner`／`Member` 兩種，不需要唯讀 Viewer 或其他角色。
+- 刪除 Board 對使用者而言是「底下的 Swimlane、Stage、Card 全部一併刪除」（如上述 Scenario），但實作上第一版可以用**封存（archive）**取代真正的實體刪除（例如加一個「archivedAt」欄位），行為上仍表現為使用者看不到、找不到這些資料即可，不必真的刪除資料列。
+- 角色只有「Owner」／「Member」兩種，不需要唯讀 Viewer 或其他角色。
