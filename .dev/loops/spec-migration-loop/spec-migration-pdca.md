@@ -188,3 +188,30 @@
 
 ### Act
 完成，下一個任務：T1.04（[F01] 同上，「Card（卡片）編輯」）。
+
+## Iteration 7 — 2026-09-16 23:20 — T1.04
+
+### Plan
+本輪任務 T1.04：遷移 F01「Card（卡片）編輯」Feature 至 usecase 區塊。要改 `.dev/F01-basic-kanban/spec-kanban-basic.md` 該 Feature 段落：新增 `### Use Case 定義` 區塊、為 8 個 Scenario 補 `@uc-`／`@fail-` tag、調整 `# Related aggregate:` 註解對齊實體 ID 與 crud。驗收條件：`errors(F01#Card（卡片）編輯)=0`。預期 F01 error 數從 19 降到接近 0（剩餘屬於 T1.05 正文清理範圍）。
+
+### Do
+- commit 78c94e1 `[spec/design](basic-kanban) 遷移 Card（卡片）編輯 Feature 至 usecase 區塊`
+- 依「同一 When 動作」分組出 6 個 uc：`uc-add-card`（在指定 Swimlane 與 Stage 建立新卡片 + 卡片標題不可為空）、`uc-edit-card`（編輯卡片詳細內容，不含負責人）、`uc-move-card-swimlane`（同一 Stage 內跨 Swimlane 移動）、`uc-move-card-stage`（跨 Stage 移動）、`uc-add-comment`（為卡片新增留言）、`uc-delete-card`（刪除卡片需要確認 + 取消刪除卡片）。
+- pre／post／fail 逐句對應原 Scenario 步驟：`uc-add-card.pre.p1`=card.title 非空（對應「卡片標題不可為空」失敗情境）；`uc-move-card-stage.post` 沿用原文「卡片的狀態異動被記錄，包含操作人、異動時間與異動前後的 stage」（與其他 uc 的「一筆活動紀錄」措辭不同，保留原文不改寫）；`uc-add-comment.post` 對應「該留言應該顯示在留言列表」「留言應該記錄留言者與留言時間」兩句。
+- 修正「卡片標題不可為空」情境的 Aggregate 註解：原文誤標 `card: write`（失敗情境不應寫入），依遷移程序第 9 點「失敗 Scenario 只標 read」改為 `card: read`。
+- 低影響假設（寫入 state）：
+  1. `uc-move-card-stage` 的 `crud` 補上 `board: R`，對齊既有 Aggregate 註解「board: read」（GH-06 要求註解出現的實體必須在 crud 裡有對應 key）。
+  2. 留言（comment）不另立實體：原名詞表沒有「留言」這個詞條，且遷移程序第 2 點僅要求列出「Aggregate 註解出現過的名稱＋原名詞表裡的名詞」；`uc-add-comment` 的 post 句改用反引號 `card` 滿足 UC-03「每句至少一個 ID」的規則，不新增 comment 實體。
+- 高影響假設 OQ-02（已登記，見 `spec-migration-open-questions.md`）：「取消刪除卡片」Scenario 若當成 `uc-delete-card` 的一般成功 Scenario，GH-06 會要求 Aggregate 註解標 `card: write`，但該情境實際未刪除卡片、註解應為 `read`，兩者矛盾。改採：在 `uc-delete-card` 補 `pre.p2`「使用者於刪除 card 的確認訊息中選擇取消」與 `fail.p2`「拒絕，該 card 不被移除，資料不變」，Scenario 改掛 `@uc-delete-card @fail-p2`，維持原註解 `card: read` 不變。已在 spec `## 待釐清` 加一行指向 OQ-02。
+
+### Check
+- `./scripts/spec-check` 最後一行：開工前「302 error(s), 2 warning(s)」→ 收尾「292 error(s), 1 warning(s)」。
+- `tools error-count .dev/F01-basic-kanban/spec-kanban-basic.md`：19 → 9（剩餘 9 個 error 屬於正文反引號清理／變更紀錄格式，為 T1.05 範圍）。
+- `tools accept-check <tasks> T1.04`：無輸出，通過（`errors(F01#Card（卡片）編輯)=0`）。
+- `tools gherkin-diff`：exit 0，「Gherkin 行為與遷移前一致（160 行）」。
+- `tools tag-diff`：exit 0，無輸出（僅新增 `@uc-`／`@fail-`，未動狀態 tag／`@CR-`）。
+- `tools changelog-check`：exit 0，無輸出（變更紀錄留給 T1.05 一次補上 CR-005 列）。
+- 逐條對照驗收條件：`errors(F01#Card（卡片）編輯)=0` 已達成。
+
+### Act
+完成，下一個任務：T1.05（[F01] 遷移程序 10～11：正文反引號清理、`design.md` 稱呼改為 `design-kanban-basic.md`、變更紀錄改四欄格式並追加 CR-005 一列）。

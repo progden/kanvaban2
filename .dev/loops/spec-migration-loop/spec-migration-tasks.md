@@ -32,7 +32,7 @@
 | T1.01 | done | [F01] 遷移程序 1～6：狀態行、名詞定義三張表＋其他名詞、角色定義、三個 Feature 的「身為」行與 `## Feature:` 標題（實體 ID 含所屬 Aggregate；原名詞表的說明文字分流到四張表，不刪） | `errors(F01;GH-08,REF-03,REF-04,REF-05,REF-09)=0`；原名詞表每一列說明都能在新表找到（PDCA Check 逐列對照） | T0.02 |
 | T1.02 | done | [F01] 「Swimlane 管理」Feature 的 usecase 區塊＋該 Feature 全部 Scenario 的 `@uc-`／`@fail-` tag 與 Aggregate 註解對齊（遷移程序 7～9） | `errors(F01#Swimlane 管理)=0` | T1.01 |
 | T1.03 | done | [F01] 同上，「Stage（階段）管理」 | `errors(F01#Stage（階段）管理)=0` | T1.02 |
-| T1.04 | todo | [F01] 同上，「Card（卡片）編輯」 | `errors(F01#Card（卡片）編輯)=0` | T1.03 |
+| T1.04 | done | [F01] 同上，「Card（卡片）編輯」 | `errors(F01#Card（卡片）編輯)=0` | T1.03 |
 | T1.05 | todo | [F01] 遷移程序 10～11：正文反引號清理（程式碼名稱改「」）、`design.md` 稱呼改為 `design-kanban-basic.md`、變更紀錄改四欄格式並追加 CR-005 一列 | `errors(F01;REF-01,REF-06)=0`；變更紀錄最後一列票號為 CR-005 | T1.04 |
 | T1.06 | todo | [F01] 收尾：F01 全檔 0 error，修掉剩餘項目 | `errors(F01)=0` | T1.05 |
 | G1 | todo | 關卡：審查輪檢視 F01 是否可作為其餘模組的範本（usecase 拆分粒度、pre／post 措辭、實體粒度、角色表） | 腳本建立 `runtime/gates/G1.approved` | T1.06 |
