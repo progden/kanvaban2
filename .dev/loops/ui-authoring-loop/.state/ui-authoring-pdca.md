@@ -800,3 +800,22 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：D-14。下一個任務：D-15。
+
+## Iteration 40 — 2026-09-17 23:10 — D-15
+### Plan
+本輪任務 D-15：處理 `uc-member-add-card`（F02）沒有任何畫面觸發的 DS-06 warning。先判斷 F01 `uc-add-card` 與 F02 `uc-member-add-card` 的關係，二選一：(a) 在 `s-card-add-dialog` 標出 `r-board-member` 觸發 `uc-member-add-card`；(b) 判斷不出關係則開 OQ 並標 ⚠️。預期：DS-06 warning 移除，或改為 OQ + `s-card-add-dialog`「討論中」+ ⚠️；`ui-check(all)` 維持 0 error。
+
+### Do
+- 先嘗試選項 (a)：在 `s-card-add-dialog` 角色與權限表新增 `r-board-member`（F02，跨模組）列，操作表「確認新增」觸發欄改為同時列出 `uc-add-card` 與 `uc-member-add-card`。跑 `ui-check` 後發現 DS-03（觸發欄含非 UseCase 種類反引號）與 DS-05（操作可用角色與 uc roles 不一致）各出 2 個新 error：`uc-add-card.roles=[r-user]` 與 `uc-member-add-card.roles=[r-board-member]` 互斥（皆單一角色），同一操作列的「可用角色」集合無法同時等於這兩個互斥集合，機制上無法一列同時觸發兩個 uc。判定為高風險／關係推不出來，改用選項 (b)。
+- 改用選項 (b)：還原 `s-card-add-dialog` 角色與權限表、操作表為原樣（僅 `r-user` 觸發 `uc-add-card`），畫面「狀態」段標題改為「討論中」；「狀態」段「無權限」項與「待確認事項」加 ⚠️ 說明兩個 uc 角色互斥、關係推不出來，指向 OQ-30。
+- `ui-authoring-open-questions.md` 追加 OQ-30：【引用原文】引用 `uc-member-add-card` 的 roles／crud／post 與角色定義表 `r-board-member` 描述，F01 `uc-add-card` 的欄位以純文字描述（不加『』，避免同一行混入兩個模組的 spec 檔名導致 `verify-quotes.py` 的 `spec_for_line` 誤判用哪份 spec 驗證）；「選項」給 3 項（改 CR／拆操作列／維持現狀標 ⚠️），採用第 3 項。
+- 除錯過程：`verify-quotes.py` 第一次失敗（4 筆），原因是行內同時出現 `spec-kanban-basic.md` 與 `spec-user-membership.md` 兩個檔名字面字串，`spec_for_line()` 只回傳第一個命中的模組（依目錄字母序 F01 先於 F02），導致 user-membership 的引用被拿去跟 kanban-basic 的 spec 比對。改寫該行移除 `spec-kanban-basic.md` 字面字串、F01 uc-add-card 內容改純文字描述後再跑一次通過。
+- `ui-check` 全域跑出 2 個新 REF-07：「待確認事項」裡誤用反引號包住非 ID 的「ui-check」與「{card: C}」，改成「」或去掉反引號後解除。
+- commit：`5073eec [spec/design](kanban-basic) 標記卡片新增與成員新增卡片兩個 uc 的角色衝突`
+- `ui-authoring-tasks.md`：D-15 狀態改 `done`（本輪 docs commit 一併提交）
+
+### Check
+`./scripts/ui-check` 最後一行：`0 error(s), 5 warning(s)`（含既有 `s-signup`／`s-member-management`／`s-board-delete-dialog`／`s-activity-log` 的 DS-07，以及 `uc-member-add-card` 的 DS-06——本輪選擇 (b) 保留這個 warning，符合驗收條件另一分支）。`tools accept-check ui-authoring-tasks.md D-15`：無輸出（通過，無機械 token 失敗）。驗收條件逐條核對：OQ 檔第 52 行提到 `uc-member-add-card` ✓；`s-card-add-dialog` 待確認事項有對應 ⚠️ 且引用 OQ-30 ✓；`verify-quotes.py` 回傳「驗證通過」（exit 0）✓；`ui-check(all)`＝0 error（雖仍有 `uc-member-add-card` 的 DS-06 warning，但驗收條件是「或」關係，OQ+⚠️ 分支已達成，且 error 數為 0）✓。
+
+### Act
+完成：D-15。下一個任務：D-16。
