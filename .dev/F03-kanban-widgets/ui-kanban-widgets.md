@@ -5,7 +5,7 @@
 ## s-cycle-lead-time-dashboard：Cycle Time 與 Lead Time 儀表板
 所屬 Feature：Cycle Time 與 Lead Time 分析
 類型：儀表板
-狀態：討論中
+狀態：已定案
 
 ### 目的
 看板使用者檢視卡片從開始到完成花費的時間，以便評估團隊的交付速度與承諾交期。
@@ -26,9 +26,9 @@
 | 卡片標題 | `card.title` | 顯示 | — | 識別卡片清單中每一列 |
 | Lead Time | 衍生：`card` 建立時間到進入 Done 角色 Stage 的時間差 | 顯示 | — | 依 `uc-view-cycle-lead-time` post p1 |
 | Cycle Time | 衍生：`card` 第一次進入 Start 角色 Stage 到完成的時間差；未曾進入 Start 就完成時顯示「無」 | 顯示 | — | 依 `uc-view-cycle-lead-time` post p1／p2 |
-| 完成時間 | 衍生：`card` 最後一次進入 Done 角色 Stage 的時間 | 顯示 | — | 依 `uc-view-cycle-lead-time` post p3，離開 Done 後再進入以最後一次為準 |
+| 完成時間 | 衍生：`card` 最後一次進入 Done 角色 Stage 的時間 | 顯示 | — | 依 `uc-view-cycle-lead-time` post p4，離開 Done 後再進入以最後一次為準 |
 | 排除計算的卡片數 | 衍生：Cycle Time 顯示為「無」的卡片數量加總 | 顯示 | — | 依 `uc-view-cycle-lead-time` post p2 |
-| 統計摘要（平均值、百分位） | 衍生：卡片清單 Cycle Time 統計排除 Cycle Time 為「無」的卡片；Lead Time 統計是否比照排除，spec 未定義，見 OQ-33 | 顯示 | ⚠️ 待確認：具體百分位數（例如 P50／P85）spec 未定義，見 OQ-33 | 依 `uc-view-cycle-lead-time` post p2 |
+| 統計摘要（平均值、P50／P85／P95） | 衍生：Cycle Time 統計排除 Cycle Time 為「無」的卡片；Lead Time 統計不排除任何卡片（每個已完成卡片皆有 Lead Time） | 顯示 | 百分位固定為 P50、P85、P95 | 依 `uc-view-cycle-lead-time` post p2／p3 |
 
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
@@ -47,11 +47,12 @@
 - 未曾進入 Start 角色 Stage 就完成的卡片，Cycle Time 顯示為「無」
 - 統計摘要的 Cycle Time 平均值與百分位計算排除 Cycle Time 顯示為「無」的卡片
 - 統計摘要顯示「排除計算的卡片數」
+- 統計摘要顯示 Lead Time 與 Cycle Time 的 P50、P85、P95 三個百分位數；Lead Time 統計不排除任何卡片
 - 卡片離開 Done 後再次完成時，完成時間顯示為最後一次進入 Done 的時間
 - 開啟畫面時觸發 `uc-view-cycle-lead-time`
 
 ### 待確認事項
-- ⚠️ 統計摘要的百分位計算所指定的具體百分位數（例如 P50／P85），以及 Lead Time 統計是否比照 Cycle Time 排除「無」的卡片，spec 未定義，見 OQ-33
+- （無）
 
 ## s-wip-dashboard：WIP 與 Aging WIP 儀表板
 所屬 Feature：WIP 與 Aging WIP 監控

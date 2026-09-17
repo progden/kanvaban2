@@ -55,6 +55,7 @@
 | 2026-09-13 |  | 開發完成 | （原票號 F03）「kanban-spring」完成四個 Feature 的查詢邏輯：Cycle Time／Lead Time（「query.timeline」）、WIP／Aging WIP（「query.wip」）、Throughput／CFD（「query.throughput」）、逾期／即將到期提醒（「query.duedate」），均以「CardTimelineProjector」重播出的「CardTimeline」為共同資料來源；JUnit5+AssertJ 單元測試逐條對應本檔 Scenario，「./mvnw verify」全綠，詳見 `design.md`「實作狀態」段落（`design.md` 即 `design-kanban-widgets.md`） |
 | 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-view-cycle-lead-time`、`uc-view-wip`、`uc-view-aging-wip`、`uc-view-throughput`、`uc-view-cfd`、`uc-view-duedate-reminder`） |
 | 2026-09-18 |  | 變更 | 修正 6 個檢視類 usecase 的角色（ui-authoring-loop OQ-32 發現：填了 F01 的 `r-user`，本檔並未定義這個 ID），全部改為 `r-board-member`；`uc-view-duedate-reminder` 補上門檻天數的驗證規則（1 到 365 之間的正整數）與對應失敗情境；本檔尚未進入開發，可直接補上，不需開 CR |
+| 2026-09-18 |  | 變更 | 補上 `uc-view-cycle-lead-time` 統計摘要細節（ui-authoring-loop OQ-33 發現：百分位數與 Lead Time 排除規則未定義）：明訂固定顯示 P50、P85、P95 三個百分位數；Lead Time 統計摘要不排除任何卡片（僅 Cycle Time 因「無」值排除）；本檔尚未進入開發，可直接補上，不需開 CR |
 
 ---
 
@@ -69,7 +70,8 @@
   pre: {}
   post:
     - "已完成的 `card` 顯示 Lead Time（從建立到進入 Done 角色 Stage 所經過的時間）與 Cycle Time（從第一次進入 Start 角色 Stage 到完成所經過的時間）"
-    - "未曾進入 Start 角色 Stage 就完成的 `card`，Cycle Time 顯示為「無」，統計摘要的平均值與百分位計算排除該 `card`，並顯示排除計算的卡片數"
+    - "未曾進入 Start 角色 Stage 就完成的 `card`，Cycle Time 顯示為「無」，Cycle Time 統計摘要的平均值與百分位計算排除該 `card`，並顯示排除計算的卡片數；Lead Time 每個已完成 `card` 皆可計算，Lead Time 統計摘要不排除任何 `card`"
+    - "Cycle Time、Lead Time 的統計摘要，其百分位計算固定顯示 `card` 清單中 P50、P85、P95 三個百分位數"
     - "`card` 離開 Done 後再次完成，完成時間以最後一次進入 Done 的時間為準"
   fail: {}
   emits: []
@@ -96,6 +98,7 @@ Feature: Cycle Time 與 Lead Time 分析
     When 我開啟 Cycle Time / Lead Time 圖表
     Then 卡片 "A" 的 Lead Time 應該顯示為 4 天
     And 卡片 "A" 的 Cycle Time 應該顯示為 3 天
+    And 統計摘要應該顯示 Lead Time 與 Cycle Time 的 P50、P85、P95 三個百分位數
 
   @uc-view-cycle-lead-time
   # Related aggregate:
