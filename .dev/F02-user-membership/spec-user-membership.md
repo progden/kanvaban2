@@ -28,6 +28,7 @@
 | user.username | string | 非空、全系統不可重複 | 帳號 ID，登入用 |
 | user.display-name | string | 未指定時預設等於 `user.username` | 顯示名字，看板上顯示用，可以與其他帳號重複 |
 | user.password | string(40) | 可留白，長度上限 40 字，字元不限制（可含英文大小寫、符號） | 密碼 |
+| board.name | string | 必填、非空 | 看板名稱，建立時指定 |
 | board.created-by | ref user | 必填 | Board 的建立者 |
 | board-membership.role | enum(Owner, Member) | | 該 `user` 對該 `board` 的角色 |
 | card.assignees | ref user（多值） | 只能選擇該看板的成員 | 卡片負責人，可複選 |
@@ -73,6 +74,8 @@
 | 2026-09-13 | CR-004 | 變更 | 名詞定義補上「操作時間（occurredAt）」，明訂 Board/Card 事件時間一律取自 Board Clock（見 F04），User／BoardMembership 事件維持系統時間；既有 Scenario 文字不需修改，故不掛 Scenario 層級 tag |
 | 2026-09-13 | CR-004 | 開發完成 | 「kanban-core」的「Board」／「Card」事件時間已全面改用 Board Clock；User／BoardMembership 事件維持系統時間不受影響。CR-004 狀態改「處理完成」 |
 | 2026-09-13 |  | 新增 | （原票號 F05）「卡片負責人指派」Feature 補上「拖曳成員頭像到卡片上，追加該成員為負責人」與「拖曳已經是負責人的成員頭像到卡片上，不重複新增」兩條 Scenario，供 F05 人員 Workload 表的拖曳追加負責人操作使用；本檔尚未進入開發，可直接補上，不需開 CR。「拖曳已存在負責人不重複新增」採靜默忽略、不產生活動紀錄的假設，理由：與「指派多位負責人」情境的「負責人集合」語意一致（「assignTo」追加時本來就是集合操作，重複元素不改變集合，不視為一次有效變更），對應 `spec-workload.md` Open Question 的定案 |
+| 2026-09-17 |  | 新增 | 補上遺漏的 `board.name` 欄位（ui-authoring-loop OQ-14 發現：Scenario 裡 Board 都有名稱，但名詞定義欄位表沒有對應欄位），`uc-create-board` post 同步補上「`board.name` 為指定名稱」；本檔尚未進入開發，可直接補上，不需開 CR |
+| 2026-09-17 |  | 變更 | 修正 6 個 usecase 的角色欄位筆誤（ui-authoring-loop OQ-06 發現：填了 F01 的 `r-user`，但本檔角色定義沒有這個 ID）：`uc-set-card-assignees`／`uc-list-card-assignee-candidates`／`uc-view-card-assignees`／`uc-list-cards-by-assignee`／`uc-assign-card-owner-by-drag` 改為 `r-board-member`；`uc-view-board-activity-log` 改為 `r-board-owner`、`r-board-member` 皆可檢視；本檔尚未進入開發，可直接補上，不需開 CR |
 | 2026-09-13 |  | 開發完成 | （原票號 F05）「kanban-core」的「Card」新增「addAssignee」（追加單一負責人，重複則靜默忽略、不產生活動紀錄），對應上述兩條 Scenario 的實作 |
 | 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-create-user`…`uc-view-board-activity-log`） |
 
@@ -248,7 +251,7 @@ Feature: 使用者登入與登出
   pre:
     p1: "`user` 已登入系統"
   post:
-    - "新的 `board` 建立成功，`board.created-by` 為建立者"
+    - "新的 `board` 建立成功，`board.name` 為指定名稱，`board.created-by` 為建立者"
     - "建立者自動成為該 `board` 的 `board-membership`，角色為 Owner"
     - "該 `board` 產生一筆活動紀錄，操作人為建立者、動作為「建立看板」"
   fail: {}
@@ -606,7 +609,7 @@ Feature: Board 存取權限
 ```usecase
 - id: uc-set-card-assignees
   name: 透過編輯畫面設定卡片負責人
-  roles: [r-user]
+  roles: [r-board-member]
   crud: {card: U, board-membership: R}
   pre:
     p1: "指定的 `card` 已存在"
@@ -620,7 +623,7 @@ Feature: Board 存取權限
   calls-sync: []
 - id: uc-list-card-assignee-candidates
   name: 檢視負責人候選名單
-  roles: [r-user]
+  roles: [r-board-member]
   crud: {board-membership: R}
   pre: {}
   post:
@@ -631,7 +634,7 @@ Feature: Board 存取權限
   calls-sync: []
 - id: uc-view-card-assignees
   name: 檢視卡片負責人顯示狀態
-  roles: [r-user]
+  roles: [r-board-member]
   crud: {card: R}
   pre: {}
   post:
@@ -642,7 +645,7 @@ Feature: Board 存取權限
   calls-sync: []
 - id: uc-list-cards-by-assignee
   name: 依負責人查詢卡片清單
-  roles: [r-user]
+  roles: [r-board-member]
   crud: {card: R}
   pre: {}
   post:
@@ -653,7 +656,7 @@ Feature: Board 存取權限
   calls-sync: []
 - id: uc-assign-card-owner-by-drag
   name: 拖曳頭像追加卡片負責人
-  roles: [r-user]
+  roles: [r-board-member]
   crud: {card: U, board-membership: R}
   pre:
     p1: "指定的 `card` 已存在"
@@ -776,7 +779,7 @@ F02 是尚未進入開發的規格，可以直接補上操作人記錄；F01 的
 ```usecase
 - id: uc-view-board-activity-log
   name: 檢視看板活動紀錄
-  roles: [r-user]
+  roles: [r-board-owner, r-board-member]
   crud: {board: R, board-membership: R}
   pre: {}
   post:
