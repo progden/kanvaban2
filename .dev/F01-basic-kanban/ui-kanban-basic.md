@@ -320,8 +320,55 @@
 
 ## s-card-detail：卡片詳情
 所屬 Feature：Card（卡片）編輯
-類型：詳情
-狀態：未討論
+類型：表單
+狀態：討論中
+
+### 目的
+看板使用者在此檢視並編輯卡片詳細內容，並新增留言追蹤討論。
+
+### 進入與離開
+- 從哪裡進來：`s-board` 的「開啟卡片詳情」操作
+- 完成後去哪裡：儲存變更或新增留言後停留本畫面，對應欄位更新為最新內容；關閉回到 `s-board`，看板交會格內容更新
+- 中途放棄會怎樣：關閉未儲存的欄位變更，卡片內容維持關閉前的樣子（不套用本次未儲存的編輯）
+
+### 角色與權限
+| 角色 | 看得到 | 做得到 |
+|---|---|---|
+| `r-user` | 卡片完整內容、留言列表 | 儲存變更、新增留言、關閉 |
+
+### 資料
+| 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
+|---|---|---|---|---|
+| 卡片標題 | `card.title` | 顯示 | — | 依 `uc-edit-card` post，本畫面僅更新 `card.description`、`card.due-date`、`card.labels`，標題不可於此編輯 |
+| 卡片描述 | `card.description` | 顯示 / 輸入 | — | 依欄位表 `card.description` 限制欄無資料 |
+| 截止日期 | `card.due-date` | 顯示 / 輸入 | — | 依欄位表 `card.due-date` 限制欄無資料 |
+| 標籤 | `card.labels` | 顯示 / 輸入（多值） | — | 依欄位表 `card.labels` 限制欄無資料 |
+| 負責人 | ⚠️ 待確認：見 OQ-08 | 顯示 | — | F01 `card` 欄位表無負責人欄位（CR-002 移除），待 F02「卡片負責人指派」相關畫面定案後回填來源與指派入口 |
+| 留言列表 | ⚠️ 待確認：見 OQ-09 | 顯示 / 輸入（新增留言內容） | — | spec 未在名詞定義表定義「留言」實體或欄位，僅 `uc-add-comment` post 以文字描述留言內容、留言者、留言時間 |
+
+### 操作
+| 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
+|---|---|---|---|---|
+| 儲存變更 | `uc-edit-card` | 依 `uc-edit-card` post：`card.description`、`card.due-date`、`card.labels` 更新為編輯內容，停留本畫面 | 不適用（`uc-edit-card` 無 fail 定義） | 否 |
+| 新增留言 | `uc-add-comment` | 依 `uc-add-comment` post：該留言顯示於留言列表 | 不適用（`uc-add-comment` 無 fail 定義） | 否 |
+| 關閉 | — | 回到 `s-board`，看板交會格內容更新 | — | 否 |
+
+### 狀態
+- 載入中：載入卡片內容與留言列表時顯示
+- 空資料：不適用（進入本畫面代表指定的 `card` 已存在，依 `uc-edit-card` pre p1）
+- 錯誤：不適用（`uc-edit-card`、`uc-add-comment` 均無 fail 定義）
+- 無權限：不適用（F01 spec 僅定義 `r-user` 一種角色，無角色差異）
+- 資料狀態差異：不適用
+
+### 驗收條件
+- 開啟時顯示卡片標題、描述、截止日期、標籤與既有留言列表
+- 儲存變更後，描述、截止日期、標籤更新為輸入內容，且觸發 `uc-edit-card`
+- 新增留言後，該留言顯示於留言列表，且觸發 `uc-add-comment`
+- 關閉後回到 `s-board`，看板交會格內容更新
+
+### 待確認事項
+- ⚠️ 負責人欄位與指派入口：待 F02「卡片負責人指派」相關畫面（任務清單 T2.08 規劃的 s-card-assignee-picker）定案後回填，見 OQ-08（`ui-authoring-open-questions.md`）
+- ⚠️ 留言相關欄位缺乏可引用的 Attribute ID，需回饋後端 Spec 補上「留言」實體與欄位定義，見 OQ-09（`ui-authoring-open-questions.md`）
 
 ## s-card-delete-dialog：刪除卡片對話框
 所屬 Feature：Card（卡片）編輯
