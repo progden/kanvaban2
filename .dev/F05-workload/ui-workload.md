@@ -5,7 +5,7 @@
 ## s-workload-dashboard：人員工作量儀表板
 所屬 Feature：人員工作量檢視
 類型：儀表板
-狀態：討論中
+狀態：已定案
 
 ### 目的
 看板使用者檢視每位成員目前手上有幾張進行中卡片與未指派卡片數量，以便平衡團隊的工作分配。
@@ -26,13 +26,12 @@
 | 成員名稱 | `user.display-name`（F02，跨模組） | 顯示 | — | 依 `uc-view-workload` post p1，依 `board-membership` 成員分組 |
 | 成員工作量 | 衍生：該成員擔任負責人的 Active Card 數量 | 顯示 | — | 依 `uc-view-workload` post p1／p2；`card` 同時有多位負責人時，每位負責人的工作量各自包含該 `card` |
 | 未指派卡片數 | 衍生：`card.assignees` 為空的 Active Card 數量 | 顯示 | — | 依 `uc-view-workload` post p3 |
-| 卡片標題 | `card.title`（F01，跨模組） | ⚠️ 待確認 | — | ⚠️ 待確認：本畫面是否列出個別卡片供拖曳頭像指派負責人，spec 未寫明呈現方式，見 OQ-42 |
 
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
 |---|---|---|---|---|
 | 檢視工作量表 | `uc-view-workload` | 顯示各成員工作量與未指派卡片數量 | 不適用（`uc-view-workload` 無 fail 定義） | 否 |
-| 拖曳成員頭像到卡片追加負責人 | `uc-drag-assign-card-owner` | 觸發 `uc-drag-assign-card-owner`（⚠️ 見 OQ-42） | 不適用（`uc-drag-assign-card-owner` 無 fail 定義） | 否（可透過 F02 `uc-set-card-assignees` 調整負責人清單，非不可逆操作） |
+| 拖曳成員頭像到卡片追加負責人 | `uc-drag-assign-card-owner` | 觸發 `uc-drag-assign-card-owner`；卡片顯示於同一畫布上 F01 `s-board` item 的縮圖負責人更新（依 OQ-42，本畫面不顯示個別卡片，拖放目標為同時存在於畫布上的 `s-board` item） | 不適用（`uc-drag-assign-card-owner` 無 fail 定義） | 否（可透過 F02 `uc-set-card-assignees` 調整負責人清單，非不可逆操作） |
 
 ### 狀態
 - 載入中：載入 `board-membership` 成員清單與 Active Card 分佈以計算工作量時顯示
@@ -45,7 +44,7 @@
 - 成員工作量數字顯示 `uc-view-workload` 回傳的值
 - 未指派任何負責人的 Active Card 數量顯示為「未指派」
 - 開啟畫面時觸發 `uc-view-workload`
-- 拖曳成員頭像到卡片後，觸發 `uc-drag-assign-card-owner`（⚠️ 見 OQ-42）
+- 拖曳成員頭像到同一畫布上 F01 `s-board` item 的卡片後，觸發 `uc-drag-assign-card-owner`
 
 ### 待確認事項
-- ⚠️ 本畫面是否列出個別卡片供拖曳頭像指派負責人，spec 未寫明呈現方式，見 OQ-42
+- （無）
