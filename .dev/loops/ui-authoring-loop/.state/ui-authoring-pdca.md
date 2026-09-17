@@ -685,3 +685,27 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 ### Act
 - 完成：D-12 標 `done`。
 - 下一個任務：D-13（[F02] `s-signup`／`s-login` 狀態行從「討論中」改「已定案」，前提確認無殘留 `⚠️`）。
+
+## Iteration 34 — 2026-09-17 19:47 — D-13
+
+### Plan
+- 任務：D-13——確認 `ui-user-membership.md` 的 `s-signup`（第 5～50 行）與 `s-login`（第 51～101 行）段落內沒有殘留 `⚠️`，且「待確認事項」皆為「（無）」，若成立則把兩畫面「狀態」行由「討論中」改為「已定案」。
+- 要改的檔案：`.dev/F02-user-membership/ui-user-membership.md`（只改兩行「狀態：」）。
+- 驗收條件：`s-signup`／`s-login` 狀態行變成「狀態：已定案」且段落不含 `⚠️`；`ui-check(.dev/F02-user-membership/ui-user-membership.md)` error 數不增加（基準 39）。
+- 預期 error 數變化：0（純文字改狀態字串，不影響 ui-check 解析）。
+
+### Do
+- `grep -n "⚠️"` 掃描全檔，確認 5～101 行範圍（`s-signup`／`s-login`）沒有任何 `⚠️` 命中；兩畫面「待確認事項」原文已是「（無）」。
+- 修改 `s-signup`、`s-login` 的「狀態：討論中」為「狀態：已定案」。
+- commit `60edfcf [spec/design](user-membership) 定案 s-signup 與 s-login 畫面`。
+- 無新增 OQ／D-xx。
+
+### Check
+- `tools error-count .dev/F02-user-membership/ui-user-membership.md`：39（不變）。
+- `./scripts/ui-check .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 最後一行：`51 error(s), 38 warning(s)`（含其他模組 spec 混入的數字，單檔基準以 `tools error-count`＝39 為準，符合驗收條件「不增加」）。
+- `tools accept-check ui-authoring-tasks.md D-13`：無機械 token 可比對（驗收條件用自然語言描述，非 `ui-check(...)=0` 格式），已用上述兩項指令逐條核對。
+- 驗收條件逐條確認：狀態行皆為「已定案」✓；兩畫面段落不含 `⚠️` ✓；error 數未增加 ✓。
+
+### Act
+- 完成：D-13 標記 `done`；下一個任務 T2.08（定案 `s-card-assignee-picker`）。
+- 未完成：D-10 仍列 `doing`，待 T2.11 收尾任務整份歸零後改 `done`，不需再動內容。
