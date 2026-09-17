@@ -20,3 +20,4 @@
 
 | 編號 | 日期 | 模組 | 情況 | 選項 | 採用 | 依據 | 狀態 |
 |---|---|---|---|---|---|---|---|
+| OQ-01 | 2026-09-17 | kanban-basic | [Level: kanban-basic/s-swimlane-list] 【推論】`spec-kanban-basic.md`「Feature: Swimlane 管理」Background 僅寫『And 我已開啟一個名為 "產品開發看板" 的看板』，未描述如何從看板畫面前往 Swimlane 管理；推論 `s-swimlane-list` 的進入路徑需待 `s-board` 定案時一併確認。 | 1. 模組入口（獨立入口，不經看板） 2. 從 `s-board` 的某個操作進入 3. 併入 `s-board` 內嵌顯示，`s-swimlane-list` 不需獨立成畫面 | 暫定為模組入口，維持八段格式完整；待 `s-board` 定案時回頭確認或更正 | Feature: Swimlane 管理 Background | 自動決議 |

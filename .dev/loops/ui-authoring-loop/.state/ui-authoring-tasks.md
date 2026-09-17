@@ -23,7 +23,7 @@
 | ID | 狀態 | 任務 | 驗收條件 | 依賴 |
 |----|------|------|----------|------|
 | T1.01 | done | [F01] 建立 `ui-kanban-basic.md`：檔頭（依 `ui-convention.md`「檔案與固定格式」）＋ 8 個畫面標題骨架（`s-swimlane-list`、`s-swimlane-delete-dialog`、`s-stage-list`、`s-stage-delete-dialog`、`s-board`、`s-card-add-dialog`、`s-card-detail`、`s-card-delete-dialog`），每個畫面只填標題下三行（所屬 Feature、類型、狀態：未討論），八段內容先留空標題 | 8 個 `## s-` 標題與三行標頭都存在；`ui-check .dev/F01-basic-kanban/ui-kanban-basic.md` 對畫面標題格式（`DS-01`）不報 error | T0.01 |
-| T1.02 | todo | [F01] 定案 `s-swimlane-list`（類型：列表）：對應 `uc-add-swimlane`／`uc-rename-swimlane`／`uc-reorder-swimlane`（新增、重新命名、拖曳排序都在同一張列表上操作） | `ui-check(.dev/F01-basic-kanban/ui-kanban-basic.md)` 對本畫面無 error；八段齊全 | T1.01 |
+| T1.02 | done | [F01] 定案 `s-swimlane-list`（類型：列表）：對應 `uc-add-swimlane`／`uc-rename-swimlane`／`uc-reorder-swimlane`（新增、重新命名、拖曳排序都在同一張列表上操作） | `ui-check(.dev/F01-basic-kanban/ui-kanban-basic.md)` 對本畫面無 error；八段齊全 | T1.01 |
 | T1.03 | todo | [F01] 定案 `s-swimlane-delete-dialog`（類型：對話框）：對應 `uc-delete-swimlane`（含目的泳道選擇的成功／失敗情境） | 同上，本畫面無 error | T1.02 |
 | T1.04 | todo | [F01] 定案 `s-stage-list`（類型：列表）：對應 `uc-add-stage`／`uc-rename-stage`／`uc-reorder-stage`／`uc-set-stage-role` | 同上 | T1.03 |
 | T1.05 | todo | [F01] 定案 `s-stage-delete-dialog`（類型：對話框）：對應 `uc-delete-stage`（含卡片轉移情境） | 同上 | T1.04 |

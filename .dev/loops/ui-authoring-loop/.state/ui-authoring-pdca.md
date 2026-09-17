@@ -57,3 +57,24 @@
 
 ### Act
 完成：T1.01。下一個任務：T1.02（[F01] 定案 `s-swimlane-list`，類型：列表，對應 `uc-add-swimlane`／`uc-rename-swimlane`／`uc-reorder-swimlane`）。
+
+## Iteration 3 — 2026-09-17 15:30 — T1.02
+
+### Plan
+定案（依短規格完整度）`s-swimlane-list`（.dev/F01-basic-kanban/ui-kanban-basic.md）：填齊八段，對應 `uc-add-swimlane`／`uc-rename-swimlane`／`uc-reorder-swimlane`，刪除操作導向 `s-swimlane-delete-dialog`。預期本畫面 `ui-check` 0 error；整檔 error 數應從 104 下降。
+
+### Do
+- 讀 `spec-kanban-basic.md`「Feature: Swimlane 管理」usecase 區塊（`uc-add-swimlane`／`uc-rename-swimlane`／`uc-reorder-swimlane`／`uc-delete-swimlane`）、Gherkin Scenario、名詞定義三張表（`swimlane`、`swimlane.name`、`board`-`swimlane` 關係）、角色定義（僅 `r-user`）。
+- 填入目的、進入與離開、角色與權限、資料、操作、狀態、驗收條件、待確認事項八段；畫面狀態設為「討論中」（因進入路徑未定）。
+- 高風險：spec 未描述如何從看板畫面前往 Swimlane 管理（`s-board` 尚未定案），依「自主決策分級」標 `⚠️`，新增 `OQ-01`（【推論】，依據 Feature: Swimlane 管理 Background），暫定「模組入口」以維持八段格式完整。
+- 低風險決定：新增／重新命名／拖曳排序皆判定為可逆操作（需確認＝否）；刪除操作在本畫面僅為導向 `s-swimlane-delete-dialog` 的前端動作（觸發＝—，需確認＝否，實際刪除確認在該對話框畫面）；角色表「做得到」欄逐字寫操作名稱以滿足 `DS-05` 比對。
+- commit `.dev/F01-basic-kanban/ui-kanban-basic.md`（`[spec/design](kanban-basic)`）與 OQ 檔（`[docs](loops)`）。
+
+### Check
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md`：`grep -i swimlane-list` 無任何輸出（本畫面 0 error）；整檔最後一行 `93 error(s), 18 warning(s)`（較上一輪 104 error 下降，其餘 error/warn 皆屬其餘 7 個尚未定案的骨架畫面，預期範圍）。
+- `tools accept-check ... T1.02`：exit 0，無機械 token 需檢查（驗收條件為肉眼核對格式）。
+- 逐條對照驗收條件：`ui-check` 對 `s-swimlane-list` 無 error（達成）；八段齊全（`### 目的`～`### 待確認事項` 依序存在，達成）。
+- `python3 .../scripts/verify-quotes.py`：通過（`逐字引用驗證通過`）。
+
+### Act
+完成：T1.02。下一個任務：T1.03（[F01] 定案 `s-swimlane-delete-dialog`，對應 `uc-delete-swimlane`）。
