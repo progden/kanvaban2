@@ -137,3 +137,22 @@
 
 ### Act
 完成：T1.04。下一個任務：T1.05（[F01] 定案 `s-stage-delete-dialog`，對應 `uc-delete-stage`，含卡片轉移情境）。
+
+## Iteration 7 — 2026-09-17 16:50 — T1.05
+
+### Plan
+本輪任務 T1.05：定案 `s-stage-delete-dialog`（對話框），對應 `uc-delete-stage`（含卡片轉移情境）。要改的檔案：`.dev/F01-basic-kanban/ui-kanban-basic.md`（填該畫面八段內容）；驗收條件：對本畫面無 error，八段齊全。預期 `ui-check` 全檔 error 數延續下降（起點 65 → 預期約 52，因為仍有 3 個畫面骨架未填）。
+
+### Do
+- 讀 `spec-kanban-basic.md` 的 `uc-delete-stage`（pre p1：`board` 中 `stage` 數量大於 1；post：`stage` 刪除、若有卡片則 `card.stage` 更新為使用者選擇的目的 `stage`；fail p1）與對應兩則 Scenario（「刪除空的 Stage」「刪除包含卡片的 Stage 需要先轉移卡片」「看板至少保留一個 Stage」）。
+- 填妥 `s-stage-delete-dialog` 八段：資料段比對 `s-swimlane-delete-dialog` 的既有寫法，多加「目的 Stage」欄位（來源 `board`→`stage` 關係），操作表拆「選擇目的 Stage」（純前端、觸發 `—`）與「確認刪除」（觸發 `uc-delete-stage`，需確認：是）兩列；狀態段「資料狀態差異」寫明有卡片才需選目的 Stage。
+- 高風險：spec 的 `uc-delete-stage` post 沒寫目的 Stage 是否可排除欲刪除的 Stage 本身，標 `⚠️` 於「資料」段驗證欄與「待確認事項」，畫面狀態維持「討論中」，新增 `OQ-03`（【推論】格式，引用 post 原文）。
+- commit：`75cceda [spec/design](kanban-basic) 定案 s-stage-delete-dialog 八段短規格`。
+
+### Check
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md`：`52 error(s), 10 warning(s)`（起點 65，`s-stage-delete-dialog` 本身無 error，剩餘 error 都是 `s-board`／`s-card-add-dialog`／`s-card-detail`／`s-card-delete-dialog` 骨架未填，屬預期）。
+- 逐條對照驗收條件：`ui-check(.dev/F01-basic-kanban/ui-kanban-basic.md)` 對本畫面無 error（達成，grep 該畫面標題行後無任何 error）；八段齊全（達成）。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：逐字引用驗證通過（本輪 OQ-03 與待確認事項的『』引用皆與 spec 逐字相符）。
+
+### Act
+完成 T1.05。下一個任務：T1.06（[F01] 定案 `s-board`，對應 `uc-move-card-swimlane`／`uc-move-card-stage`，並在操作表列出跨模組引用的 `uc-assign-card-owner-by-drag`）。
