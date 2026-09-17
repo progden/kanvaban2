@@ -766,3 +766,20 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：下一個任務 T2.11（跨模組收尾任務）。
+
+## Iteration 38 — 2026-09-17 22:10 — D-10／T2.11
+### Plan
+本輪任務：`actionable` 排序第一為 D-10（`doing`），但其驗收內容（`s-login`/`s-signup` 的 OQ-11／12／13 移除）已在前幾輪 commit 完成，只差 T2.11 收尾後整份歸零才能真正標 `done`；依 state 上一輪紀錄的「下一個任務」直接銜接執行 T2.11：修正 `.dev/F01-basic-kanban/ui-kanban-basic.md` 的 `s-card-detail`（T1.08／OQ-08 留的 `⚠️`）——負責人欄位來源改填 `card.assignees`，補上開啟 `s-card-assignee-picker` 的入口與操作列；同時清掉 `s-card-assignee-picker`「狀態」段 `roles` 的反引號誤用；兩個檔案一起跑 `ui-check` 確認 0 error。預期：F02 檔 error 數 1→0，F01 `s-card-detail` 轉「已定案」。
+
+### Do
+- 67e4907 `[spec/design] 定案卡片詳情負責人欄位並修正選取畫面角色誤用`：
+  - `s-card-detail`：角色與權限表新增 `r-board-member`（F02，跨模組）列；負責人欄位來源改為 `card.assignees`（F02，跨模組），依 `uc-view-card-assignees` post；「進入與離開」完成後去哪裡新增「開啟負責人選取入口後導向 `s-card-assignee-picker`」分支；操作表新增「開啟負責人選取」列（觸發 `—`，純前端導覽）；驗收條件補負責人顯示與開啟入口兩條；待確認事項清空（OQ-08 解除）；狀態「討論中」→「已定案」。
+  - `s-card-assignee-picker`：「狀態」段「無權限」文字裡的 `` `roles` `` 反引號誤用（roles 是 usecase 欄位名，不屬於六種可加反引號的 ID）改為純文字 `roles`。
+  - 低風險決定：「完成後去哪裡」一開始寫成巢狀項目符號（比照 `s-login`），跑完 `ui-check` 才發現 `parser_design.py` 的 `BULLET_RE` 要求同一行要有冒號才會登記 `nav_to`，巢狀子項目沒有冒號、不會被登記，導致 `s-card-assignee-picker` 的 DS-07「沒有畫面導向它」warn 沒有隨之解除；改回單行以「；」分隔多個去向的既有寫法（與 `s-board` 相同風格），`ui-check` 重跑後 DS-07 warn 數少 1（21→20），確認登記成功；純格式選擇，不影響內容語意。
+  - `.dev/loops/ui-authoring-loop/.state/ui-authoring-tasks.md`：D-10、T2.11 狀態改 `done`。
+
+### Check
+`./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 最後一行：`0 error(s), 20 warning(s)`（剩餘 20 個 warning 皆為既有 DS-06／DS-07 項目，非本輪新增：F01/F02/F04/F05/F07 尚有寫入 uc 未被任何畫面觸發、`s-signup`／`s-member-management`／`s-board-delete-dialog`／`s-cards-by-assignee`／`s-activity-log` 尚無畫面導向或非模組入口，皆對應既有 OQ-22／26／28／29 或待後續任務處理，不在 T2.11 範圍）。`tools accept-check ui-authoring-tasks.md D-10 T2.11`：無輸出（兩者皆通過）。驗收條件逐條核對：`ui-check(...)=0`（F01、F02 皆達成）；`s-card-detail` 待確認事項不再含 T1.08 的 `⚠️`（已清空為「（無）」）；D-10 五項驗收（`s-login`/`s-signup` 相關文字與 OQ 移除）於前幾輪已完成，本輪未變動、仍成立。本輪未新增或修改 OQ 表列、也未新增『』引用，未跑 `verify-quotes.py`。
+
+### Act
+完成：D-10、T2.11 皆標 `done`，F01（8 畫面）、F02（9 畫面）全部收尾，`ui-check`（兩檔合併）0 error。下一個任務：T3.01（`actionable` 已確認為新的第一項，進入階段 3 F03 kanban-widgets）。
