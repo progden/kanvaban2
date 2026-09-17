@@ -18,9 +18,9 @@
 ### 角色與權限
 | 角色 | 看得到 | 做得到 |
 |---|---|---|
-| `r-canvas-editor` | 全部畫布元素與自己的檢視區 | 放置元件、移除元件、移動元件、調整元件大小、設定元件能力、設定元件錨定方式、調整元件層序（置頂／置底）、批次移動元件、批次移除元件、平移／縮放檢視區、離開、開啟管理 Swimlane、開啟管理 Stage |
+| `r-canvas-editor` | 全部畫布元素與自己的檢視區 | 放置元件、移除元件、移動元件、調整元件大小、設定元件能力、設定元件錨定方式、調整元件層序（置頂／置底）、批次移動元件、批次移除元件、平移／縮放檢視區、離開、開啟管理 Swimlane、開啟管理 Stage（⚠️ 見 OQ-44） |
 | `r-canvas-viewer` | 全部畫布元素與自己的檢視區 | 平移／縮放檢視區、離開 |
-| `r-user`（F01，跨模組） | 同 `r-canvas-editor` | 新增 Swimlane、新增 Stage |
+| `r-user`（F01，跨模組） | 新增 Swimlane、新增 Stage 所需範圍（⚠️ 見 OQ-44） | 新增 Swimlane、新增 Stage |
 
 ### 資料
 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
@@ -67,7 +67,7 @@
 - 觸發移除元件前顯示確認；確認後該元件自畫布移除，且觸發 `uc-remove-item`
 - 移動、調整大小、設定能力、設定錨定方式、調整層序後，對應元件立即顯示更新後的內容，並分別觸發 `uc-move-item`／`uc-resize-item`／`uc-set-item-capabilities`／`uc-set-item-anchor`／`uc-reorder-item`
 - 觸發批次移除前顯示確認；批次移動、批次移除操作後，所選元件皆依結果更新或移除，並分別觸發 `uc-move-items`／`uc-remove-items`
-- 平移或縮放後，我的檢視區顯示新的位置與縮放比例，且觸發 `uc-set-viewport`；縮放比例超出範圍時，檢視區不變、顯示訊息
+- 平移或縮放後，我的檢視區顯示新的位置與縮放比例，且觸發 `uc-set-viewport`；縮放比例超出範圍時，顯示訊息
 - 操作者角色為 `r-canvas-viewer` 時，畫面上僅平移縮放與離開可用，其餘操作皆無法使用
 - 新增 Swimlane、新增 Stage 成功後，分別觸發 `uc-add-swimlane`、`uc-add-stage`
 - 開啟管理 Swimlane、開啟管理 Stage 分別開啟 F01 `s-swimlane-list`、`s-stage-list`
