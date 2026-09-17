@@ -641,3 +641,23 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 ### Act
 - 完成：D-11 標 `done`。
 - 下一個任務：D-12（[F02] 修正 `s-board-delete-dialog`／`s-board-create-dialog`／`s-board-list` 把領域狀態寫進 UI 段落）。
+
+## Iteration 32 — 2026-09-17 19:43 — D-11
+
+### Plan
+- 上一輪驗證：FAIL。失敗項目：「PDCA「## Iteration 31 — 2026-09-17 — D-11」的 Check 沒有貼 ui-check 的結果行（`N error(s), M warning(s)`）」。
+- 依規則書「先修正失敗項目，再繼續 state 記載的同一個任務」：本輪只補這一筆缺漏，不改動已 commit 的 ui 檔內容（PDCA 只能追加，不能回頭改舊段落）；D-11 內容本身（`6292049`）已完成且未變動。
+- 驗收條件：本則 Check 段落補上 `./scripts/ui-check .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 的最後一行結果。
+- 預期 error 數變化：無（沿用 Iteration 31 的判斷，D-11 為純文字改寫）。
+
+### Do
+- 未變動任何 ui 檔或程式碼；僅重跑檢查指令取得 Iteration 31 遺漏的結果行並補記於此。
+
+### Check
+- `./scripts/ui-check .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：52 error(s), 38 warning(s)（與 D-11 改動前相同，純文字改寫不影響 DS/REF 檢查）。
+- `tools error-count .dev/F02-user-membership/ui-user-membership.md`：39（不變）。
+- `tools accept-check ui-authoring-tasks.md D-11`：無機械 token 可比對，已於 Iteration 31 以 grep／verify-quotes／error-count 逐條核對過，本則不重複。
+
+### Act
+- 完成：補上 Iteration 31 遺漏的 ui-check 結果行；D-11 維持 `done`。
+- 下一個任務：D-12（[F02] 修正 `s-board-delete-dialog`／`s-board-create-dialog`／`s-board-list` 把領域狀態寫進 UI 段落）。
