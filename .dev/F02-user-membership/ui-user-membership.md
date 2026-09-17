@@ -133,18 +133,17 @@
 - 載入中：載入 Board 列表時顯示
 - 空資料：使用者尚未是任何 `board` 的 Owner 或 Member 時，顯示空清單
 - 錯誤：不適用（`uc-view-board-list` 無 fail 定義）
-- 無權限：嘗試直接開啟不屬於自己的 Board 時，依 `uc-reject-board-access-by-nonmember` post 顯示訊息，操作者仍無法存取該 `board`
+- 無權限：嘗試直接開啟不屬於自己的 Board 時，依 `uc-reject-board-access-by-nonmember` post 顯示訊息，停留本畫面
 - 資料狀態差異：不適用（spec 未定義 Owner／Member 列表呈現上的差異）
 
 ### 驗收條件
 - 使用者是其 Owner 或 Member 的 Board 都顯示於列表，沒有權限的 Board 不顯示，且觸發 `uc-view-board-list`
 - 尚未擁有任何 Board 時，列表顯示空清單
 - 選擇列表中的 Board 後開啟該 Board（F01 `s-board`）
-- 嘗試直接開啟不屬於自己的 Board 時，觸發 `uc-reject-board-access-by-nonmember`，且操作者仍無法存取該 Board
+- 嘗試直接開啟不屬於自己的 Board 時，觸發 `uc-reject-board-access-by-nonmember`，顯示訊息，停留本畫面
 - 觸發前往建立 Board 動作，開啟 `s-board-create-dialog`，不觸發任何 Use Case
 
 ### 待確認事項
-- ⚠️ 本畫面對 F01 `s-board` 的跨模組引用單獨檢查本檔時會被 ui-check 誤判為未定義（工具限制，見 OQ-16），需與 `.dev/F01-basic-kanban/ui-kanban-basic.md` 一起檢查才會消失；OQ-16 已由人工修正 ui-authoring-tools.py 解除
 - ⚠️ 依 OQ-17／OQ-18（人工決策，F07 是類 Miro 畫布），「完成後去哪裡」與操作表「選擇 Board 進入」引用的 F01 `s-board` 未來會改成導向 F07 s-canvas（該 Screen 尚未定案，T7.02 完成前不掛反引號引用），暫不修改本畫面內容，待 D-09 一併處理
 
 ## s-board-create-dialog：建立 Board 對話框
@@ -173,7 +172,7 @@
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
 |---|---|---|---|---|
-| 確認建立 | `uc-create-board` | 依「完成後去哪裡」導向下一畫面，操作者對該 Board 角色為 Owner | 不適用（`uc-create-board` 無 fail 定義） | 否（可透過 `uc-delete-board` 刪除復原，見該 uc post） |
+| 確認建立 | `uc-create-board` | 依「完成後去哪裡」導向下一畫面，`s-board-list` 顯示新建立的 Board | 不適用（`uc-create-board` 無 fail 定義） | 否（可透過 `uc-delete-board` 刪除復原，見該 uc post） |
 | 取消 | — | 關閉對話框 | — | 否 |
 
 ### 狀態
@@ -185,7 +184,7 @@
 
 ### 驗收條件
 - 開啟時顯示空白的 Board 名稱輸入欄
-- 輸入 Board 名稱後確認建立，觸發 `uc-create-board`，成功後依「完成後去哪裡」導向下一畫面，且操作者對該 Board 角色為 Owner
+- 輸入 Board 名稱後確認建立，觸發 `uc-create-board`，成功後依「完成後去哪裡」導向下一畫面，且 `s-board-list` 顯示新建立的 Board
 - 取消後關閉對話框，且不觸發 `uc-create-board`
 
 ### 待確認事項
@@ -263,8 +262,8 @@ Board 擁有者刪除 Board 前確認，一併告知底下的 Swimlane、Stage �
 
 ### 進入與離開
 - 從哪裡進來：⚠️ 待確認——spec 未描述如何抵達本畫面，推論應由 F01 `s-board` 的 Owner 專屬操作進入，但該操作尚未列在 `s-board` 操作表中，見 OQ-26
-- 完成後去哪裡：該 Board 已不再存在，導向 `s-board-list`
-- 中途放棄會怎樣：關閉對話框，Board 與其資料不變
+- 完成後去哪裡：導向 `s-board-list`
+- 中途放棄會怎樣：關閉對話框，回到進入前的畫面
 
 ### 角色與權限
 | 角色 | 看得到 | 做得到 |
@@ -282,7 +281,7 @@ Board 擁有者刪除 Board 前確認，一併告知底下的 Swimlane、Stage �
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
 |---|---|---|---|---|
-| 確認刪除 | `uc-delete-board` | 依 post：該 `board` 與其底下所有 Swimlane、Stage、`card` 都不再存在，導向 `s-board-list` | 不適用（`uc-delete-board` 無 fail 定義） | 是（本畫面即確認） |
+| 確認刪除 | `uc-delete-board` | 導向 `s-board-list` | 不適用（`uc-delete-board` 無 fail 定義） | 是（本畫面即確認） |
 | 取消 | — | 關閉對話框 | — | 否 |
 
 ### 狀態
@@ -294,8 +293,8 @@ Board 擁有者刪除 Board 前確認，一併告知底下的 Swimlane、Stage �
 
 ### 驗收條件
 - 開啟時顯示該 Board 名稱、Swimlane 數、Stage 數與卡片數
-- 確認刪除後，觸發 `uc-delete-board`，該 Board 與其底下所有 Swimlane、Stage、卡片都不再存在，導向 `s-board-list`
-- 取消後關閉對話框，且不觸發 `uc-delete-board`，Board 與其資料不變
+- 確認刪除後，觸發 `uc-delete-board`，導向 `s-board-list`
+- 取消後關閉對話框，且不觸發 `uc-delete-board`
 
 ### 待確認事項
 - ⚠️ 本畫面「從哪裡進來」spec 未定義，推論應由 F01 `s-board` 的 Owner 專屬操作進入，但該操作尚未列在 `s-board` 操作表中，見 OQ-26
