@@ -57,7 +57,50 @@
 ## s-wip-dashboard：WIP 與 Aging WIP 儀表板
 所屬 Feature：WIP 與 Aging WIP 監控
 類型：儀表板
-狀態：未討論
+狀態：討論中
+
+### 目的
+看板使用者檢視各 Stage 目前的卡片數量，以及進行中卡片已經停留多久，以便及早發現流程卡住的地方。
+
+### 進入與離開
+- 從哪裡進來：⚠️ 待確認（見 OQ-31）：跨模組，F01 `s-board` 操作表（T1.06 已定案內容）目前沒有「檢視圖表」操作，spec Background 只寫已開啟 Board，未描述如何前往本畫面
+- 完成後去哪裡：不適用（純檢視畫面，無完成後導向其他畫面的動作）
+- 中途放棄會怎樣：不適用（無多步驟流程）
+
+### 角色與權限
+| 角色 | 看得到 | 做得到 |
+|---|---|---|
+| `r-user`（F01，跨模組） | 各 Stage 目前卡片數量、進行中卡片的年齡 | 檢視 WIP 圖表、檢視 Aging WIP 圖表 |
+
+### 資料
+| 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
+|---|---|---|---|---|
+| Stage 名稱 | `stage`（F01，跨模組） | 顯示 | — | WIP 圖表依 Stage 分組 |
+| Stage 卡片數 | 衍生：該 Stage 目前的 `card` 數量 | 顯示 | — | 依 `uc-view-wip` post p1 |
+| 卡片標題 | `card.title` | 顯示 | — | 識別 Aging WIP 清單中每一列 |
+| 卡片年齡 | 衍生：`card` 進入 Start 角色 Stage 到 asOf（看板時間目前）所經過的時間 | 顯示 | — | 依 `uc-view-aging-wip` post p1，僅列已進入 Start、尚未進入 Done 的卡片 |
+
+### 操作
+| 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
+|---|---|---|---|---|
+| 檢視 WIP 圖表 | `uc-view-wip` | 顯示各 Stage 目前卡片數量 | 不適用（`uc-view-wip` 無 fail 定義） | 否 |
+| 檢視 Aging WIP 圖表 | `uc-view-aging-wip` | 顯示進行中卡片清單與年齡 | 不適用（`uc-view-aging-wip` 無 fail 定義） | 否 |
+
+### 狀態
+- 載入中：載入 Stage 卡片數量與卡片時間軸以計算年齡時顯示
+- 空資料：某 Stage 目前卡片數為 0，或沒有已進入 Start、尚未進入 Done 的卡片時，對應圖表顯示為空
+- 錯誤：不適用（`uc-view-wip`／`uc-view-aging-wip` 皆無 fail 定義）
+- 無權限：不適用（F03 spec 僅使用跨模組 `r-user` 一種角色，無角色差異）
+- 資料狀態差異：不適用（兩個 uc 的 post 未定義清單以外的呈現差異）
+
+### 驗收條件
+- 各 Stage 顯示目前的卡片數量
+- 已進入 Start 角色 Stage、尚未進入 Done 的卡片，顯示從進入 Start 到看板時間目前所經過的年齡
+- 開啟畫面時觸發 `uc-view-wip`
+- 開啟畫面時觸發 `uc-view-aging-wip`
+
+### 待確認事項
+- ⚠️ 進入路徑未定義，見 OQ-31：F01 `s-board` 操作表尚無「檢視圖表」操作
 
 ## s-throughput-cfd-dashboard：Throughput 與累積流量圖儀表板
 所屬 Feature：Throughput 與累積流量圖
