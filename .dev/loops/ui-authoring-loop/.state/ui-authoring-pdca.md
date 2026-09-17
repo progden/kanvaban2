@@ -156,3 +156,26 @@
 
 ### Act
 完成 T1.05。下一個任務：T1.06（[F01] 定案 `s-board`，對應 `uc-move-card-swimlane`／`uc-move-card-stage`，並在操作表列出跨模組引用的 `uc-assign-card-owner-by-drag`）。
+
+## Iteration 8 — 2026-09-17 14:54 — T1.06
+
+### Plan
+本輪任務：T1.06（[F01] 定案 `s-board`，對應 `uc-move-card-swimlane`／`uc-move-card-stage`，操作表另列出跨模組的 F02 `uc-assign-card-owner-by-drag`）。要改的檔案：`.dev/F01-basic-kanban/ui-kanban-basic.md`（填 `s-board` 八段）；同時檢視能否解掉 OQ-01／OQ-02（前幾輪標記「待 `s-board` 定案時回頭確認」）。驗收條件：八段齊全、操作表含 `uc-assign-card-owner-by-drag` 一列；預期 `ui-check`（含 `--spec` 涵蓋 F02 spec）對 `s-board` 無 error。
+
+### Do
+- 讀 `spec-kanban-basic.md` 的 `uc-move-card-swimlane`／`uc-move-card-stage`（Feature: Card 編輯）與 `spec-user-membership.md` 的 `uc-assign-card-owner-by-drag`（Feature: 卡片負責人指派，含 `card.assignees`／`board-membership` 欄位表），填妥 `s-board` 八段。
+- 低風險決定：`s-board` 操作表新增「管理 Swimlane」「管理 Stage」兩列（觸發 `—`），分別導向 `s-swimlane-list`／`s-stage-list`；據此解掉 OQ-01／OQ-02——把兩畫面「進入與離開.從哪裡進來」改為「`s-board` 的『管理 Swimlane／Stage』操作」，「待確認事項」清空為「（無）」，狀態由「討論中」改為「已定案」（OQ 表本身依規則只能附加列，不可回改既有列，故 OQ-01／OQ-02 原文保留，改動只發生在 ui 檔）。
+- 高風險項目記入 OQ 並標 ⚠️（`s-board` 維持「討論中」）：
+  - OQ-04：`s-board` 本身「從哪裡進來」——開啟看板是跨模組行為（F02），對應畫面（任務清單 T2.01 規劃的 `s-board-list`）尚未定案，暫不引用未定案 ID。
+  - OQ-05：看板成員清單（供拖曳頭像用）呈現於 `s-board` 何處，spec 無依據。
+  - OQ-06（【矛盾】）：F02 `uc-assign-card-owner-by-drag` 等 5 個 usecase 的 `roles: [r-user]`，與 F02 自身「角色定義」表（`r-system-user`／`r-board-owner`／`r-board-member`，無 `r-user`）不一致；暫依 usecase 區塊填 `r-user`，回饋後端 Spec。
+- commit `36...`（`[spec/design](kanban-basic) 定案 s-board 八段短規格`）。
+
+### Check
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md`（不帶 `--spec`）：51 error(s), 4 warning(s)；其中 11 筆 REF-07 是 `s-board` 引用 F02 尚未載入的 ID（`card.assignees`／`uc-set-card-assignees`／`board-membership`／`uc-assign-card-owner-by-drag`／`r-system-user`／`r-board-owner`／`r-board-member`）——這是工具限制（`ui-check` 只依已存在的 `ui-<模組>.md` 自動帶入對應 `spec-<模組>.md`，F02 的 `ui-user-membership.md` 尚未建立，見 T2.01），不是本畫面內容錯誤。
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md --spec .dev/F02-user-membership/spec-user-membership.md`：39 error(s)（全部屬於既有的 `s-card-add-dialog`／`s-card-detail`／`s-card-delete-dialog` 骨架，非本輪範圍），`s-board` 無任何 DS-01～DS-05／REF-07 error。
+- 驗收條件對照：八段齊全（達成）；操作表含 `uc-assign-card-owner-by-drag` 一列（達成，見「拖曳成員頭像到卡片追加負責人」列）。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：逐字引用驗證通過（OQ-06 的『r-system-user』『r-board-owner』『r-board-member』等引用已改標 `user-membership` 模組並移除誤觸發 F01 比對的路徑字樣後過關）。
+
+### Act
+完成 T1.06，OQ-01／OQ-02 已解掉（`s-swimlane-list`／`s-stage-list` 改標「已定案」）。下一個任務：T1.07（[F01] 定案 `s-card-add-dialog`，對應 `uc-add-card`）。
