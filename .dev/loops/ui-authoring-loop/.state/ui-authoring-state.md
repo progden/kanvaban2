@@ -1,12 +1,12 @@
 # UI 撰寫狀態快照（每輪覆寫，20 行內）
 
 - 更新：2026-09-17（執行輪）
-- 目前階段：F04 board-clock 全部收尾完成，D-21 已完成；F01～F04 皆已收尾，下一步進入 F05
-- 上一輪驗證：FAIL（範圍 af36da0..320f2df，任務 D-20；失敗項目：PDCA Iteration 54 Check 缺 ui-check 結果行）
-- 上一輪任務：D-20——結案 D-19（狀態改 done），未動 OQ／ui 檔
-- 本輪任務：先修正上一輪驗證失敗項目（PDCA 只能追加，改在本輪 Check 段落補記缺漏的 ui-check 結果，不回頭編輯 Iteration 54），再完成 D-21：(1) 刪除操作表「共同前置條件」誤述、(2) 驗收條件非 Owner 行改為不預設可見範圍並加 ⚠️ OQ-37、(3) 追加 OQ-40（【推論】）修正 OQ-35 對 OQ-34 結論的誤述，未改 OQ-35 本身
-- 已完成的模組：F01 全部 8 個畫面已收尾；F02 全部 9 個畫面已收尾；F03 全部 4 個畫面已收尾（討論中）；F04 全部 1 個畫面已收尾（討論中，D-21 已修正兩處寫法）；F05～F07 尚未開始
+- 目前階段：F01～F04 全部收尾完成；F05 workload 開始，T5.01 已完成
+- 上一輪驗證：PASS（範圍 320f2df..e160302，任務 D-21）
+- 上一輪任務：T5.01——建立 `ui-workload.md`：檔頭 ＋ 1 個畫面標題骨架（`s-workload-dashboard`）
+- 本輪任務：T5.02——定案 `s-workload-dashboard`（類型：儀表板）：對應 `uc-view-workload`／`uc-drag-assign-card-owner`（拖曳成員頭像到卡片），依規則書「輸入怎麼讀」讀 `spec-workload.md` 名詞定義三張表、角色定義，八段內容逐一定案，推不出來的標 ⚠️ 記 OQ
+- 已完成的模組：F01 全部 8 個畫面已收尾；F02 全部 9 個畫面已收尾；F03 全部 4 個畫面已收尾（討論中）；F04 全部 1 個畫面已收尾（討論中）；F05 骨架已建立（1 畫面，未討論），F06～F07 尚未開始
 - 已定義的共用 ID：無新增
 - 最近 OQ：OQ-40（修正 OQ-35「情況」欄對 OQ-34 結論的誤述，對應 D-21，追加而非編輯）
-- 下一個任務：T5.01（[F05] 建立 `ui-workload.md`：檔頭 ＋ 1 個畫面標題骨架 `s-workload-dashboard`）
-- 待注意：OQ 檔任何時候都只能追加，PDCA 也只能追加，發現舊紀錄有缺漏一律用本輪補記說明，不回頭編輯舊 Iteration。開工前跑 `./scripts/ui-check .dev/F05-workload/*.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 確認起點（檔案不存在會顯示「找不到任何 ui 檔」，屬預期）。
+- 下一個任務：T5.02（定案 `s-workload-dashboard`，完成後 T5.03 收尾 F05）
+- 待注意：OQ 檔任何時候都只能追加，PDCA 也只能追加，發現舊紀錄有缺漏一律用本輪補記說明，不回頭編輯舊 Iteration。`uc-drag-assign-card-owner`（`spec-workload.md`）與 `uc-assign-card-owner-by-drag`（`spec-user-membership.md`）同義但分屬不同 Feature（OQ-09 已定案），寫 `s-workload-dashboard` 操作表時留意只引用本模組的 `uc-drag-assign-card-owner`。

@@ -1128,3 +1128,23 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：D-21（F04 全部收尾修正完成）。下一個任務：T5.01（[F05] 建立 `ui-workload.md`：檔頭 ＋ 1 個畫面標題骨架 `s-workload-dashboard`）。
+
+## Iteration 56 — 2026-09-17 23:00 — T5.01
+### Plan
+上一輪驗證 PASS（`runtime/last-verify.md`，範圍 320f2df..e160302，PASS，無失敗項目），照 state 記載的下一個任務執行 T5.01：建立 `.dev/F05-workload/ui-workload.md`，內容為檔頭（依 `ui-convention.md`「檔案與固定格式」）＋ 1 個畫面標題骨架（`s-workload-dashboard`），畫面標題下只填三行（所屬 Feature、類型、狀態：未討論），依 T1.01/T4.01 已驗證過的模式。預期：`ui-check .dev/F05-workload/ui-workload.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 不報 DS-01（畫面標題格式）error，但會報 DS-02／DS-04（缺段落）error，與 T1.01/T4.01 建立骨架當輪的既有模式一致。
+
+### Do
+- 讀 `.dev/F05-workload/spec-workload.md`：Feature 標頭為「Feature: 人員工作量檢視」（56 行），對應 usecase `uc-view-workload`／`uc-drag-assign-card-owner`；T5.02 任務描述已指定畫面類型為「儀表板」。
+- 建立 `.dev/F05-workload/ui-workload.md`：檔頭三行說明文字仿 `ui-board-clock.md` 格式，改標題與模組路徑；`## s-workload-dashboard：人員工作量儀表板`，三行標頭：所屬 Feature：人員工作量檢視／類型：儀表板／狀態：未討論。
+- commit `8760b5e`：`[spec/design](ui-workload) 建立檔頭與 1 個畫面標題骨架`。
+- 任務清單：T5.01 狀態由 `todo` 改為 `done`。
+
+### Check
+- `./scripts/ui-check .dev/F05-workload/ui-workload.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`13 error(s), 39 warning(s)`；13 個 error 全部是 DS-02（缺段落：目的／進入與離開／角色與權限／資料／操作／狀態／驗收條件／待確認事項）與 DS-04（狀態段缺載入中／空資料／錯誤／無權限／資料狀態差異），無 DS-01（畫面標題格式）error，與 T1.01/T4.01 建立骨架當輪的既有模式一致（8 段內容留待 T5.02 定案）。
+- `tools error-count .dev/F05-workload/ui-workload.md`：13（開工前檔案不存在，視為 0；本輪骨架帶來 13 個「內容未填」error 屬預期，非退步）。
+- `tools accept-check ui-authoring-tasks.md T5.01`：無輸出（本任務驗收條件無機械 token，比照 T1.01 用「8 個 `## s-` 標題與三行標頭都存在」＋ ui-check 對 DS-01 不報 error 兩條人工核對，皆達成）。
+- 逐條對照 T5.01 驗收條件（同 T1.01 模式）：1 個 `## s-` 標題（`s-workload-dashboard`）與三行標頭（所屬 Feature／類型／狀態）都存在 ✓；`ui-check` 對畫面標題格式（DS-01）不報 error ✓。
+- 本輪未新增或修改 OQ 表列、ui 檔「待確認事項」引用，未跑 `verify-quotes.py`。
+
+### Act
+完成：T5.01。下一個任務：T5.02（[F05] 定案 `s-workload-dashboard`（類型：儀表板）：對應 `uc-view-workload`／`uc-drag-assign-card-owner`）。
