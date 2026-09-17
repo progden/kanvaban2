@@ -1310,3 +1310,29 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T7.01。下一個任務：T7.02（[F07] 定案 `s-canvas`：對應本模組全部 10 個 uc，含人工決策 OQ-17／OQ-18 相關的 D-09 判斷）。
+
+## Iteration 65 — 2026-09-17 — T7.02（修正上一輪驗證 FAIL）
+### Plan
+上一輪外部驗證 FAIL：`last-verify.md` 指出已完成任務 D-15 的驗收條件「`ui-check(all)=0`」不成立，實際為 13（因 T7.01 建立的 F07 `s-canvas` 骨架缺八段內容，屬骨架階段預期錯誤，見規則書「執行單位」DS-01 例外）；依規則書「先修正失敗項目，再繼續 state 記載的同一個任務」，且 `actionable` 下一個任務即為 T7.02，比照 T6.01→T6.02 既有模式：本輪定案 `s-canvas` 八段內容，一併解決 D-15 全域驗收破功。要改檔案：`.dev/F07-canvas-layout/ui-canvas-layout.md`（八段內容）、`ui-authoring-open-questions.md`（追加 OQ-44）；驗收條件：`ui-check(.dev/F07-canvas-layout/ui-canvas-layout.md)` 對本畫面無 error、八段齊全；預期 error 數變化：本檔 13 → 0，全域 13 → 0。開工前先讀 D-09 全文與 OQ-17／OQ-18，避免推翻既有結論卻沒記錄依據。
+
+### Do
+- 讀 `spec-canvas-layout.md`：名詞定義三張表（`canvas`／`item`／`viewport`）、角色定義（`r-canvas-editor`／`r-canvas-viewer`）、四個 Feature 共 10 個 uc（`uc-place-item`／`uc-remove-item`／`uc-move-item`／`uc-resize-item`／`uc-set-item-capabilities`／`uc-set-item-anchor`／`uc-reorder-item`／`uc-move-items`／`uc-remove-items`／`uc-set-viewport`）、「待釐清」三項（canvas 建立時機、外部識別碼待改 ref、看板本體如何成為 item）。
+- 讀 D-09、OQ-17、OQ-18 全文，確認人工已決定的方向：看板本體固定顯示在 Canvas 中間的一個 item，新增 Swimlane／Stage 由選中該 item 後的屬性／操作面板觸發；OQ-17 選項 2（本列採用）明確把「`s-swimlane-list`／`s-stage-list` 是否仍需獨立 Screen」的判斷留給本任務。
+- 讀 F01 `ui-kanban-basic.md` 既有 `s-swimlane-list`／`s-stage-list`／`s-swimlane-delete-dialog`／`s-stage-delete-dialog`（皆已定案，含完整新增／重新命名／拖曳排序／刪除操作）與 F02 `s-card-assignee-picker`（跨模組嵌入既有畫面的既有模式）。
+- 判斷（低風險，版面歸類）：`s-swimlane-list`／`s-stage-list`／`s-swimlane-delete-dialog`／`s-stage-delete-dialog` 維持獨立 Screen ID（內容複雜，含重新命名／拖曳排序／刪除等已定案完整操作，比照 D-09 步驟 3「不直接刪除既有內容」的預設方向），僅「從哪裡進來」改由 `s-canvas` 承接；`s-canvas` 操作表新增「新增 Swimlane」「新增 Stage」（直接觸發 F01 `uc-add-swimlane`／`uc-add-stage`，跨模組引用）與「開啟管理 Swimlane」「開啟管理 Stage」（導向既有列表畫面）四列。此判斷與 D-09 現有描述一致，未修改 D-09 內容（D-09 待下一輪執行時處理 F01／F02 兩份 ui 檔的實際修改）。
+- 撰寫 `s-canvas` 八段內容：目的、進入與離開（從 F02 `s-board-list` 進入，離開回到同畫面）、角色與權限（`r-canvas-editor`／`r-canvas-viewer` 兩個 F07 角色 ＋ `r-user`（F01，跨模組）供新增 Swimlane／Stage 使用，因 `uc-add-swimlane`／`uc-add-stage` 的 `roles` 為 `r-user`，與 F07 角色無對應關係，見 OQ-44）、資料（9 列，來源皆引用 `canvas`／`item`／`viewport` 欄位表 ID）、操作（15 列，對應全部 10 個本模組 uc ＋ 4 個跨模組列 ＋ 1 個離開列）、狀態（五項齊全，無權限標 ⚠️ 指向 OQ-44）、驗收條件（10 條）、待確認事項（2 條 ⚠️，分別指向 OQ-17／OQ-18 與新增的 OQ-44）。畫面狀態維持「討論中」（看板本體 item 化機制、角色跨模組對應皆未定案）。
+- 新增 OQ-44（[Level: canvas-layout/s-canvas]，【引用原文】`r-canvas-editor`／`r-canvas-viewer` 說明與角色定義表，說明兩者及 F01 `r-user` 三者之間無對應關係定義，比照 OQ-06 同類缺口）；查重確認既有 OQ 表與各 ui 檔「待確認事項」無重複的 uc／Screen 紀錄。
+- 執行 `ui-check` 迭代修正兩處 DS-05（角色與權限表「做得到」文字須與操作表操作名稱逐字一致：「調整元件層序」補上「（置頂／置底）」、「平移／縮放自己的檢視區」改為與操作名稱一致的「平移／縮放檢視區」）。
+- 執行 `verify-quotes.py`，發現 OQ-44 因同一行文字含「user-membership」字樣，被腳本的 `spec_for_line`（依模組短名／檔名字串比對，非依「模組」欄）誤判為要對照 F02 spec 驗證兩則其實引自 F07 spec 的引文；改寫成不含該模組短名字串的描述（「另一模組『使用者與看板成員』規格」），問題排除，不涉及腳本本身修改。
+- commit `[spec/design](ui-canvas-layout) 定案 s-canvas 八段內容`。
+- 任務清單：T7.02 狀態由 `todo` 改為 `done`。
+
+### Check
+- `python3 .dev/loops/ui-authoring-loop/scripts/ui-authoring-tools.py error-count .dev/F07-canvas-layout/ui-canvas-layout.md`：0（已用工具內建的跨模組 design／spec 載入邏輯，非手動單檔 `ui-check`，避免 OQ-10／OQ-16 同類誤判）。
+- `python3 .dev/loops/ui-authoring-loop/scripts/ui-authoring-tools.py error-count all`：0。
+- `python3 .dev/loops/ui-authoring-loop/scripts/ui-authoring-tools.py accept-check ui-authoring-tasks.md --done`：exit code 0（含 D-15 在內全部已完成任務的機械驗收條件恢復成立）。
+- `python3 .dev/loops/ui-authoring-loop/scripts/ui-authoring-tools.py accept-check ui-authoring-tasks.md T7.02`：exit code 0。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：「逐字引用驗證通過」。
+
+### Act
+完成：T7.02，同時修正上一輪 D-15 驗證 FAIL。下一個任務：D-09（人工決策已確認，依 T7.02 結果修正 F01／F02 兩份 ui 檔的進入路徑與資料段），其後為 T7.03（F07 收尾確認）。
