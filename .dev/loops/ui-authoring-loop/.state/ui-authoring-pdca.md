@@ -1273,3 +1273,21 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：D-23。下一個任務：T6.03（[F06] 收尾：`ui-check .dev/F06-feature-cr-board/ui-feature-cr-board.md` 0 error，目前已是 0 error，僅需重跑一次確認並收尾）。
+
+## Iteration 63 — 2026-09-17 — T6.03
+### Plan
+上一輪驗證 PASS（範圍 0390e84..b9c7815），無失敗項目需修正；`actionable` 第一項回到原排定的 T6.03（D-23 已於上一輪標為 done）。T6.03 是純收尾確認任務，驗收條件僅 `ui-check(.dev/F06-feature-cr-board/ui-feature-cr-board.md)=0`；不預期需要改動 `ui-feature-cr-board.md` 內容，只需重跑 `ui-check` 確認並收尾。
+
+### Do
+- 執行 `./scripts/ui-check .dev/F06-feature-cr-board/ui-feature-cr-board.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`，確認 0 error（39 warning，F06 本檔僅 1 筆既有 DS-07，對應 OQ-43）。
+- 執行 `tools accept-check ui-authoring-tasks.md T6.03`，exit code 0。
+- 未改動 `ui-feature-cr-board.md` 內容（D-23 已在上一輪修正完畢，本輪無新問題）。
+- 任務清單：T6.03 狀態由 `todo` 改為 `done`。
+
+### Check
+- `./scripts/ui-check .dev/F06-feature-cr-board/ui-feature-cr-board.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`0 error(s), 39 warning(s)`。
+- `tools accept-check ui-authoring-tasks.md T6.03`：exit code 0。
+- 驗收條件 `ui-check(.dev/F06-feature-cr-board/ui-feature-cr-board.md)=0` 達成。
+
+### Act
+完成：T6.03，F06 收尾完成。下一個任務：T7.01（[F07] 建立 `ui-canvas-layout.md`：檔頭 ＋ 1 個畫面標題骨架 `s-canvas`）。
