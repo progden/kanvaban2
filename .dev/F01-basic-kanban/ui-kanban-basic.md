@@ -32,8 +32,8 @@
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
 |---|---|---|---|---|
 | 新增 Swimlane | `uc-add-swimlane` | 新 Swimlane 顯示在列表最下方 | 依 `uc-add-swimlane` p1：輸入內容保留，顯示訊息 | 否 |
-| 重新命名 Swimlane | `uc-rename-swimlane` | 該列名稱更新為新名稱 | 不適用（`uc-rename-swimlane` 無 `fail` 定義） | 否 |
-| 拖曳調整順序 | `uc-reorder-swimlane` | 列表依拖曳結果重新排列 | 不適用（`uc-reorder-swimlane` 無 `fail` 定義） | 否 |
+| 重新命名 Swimlane | `uc-rename-swimlane` | 該列名稱更新為新名稱 | 不適用（`uc-rename-swimlane` 無 fail 定義） | 否 |
+| 拖曳調整順序 | `uc-reorder-swimlane` | 列表依拖曳結果重新排列 | 不適用（`uc-reorder-swimlane` 無 fail 定義） | 否 |
 | 刪除 Swimlane | — | 開啟 `s-swimlane-delete-dialog` | 不適用 | 否 |
 
 ### 狀態
