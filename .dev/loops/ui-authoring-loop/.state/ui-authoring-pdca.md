@@ -838,3 +838,20 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：D-16。下一個任務：T3.01（[F03] 建立 `ui-kanban-widgets.md` 檔頭與 4 個畫面標題骨架）。
+
+## Iteration 42 — 2026-09-17 20:35 — T3.01
+
+### Plan
+本輪任務 T3.01：建立 `.dev/F03-kanban-widgets/ui-kanban-widgets.md`，同 T1.01 模式——檔頭（引言句依 `ui-kanban-basic.md` 樣板改模組名與 spec 路徑）＋ 4 個畫面標題骨架（`s-cycle-lead-time-dashboard`、`s-wip-dashboard`、`s-throughput-cfd-dashboard`、`s-duedate-reminder`），每個畫面只填標題下三行（所屬 Feature、類型、狀態：未討論），八段內容留空。所屬 Feature 依 `spec-kanban-widgets.md` 四個 `## Feature:` 標題（Cycle Time 與 Lead Time 分析／WIP 與 Aging WIP 監控／Throughput 與累積流量圖／截止日期提醒）；類型依任務清單 T3.02～T3.05 已指定（三個儀表板、一個列表）。驗收條件：4 個 `## s-` 標題與三行標頭都存在；`ui-check` 對畫面標題格式（DS-01）不報 error。預期 error 數變化：DS-01＝0，DS-02／DS-04（八段未填）維持既有骨架階段的預期錯誤，不計入本輪範圍（同 T1.01 先例）。
+
+### Do
+- `3c55cb4` [spec/design](kanban-widgets) 建立檔頭與 4 個畫面標題骨架
+- 低風險決定：Feature 名稱、Screen 標題中文名稱直接沿用 spec 的 Feature 標題與任務清單既定的 Screen ID／類型，未新增 OQ。
+
+### Check
+- `./scripts/ui-check .dev/F03-kanban-widgets/ui-kanban-widgets.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 最後一行：`52 error(s), 42 warning(s)`；其中本檔的 error 全部是 DS-02（八段未填）／DS-04（狀態段未填），DS-01 無 error，符合骨架階段預期；其餘 error/warn 來自其他模組既有 spec（F04/F05/F07 的 DS-06 warn），非本輪引入。
+- 驗收條件核對：4 個 `## s-` 標題與三行標頭皆存在 ✓；DS-01 不報 error ✓。
+- 本輪未新增 OQ、未新增『』引用，`verify-quotes.py` 不需執行。
+
+### Act
+完成：T3.01。下一個任務：T3.02（[F03] 定案 `s-cycle-lead-time-dashboard`）。
