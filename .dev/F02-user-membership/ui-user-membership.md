@@ -255,7 +255,49 @@ Board 擁有者在此檢視成員清單、邀請新成員、變更成員角色�
 ## s-board-delete-dialog：刪除 Board 對話框
 所屬 Feature：Board 權限管理
 類型：對話框
-狀態：未討論
+狀態：討論中
+
+### 目的
+Board 擁有者刪除 Board 前確認，一併告知底下的 Swimlane、Stage 與卡片都將一同被刪除。
+
+### 進入與離開
+- 從哪裡進來：⚠️ 待確認——spec 未描述如何抵達本畫面，推論應由 F01 `s-board` 的 Owner 專屬操作進入，但該操作尚未列在 `s-board` 操作表中，見 OQ-26
+- 完成後去哪裡：該 Board 已不再存在，導向 `s-board-list`
+- 中途放棄會怎樣：關閉對話框，Board 與其資料不變
+
+### 角色與權限
+| 角色 | 看得到 | 做得到 |
+|---|---|---|
+| `r-board-owner` | 該 Board 名稱、其底下的 Swimlane 數、Stage 數與卡片數 | 確認刪除、取消 |
+
+### 資料
+| 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
+|---|---|---|---|---|
+| Board 名稱 | `board.name` | 顯示 | — | 要刪除的 Board |
+| Swimlane 數 | `board`→`swimlane` 關係計數 | 顯示 | — | 提示使用者有幾個 Swimlane 將一併被刪除 |
+| Stage 數 | `board`→`stage` 關係計數 | 顯示 | — | 提示使用者有幾個 Stage 將一併被刪除 |
+| 卡片數 | `swimlane`→`card`、`stage`→`card` 關係計數（彙總屬於該 `board` 的所有 `card`） | 顯示 | — | 提示使用者有幾張卡片將一併被刪除 |
+
+### 操作
+| 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
+|---|---|---|---|---|
+| 確認刪除 | `uc-delete-board` | 依 post：該 `board` 與其底下所有 Swimlane、Stage、`card` 都不再存在，導向 `s-board-list` | 不適用（`uc-delete-board` 無 fail 定義） | 是（本畫面即確認） |
+| 取消 | — | 關閉對話框 | — | 否 |
+
+### 狀態
+- 載入中：載入該 Board 的 Swimlane、Stage 與卡片數量時顯示
+- 空資料：不適用（進入本畫面代表指定的 `board` 存在，其 `board`→`swimlane`、`board`→`stage` 關係 min 皆為 1）
+- 錯誤：不適用（`uc-delete-board` 無 fail 定義）
+- 無權限：不適用（`uc-delete-board` roles 僅 `r-board-owner`，spec 未定義本畫面內的角色差異）
+- 資料狀態差異：不適用
+
+### 驗收條件
+- 開啟時顯示該 Board 名稱、Swimlane 數、Stage 數與卡片數
+- 確認刪除後，觸發 `uc-delete-board`，該 Board 與其底下所有 Swimlane、Stage、卡片都不再存在，導向 `s-board-list`
+- 取消後關閉對話框，且不觸發 `uc-delete-board`，Board 與其資料不變
+
+### 待確認事項
+- ⚠️ 本畫面「從哪裡進來」spec 未定義，推論應由 F01 `s-board` 的 Owner 專屬操作進入，但該操作尚未列在 `s-board` 操作表中，見 OQ-26
 
 ## s-card-assignee-picker：卡片負責人選取
 所屬 Feature：卡片負責人指派
