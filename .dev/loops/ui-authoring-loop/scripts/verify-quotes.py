@@ -17,6 +17,8 @@ OQ_FILE = LOOP_DIR / ".state" / "ui-authoring-open-questions.md"
 
 QUOTE_RE = re.compile(r"『(.*?)』")
 TAG_RE = re.compile(r"【(引用原文|矛盾|推論|覆蓋)】")
+ROW_ID_RE = re.compile(r"^\|\s*(OQ-\d+)\s*\|")
+SUPERSEDED_RE = re.compile(r"推翻\s*(OQ-\d+)")
 
 
 def normalize(text: str) -> str:
@@ -75,15 +77,29 @@ def table_body_lines(lines: list[str]) -> set[int]:
     return body
 
 
+def superseded_oq_ids(lines: list[str], body_lines: set[int]) -> set[str]:
+    """掃過 OQ 表資料列，收集所有『推翻 OQ-xx』提到的編號——這些舊列的引用允許因為後續
+    人工直接修正 spec 而不再逐字相符（歷史記錄，不可修改，但也不用再驗證）。"""
+    ids = set()
+    for lineno in body_lines:
+        ids.update(SUPERSEDED_RE.findall(lines[lineno - 1]))
+    return ids
+
+
 def check_file(path: Path, modules: dict, is_ui_file: bool):
     violations = []
     text = path.read_text(encoding="utf-8")
     lines = text.splitlines()
     allowed_lines = set(range(1, len(lines) + 1)) if is_ui_file else table_body_lines(lines)
     fixed_spec = spec_for_ui_file(path, modules) if is_ui_file else None
+    superseded = set() if is_ui_file else superseded_oq_ids(lines, allowed_lines)
     for lineno, line in enumerate(lines, start=1):
         if lineno not in allowed_lines:
             continue
+        if not is_ui_file:
+            row_id = ROW_ID_RE.match(line)
+            if row_id and row_id.group(1) in superseded:
+                continue
         tag_match = TAG_RE.search(line)
         if not tag_match:
             continue
