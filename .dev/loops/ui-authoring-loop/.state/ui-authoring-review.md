@@ -445,3 +445,37 @@
 
 ### 關卡摘要
 下一個任務是 T6.03，不是關卡，這次不用填。
+
+## Review — 2026-09-17 22:10 — 937f82b
+### 範圍
+- commit 區間：`f1a6520`（上次審查）..`937f82b`，共 8 個 commit（含上次審查 commit `0390e84`）
+- 任務：D-23、T6.03、T7.01、T7.02（皆 `done`）；`actionable` 目前依序是 D-09、T7.03，都不是關卡
+- runtime/last-verify.md：FAIL，Iteration 65 的標題缺 `HH:MM`，Check 也沒有貼 `ui-check` 的結果行（Check 改用 `tools error-count`）。Iteration 65 本身是在修正 T7.01 骨架讓 D-15 `ui-check(all)=0` 破功的 FAIL，處理方式正確
+- 期間新增的 OQ：OQ-44
+- 目前 `./scripts/ui-check`：0 error、14 warning（新增的是 `s-canvas` 的 DS-07，原因是 F02 `s-board-list` 還沒改成導向 `s-canvas`，D-09 處理後應消失）；`verify-quotes.py` 回傳 0
+
+### 發現
+1. **中**：`s-canvas`「角色與權限」表的 `r-user`（F01，跨模組）列，「看得到」寫「同 `r-canvas-editor`」，等於預設兩個角色的可見範圍相同；但同一畫面「待確認事項」和 OQ-44 的「採用」都是「不預設對應關係」，前後矛盾。另外，`r-canvas-editor` 可以「開啟管理 Swimlane／Stage」，但這兩個入口導向的 F01 畫面，uc `roles` 都是 `r-user`，這裡也隱含了同樣的對應，卻沒有標 ⚠️。→ **D-24 (1)**
+2. **低**：`s-canvas`「驗收條件」寫「縮放比例超出範圍時，檢視區不變、顯示訊息」，其中「檢視區不變」是在重述 `uc-set-viewport` fail p1 的領域結果，和 D-22／D-23 同類。Iteration 65 還是沒有對照這兩次的教訓。→ **D-24 (2)**
+3. **低**（不開 D）：T7.02 任務欄寫的類型是「流程／主畫面」，檔案寫的是「儀表板」。「主畫面」不在 `ui-convention.md` 的七種類型內；「流程」指多步驟，也不符合本畫面。比照 F01 `s-board` 用「儀表板」是合理的，Iteration 64 也記錄了判斷依據。
+4. **低**（不開 D）：T7.02 要求「判斷結果記錄後直接建立或更新 D-09」，但 Iteration 65 只在 PDCA 記錄「維持獨立 Screen ID，只把『從哪裡進來』改由 `s-canvas` 承接」，沒有更新 D-09。D-09 的步驟 (3) 本來就寫了「依 T7.02 判斷」，而且要求開工前重讀 T7.02 的結果，所以判斷內容可以追溯，不影響執行。
+5. **低**（不開 D）：操作表「新增 Swimlane／新增 Stage」的「成功後」寫「顯示於 F01 `s-swimlane-list`……」，但觸發點是 `s-canvas` 的面板，操作當下 `s-swimlane-list` 不一定開著，呈現位置寫得不夠清楚。這件事和看板本體 item 化的機制（OQ-17／OQ-18）綁在一起，等整合 CR 時再一起處理。
+6. **低**（不開 D）：PDCA Iteration 65 的格式問題 verify 已經抓到。PDCA 只能追加，下一輪（D-09）請用 `HH:MM` 標題，並在 Check 貼 `ui-check` 的結果行，不要回頭改舊的紀錄。
+
+有檢查、沒發現偏差的面向：
+- 不定義新概念：資料表的 9 列來源（`canvas`／`item`／`viewport` 的欄位與關係）都存在；「必填、同一 `canvas` 內唯一」「畫面固定元素永遠繪於畫布元素之上」「第一次設定時建立」「預設 0.1～4」都已對照 spec 欄位表、關係表、其他名詞表，確認有依據；`r-canvas-editor`／`r-canvas-viewer` 存在於 F07 角色表，`r-user` 標為跨模組。
+- 不寫業務結果：操作表「失敗時」引用的 fail key 已逐一對照 spec，10 個 uc 都相符（place p1、remove p1／p2、move p1／p2、resize p1～p4、capabilities p1、anchor p1、reorder p1、move-items p1～p3、remove-items p1／p2、viewport p1）；「位置不變，顯示訊息」這種寫法和 F01 已定案的畫面一致；跨模組的 `uc-add-stage` 確實是 `fail: {}`。
+- 不寫排版視覺：沒有寫觸發元件的選型（工具列、右鍵選單等），符合 T7.02 的要求；只寫到「畫布左側」這類位置時，也只出現在任務欄與 OQ，ui 檔本身沒有寫。
+- 狀態誠實性：`s-canvas` 是「討論中」，⚠️ 分別對應 OQ-17／OQ-18 與 OQ-44（矛盾見第 1 點）；F06 維持「討論中」，⚠️ 對應 OQ-43。
+- 需確認判斷：移除、批次移除標「是」，spec 沒有復原用的 uc，操作不可逆；移動、調整大小、能力、錨定、層序、檢視區標「否」，都可以用同一個 uc 改回來，判斷合理。
+- OQ 品質：OQ-44 有 `[Level:]`，用【引用原文】，兩段『』引文已對照 F07 角色表，確認逐字相符；列出了完整的角色清單，「採用」是不預設，沒有說服性字眼。Iteration 65 為了避開 `verify-quotes.py` 的模組判斷誤判，改寫了模組名稱的描述，但沒有改腳本，符合鐵則。
+- 逐字引用：`verify-quotes.py` 回傳 0。
+- 跨模組一致：`s-canvas` 引用的 F01 `uc-add-swimlane`／`uc-add-stage`／`s-swimlane-list`／`s-stage-list`、F02 `s-board-list` 都存在；沒有重複定義 F01 的畫面。
+- 任務完成度：D-23 的三項字樣條件我逐一核對，都已落實；T6.03、T7.01 的機械條件都已達成；T7.02 列出了 10 個本模組 uc，也列出跨模組的新增 Swimlane／Stage，「進入與離開」指向 F02 `s-board-list`，符合任務欄的要求。PDCA 的 Check 和實際結果一致（格式問題見第 6 點）。
+
+需人工事後處理：
+- OQ-44：F07 兩個角色與 F01 `r-user`、F02 看板成員角色之間的對應關係，需要人工決定，或走整合 CR。
+- 延續上次：驗收條件裡的「計算規則敘述」可以寫到什麼程度，以及需確認欄的還原路徑是否必須屬於同一角色，留給 G1 決定；`uc-guard-clock-monotonicity` 應該由哪個寫入畫面引用；`verify-quotes.py` 應改成依「模組」欄判斷要對照哪份 spec（Iteration 65 又因為這個問題被迫改寫引文描述），並支援同一行引用多份 spec；D-15 的 `all` 判準遇到骨架檔時會 FAIL（Iteration 64／65 又發生一次）；F03 的 WIP 名詞定義和 Scenario 矛盾，要走 CR；D-09（本輪即將執行）、OQ-30、OQ-34、OQ-41、OQ-42、OQ-43 待人工決定；「中途放棄」段是否允許寫「X 不變」；新增類操作的需確認判準要統一；commit `67e4907` 缺少 scope。
+
+### 關卡摘要
+下一個任務是 D-09（其後是 T7.03），不是關卡，這次不用填。
