@@ -783,3 +783,20 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：D-10、T2.11 皆標 `done`，F01（8 畫面）、F02（9 畫面）全部收尾，`ui-check`（兩檔合併）0 error。下一個任務：T3.01（`actionable` 已確認為新的第一項，進入階段 3 F03 kanban-widgets）。
+
+## Iteration 39 — 2026-09-17 22:40 — D-14
+### Plan
+本輪任務 D-14：修正 F01 `ui-kanban-basic.md` `s-card-detail` 的「進入與離開」、操作表「關閉」、驗收條件，補上 F02 `s-cards-by-assignee`（跨模組）作為另一個進入來源，讓「關閉」導向「回到進入前的畫面」而非固定寫死 `s-board`。只改導覽用語，不新增業務結果。預期 F01／F02 `ui-check` 維持 0 error。
+
+### Do
+- 修改 `.dev/F01-basic-kanban/ui-kanban-basic.md` `s-card-detail`：「進入與離開」加入 F02 `s-cards-by-assignee`（跨模組）的「開啟卡片詳情」操作為進入來源；「完成後去哪裡」與操作表「關閉」列、驗收條件關閉條目改為「回到進入前的畫面（`s-board` 或 F02 `s-cards-by-assignee`）」，並保留回到 `s-board` 時看板交會格內容更新這一句。
+- commit（待建立）：`[spec/design](kanban-basic) 補上卡片詳情關閉導向進入前畫面的引用`
+
+### Check
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 最後一行：`0 error(s), 19 warning(s)`（警告皆為既有項目，非本輪新增）
+- `tools error-count`：F01 = 0、F02 = 0
+- 驗收條件對照：`s-card-detail` 段落含 `s-cards-by-assignee` ✓；`ui-check(ui-kanban-basic.md)=0` ✓；`ui-check(ui-user-membership.md)=0` ✓（皆帶 `--spec` 且兩檔一起檢查）
+- `verify-quotes.py`：通過（本輪未新增【引用原文】等格式的『』引用，仍跑過確認既有引用未被破壞）
+
+### Act
+完成：D-14。下一個任務：D-15。
