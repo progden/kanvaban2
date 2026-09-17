@@ -399,3 +399,19 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：下一個任務 T2.02（[F02] 定案 `s-signup`，類型：表單，對應 `uc-create-user`）。
+
+## Iteration 21 — 2026-09-17 18:05 — T2.02
+### Plan
+本輪任務：T2.02（[F02] 定案 `s-signup`，類型：表單，對應 `uc-create-user`）。要改的檔案：`.dev/F02-user-membership/ui-user-membership.md`（填 `s-signup` 八段內容）；OQ 檔追加「從哪裡進來」「完成後去哪裡」兩筆待確認。驗收條件：`ui-check` 對本畫面無 error、八段齊全（同 T1.02 模式）。預期 error 數變化：`s-signup` 本身 0 error，全域 error 總數因其他畫面仍是骨架不會下降。
+
+### Do
+- 讀 `spec-user-membership.md`「Feature: 建立使用者帳號」`uc-create-user`（roles/pre/post/fail）與「角色定義」`r-system-user`（明確列出「可建立帳號」，故沿用不視為矛盾）。
+- 填 `s-signup` 八段：資料表對照 `user.username`／`user.display-name`／`user.password` 三個欄位；操作表僅一列「確認建立帳號」對應 `uc-create-user`，「需確認」標「是（本畫面即確認）」——因 spec 未定義任何刪除 `user` 的 Use Case，建立後無法復原，依規則書「需確認判斷」歸類為不可逆。
+- 高風險：「從哪裡進來」「完成後去哪裡」spec 皆未描述，標 ⚠️ 並新增 OQ-11（推論為模組入口）、OQ-12（推論導向 `s-login`），畫面狀態維持「討論中」。
+- commit `58eb11e`：`[spec/design](ui-user-membership) 定案 s-signup 八段短規格`。
+
+### Check
+`./scripts/ui-check .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：104 error(s), 44 warning(s)（其餘 6 個未填畫面與 F04/F05/F07 warn 屬預期，與本輪無關）；篩選 `s-signup`／`s-login` 相關訊息：`s-signup` 0 筆 error，`s-login` 仍為骨架的既有 DS-02/DS-04 error 不變。八段齊全，逐條對照驗收條件（同 T1.02：「`ui-check` 對本畫面無 error；八段齊全」）達成。`tools accept-check T2.02`：無機械 token，肉眼核對通過。本輪新增 OQ-11、OQ-12 兩筆『』引用，跑 `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：通過（exit 0）。
+
+### Act
+完成：下一個任務 T2.03（[F02] 定案 `s-login`，類型：表單，對應 `uc-login`；`uc-logout` 併入本畫面操作表）。

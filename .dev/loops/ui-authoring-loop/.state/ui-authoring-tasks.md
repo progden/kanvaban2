@@ -38,7 +38,7 @@
 | ID | 狀態 | 任務 | 驗收條件 | 依賴 |
 |----|------|------|----------|------|
 | T2.01 | done | [F02] 建立 `ui-user-membership.md`：檔頭 ＋ 9 個畫面標題骨架（`s-signup`、`s-login`、`s-board-list`、`s-board-create-dialog`、`s-member-management`、`s-board-delete-dialog`、`s-card-assignee-picker`、`s-cards-by-assignee`、`s-activity-log`） | 同 T1.01 模式 | T1.10 |
-| T2.02 | todo | [F02] 定案 `s-signup`（類型：表單）：對應 `uc-create-user` | 同 T1.02 模式 | T2.01 |
+| T2.02 | done | [F02] 定案 `s-signup`（類型：表單）：對應 `uc-create-user` | 同 T1.02 模式 | T2.01 |
 | T2.03 | todo | [F02] 定案 `s-login`（類型：表單）：對應 `uc-login`；`uc-logout` 併入本畫面的操作表（例如全域導覽列的登出動作，「觸發」欄仍填 `uc-logout`），不獨立開一個畫面 | 同上，操作表含 `uc-login` 與 `uc-logout` 兩列 | T2.02 |
 | T2.04 | todo | [F02] 定案 `s-board-list`（類型：列表）：對應 `uc-view-board-list`；無權限狀態對應 `uc-reject-board-access-by-nonmember` | 同上 | T2.03 |
 | T2.05 | todo | [F02] 定案 `s-board-create-dialog`（類型：表單）：對應 `uc-create-board` | 同上 | T2.04 |
