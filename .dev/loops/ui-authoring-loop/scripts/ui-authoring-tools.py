@@ -262,25 +262,25 @@ def all_spec_files():
     return sorted(glob.glob(".dev/F[0-9][0-9]-*/spec-*.md"))
 
 
-def findings(target_path=None):
-    """對既有的 ui 檔跑一次 ui-check --format json；target_path 給單一檔案時只解析它自己，
-    但一律用 --spec 帶入全部模組的 spec 檔（不只 target 自己模組的），否則 ui-check 只會
-    自動載入同目錄同模組的 spec（見 scripts/speccheck/runner.py 的 specs_for_designs），
-    導致跨模組引用（`ui-convention.md` 明文允許）在單檔案檢查時被 REF-07 誤判為未定義
-    （見 OQ-10）。"""
+def findings():
+    """對全部既有 ui 檔跑一次 ui-check --format json，一律：
+    - 用 --spec 帶入全部模組的 spec 檔（不只單一模組的），否則 ui-check 只會自動載入
+      同目錄同模組的 spec（見 scripts/speccheck/runner.py 的 specs_for_designs），導致
+      跨模組 spec ID 引用在單檔案檢查時被 REF-07 誤判為未定義（見 OQ-10）；
+    - 把全部既有 ui 檔一起傳給 ui-check（不只單一檔案），否則跨模組的 Screen ID（`s-`）
+      引用同樣會被 REF-07 誤判為未定義，因為 ui-check 只解析被傳入的 design 檔案（見
+      OQ-16）。呼叫端（`count`）再自行過濾出想要的檔案的 findings，不影響單檔案的結果。"""
     existing = [p for p in expected_ui_files() if os.path.isfile(p)]
     if not existing:
         return []
     cache_dir = os.environ.get("FINDINGS_CACHE_DIR")
-    key = target_path or "__all__"
-    cache = os.path.join(cache_dir, key.replace("/", "_") + ".json") if cache_dir else None
+    cache = os.path.join(cache_dir, "__all__.json") if cache_dir else None
     if cache and os.path.exists(cache):
         return json.loads(read(cache))
-    paths = [target_path] if target_path else existing
     spec_args = []
     for s in all_spec_files():
         spec_args += ["--spec", s]
-    r = subprocess.run([sys.executable, "scripts/ui-check", "--format", "json", *spec_args, *paths],
+    r = subprocess.run([sys.executable, "scripts/ui-check", "--format", "json", *spec_args, *existing],
                         capture_output=True, text=True)
     if r.returncode not in (0, 1):
         raise SystemExit(f"ui-check 執行失敗：{r.stderr.strip()[:300]}")
@@ -296,12 +296,9 @@ def findings(target_path=None):
 
 
 def count(level, target):
-    if target == "all":
-        fs = findings(None)
-    else:
-        if not os.path.isfile(target):
-            return 0
-        fs = findings(target)
+    if target != "all" and not os.path.isfile(target):
+        return 0
+    fs = findings()
     return sum(1 for x in fs if x["level"] == level and (target == "all" or x["file"] == target))
 
 
