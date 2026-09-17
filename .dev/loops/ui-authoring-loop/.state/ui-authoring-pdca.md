@@ -219,3 +219,22 @@
 
 ### Act
 完成 D-03。下一個任務：T1.07（[F01] 定案 `s-card-add-dialog`，對應 `uc-add-card`）。
+
+## Iteration 11 — 2026-09-17 — T1.07
+### Plan
+本輪任務：T1.07（[F01] 定案 `s-card-add-dialog`，對應 `uc-add-card`）。要改的檔案：`.dev/F01-basic-kanban/ui-kanban-basic.md` 的 `s-card-add-dialog` 骨架，補齊八段。驗收條件：`ui-check` 錯誤數不比開工前（51／含 `--spec` F02 為 39）多；畫面標「已定案」時八段格式完整無漏。
+
+### Do
+- 讀 `spec-kanban-basic.md` 的 `uc-add-card`（pre p1「`card.title` 非空」、post「新的 `card` 出現在指定的 `swimlane` 與 `stage` 交會格中」等、fail p1）與名詞定義三張表（`card.title`／`card.swimlane`／`card.stage`／`r-user`）。
+- 補齊 `s-card-add-dialog` 八段：目的、進入與離開（從 `s-board`「新增卡片」進入、成功後回 `s-board`、取消不建立卡片）、角色與權限（`r-user`）、資料（`card.title` 輸入；目的 Swimlane／Stage 依進入情境顯示，來源填 `swimlane.name`／`stage.name`，情境說明放「說明」欄避免 `來源` 欄誤填 Screen ID 觸發 DS-03）、操作（確認新增觸發 `uc-add-card`、需確認：否，比照既有「新增 Swimlane」「新增 Stage」先例——可透過刪除卡片復原）、狀態五項、驗收條件、待確認事項（無）。
+- 低風險決定：任務描述括號註明「類型：表單」，與骨架原有「類型：對話框」不同，依任務描述改為「表單」（版面歸類，低風險）。
+- commit `[spec/design](kanban-basic)`（ui 檔）與 `[docs](loops)`（任務清單、state、PDCA）分開提交。
+
+### Check
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md`：38 error(s), 3 warning(s)（開工前 51，未增加；`s-card-add-dialog` 本身無新增 error）。
+- `./scripts/ui-check --spec .dev/F02-user-membership/spec-user-membership.md`：26 error(s), 11 warning(s)（開工前 39，未增加）。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：通過（回傳 0，本輪未新增 OQ／【】引用）。
+- 驗收條件對照：error 數未增加（達成）；八段格式完整、狀態標「已定案」（達成）。
+
+### Act
+完成 T1.07。下一個任務：T1.08（[F01] 定案 `s-card-detail`，對應 `uc-edit-card`／`uc-add-comment`；負責人欄位先標 `⚠️` 待確認並記 OQ）。

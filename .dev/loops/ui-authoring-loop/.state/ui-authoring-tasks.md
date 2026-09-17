@@ -28,7 +28,7 @@
 | T1.04 | done | [F01] 定案 `s-stage-list`（類型：列表）：對應 `uc-add-stage`／`uc-rename-stage`／`uc-reorder-stage`／`uc-set-stage-role` | 同上 | T1.03 |
 | T1.05 | done | [F01] 定案 `s-stage-delete-dialog`（類型：對話框）：對應 `uc-delete-stage`（含卡片轉移情境） | 同上 | T1.04 |
 | T1.06 | done | [F01] 定案 `s-board`（類型：流程／看板主畫面）：對應 `uc-move-card-swimlane`／`uc-move-card-stage`（拖曳卡片跨泳道／跨階段）；同時在「操作」表列出 F02 的 `uc-assign-card-owner-by-drag`（拖曳成員頭像到卡片指派負責人），跨模組引用、不重新定義 | 同上，且操作表含 `uc-assign-card-owner-by-drag` 一列 | T1.05 |
-| T1.07 | todo | [F01] 定案 `s-card-add-dialog`（類型：表單）：對應 `uc-add-card` | 同上 | T1.06 |
+| T1.07 | done | [F01] 定案 `s-card-add-dialog`（類型：表單）：對應 `uc-add-card` | 同上 | T1.06 |
 | T1.08 | todo | [F01] 定案 `s-card-detail`（類型：表單）：對應 `uc-edit-card`／`uc-add-comment`；負責人相關欄位（顯示目前負責人、開啟指派）先標 `⚠️` 待確認、待確認事項寫「負責人欄位與指派入口待 F02 `s-card-assignee-picker` 定案後回填」，記入 OQ | 同上；待確認事項含上述 `⚠️` 條目；OQ 檔追加對應列 | T1.07 |
 | T1.09 | todo | [F01] 定案 `s-card-delete-dialog`（類型：對話框）：對應 `uc-delete-card` | 同上 | T1.08 |
 | T1.10 | todo | [F01] 收尾：`ui-check .dev/F01-basic-kanban/ui-kanban-basic.md` 0 error；過一遍 `DS-06`（寫入 uc 有沒有被引用）／`DS-07`（畫面有沒有被導向）warn，沒理由的回頭補 | `ui-check(.dev/F01-basic-kanban/ui-kanban-basic.md)=0`；PDCA 本則列出 `DS-06`／`DS-07` warn 清單與處理結果 | T1.09 |
