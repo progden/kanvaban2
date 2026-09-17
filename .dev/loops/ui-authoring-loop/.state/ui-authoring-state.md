@@ -1,11 +1,11 @@
 # UI 撰寫狀態快照（每輪覆寫，20 行內）
 
 - 更新：2026-09-17（執行輪）
-- 目前階段：F04 board-clock 全部收尾完成，進入 F05 workload（T5.01）
-- 上一輪驗證：FAIL（[4] 本輪沒有追加 PDCA 紀錄：BASE=HEAD=0430171 的空輪，屬前一輪自動模式異常中止；[5] OQ-36「情況」欄引用內含 spec 表格原始的 `|` 字元，被 `check-oq` 誤判欄數不符）；本輪已修正：把 OQ-36 引用改成只引用定義句（不含表格分隔用的 `|`），名稱改在引號外用「」帶出，`verify-quotes.py` 重跑仍通過
-- 上一輪任務：T4.03——確認 `ui-check .dev/F04-board-clock/ui-board-clock.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 為 `0 error(s), 37 warning(s)`；DS-06（`uc-guard-clock-monotonicity` 無畫面觸發）與 DS-07（`s-board-clock-control` 無入口，對應 OQ-35）皆為已知歸類，T4.03 標 `done`
+- 目前階段：F04 board-clock 全部收尾完成；本輪處理發現的任務 D-19（[F03] 修正 OQ-34 範圍），尚未開始 F05 T5.01
+- 上一輪驗證：FAIL（[5] OQ 檔舊內容被修改或刪除：上一輪為修正 OQ-36 欄數直接改寫了 base 既有的 OQ-36 文字，違反只能追加規則）；本輪已修正：先用 `git checkout --` 把 OQ-36 還原成本輪 base（16d0cf9）原有版本（未再改動），確認 `check-oq` 對照本輪 base 只有「新增」沒有「改動」
+- 上一輪任務：D-19——要求逐字改寫 OQ-34「情況」欄，但 OQ-34 同樣是本輪 base 既有內容，逐字編輯會重演 OQ-36 的錯誤；改採 OQ 檔既有的「推翻／修正 OQ-xx」追加模式，新增 OQ-39 記錄修正後的結論（覆核 OQ-17／18／19 實際範圍，明寫「F03 圖表是否成為 item，人工尚未決定」），不編輯 OQ-34 本身、不改動 `ui-kanban-widgets.md`；D-19 標 `doing`（非 `done`），因驗收條件字面要求「OQ-34 列不再含…字樣」在只能追加前提下無法逐字達成，留待人工確認是否接受追加模式
 - 下一個任務：T5.01（[F05] 建立 `ui-workload.md`：檔頭 ＋ 1 個畫面標題骨架 `s-workload-dashboard`，同 T1.01 模式）
 - 已完成的模組：F01 全部 8 個畫面已收尾；F02 全部 9 個畫面已收尾；F03 全部 4 個畫面已收尾（討論中）；F04 全部 1 個畫面已收尾（討論中）；F05～F07 尚未開始
 - 已定義的共用 ID：無新增
-- 最近 OQ：OQ-35～OQ-38（board-clock，皆已在 T4.02 產生；本輪只修正 OQ-36 格式，未新增）
-- 待注意：T5.01 開工前跑 `./scripts/ui-check .dev/F05-workload/ui-workload.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 確認起點（檔案不存在應報「找不到任何 ui 檔」）；OQ 表「情況」欄逐字引用若原文本身含表格用 `|`，比照本輪做法只引用不含 `|` 的片段，名稱移到引號外
+- 最近 OQ：OQ-39（修正 OQ-34「情況」欄範圍，對應 D-19，追加而非編輯）
+- 待注意：OQ 檔（`ui-authoring-open-questions.md`）任何時候都只能在檔尾追加新列，絕不編輯既有列（即使該列本身有格式或範圍錯誤）；要修正舊列的結論，一律比照 OQ-34「推翻 OQ-31」的模式追加新列說明，`check-oq`／`check_append` 逐字比對本輪 base 是否為前綴，任何舊列文字改動都會判定為 `[5]` 失敗。T5.01 開工前跑 `./scripts/ui-check .dev/F05-workload/ui-workload.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 確認起點（檔案不存在應報「找不到任何 ui 檔」）

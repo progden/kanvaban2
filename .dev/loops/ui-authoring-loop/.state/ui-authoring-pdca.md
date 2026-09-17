@@ -1065,3 +1065,23 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T4.03（F04 全部收尾）。下一個任務：T5.01（[F05] 建立 `ui-workload.md`：檔頭 ＋ 1 個畫面標題骨架 `s-workload-dashboard`）。
+
+## Iteration 53 — 2026-09-17 22:15 — D-19
+### Plan
+`runtime/last-verify.md` 顯示上一輪驗證 FAIL（範圍 0430171..16d0cf9，`[5]` OQ 檔舊內容被修改或刪除）：上一輪為修正 OQ-36 欄數，直接改寫了已存在於 base（0430171）的 OQ-36 文字，違反「OQ 檔只能追加」。依規則書「決定本輪任務」第 1 條，先確認這個失敗項目已在本輪 base（16d0cf9）之後不再重演；`actionable` 第一項是 D-19（[F03] 修正 OQ-34「情況」欄範圍說大），本輪任務取 D-19。預期：不重蹈 OQ-36 覆轍（不編輯任何既有 OQ 列），改用 OQ 檔既有的「推翻／修正 OQ-xx」追加模式處理 D-19；`verify-quotes.py`、`check-oq` 皆通過；F03 `ui-check` 維持 0 error。
+
+### Do
+- 確認上一輪失敗根因：`check_append` 以 `head_text.startswith(base_text)` 判斷是否只追加；OQ-36 在該輪 base（0430171）已存在，任何字句改寫都會讓 head 不再是 base 的前綴，必定觸發 `[5]`。驗證：`tools check-oq` 用 base=0430171 版本與改寫後版本比對，確認會失敗；改回原始 0430171 版本文字後，比對本輪 base（16d0cf9，已含修正後文字）反而一致，代表 16d0cf9 的版本本身沒問題，不應再改動——因此先用 `git checkout --` 還原成 HEAD 版本，取消了一次錯誤的還原操作，確保本輪不對 OQ-36 做任何改動。
+- D-19 要求「改寫 OQ-34『情況』欄」，但 OQ-34 是本輪 base 既有內容，逐字編輯同樣會觸發 `[5]`（與 OQ-36 同一種錯誤，剛驗證過後果）。改採規則書 89 行、OQ 檔本身已示範過的模式（OQ-34 用「推翻 OQ-31」追加新列取代編輯舊列）：不修改 OQ-34，改追加 OQ-39，逐字覆核 OQ-17／OQ-18／OQ-19 的『』引用範圍（Swimlane／Stage 觸發位置、`s-board` 本體、成員頭像清單），指出三列都沒有對 F03 圖表或「其他元件」做過決定，修正 OQ-34「情況」欄的範圍描述，並明寫「F03 圖表是否成為 `item`，人工尚未決定」。OQ-39 情況欄描述 OQ-34 原文時改用「」而非『』（避免觸發 `verify-quotes.py` 去 spec 找非 spec 來源的 OQ-34 自身文字），『』僅包住兩句確認來自 `spec-canvas-layout.md` 簡介的原文，與 OQ-17／OQ-19 已用過的引用相同。
+- 三個選項與「採用」欄不變（沿用 OQ-34 原三選一），依 D-19 指示不改動 `ui-kanban-widgets.md`。
+- D-19 標記為 `doing`（非 `done`）：驗收條件字面要求「OQ-34 列不再含…字樣」在只能追加的前提下無法逐字達成，本列以追加 OQ-39 記錄修正後的結論，語意等同但不是逐字改寫 OQ-34 本身；留 `doing` 供人工確認是否接受此追加模式為完成方式，而非宣稱逐字滿足驗收條件。
+
+### Check
+- `python3 ui-authoring-tools.py check-oq /dev/null ui-authoring-open-questions.md`：exit 0（欄數／必填欄／`[Level:]` 標記皆合格）。
+- `python3 ui-authoring-tools.py check-oq <本輪 base 版 OQ 檔> ui-authoring-open-questions.md`：exit 0（本輪對 OQ 檔僅追加 OQ-39，未改動任何既有列）。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：逐字引用驗證通過。
+- `./scripts/ui-check .dev/F03-kanban-widgets/ui-kanban-widgets.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：0 error(s), 42 warning(s)（未改動此檔，維持原狀）。
+- `tools accept-check ui-authoring-tasks.md D-19`：無輸出（`ui-check(...)=0` 機械條件通過）；「OQ-34 列不再含…字樣」屬非機械條件，未逐字達成，故任務標 `doing` 而非 `done`。
+
+### Act
+完成：D-19（以追加 OQ-39 方式記錄修正，任務標 `doing` 待人工確認是否接受）。下一個任務：T5.01（[F05] 建立 `ui-workload.md`：檔頭 ＋ 1 個畫面標題骨架 `s-workload-dashboard`）。
