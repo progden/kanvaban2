@@ -204,3 +204,37 @@
 
 ### 關卡摘要
 下一個任務是 D-10（`doing`），之後是 T2.08，不是關卡，這次不需要填。
+
+## Review — 2026-09-17 22:30 — 5b2d292
+### 範圍
+- commit 區間：`9992fd2`（上次審查）..`5b2d292`，共 9 個 commit（含上次審查的 commit `8f03d9f`）
+- 任務：T2.08、T2.09、T2.10、T2.11、D-10（都已標 `done`）；`actionable` 下一個是 T3.01，不是關卡
+- runtime/last-verify.md：**FAIL**，有 2 項：commit `67e4907` 的訊息少了 `(ui-<模組名>)` scope；PDCA Iteration 38 的標題寫成「D-10／T2.11」，不符合格式。沒有警告。`ui-check(all)`=0 error、20 warning
+- 期間新增的 OQ：OQ-28、OQ-29
+
+### 發現
+1. **中**：`s-card-detail`（F01，已定案）的「從哪裡進來」只寫了 `s-board`，「關閉」也固定寫回到 `s-board`。但 T2.09 的 `s-cards-by-assignee` 操作表會開啟 `s-card-detail`，兩份 ui 檔的導覽對不上。DS-07 只檢查畫面有沒有被導向，所以抓不到這個問題。→ **D-14**
+2. **中**：`uc-member-add-card` 仍然沒有任何畫面觸發（DS-06）。T2.07 任務欄寫「改在 T2.08／T1.06 標註引用」，但後續任務都沒有處理。T2.11 的 PDCA Check 說剩下的 20 個 warning「皆對應既有 OQ」，這個說法和實際不符：這一筆沒有對應的 OQ。→ **D-15**
+3. **中**：`s-card-assignee-picker`（已定案）的「空資料」寫「依 `uc-view-card-assignees` post，候選清單全部維持未勾選」，但 post 原文沒有提到勾選狀態，屬於把推論掛在 post 名下。「儲存變更」的「成功後」寫「卡片縮圖同步顯示」，但卡片縮圖不在這個畫面，也不在它回到的畫面。→ **D-16**
+4. **低**（不開 D）：Iteration 35（T2.08）的 Check 寫「`s-card-assignee-picker` 本身僅剩 1 個 warn」，但這個畫面當時還有一筆 `roles` 加反引號造成的 REF-07 error。Iteration 36 才承認這筆 error 是「T2.08 遺留」，T2.11 也已經修正。Check 和實際結果不符，而且又是 D-01／D-06 記錄過的陷阱：用名稱篩選 `ui-check` 輸出，會漏掉只有行號的 error。PDCA 不可回改，這裡只做記錄。
+5. **低**（不開 D）：`s-card-detail` 的角色表同時有 F01 `r-user` 和 F02 `r-board-member`。F02 的三個負責人 uc 的 roles 只有 `r-board-member`，但「負責人」欄位放在 `r-user` 可見的「卡片完整內容」裡。這是 F01 和 F02 角色體系並存造成的，spec 沒有定義兩者的對應關係，目前不開 D。
+6. **低**（不開 D）：`s-cards-by-assignee` 的「卡片標題」是唯讀欄位，但「驗證／格式」欄寫了「非空」。這是欄位表的限制，不是畫面輸入驗證，寫在這裡不算錯，但沒有必要。
+7. **低**（不開 D）：`s-card-assignee-picker`「中途放棄會怎樣」寫「卡片負責人維持進入前的樣子」，是「X 不變」的寫法。上次審查第 1 點已經把這種寫法列為需要人工判斷，這次不重複開 D。
+
+有檢查、沒發現偏差的面向：
+- 不定義新概念：`card.assignees`、`board-membership`、`user.display-name`、`card.title`（F01），以及 `uc-set-card-assignees`、`uc-list-card-assignee-candidates`、`uc-view-card-assignees`、`uc-list-cards-by-assignee`、`uc-view-board-activity-log`，都存在於 spec。
+- 不寫排版視覺：沒有新增顏色、間距或元件選型。
+- 狀態誠實性：`s-card-assignee-picker`、`s-card-detail` 標「已定案」，範圍內沒有 ⚠️，但寫法有問題，見第 1、3 點。`s-cards-by-assignee` 標「討論中」，兩處 ⚠️ 都對應 OQ-28。`s-activity-log` 維持「未討論」，並依 T2.10 分支規則引用 spec 的「本情境目前尚未實作」，這個處理是誠實的。
+- 需確認判斷：`uc-set-card-assignees` 的 post 只有覆寫 `card.assignees` 和活動紀錄，可以重新設定回原狀，標「否」合理。
+- 角色一致（DS-05）：三個畫面的角色都是 `r-board-member`，和 uc roles 一致（spec 第 78 行的變更紀錄已經修正先前的筆誤）。
+- OQ 品質：OQ-28 使用【推論】，OQ-29 使用【引用原文】，都有 `[Level:]`，沒有說服性字眼。
+- 逐字引用：`verify-quotes.py` 回傳 0。
+- 跨模組一致：`s-card-detail`／`s-card-assignee-picker` 雙向導覽一致；沒有重複定義的畫面。`s-cards-by-assignee` 的導覽問題見第 1 點。
+- 任務完成度：T2.11 的三項機械驗收（F01=0、F02=0、`s-card-detail` 沒有 OQ-08 ⚠️）都已達成。上次審查第 5 點（D-10 卡在 `doing`）已經隨 D-10 標 `done` 解除。「過一遍 DS-06／DS-07 warn」的結論不準確，見第 2 點。
+
+需人工事後處理：
+- last-verify 的 FAIL [2]：commit `67e4907` 已經進入歷史，不能靠改寫歷史修正訊息格式，需要人工決定是否接受。FAIL [4] 的 PDCA 標題也不能回改，同樣需要人工確認驅動腳本會怎麼處理。
+- 上次審查第 1 點（「中途放棄」段是否允許寫「X 不變」）和「新增類操作的需確認判準要統一」仍然沒有處理。
+
+### 關卡摘要
+下一個任務是 T3.01，不是關卡，這次不需要填。
