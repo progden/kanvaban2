@@ -200,7 +200,7 @@
 - 開啟時顯示該 Stage 名稱
 - 若該 Stage 內有卡片，顯示卡片數量，且需選擇目的 Stage 才能確認刪除
 - 若該 Stage 內無卡片，可直接確認刪除，不需選擇目的 Stage
-- 確認刪除後，該 Stage 內原有卡片（如有）已移動到選擇的目的 Stage，該 Stage 不再顯示於 `s-stage-list`，回到 `s-stage-list` 且列表重新載入，且觸發 `uc-delete-stage`
+- 確認刪除後，該 Stage 不再顯示於 `s-stage-list`，回到 `s-stage-list` 且列表重新載入，且觸發 `uc-delete-stage`
 - 取消後關閉對話框，Stage 與卡片不變
 
 ### 待確認事項
@@ -240,7 +240,7 @@
 |---|---|---|---|---|
 | 拖曳卡片跨 Swimlane | `uc-move-card-swimlane` | 卡片顯示於目的 Swimlane 與原 Stage 的交會格 | 不適用（`uc-move-card-swimlane` 無 fail 定義） | 否 |
 | 拖曳卡片跨 Stage | `uc-move-card-stage` | 卡片顯示於目的 Stage | 不適用（`uc-move-card-stage` 無 fail 定義） | 否 |
-| 拖曳成員頭像到卡片追加負責人 | `uc-assign-card-owner-by-drag`（F02） | 卡片負責人追加該成員（若原本已是負責人則維持不變） | 不適用（`uc-assign-card-owner-by-drag` 無 fail 定義） | 否 |
+| 拖曳成員頭像到卡片追加負責人 | `uc-assign-card-owner-by-drag`（F02） | 卡片縮圖的負責人顯示更新 | 不適用（`uc-assign-card-owner-by-drag` 無 fail 定義） | 否 |
 | 新增卡片 | — | 開啟 `s-card-add-dialog` | 不適用 | 否 |
 | 開啟卡片詳情 | — | 開啟 `s-card-detail` | 不適用 | 否 |
 | 刪除卡片 | — | 開啟 `s-card-delete-dialog` | 不適用 | 否 |
@@ -250,7 +250,7 @@
 ### 狀態
 - 載入中：載入 Swimlane、Stage 與卡片資料時顯示
 - 空資料：不適用（`board` 與 `swimlane`、`stage` 的關係 min 皆為 1，交會格結構至少存在；單一交會格內無卡片時顯示為空格，不視為錯誤）
-- 錯誤：拖曳移動卡片或拖曳指派負責人失敗時，依上方操作表顯示對應訊息（`uc-move-card-swimlane`／`uc-move-card-stage`／`uc-assign-card-owner-by-drag` 目前均無 fail 定義）
+- 錯誤：不適用（`uc-move-card-swimlane`／`uc-move-card-stage`／`uc-assign-card-owner-by-drag` 目前均無 fail 定義）
 - 無權限：不適用（F01 spec 僅定義 `r-user` 一種角色，無角色差異）
 - 資料狀態差異：不適用
 
@@ -259,7 +259,7 @@
 - 卡片縮圖顯示標題，並在有截止日期、負責人時一併顯示
 - 拖曳卡片到另一個 Swimlane 後，卡片顯示於目的 Swimlane 與原 Stage 的交會格，且觸發 `uc-move-card-swimlane`
 - 拖曳卡片到另一個 Stage 後，卡片顯示於目的 Stage，且觸發 `uc-move-card-stage`
-- 拖曳看板成員頭像到卡片後，卡片負責人追加該成員，且觸發 `uc-assign-card-owner-by-drag`
+- 拖曳看板成員頭像到卡片後，卡片縮圖的負責人顯示更新，且觸發 `uc-assign-card-owner-by-drag`
 - 點擊新增卡片開啟 `s-card-add-dialog`
 - 點擊卡片開啟 `s-card-detail`
 - 點擊刪除卡片開啟 `s-card-delete-dialog`
