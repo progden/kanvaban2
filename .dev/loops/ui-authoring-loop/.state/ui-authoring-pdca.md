@@ -1482,3 +1482,22 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：D-26。下一個任務：G1（跨模組收尾自我審查關卡，`actionable` 排序上下一個；手動模式下由執行輪自己完成審查並直接標 done，不需要 `runtime/gates/G1.approved`）。
+
+## Iteration 72 — 2026-09-17 22:36 — G1、T8.02
+### Plan
+本輪任務：`actionable` 顯示 G1（`runtime/gates/G1.approved` 已存在，審查紀錄 `ui-authoring-review.md` 2026-09-17 22:40 那則已明講「同意 G1 自動核准」）。依規則書「二、決定本輪任務」第 2 條：已核准的 `G*` 先標 `done`，再重跑 `actionable` 取新任務；新任務為 T8.02（最終確認並建立 `runtime/DONE`）。預期：G1、T8.02 皆標 `done`；`ui-check`（全部）維持 0 error；不改動任何 `ui-*.md`。
+
+### Do
+- 任務清單：G1 狀態改為 `done`（審查紀錄已存在，不重複執行審查內容，只反映核准結果）。
+- 任務清單：T8.02 狀態改為 `done`。
+- 建立 `.dev/loops/ui-authoring-loop/runtime/DONE`（不進版控）。
+- 未修改任何 `.dev/F0x-*/ui-*.md`、spec、規範、腳本。
+
+### Check
+- `./scripts/ui-check`：0 error(s), 12 warning(s)（與 T8.01、上次審查一致，12 則皆為已知並在審查紀錄逐項核對過的 DS-06／DS-07 warning）。
+- 七份 `ui-*.md` 皆存在：F01～F07 各一份。
+- 任務清單除 T8.02 外無 `todo`／`doing`／`blocked`（已核對，全部 `done`）。
+- `runtime/DONE` 已建立。
+
+### Act
+完成：跨模組收尾階段全部任務（含關卡 G1）皆已完成，UI 撰寫 loop 完成，無下一個任務。

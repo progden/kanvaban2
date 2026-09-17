@@ -99,8 +99,8 @@ F07 目前狀態：草稿，且「待釐清」段落明講 Canvas 的建立時�
 | ID | 狀態 | 任務 | 驗收條件 | 依賴 |
 |----|------|------|----------|------|
 | T8.01 | done | 七份 `ui-*.md` 一起跑 `./scripts/ui-check` 到 0 error；`./scripts/ui-check --report` 看畫面總表與追溯矩陣，`DS-06`（寫入 uc 沒被任何畫面引用）／`DS-07`（畫面沒被任何畫面導向，也不是模組入口）warn 逐項確認有理由（例如背景作業、確實是模組入口）或回頭補 | `ui-check(all)=0`；PDCA 本則列出 `DS-06`／`DS-07` 完整 warn 清單與逐項處理結果 | T7.03 |
-| G1 | todo | 關卡：自我審查——依 `.dev/conventions/llm-review.md` L-09（「失敗時」是否對應 `fail`、「成功後」是否對應 `post`）與 `checks.md` DS-05（操作可用角色與 uc `roles` 是否一致）各抽查七個模組至少一個畫面；有偏差在對應 ui 檔直接修正並記錄。**手動模式**（`/loop`）：同一輪內完成，不開 D-xx 拖到下一輪，直接把本關卡標 `done`。**自動模式**（`run-ui-authoring-loop.sh`）：由獨立審查輪（`ui-authoring-review-prompt.md`）執行，偏差開成 `D-xx`（`todo`），審查後無待修項目才由驅動腳本建立 `runtime/gates/G1.approved`、下一輪才能把本關卡標 `done` | PDCA 或 `ui-authoring-review.md` 本則列出抽查的 7 個畫面與檢查結果；若有修正，修正後 `ui-check(all)=0` | T8.01 |
-| T8.02 | todo | 最終確認並建立 `runtime/DONE`：`ui-check(all)=0`；七份 `ui-*.md` 都存在；任務清單除本任務外無 `todo`／`doing`／`blocked` | `runtime/DONE` 存在（不進版控）；PDCA 本則貼 `ui-check` 最終結果行 | G1 |
+| G1 | done | 關卡：自我審查——依 `.dev/conventions/llm-review.md` L-09（「失敗時」是否對應 `fail`、「成功後」是否對應 `post`）與 `checks.md` DS-05（操作可用角色與 uc `roles` 是否一致）各抽查七個模組至少一個畫面；有偏差在對應 ui 檔直接修正並記錄。**手動模式**（`/loop`）：同一輪內完成，不開 D-xx 拖到下一輪，直接把本關卡標 `done`。**自動模式**（`run-ui-authoring-loop.sh`）：由獨立審查輪（`ui-authoring-review-prompt.md`）執行，偏差開成 `D-xx`（`todo`），審查後無待修項目才由驅動腳本建立 `runtime/gates/G1.approved`、下一輪才能把本關卡標 `done` | PDCA 或 `ui-authoring-review.md` 本則列出抽查的 7 個畫面與檢查結果；若有修正，修正後 `ui-check(all)=0` | T8.01 |
+| T8.02 | done | 最終確認並建立 `runtime/DONE`：`ui-check(all)=0`；七份 `ui-*.md` 都存在；任務清單除本任務外無 `todo`／`doing`／`blocked` | `runtime/DONE` 存在（不進版控）；PDCA 本則貼 `ui-check` 最終結果行 | G1 |
 
 ## 發現的任務（D-xx）
 
