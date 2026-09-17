@@ -193,8 +193,64 @@
 
 ## s-member-management：Board 成員管理
 所屬 Feature：Board 建立與成員邀請
-類型：列表
-狀態：未討論
+類型：對話框
+狀態：討論中
+
+### 目的
+Board 擁有者在此檢視成員清單、邀請新成員、變更成員角色或移除成員。
+
+### 進入與離開
+- 從哪裡進來：⚠️ 待確認——spec 未描述如何抵達本畫面，推論應由 F01 `s-board` 的 Owner 專屬操作進入，但該操作尚未列在 `s-board` 操作表中，見 OQ-22
+- 完成後去哪裡：邀請、變更角色、移除成員完成後停留本畫面，成員清單更新
+- 中途放棄會怎樣：關閉本畫面，回到「從哪裡進來」的畫面，成員清單不變（同上，目的地待 OQ-22 確認）
+
+### 角色與權限
+| 角色 | 看得到 | 做得到 |
+|---|---|---|
+| `r-board-owner` | 完整成員清單（帳號、顯示名稱、角色） | 邀請成員、變更成員角色、移除成員 |
+| `r-board-member` | 完整成員清單（同上，⚠️ 待確認，見 OQ-23） | 嘗試邀請成員、嘗試變更成員角色 |
+
+### 資料
+| 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
+|---|---|---|---|---|
+| 成員帳號 | `user.username` | 顯示 | — | 清單中每一列的成員帳號 |
+| 成員顯示名稱 | `user.display-name` | 顯示 | — | 清單中每一列的成員顯示名稱 |
+| 成員角色 | `board-membership.role` | 顯示 | enum(Owner, Member)，依欄位表限制 | — |
+| 邀請對象帳號 | `user.username` | 輸入 | 須為系統中已存在帳號，且不是該 `board` 現有成員，依 `uc-invite-member` pre p2 | 邀請成員時輸入 |
+| 邀請角色 | `board-membership.role` | 輸入（單選） | enum(Owner, Member) | 邀請時指定的初始角色 |
+| 變更後角色 | `board-membership.role` | 輸入（單選） | 依 `uc-change-member-role` pre p2：目標須為該 `board` 的 Member；post 僅定義變更為 Owner，未定義將 Owner 降級為 Member 的情境，⚠️ 待確認，見 OQ-24 | — |
+
+### 操作
+| 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
+|---|---|---|---|---|
+| 邀請成員 | `uc-invite-member` | 依 post：受邀使用者立即成為成員，成員清單更新、成員數增加 1 | 依 `uc-invite-member` fail p2：輸入內容保留，顯示訊息 | 否（可透過「移除成員」復原，見 `uc-remove-member`） |
+| 嘗試邀請成員 | `uc-reject-invite-by-member` | 不適用（本操作恆不成功） | 依 post：顯示訊息，停留本畫面，不建立新的 `board-membership` | 否 |
+| 變更成員角色 | `uc-change-member-role` | 依 post：目標成員角色變更為 Owner，清單顯示更新 | 不適用（`uc-change-member-role` 無 fail 定義） | ⚠️ 待確認（可逆性判斷不出，見 OQ-24） |
+| 嘗試變更成員角色 | `uc-reject-role-change-by-member` | 不適用（本操作恆不成功） | 依 post：顯示訊息，停留本畫面，`board-membership` 角色不變 | 否 |
+| 移除成員 | `uc-remove-member` | 依 post：目標成員自清單移除；若該成員仍是某些 `card` 的負責人，這些 `card` 的負責人欄位移除該成員 | 依 `uc-remove-member` fail p1：不移除，顯示訊息 | 是（附掛於清單列上；若該成員仍為 `card` 負責人，依 pre p2 需先顯示確認訊息並告知張數，待確認事項提醒需要一則確認提示） |
+
+### 狀態
+- 載入中：載入成員清單時顯示
+- 空資料：不適用（`board` 至少有一位 Owner，成員清單至少一筆）
+- 錯誤：邀請、變更角色、移除操作失敗時，依上方操作表顯示對應訊息
+- 無權限：`r-board-member` 嘗試邀請或變更角色時，依 `uc-reject-invite-by-member`／`uc-reject-role-change-by-member` post 顯示訊息，操作不生效
+- 資料狀態差異：不適用
+
+### 驗收條件
+- Owner 邀請系統中存在且非現有成員的帳號後，觸發 `uc-invite-member`，成員清單新增一筆、成員數加 1
+- 邀請已是成員的帳號時，觸發 `uc-invite-member`，輸入內容保留、顯示訊息，成員清單不變
+- 非 Owner 嘗試邀請成員時，觸發 `uc-reject-invite-by-member`，顯示訊息，成員清單不變
+- Owner 將 Member 變更為 Owner 後，觸發 `uc-change-member-role`，該成員角色顯示為 Owner
+- 非 Owner 嘗試變更成員角色時，觸發 `uc-reject-role-change-by-member`，顯示訊息，角色不變
+- 移除非唯一 Owner 或 Member 後，觸發 `uc-remove-member`，該成員自清單移除
+- 移除看板唯一 Owner 時，觸發 `uc-remove-member`，顯示訊息，該成員仍留在清單中
+- 移除仍是卡片負責人的成員時，先顯示確認訊息並告知卡片張數，確認後才觸發 `uc-remove-member`
+
+### 待確認事項
+- ⚠️ 本畫面「從哪裡進來」與「完成後去哪裡（放棄時）」待確認，見 OQ-22
+- ⚠️ `r-board-member` 是否真的能看到完整成員清單（僅操作被拒絕，畫面本身可見），或本來就看不到本畫面，見 OQ-23
+- ⚠️ 「變更成員角色」操作是否可逆（spec 未定義 Owner 降級為 Member 的情境）待確認，見 OQ-24
+- ⚠️ `uc-reject-structure-change-by-member`（非 Owner 嘗試調整看板結構）不屬於本畫面操作範圍（該操作對象是 Swimlane／Stage，非成員），本畫面不列入操作表；是否應回頭在 F01 `s-swimlane-list`／`s-stage-list` 的操作失敗欄跨模組引用，待確認，見 OQ-25
 
 ## s-board-delete-dialog：刪除 Board 對話框
 所屬 Feature：Board 權限管理
