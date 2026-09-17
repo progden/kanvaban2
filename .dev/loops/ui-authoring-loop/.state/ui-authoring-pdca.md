@@ -1043,3 +1043,25 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T4.02 標 `done`。下一個任務：T4.03（F04 收尾：`ui-check .dev/F04-board-clock/ui-board-clock.md` 0 error，DS-06／DS-07 warn 歸類確認）。
+
+## Iteration 52 — 2026-09-17 22:00 — T4.03
+### Plan
+`runtime/last-verify.md` 顯示上一輪驗證 FAIL（範圍 0430171..0430171，空輪，`[4]` 沒有追加 PDCA 屬預期、`[5]` OQ-36「情況」欄欄數不符）；依規則書「決定本輪任務」第 1 條先修正失敗項目，再繼續 state 記載的 T4.03（[F04] 收尾）。預期：修正 OQ-36 格式後 `verify-quotes.py` 仍通過；`ui-check .dev/F04-board-clock/ui-board-clock.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 維持 0 error，DS-06／DS-07 warn 歸類確認後 T4.03 可標 done。
+
+### Do
+- 診斷 `[5]`：OQ-36「情況」欄逐字引用了 `spec-board-clock.md` 其他名詞表整列原文「`Board Clock（看板時鐘） | 某個 Board 專屬的…」，內含表格分隔用的 `|` 字元；`check-oq` 用簡單 `split("|")` 計欄數，把這個內容 `|` 誤判成表格分隔，欄數從 8 變 9。
+- 修正：把引用改成只包住定義句（不含 `|`），名稱「Board Clock（看板時鐘）」移到『』引號外，語意不變：`.dev/loops/ui-authoring-loop/.state/ui-authoring-open-questions.md` OQ-36 一行。
+- 確認欄數：以 `split("|")` 邏輯手動驗證 OQ-36 現為 8 欄。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：通過（引用仍是 spec 逐字子字串）。
+- T4.03：讀 `.dev/F04-board-clock/ui-board-clock.md`，`s-board-clock-control` 八段齊全、狀態「討論中」；跑 `ui-check` 確認 F04 相關 warn 只有 `uc-guard-clock-monotonicity`（DS-06，下游限制，state 已註記）與 `s-board-clock-control`（DS-07，對應 OQ-35），皆屬已知歸類，不需新增處理。
+- 任務清單：T4.03 標 `done`。
+
+### Check
+- `./scripts/ui-check .dev/F04-board-clock/ui-board-clock.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`0 error(s), 37 warning(s)`。
+- `tools accept-check .dev/loops/ui-authoring-loop/.state/ui-authoring-tasks.md T4.03`：exit 0（通過）。
+- `tools error-count all`：0。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：逐字引用驗證通過。
+- 驗收條件核對：`ui-check(.dev/F04-board-clock/ui-board-clock.md)=0` ✓。
+
+### Act
+完成：T4.03（F04 全部收尾）。下一個任務：T5.01（[F05] 建立 `ui-workload.md`：檔頭 ＋ 1 個畫面標題骨架 `s-workload-dashboard`）。

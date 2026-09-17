@@ -66,7 +66,7 @@
 |----|------|------|----------|------|
 | T4.01 | done | [F04] 建立 `ui-board-clock.md`：檔頭 ＋ 1 個畫面標題骨架（`s-board-clock-control`） | 同 T1.01 模式 | T3.06 |
 | T4.02 | done | [F04] 定案 `s-board-clock-control`（類型：對話框／側欄，例如頂列的時鐘控制項）：對應 `uc-adjust-board-clock`／`uc-pause-resume-board-clock`；`uc-guard-clock-monotonicity` 是共同前置條件，寫在 `uc-adjust-board-clock` 操作的「失敗時」欄，不獨立成一個操作列 | 同 T1.02 模式 | T4.01 |
-| T4.03 | todo | [F04] 收尾：`ui-check .dev/F04-board-clock/ui-board-clock.md` 0 error | `ui-check(.dev/F04-board-clock/ui-board-clock.md)=0` | T4.02 |
+| T4.03 | done | [F04] 收尾：`ui-check .dev/F04-board-clock/ui-board-clock.md` 0 error | `ui-check(.dev/F04-board-clock/ui-board-clock.md)=0` | T4.02 |
 
 ## 階段 5：F05 workload（`.dev/F05-workload/spec-workload.md` → `ui-workload.md`）
 
