@@ -179,3 +179,24 @@
 
 ### Act
 完成 T1.06，OQ-01／OQ-02 已解掉（`s-swimlane-list`／`s-stage-list` 改標「已定案」）。下一個任務：T1.07（[F01] 定案 `s-card-add-dialog`，對應 `uc-add-card`）。
+
+## Iteration 9 — 2026-09-17 — D-02
+### Plan
+本輪任務：D-02（[F01] 修正 `ui-kanban-basic.md` 3 處把業務結果／領域狀態寫進 UI 段落的寫法問題）。要改的檔案：`.dev/F01-basic-kanban/ui-kanban-basic.md`——(1) `s-stage-delete-dialog` 驗收條件刪掉「已移動到選擇的目的 Stage」；(2) `s-board` 操作表「拖曳成員頭像到卡片追加負責人」成功後改為呈現方式，對應驗收條件同步改；(3) `s-board` 狀態段「錯誤」改成以「不適用」開頭。驗收條件：兩份文字不再出現「已移動到」「負責人追加該成員」，`s-board` 狀態段「錯誤」以「不適用」開頭，`ui-check`（含 `--spec` F02）error 數不增加。
+
+### Do
+- 三處均改為單純寫法調整，未改變業務結果：
+  - `s-stage-delete-dialog` 驗收條件：移除「該 Stage 內原有卡片（如有）已移動到選擇的目的 Stage」子句，只留畫面可見的斷言（不再顯示於列表、回列表、觸發 uc）。
+  - `s-board` 操作表「拖曳成員頭像到卡片追加負責人」成功後：改為「卡片縮圖的負責人顯示更新」；對應驗收條件同步改為「卡片縮圖的負責人顯示更新，且觸發 `uc-assign-card-owner-by-drag`」。
+  - `s-board` 狀態段「錯誤」：改為「不適用（`uc-move-card-swimlane`／`uc-move-card-stage`／`uc-assign-card-owner-by-drag` 目前均無 fail 定義）」，消除前後矛盾。
+- commit `05da454`（`[spec/design](kanban-basic) 修正 UI 段落誤寫業務結果的三處`）。
+
+### Check
+- `grep -n "已移動到\|負責人追加該成員" .dev/F01-basic-kanban/ui-kanban-basic.md`：無比對結果（兩處文字皆已移除）。
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md`（不帶 `--spec`）：51 error(s), 4 warning(s)，與本輪開工前相同，未增加。
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md --spec .dev/F02-user-membership/spec-user-membership.md`：39 error(s)，較開工前（40，即 51 扣掉 11 筆跨模組 REF-07）少 1，未增加。
+- 驗收條件對照：`s-stage-delete-dialog` 驗收條件不含「已移動到」（達成）；`s-board` 操作表與驗收條件不含「負責人追加該成員」（達成）；`s-board` 狀態段「錯誤」以「不適用」開頭（達成）；error 數不增加（達成）。
+- 本輪未新增或修改 OQ／『』引用，未跑 `verify-quotes.py`。
+
+### Act
+完成 D-02。下一個任務：D-03（[F01] 補上 T1.06 推翻 OQ-01／OQ-02 的紀錄）。
