@@ -339,3 +339,27 @@
 
 ### Act
 T1.10 標 `blocked`，等待人工決定（調整驗收條件為含 `--spec` 版本、或改到跨模組收尾階段才檢查、或調整 `ui-check`／`ui-authoring-tools.py` 的載入邏輯）後改回 `todo`；在此之前 loop 沒有其他可執行的 `todo`（T2.01 依賴 T1.10 完成）。
+
+---
+
+## Iteration 17 — 2026-09-17 — T1.10（人工解除 OQ-10）
+
+### Plan
+人工決定 OQ-10 三個選項採第 3 案（調整 `ui-check`／`ui-authoring-tools.py` 的載入邏輯），因為這個修法一次解決所有模組往後都會遇到的同一類問題，不只是繞過 T1.10 這一個任務。目的是解除 T1.10 的 `blocked`，讓依賴它的 T2.01（F02 起頭）等後續模組可以繼續。本輪不撰寫任何 `ui-<模組>.md` 內容。
+
+### Do
+- 修改 `<scripts>/ui-authoring-tools.py` 的 `findings()`：新增 `all_spec_files()` 蒐集全部模組的 `spec-*.md`，呼叫 `scripts/ui-check` 時一律加上這些檔案的 `--spec`，不論 `target_path` 是哪一個檔案；這樣 `tools error-count`／`tools accept-check`／`tools errors-json` 都不會再因為只載入 target 自己模組的 spec 而誤判跨模組引用。
+- `<prompts>/ui-authoring-prompt.md`「執行單位：一輪一個任務」與 `<prompts>/ui-authoring-kickoff-prompt.md` 補上明文規則：人工肉眼直接跑 `./scripts/ui-check <檔>`（不透過 `tools`）時，非全部掃描一律要加 `--spec ".dev/F[0-9][0-9]-*/spec-*.md"`，否則會重現 OQ-10 的誤判。
+- `<state>/ui-authoring-tasks.md`：T1.10 狀態改回 `todo`，任務描述補一句說明 OQ-10 已由人工解除、`ui-check(<檔>)=0` 這個 token 從本輪起一律視為已含跨模組 spec 的結果。
+- 未修改 OQ-10 既有列內容（append-only，OQ-10 本身仍是「blocked／等待人工決定」的歷史紀錄，本則 PDCA 才是後續決定的記錄）。
+- commit：`[dev](ui-authoring-tools) findings() 一律帶入全部模組 spec 解除 OQ-10`（`ui-authoring-tools.py`）＋ `[docs](loops) 解除 T1.10 blocked 並更新 --spec 使用規則`（`ui-authoring-tasks.md`／`ui-authoring-prompt.md`／`ui-authoring-kickoff-prompt.md`／`ui-authoring-pdca.md`）。
+
+### Check
+- `tools error-count .dev/F01-basic-kanban/ui-kanban-basic.md`：`0`（修正前為 `12`）。
+- `tools accept-check <state>/ui-authoring-tasks.md T1.10`：無輸出，exit 0（驗收條件成立）。
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`0 error(s), 12 warning(s)`（12 筆皆為既有 `DS-06`／`DS-07` warn，其餘五個模組尚無 ui 檔導致的寫入 uc 未被引用，非新增問題）。
+- `tools status-summary <state>/ui-authoring-tasks.md`：`blocked=0 doing=0 done=15 todo=30`；`tools actionable`：`T1.10`。
+- `python3 -m unittest discover -s scripts/tests`：`OK`（7 tests）。
+
+### Act
+T1.10 改回 `todo`，是下一個 actionable 任務；本次介入只修工具與任務狀態，未實際完成 T1.10（仍要跑 DS-06／DS-07 warn 清單）也未動 F02～F06 任何 ui 內容，留給下一輪執行輪處理。

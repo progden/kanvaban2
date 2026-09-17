@@ -90,9 +90,11 @@ Spec 沒有的資訊不要自己補（見上面「自主決策分級」）。
 
 ## 執行單位：一輪一個任務
 
+**跨模組引用一定要帶 `--spec`（見 OQ-10）**：`ui-check` 只對「目標檔案自己模組」的 `spec-<模組>.md` 自動載入；只要目標檔案有引用其他模組的 ID（鐵則 6 明文允許），單獨對它跑 `ui-check` 而不帶其他模組的 spec，會把這些合法引用誤判成 `REF-07` 未定義。**只要不是跑 `ui-check`（不帶參數，掃全部）**，一律加上 `--spec ".dev/F[0-9][0-9]-*/spec-*.md"` 帶入全部模組的 spec，例如：`./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`。用 `tools error-count`／`tools accept-check` 檢查則不用擔心，`ui-authoring-tools.py` 已經內建這個 `--spec` 邏輯。
+
 - 一輪只做任務清單裡的一個 `actionable` 任務：優先順序 `doing`（上一輪沒做完） → `D-xx` 的 `todo` → 依表格順序第一個依賴已全 `done` 的 `todo`。
-- 開工前跑一次 `./scripts/ui-check .dev/F0x-*/ui-*.md`（鎖定本輪要動的模組；若該模組 ui 檔還不存在，這步會報「找不到任何 ui 檔」，屬預期，直接繼續）記錄起點 error／warn 數。
-- 做完（或做不完）都要跑 `./scripts/ui-check` 收尾確認：
+- 開工前跑一次 `./scripts/ui-check .dev/F0x-*/ui-*.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`（鎖定本輪要動的模組；若該模組 ui 檔還不存在，這步會報「找不到任何 ui 檔」，屬預期，直接繼續）記錄起點 error／warn 數。
+- 做完（或做不完）都要跑 `./scripts/ui-check` 收尾確認（單一檔案或子集合記得照上面加 `--spec`）：
   - 骨架類任務（建立檔頭與畫面標題）：`DS-01` 不報 error 即可（八段內容還沒填，先別跑全段檢查）。
   - 單一畫面任務：該畫面所在檔案跑 `ui-check` 對它的 `DS-01`～`DS-05`、`REF-07` 不得有新增 error；本畫面若標「已定案」，其八段格式必須完整無漏；若標「討論中」，`ui-check` 仍要 0 error（討論中不代表格式可以不齊全，只代表內容還有 `⚠️`）。
   - 收尾類任務（每個模組最後一項）：整份 `ui-<模組>.md` 0 error。

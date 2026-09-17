@@ -35,7 +35,7 @@
 1. 依規則書「輸入怎麼讀」「操作與需確認判斷」撰寫或修改 `ui-<模組>.md`；一輪只碰任務 `[F0x]` 指定的那份檔案（跨模組收尾任務例外，例如 T2.11 會同時碰 F01／F02 兩份）。
 2. 隨時自我檢查：
    - `tools error-count <ui檔>`：這份檔案目前的 error 數（檔案還不存在時視為 0）。
-   - `tools accept-check <state>/ui-authoring-tasks.md <任務 ID>`：驗收條件裡 `ui-check(<檔或 all>)=0` 這類機械 token 是否成立；沒有這種 token 的任務（多數單一畫面任務）改用 `./scripts/ui-check <檔>` 肉眼核對規則書「執行單位：一輪一個任務」列出的判準。
+   - `tools accept-check <state>/ui-authoring-tasks.md <任務 ID>`：驗收條件裡 `ui-check(<檔或 all>)=0` 這類機械 token 是否成立；沒有這種 token 的任務（多數單一畫面任務）改用 `./scripts/ui-check <檔> --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 肉眼核對規則書「執行單位：一輪一個任務」列出的判準——**單檔案務必加 `--spec`**，否則跨模組引用會被誤判成 `REF-07`（見規則書「執行單位」開頭與 OQ-10）；`tools` 系列已經內建這個邏輯，不用另外加。
    - 本輪若新增或修改了 OQ 表列、或 ui 檔「待確認事項」裡標【引用原文】／【矛盾】／【推論】／【覆蓋】的『』引用 → `python3 <scripts>/verify-quotes.py`，非 0 視為本輪未完成。
 3. 遇到判斷依規則書「自主決策分級」：低風險寫進 PDCA Do；高風險／覆蓋 spec／環境限制依規則書處理（標 `⚠️`、記 OQ、視情況把任務標 `blocked`），然後低風險、高風險**繼續做**，只有環境限制與覆蓋 spec 才停在 `blocked`。
 4. 發現計畫外的必要工作 → 任務清單「發現的任務」表追加 `D-xx`，狀態直接 `todo`（本 loop 沒有 proposed／rejected 中間狀態，描述與驗收條件要把判斷依據寫清楚）。
@@ -56,7 +56,7 @@
    （本輪所有 commit：hash + 訊息第一行；低風險決定；新增的 OQ-xx／D-xx）
 
    ### Check
-   （`./scripts/ui-check <本輪檔案>` 的最後一行（`N error(s), M warning(s)`，檔案還不存在時貼「找不到任何 ui 檔」）；
+   （`./scripts/ui-check <本輪檔案> --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 的最後一行（`N error(s), M warning(s)`，檔案還不存在時貼「找不到任何 ui 檔」）；
      `tools accept-check` 結果；逐條對照驗收條件是否達成；`verify-quotes.py` 有跑的話貼結果）
 
    ### Act
