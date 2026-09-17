@@ -118,3 +118,22 @@
 
 ### Act
 完成：D-01。下一個任務：T1.04（[F01] 定案 `s-stage-list`，對應 `uc-add-stage`／`uc-rename-stage`／`uc-reorder-stage`／`uc-set-stage-role`）。
+
+## Iteration 6 — 2026-09-17 16:30 — T1.04
+
+### Plan
+定案 `s-stage-list`（類型：列表），對應 `uc-add-stage`／`uc-rename-stage`／`uc-reorder-stage`／`uc-set-stage-role`；仿照 T1.02（`s-swimlane-list`）的結構填八段。讀 `spec-kanban-basic.md`「Feature: Stage（階段）管理」的 usecase 區塊與 Scenario，資料段引用 `stage.name`／`stage.role`／`board`-`stage` 關係。刪除操作因對應 `uc-delete-stage` 含卡片轉移情境（獨立任務 T1.05），本畫面「刪除 Stage」列觸發欄填 `—`、成功後開啟 `s-stage-delete-dialog`（比照 `s-swimlane-list` 對 `s-swimlane-delete-dialog` 的做法）。預期本畫面 0 error，整檔 error 數持平或略降（新增內容，其他未寫畫面 error 不變）。
+
+### Do
+- 讀 `spec-kanban-basic.md` 第 231～408 行（Feature: Stage 管理，usecase 區塊＋Gherkin）、名詞定義三張表、角色定義。
+- 填 `s-stage-list` 八段：目的、進入與離開（比照 OQ-01 模式，進入路徑未定，標 `⚠️`）、角色與權限（`r-user`）、資料（`stage.name`／順序／`stage.role`）、操作（新增／重新命名／拖曳排序／設定角色／刪除，皆比照 fail 為空的呈現方式）、狀態（五項齊全，含僅剩 1 個 Stage 時刪除不可用、設角色時原持有者變回 NONE 的資料狀態差異）、驗收條件、待確認事項。
+- 高風險：進入路徑 spec 未寫清楚，比照 OQ-01 判斷，新增 OQ-02（【推論】，同類問題，暫定模組入口，待 `s-board` 定案時確認），`s-stage-list` 狀態維持「討論中」。
+- commit `.dev/F01-basic-kanban/ui-kanban-basic.md`（`[spec/design](kanban-basic)`）與任務清單／state／OQ（`[docs](loops)`）。
+
+### Check
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md` 最後一行：`65 error(s), 11 warning(s)`（由 78 降為 65，減少的 13 個 error 對應 `s-stage-list` 原本因骨架缺段落產生的 `DS-02`/`DS-04`）；輸出中無任何一行含 "s-stage-list"。
+- 驗收條件：本畫面無 error（達成，`grep "s-stage-list"` 無輸出）；八段齊全（達成，含五項狀態、待確認事項標 `⚠️` 但段落本身存在）。
+- 本輪新增 OQ-02，且 `s-stage-list`「待確認事項」含【推論】類引用（透過 OQ-02）：跑 `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`，結果「逐字引用驗證通過」。
+
+### Act
+完成：T1.04。下一個任務：T1.05（[F01] 定案 `s-stage-delete-dialog`，對應 `uc-delete-stage`，含卡片轉移情境）。
