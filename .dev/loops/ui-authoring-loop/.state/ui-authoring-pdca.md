@@ -38,3 +38,22 @@
 
 ### Act
 完成：T0.01。下一個任務：T1.01（[F01] 建立 `ui-kanban-basic.md` 檔頭與 8 個畫面標題骨架）。
+
+## Iteration 2 — 2026-09-17 15:00 — T1.01
+
+### Plan
+建立 `.dev/F01-basic-kanban/ui-kanban-basic.md`：檔頭 ＋ 8 個畫面標題骨架（`s-swimlane-list`、`s-swimlane-delete-dialog`、`s-stage-list`、`s-stage-delete-dialog`、`s-board`、`s-card-add-dialog`、`s-card-detail`、`s-card-delete-dialog`），每個畫面只填標題下三行（所屬 Feature、類型、狀態：未討論），八段內容先留空。預期 `ui-check` 對 `DS-01` 無 error；`DS-02`／`DS-04`（八段未填）與 `DS-06`／`DS-07`（尚無操作表／導覽）會報 error/warn，屬骨架任務預期範圍。
+
+### Do
+- 讀 `spec-kanban-basic.md` 名詞定義與三個 `## Feature:` 標題（Swimlane 管理、Stage（階段）管理、Card（卡片）編輯），對照任務清單指定的 8 個 Screen ID。
+- 低風險決定：`s-swimlane-list`／`s-swimlane-delete-dialog` 歸 Swimlane 管理；`s-stage-list`／`s-stage-delete-dialog` 歸 Stage（階段）管理；`s-board`／`s-card-add-dialog`／`s-card-detail`／`s-card-delete-dialog` 歸 Card（卡片）編輯。`s-board` 類型定為「儀表板」（spec 無獨立看板總覽 Feature，畫面是卡片跨 Swimlane×Stage 的總覽，非單純列表）。
+- 建立檔案，commit `badd5ba`。
+- 無新增 OQ、無新增 D-xx。
+
+### Check
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md` 最後一行：`104 error(s), 23 warning(s)`；逐條確認全部為 `DS-02`（八段未填）、`DS-04`（狀態五項未填）、`DS-06`（spec uc 尚無畫面觸發，屬 warn）、`DS-07`（尚無導覽關係，屬 warn），無 `DS-01` error（`grep -c DS-01` = 0）。
+- `tools accept-check`：本任務驗收條件無機械 token，改肉眼核對：8 個 `## s-` 標題與三行標頭皆存在，格式符合 `ui-convention.md`；`ui-check` 對 `DS-01` 0 error，達成。
+- 未新增 OQ／『』引用，未跑 `verify-quotes.py`。
+
+### Act
+完成：T1.01。下一個任務：T1.02（[F01] 定案 `s-swimlane-list`，類型：列表，對應 `uc-add-swimlane`／`uc-rename-swimlane`／`uc-reorder-swimlane`）。
