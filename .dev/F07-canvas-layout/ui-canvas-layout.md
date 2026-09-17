@@ -21,6 +21,7 @@
 | `r-canvas-editor` | 全部畫布元素與自己的檢視區 | 放置元件、移除元件、移動元件、調整元件大小、設定元件能力、設定元件錨定方式、調整元件層序（置頂／置底）、批次移動元件、批次移除元件、平移／縮放檢視區、離開、開啟管理 Swimlane、開啟管理 Stage（⚠️ 見 OQ-44） |
 | `r-canvas-viewer` | 全部畫布元素與自己的檢視區 | 平移／縮放檢視區、離開 |
 | `r-user`（F01，跨模組） | 新增 Swimlane、新增 Stage 所需範圍（⚠️ 見 OQ-44） | 新增 Swimlane、新增 Stage |
+| `r-board-owner`（F02，跨模組） | 「看板成員」item | 於「看板成員」item 選擇加入成員 |
 
 ### 資料
 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
@@ -52,6 +53,7 @@
 | 新增 Stage | `uc-add-stage`（F01，跨模組） | 新 Stage 依指定位置插入 F01 `s-stage-list`（F01，跨模組），未指定位置時加到最後 | 不適用（`uc-add-stage` 無 fail 定義） | 否 |
 | 開啟管理 Swimlane | — | 開啟 F01 `s-swimlane-list`（F01，跨模組） | 不適用 | 否 |
 | 開啟管理 Stage | — | 開啟 F01 `s-stage-list`（F01，跨模組） | 不適用 | 否 |
+| 於「看板成員」item 選擇加入成員 | — | 開啟 F02 `s-member-management`（F02，跨模組） | 不適用 | 否 |
 | 離開 | — | 回到 F02 `s-board-list`（跨模組） | — | 否 |
 
 ### 狀態
@@ -71,6 +73,7 @@
 - 操作者角色為 `r-canvas-viewer` 時，畫面上僅平移縮放與離開可用，其餘操作皆無法使用
 - 新增 Swimlane、新增 Stage 成功後，分別觸發 `uc-add-swimlane`、`uc-add-stage`
 - 開啟管理 Swimlane、開啟管理 Stage 分別開啟 F01 `s-swimlane-list`、`s-stage-list`
+- 於「看板成員」item 選擇加入成員後，開啟 F02 `s-member-management`
 - 離開後回到 F02 `s-board-list`
 
 ### 待確認事項
