@@ -449,3 +449,20 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：下一個任務 D-07（[F02] 修正 `ui-user-membership.md` `s-signup`／`s-login` 驗收條件中以領域狀態為主詞的斷言）。
+
+## Iteration 24 — 2026-09-17 — D-07
+### Plan
+本輪任務：D-07（[F02] 修正 `ui-user-membership.md` `s-signup`／`s-login` 驗收條件中以領域狀態為主詞的斷言，改成畫面元素或「是否觸發 `uc-xxx`」）。要改的檔案：`.dev/F02-user-membership/ui-user-membership.md` 第 43～47 行（`s-signup` 驗收條件）與第 95～96 行（`s-login` 驗收條件）。驗收條件：檔案不含「不應該被建立」「不應該建立」「建立新帳號」「顯示名字等於帳號 ID」「不視為登入成功」；`ui-check` error 數不增加（審查時 92，上一輪已降至 91）。預期 error 數變化：91 → 91（不增加）。
+
+### Do
+- `s-signup` 驗收條件第 1 條刪掉「且不觸發 `uc-create-user` 建立新帳號」尾巴的「建立新帳號」，改成「且不觸發 `uc-create-user`」。
+- `s-signup` 驗收條件第 2、3 條「該帳號不應該被建立」「不應該建立新的帳號」統一改成「且不觸發 `uc-create-user`」（畫面斷言＋是否觸發 uc，與第 1 條一致）。
+- `s-signup` 驗收條件第 5 條「未輸入顯示名字時確認建立帳號成功後，該帳號的顯示名字等於帳號 ID」是 `uc-create-user` post 的領域結果斷言，整條刪除（第 4 條「密碼留白時確認建立帳號成功，且觸發 `uc-create-user`」已涵蓋「觸發 uc」這個可斷言的畫面/uc 事實，未輸入顯示名字時的預設值屬於 `uc-create-user` 內部業務結果，不屬本畫面可斷言範圍）。
+- `s-login` 驗收條件兩條「且不視為登入成功」改成「且 TopBar 不顯示帳號名稱」（畫面元素斷言，對應操作表「成功後」寫的「TopBar 顯示帳號名稱」的反向狀態）。
+- commit `c1100de`：`[spec/design](ui-user-membership) 修正 s-signup/s-login 驗收條件改用畫面斷言`。
+
+### Check
+`grep -n "不應該被建立\|不應該建立\|建立新帳號\|顯示名字等於帳號 ID\|不視為登入成功" .dev/F02-user-membership/ui-user-membership.md`：無匹配（exit 1）。`./scripts/ui-check .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：91 error(s), 43 warning(s)（與本輪開工前一致，未增加）。`tools error-count`：91。`tools accept-check D-07`：無機械 token（驗收條件為文字比對），exit 0；逐條對照：四個禁止詞彙均已移除，error 數未增加，達成。本輪未新增或修改 OQ／『』引用，未跑 `verify-quotes.py`。
+
+### Act
+完成：下一個任務 D-08（[F01] 修正 `s-card-delete-dialog` 業務結果寫進 UI 段落）。
