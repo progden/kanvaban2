@@ -54,6 +54,7 @@
 | 2026-09-13 |  | 定案 | （原票號 F03）定案「待釐清 / 未來擴充」段落之 Open Question（詳見該段落決議說明），本規格尚未進入開發，尚無程式碼變更 |
 | 2026-09-13 |  | 開發完成 | （原票號 F03）「kanban-spring」完成四個 Feature 的查詢邏輯：Cycle Time／Lead Time（「query.timeline」）、WIP／Aging WIP（「query.wip」）、Throughput／CFD（「query.throughput」）、逾期／即將到期提醒（「query.duedate」），均以「CardTimelineProjector」重播出的「CardTimeline」為共同資料來源；JUnit5+AssertJ 單元測試逐條對應本檔 Scenario，「./mvnw verify」全綠，詳見 `design.md`「實作狀態」段落（`design.md` 即 `design-kanban-widgets.md`） |
 | 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-view-cycle-lead-time`、`uc-view-wip`、`uc-view-aging-wip`、`uc-view-throughput`、`uc-view-cfd`、`uc-view-duedate-reminder`） |
+| 2026-09-18 |  | 變更 | 修正 6 個檢視類 usecase 的角色（ui-authoring-loop OQ-32 發現：填了 F01 的 `r-user`，本檔並未定義這個 ID），全部改為 `r-board-member`；`uc-view-duedate-reminder` 補上門檻天數的驗證規則（1 到 365 之間的正整數）與對應失敗情境；本檔尚未進入開發，可直接補上，不需開 CR |
 
 ---
 
@@ -63,7 +64,7 @@
 ```usecase
 - id: uc-view-cycle-lead-time
   name: 檢視 Cycle Time 與 Lead Time 圖表
-  roles: [r-user]
+  roles: [r-board-member]
   crud: {board: R, card: R}
   pre: {}
   post:
@@ -125,7 +126,7 @@ Feature: Cycle Time 與 Lead Time 分析
 ```usecase
 - id: uc-view-wip
   name: 檢視 WIP 圖表
-  roles: [r-user]
+  roles: [r-board-member]
   crud: {board: R, card: R}
   pre: {}
   post:
@@ -136,7 +137,7 @@ Feature: Cycle Time 與 Lead Time 分析
   calls-sync: []
 - id: uc-view-aging-wip
   name: 檢視 Aging WIP 圖表
-  roles: [r-user]
+  roles: [r-board-member]
   crud: {board: R, card: R}
   pre: {}
   post:
@@ -185,7 +186,7 @@ Feature: WIP 與 Aging WIP 監控
 ```usecase
 - id: uc-view-throughput
   name: 檢視 Throughput 圖表
-  roles: [r-user]
+  roles: [r-board-member]
   crud: {board: R, card: R}
   pre: {}
   post:
@@ -196,7 +197,7 @@ Feature: WIP 與 Aging WIP 監控
   calls-sync: []
 - id: uc-view-cfd
   name: 檢視累積流量圖
-  roles: [r-user]
+  roles: [r-board-member]
   crud: {board: R, card: R}
   pre: {}
   post:
@@ -244,13 +245,15 @@ Feature: Throughput 與累積流量圖
 ```usecase
 - id: uc-view-duedate-reminder
   name: 檢視截止日期提醒圖表
-  roles: [r-user]
+  roles: [r-board-member]
   crud: {board: R, card: R}
-  pre: {}
+  pre:
+    p1: "指定的門檻天數（用於比較 `card.due-date`）為 1 到 365 之間的正整數"
   post:
     - "截止日期早於看板目前時間、尚未完成的 `card` 顯示於「已逾期」清單"
     - "截止日期與看板目前時間相差在門檻天數內、尚未完成的 `card` 顯示於「即將到期」清單，門檻天數由使用者於查詢時設定"
-  fail: {}
+  fail:
+    p1: "拒絕，資料不變"
   emits: []
   requires: []
   calls-sync: []
@@ -284,6 +287,13 @@ Feature: 截止日期提醒
     And 即將到期的門檻設定為 3 天
     When 我開啟逾期提醒圖表
     Then 卡片 "F" 應該出現在「即將到期」清單中
+
+  @uc-view-duedate-reminder @fail-p1
+  # Related aggregate:
+  #   board: read
+  Scenario: 門檻天數必須是 1 到 365 之間的正整數
+    When 我將即將到期的門檻設定為 0 天
+    Then 系統應該顯示錯誤訊息 "門檻天數必須是 1 到 365 之間的正整數"
 ```
 
 ---

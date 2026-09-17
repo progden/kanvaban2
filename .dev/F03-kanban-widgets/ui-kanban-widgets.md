@@ -18,7 +18,7 @@
 ### 角色與權限
 | 角色 | 看得到 | 做得到 |
 |---|---|---|
-| `r-user`（F01，跨模組） | 全部已完成卡片的 Lead Time／Cycle Time 與統計摘要 | 檢視圖表 |
+| `r-board-member`（F02，跨模組） | 全部已完成卡片的 Lead Time／Cycle Time 與統計摘要 | 檢視圖表 |
 
 ### 資料
 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
@@ -39,7 +39,7 @@
 - 載入中：載入卡片與 Stage 歷史資料以計算 Lead Time／Cycle Time 時顯示
 - 空資料：尚無已完成卡片時，卡片清單與統計摘要顯示為空
 - 錯誤：不適用（`uc-view-cycle-lead-time` 無 fail 定義）
-- 無權限：不適用（F03 spec 僅使用跨模組 `r-user` 一種角色，無角色差異）
+- 無權限：不適用（F03 spec 僅使用跨模組 `r-board-member` 一種角色，無角色差異）
 - 資料狀態差異：不適用（`uc-view-cycle-lead-time` post 未定義卡片清單以外的呈現差異；Cycle Time「無」與排除計算卡片數已列於「資料」段）
 
 ### 驗收條件
@@ -69,7 +69,7 @@
 ### 角色與權限
 | 角色 | 看得到 | 做得到 |
 |---|---|---|
-| `r-user`（F01，跨模組） | 各 Stage 目前卡片數量、進行中卡片的年齡 | 檢視 WIP 圖表、檢視 Aging WIP 圖表 |
+| `r-board-member`（F02，跨模組） | 各 Stage 目前卡片數量、進行中卡片的年齡 | 檢視 WIP 圖表、檢視 Aging WIP 圖表 |
 
 ### 資料
 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
@@ -89,7 +89,7 @@
 - 載入中：載入 Stage 卡片數量與卡片時間軸以計算年齡時顯示
 - 空資料：看板沒有任何卡片時，WIP 圖表顯示為空；沒有已進入 Start、尚未進入 Done 的卡片時，Aging WIP 清單顯示為空
 - 錯誤：不適用（`uc-view-wip`／`uc-view-aging-wip` 皆無 fail 定義）
-- 無權限：不適用（F03 spec 僅使用跨模組 `r-user` 一種角色，無角色差異）
+- 無權限：不適用（F03 spec 僅使用跨模組 `r-board-member` 一種角色，無角色差異）
 - 資料狀態差異：不適用（兩個 uc 的 post 未定義清單以外的呈現差異）
 
 ### 驗收條件
@@ -117,7 +117,7 @@
 ### 角色與權限
 | 角色 | 看得到 | 做得到 |
 |---|---|---|
-| `r-user`（F01，跨模組） | 各期間完成卡片數量趨勢、每一天每個 Stage 的累積卡片數量 | 檢視 Throughput 圖表、檢視 CFD 圖表 |
+| `r-board-member`（F02，跨模組） | 各期間完成卡片數量趨勢、每一天每個 Stage 的累積卡片數量 | 檢視 Throughput 圖表、檢視 CFD 圖表 |
 
 ### 資料
 Throughput 圖與 CFD 圖兩個資料區塊以「圖表」欄區分，同一個 Screen ID 內不拆兩個畫面。
@@ -140,7 +140,7 @@ Throughput 圖與 CFD 圖兩個資料區塊以「圖表」欄區分，同一個 
 - 載入中：載入卡片時間軸以計算各期間完成數量／各 Stage 每日累積數時顯示
 - 空資料：選定範圍內無完成卡片，或尚無卡片資料時，對應圖表顯示為空
 - 錯誤：不適用（`uc-view-throughput`／`uc-view-cfd` 皆無 fail 定義）
-- 無權限：不適用（F03 spec 僅使用跨模組 `r-user` 一種角色，無角色差異）
+- 無權限：不適用（F03 spec 僅使用跨模組 `r-board-member` 一種角色，無角色差異）
 - 資料狀態差異：不適用（兩個 uc 的 post 未定義清單以外的呈現差異）
 
 ### 驗收條件
@@ -155,7 +155,7 @@ Throughput 圖與 CFD 圖兩個資料區塊以「圖表」欄區分，同一個 
 ## s-duedate-reminder：截止日期提醒列表
 所屬 Feature：截止日期提醒
 類型：列表
-狀態：討論中
+狀態：已定案
 
 ### 目的
 看板使用者檢視已逾期或即將到期的卡片，以便優先處理有時間壓力的工作項目。
@@ -168,12 +168,12 @@ Throughput 圖與 CFD 圖兩個資料區塊以「圖表」欄區分，同一個 
 ### 角色與權限
 | 角色 | 看得到 | 做得到 |
 |---|---|---|
-| `r-user`（F01，跨模組） | 已逾期與即將到期的卡片清單 | 檢視逾期提醒圖表 |
+| `r-board-member`（F02，跨模組） | 已逾期與即將到期的卡片清單 | 檢視逾期提醒圖表 |
 
 ### 資料
 | 清單 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
 |---|---|---|---|---|---|
-| 共用 | 門檻天數 | 使用者輸入（查詢時設定） | 輸入 | ⚠️ 待確認：型別／範圍 spec 未定義，見 OQ-32 | 依 `uc-view-duedate-reminder` post p2，決定「即將到期」清單的判斷門檻 |
+| 共用 | 門檻天數 | 使用者輸入（查詢時設定） | 輸入 | 1 到 365 之間的正整數，依 `uc-view-duedate-reminder` pre p1 | 依 `uc-view-duedate-reminder` post p2，決定「即將到期」清單的判斷門檻 |
 | 已逾期 | 卡片標題 | `card.title` | 顯示 | — | 依 `uc-view-duedate-reminder` post p1 |
 | 已逾期 | 截止日期 | `card.due-date` | 顯示 | — | 依 `uc-view-duedate-reminder` post p1 |
 | 即將到期 | 卡片標題 | `card.title` | 顯示 | — | 依 `uc-view-duedate-reminder` post p2 |
@@ -182,13 +182,13 @@ Throughput 圖與 CFD 圖兩個資料區塊以「圖表」欄區分，同一個 
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
 |---|---|---|---|---|
-| 檢視逾期提醒圖表 | `uc-view-duedate-reminder` | 顯示已逾期與即將到期的卡片清單 | 不適用（`uc-view-duedate-reminder` 無 fail 定義） | 否 |
+| 檢視逾期提醒圖表 | `uc-view-duedate-reminder` | 顯示已逾期與即將到期的卡片清單 | 依 `uc-view-duedate-reminder` p1：門檻天數輸入保留，顯示訊息 | 否 |
 
 ### 狀態
 - 載入中：載入卡片截止日期與完成狀態以計算已逾期／即將到期清單時顯示
 - 空資料：沒有已逾期或即將到期的卡片時，對應清單顯示為空
-- 錯誤：不適用（`uc-view-duedate-reminder` 無 fail 定義）
-- 無權限：不適用（F03 spec 僅使用跨模組 `r-user` 一種角色，無角色差異）
+- 錯誤：門檻天數不是 1 到 365 之間的正整數時，依 `uc-view-duedate-reminder` p1 顯示訊息
+- 無權限：不適用（F03 spec 僅使用跨模組 `r-board-member` 一種角色，無角色差異）
 - 資料狀態差異：不適用（`uc-view-duedate-reminder` post 未定義清單以外的呈現差異）
 
 ### 驗收條件
@@ -196,6 +196,7 @@ Throughput 圖與 CFD 圖兩個資料區塊以「圖表」欄區分，同一個 
 - 截止日期與看板目前時間相差在門檻天數內、尚未完成的卡片顯示於「即將到期」清單
 - 門檻天數由使用者於查詢時設定
 - 開啟畫面時觸發 `uc-view-duedate-reminder`
+- 門檻天數輸入為 0 或非正整數時，輸入保留、顯示訊息，且不觸發 `uc-view-duedate-reminder`
 
 ### 待確認事項
-- ⚠️ 門檻天數的型別／範圍 spec 未定義，僅有範例值 3 天，見 OQ-32
+- （無）
