@@ -1361,3 +1361,30 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：D-09。下一個任務：D-24 或 T7.03（依 `actionable` 順序，下一輪重新讀取任務清單確認）。
+
+## Iteration 67 — 2026-09-17 22:17 — D-24
+### Plan
+上一輪外部驗證 FAIL：`last-verify.md` 指出 Iteration 66（D-09）的 Check 段沒有貼 `ui-check` 的 `N error(s), M warning(s)` 結果行；但 D-09 本身的實際交付（F01／F02 兩份 ui 檔）已驗證 0 error，純粹是文件缺漏。PDCA 為 append-only，不能回頭改 Iteration 66 舊內容，故本則先在 Do 補記缺漏的 `ui-check` 結果作為說明，再繼續 `actionable` 第一個任務 D-24：修正 `ui-canvas-layout.md` 的 `s-canvas` 兩處問題——(1) 角色與權限表 `r-user`「看得到」寫「同 `r-canvas-editor`」與 OQ-44「不預設對應關係」矛盾；(2) 驗收條件「檢視區不變」重述 `uc-set-viewport` fail p1 領域結果。要改檔案：`.dev/F07-canvas-layout/ui-canvas-layout.md`。驗收條件：D-24 列出的五項機械／文字條件。預期 error 數變化：開工前 0 → 中途因 DS-05 一度為 1（見 Do）→ 收尾 0。
+
+### Do
+- 補記：對 D-09 交付的兩份檔案執行 `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md .dev/F02-user-membership/ui-user-membership.md .dev/F03-kanban-widgets/ui-kanban-widgets.md .dev/F04-board-clock/ui-board-clock.md .dev/F05-workload/ui-workload.md .dev/F06-feature-cr-board/ui-feature-cr-board.md .dev/F07-canvas-layout/ui-canvas-layout.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`（全部既有 ui 檔一起傳入，避免跨模組 Screen ID 誤判 REF-07）：`0 error(s), 13 warning(s)`，與 D-24 驗證時的全域基準一致，證實 D-09 當輪交付無誤，僅 PDCA 記錄本身缺這行。
+- 讀 D-24 描述與 OQ-44 全文，確認人工判斷：F01 `r-user` 與 F07 `r-canvas-editor`／`r-canvas-viewer` 之間不預設對應關係。
+- `ui-canvas-layout.md` 角色與權限表：
+  - `r-user`（F01，跨模組）列「看得到」改為「新增 Swimlane、新增 Stage 所需範圍（⚠️ 見 OQ-44）」，不再寫「同 `r-canvas-editor`」；「做得到」維持「新增 Swimlane、新增 Stage」不變（若在這格加註記會破壞 DS-05 逐字比對，見下）。
+  - `r-canvas-editor` 列「做得到」在「開啟管理 Stage」後加註「（⚠️ 見 OQ-44）」（此欄對應的兩個操作「開啟管理 Swimlane」「開啟管理 Stage」觸發欄皆為 `—`，不會進入 DS-05 逐字比對，可安全加註）。
+  - 中途誤將「⚠️ 見 OQ-44」／「所需範圍」直接接在「新增 Stage」「做得到」欄內、破壞 `_split_ops` 以「、,，」分隔的逐字比對，造成 DS-05 error（"新增 Stage" 可用角色 [] 與 uc roles ['r-user'] 不一致）；修正為只在「看得到」欄加註、「做得到」欄維持原逐字操作名稱，錯誤消除。
+- 驗收條件段：「縮放比例超出範圍時，檢視區不變、顯示訊息」改為「縮放比例超出範圍時，顯示訊息」（採用規則書提供的「或只寫『顯示訊息』」選項，移除重述 `uc-set-viewport` fail p1 領域結果的「檢視區不變」）；操作表「失敗時」欄原有「依 `uc-set-viewport` p1：檢視區不變，顯示訊息」不動（該欄本來就允許引用 fail key 呈現方式，D-24 未要求改）。
+- 未改操作表觸發欄、需確認欄，未改 OQ 檔，畫面狀態維持「討論中」。
+- commit `[spec/design](ui-canvas-layout) 修正 s-canvas 角色對應與驗收條件領域狀態問題 (D-24)`（118ab56）。
+- 任務清單：D-24 狀態由 `todo` 改為 `done`。
+
+### Check
+- `./scripts/ui-check .dev/F0[1-7]*/ui-*.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`0 error(s), 13 warning(s)`。
+- `python3 .dev/loops/ui-authoring-loop/scripts/ui-authoring-tools.py error-count .dev/F07-canvas-layout/ui-canvas-layout.md`：0（中途因 DS-05 誤用一度為 1，修正後歸零）。
+- `python3 .dev/loops/ui-authoring-loop/scripts/ui-authoring-tools.py error-count all`：0。
+- `python3 .dev/loops/ui-authoring-loop/scripts/ui-authoring-tools.py accept-check ui-authoring-tasks.md D-24`：exit code 0。
+- 逐條對照 D-24 驗收條件：`grep` 確認「角色與權限」表不含「同 `r-canvas-editor`」✓；「開啟管理 Swimlane」所在列同一行含「OQ-44」✓；「驗收條件」段不含「檢視區不變」（操作表失敗時欄的既有引用不算，未被要求修改）✓；`ui-check` 0 error ✓；`verify-quotes.py` 通過 ✓。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：逐字引用驗證通過。
+
+### Act
+完成：D-09 驗證 FAIL 已補記說明並確認無實質問題；D-24 完成。下一個任務：依 `actionable` 順序重新讀取任務清單確認（D-24 為本輪開工前 `actionable` 唯二項目之一，另一項 T7.03 待下一輪處理）。
