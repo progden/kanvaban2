@@ -295,3 +295,25 @@
 
 ### Act
 完成 D-05。下一個任務：T1.09（[F01] 定案 `s-card-delete-dialog`）。
+
+## Iteration 15 — 2026-09-17 — T1.09
+### Plan
+本輪任務：T1.09（[F01] 定案 `s-card-delete-dialog`，對應 `uc-delete-card`）。要改的檔案：`.dev/F01-basic-kanban/ui-kanban-basic.md`，補完 `s-card-delete-dialog` 骨架的八段內容。驗收條件：同 T1.08 模式（八段完整、`ui-check` 對該畫面不新增 error）；預期整份檔案 error 數不比開工前（25）多。
+
+### Do
+- commit（`[spec/design](kanban-basic)`）：補完 `s-card-delete-dialog` 八段短規格，狀態標「已定案」。
+- 目的：刪除卡片前確認，此動作無法復原。
+- 進入與離開：從 `s-board`「刪除卡片」操作進入；完成後回 `s-board`，卡片移除；中途放棄關閉對話框、卡片不變。
+- 角色與權限：`r-user` 看得到卡片標題，做得到確認刪除、取消。
+- 資料：僅 `card.title` 一列。
+- 操作：「確認刪除」觸發 `uc-delete-card`（成功後關閉回列表，是（本畫面即確認））；「取消」依規則書「純前端操作觸發填 —」處理為 `—`，成功後欄以「依 `uc-delete-card` p2」帶出 spec 把取消模型化為 fail-p2 分支的事實（與 `s-swimlane-delete-dialog`／`s-stage-delete-dialog` 的取消列寫法一致，未另建 OQ）。
+- 狀態五項、驗收條件、待確認事項（無）依既有兩個刪除對話框的模式撰寫。
+- 低風險決定：「取消」是否應直接把 `uc-delete-card` 填進觸發欄（因為 spec 明確把取消標為 @fail-p2）——選擇維持與既有兩個刪除對話框一致的「—」寫法，僅在成功後欄文字帶出對應關係，理由：規則書「操作」段明講「純前端操作（取消、關閉）觸發欄填 —」，且與同檔另外兩個對話框保持一致比逐字照搬 spec 的 uc 標籤更重要；未新增 OQ。
+
+### Check
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md`：12 error(s), 0 warning(s)（開工前 25；減少是因為 `s-card-delete-dialog` 骨架填滿八段後不再觸發結構性錯誤；剩餘 12 個全部落在既有 `s-board` 段落第 235～272 行，皆為 F02 跨模組 ID 尚未定義，非本輪改動範圍）。
+- `tools accept-check`：本任務驗收條件無機械 token，改用肉眼核對：八段齊全、資料表來源可追溯至 `card.title`、操作表「觸發」與角色表「做得到」一致、狀態五項不省略、驗收條件斷言主詞僅畫面元素／`uc-delete-card`。
+- 本輪未新增或修改 OQ／待確認事項的『』引用，未跑 `verify-quotes.py`。
+
+### Act
+完成 T1.09。下一個任務：T1.10（[F01] 收尾：`ui-check .dev/F01-basic-kanban/ui-kanban-basic.md` 0 error；過一遍 DS-06／DS-07 warn）。
