@@ -897,3 +897,25 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T3.03。下一個任務：T3.04（[F03] 定案 `s-throughput-cfd-dashboard`，對應 `uc-view-throughput`／`uc-view-cfd`）。
+
+## Iteration 45 — 2026-09-17 22:40 — T3.04
+### Plan
+上一輪驗證 FAIL：[4] PDCA 舊內容被修改（上一輪為了修正 Iteration 43 標題格式而編輯了已提交的舊內容，這本身就違反「PDCA 只能在檔尾追加」，即使動機是修正格式也不允許）；[9] D-15 的驗收條件 `ui-check(all)=0` 仍非 0（26）。判斷：[4] 已無法回頭修正（Iteration 43／44 皆已提交為歷史內容，再編輯只會再次觸發同一個 FAIL），本輪不對任何舊 PDCA 內容做任何修改，只追加；[9] 屬預期中的漸進修正（F03 尚有 2 個畫面骨架未定案），繼續完成 state 記載的下一步 T3.04：定案 `s-throughput-cfd-dashboard`（類型：儀表板），對應 `uc-view-throughput`／`uc-view-cfd`。要改的檔案：`.dev/F03-kanban-widgets/ui-kanban-widgets.md`（本畫面段落）、`ui-authoring-tasks.md`（T3.04 標 done）。驗收條件：`ui-check` 對本畫面無 error；八段齊全；任務描述要求 Throughput／CFD 兩個資料區塊在同一 Screen ID 內用「資料」段分開說明、不拆兩畫面。預期 error 數：本檔全部 error 從 26 降到約 13～17。
+
+### Do
+- 讀 `parser_design.py` 確認「### 資料」段落解析器只抓標題後第一張 markdown 表格，若寫成兩張獨立表格，第二張會被完全忽略（不會報錯，但內容形同不存在）；因此改用同一張表加「圖表」欄（值為 Throughput／CFD）區分兩個資料區塊，符合任務描述「不拆兩個畫面」且能被腳本實際解析。
+- 撰寫 `s-throughput-cfd-dashboard` 八段：目的、進入與離開、角色與權限（`r-user`，做得到「檢視 Throughput 圖表、檢視 CFD 圖表」，與操作表兩列名稱逐字相同）、資料（5 列：Throughput 的單位時間／期間完成數，CFD 的 Stage 名稱／日期／累積卡片數）、操作（`uc-view-throughput`／`uc-view-cfd` 各一列）、狀態五項、驗收條件、待確認事項。
+- 沿用既有 OQ-31（F01 `s-board` 尚無「檢視圖表」操作），未新增 OQ 列。
+- 低風險決定：單位時間欄位驗證直接抄 usecase post p1 明文列舉的「日／週」，未開 OQ；「單位時間」預設選哪一個 spec 未定義，判斷為畫面初始狀態而非業務規則，未強行定案、也未寫入待確認事項（沿用前兩個畫面對未定義細節的處理尺度）。
+- Commit `ebe499e`（`[spec/design](kanban-widgets) 定案 s-throughput-cfd-dashboard 八段短規格`）。
+- 任務清單：T3.04 標 `done`。
+
+### Check
+- `./scripts/ui-check .dev/F03-kanban-widgets/ui-kanban-widgets.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`19 error(s), 42 warning(s)`；篩選本畫面（105～153 行）：僅既有 `s-board` REF-07（OQ-31 同款）與 `DS-07` warn，無新增 error。
+- `tools error-count .dev/F03-kanban-widgets/ui-kanban-widgets.md`：13（單檔計數，較上一輪 26 下降 13）。
+- `python3 verify-quotes.py`：「逐字引用驗證通過」（本輪未新增『』引用，仍為 0）。
+- 驗收條件核對：八段齊全 ✓；本畫面無新增 error ✓；Throughput／CFD 兩區塊同一 Screen ID、同一張「資料」表以「圖表」欄區分、未拆兩個畫面 ✓。
+- 上一輪失敗項目：[4] 不可回頭修正（Iteration 43／44 已成歷史，本輪未再編輯任何舊內容，只追加本則）；[9] D-15 的 `ui-check(all)=0` 本輪仍未回到 0（`s-duedate-reminder` 仍是骨架），屬預期中的漸進修正，待 T3.05～T3.06 完成後應回到 0。
+
+### Act
+完成：T3.04。下一個任務：T3.05（[F03] 定案 `s-duedate-reminder`，對應 `uc-view-duedate-reminder`）。
