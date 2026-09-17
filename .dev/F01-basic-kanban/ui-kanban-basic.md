@@ -274,7 +274,7 @@
 ## s-card-add-dialog：新增卡片對話框
 所屬 Feature：Card（卡片）編輯
 類型：表單
-狀態：已定案
+狀態：討論中
 
 ### 目的
 看板使用者在指定的 Swimlane 與 Stage 交會格中，輸入標題以建立一張新卡片。
@@ -306,7 +306,7 @@
 - 載入中：不適用（目的 Swimlane、目的 Stage 由進入情境提供，本畫面無需額外載入資料）
 - 空資料：不適用（進入此畫面代表指定的 `swimlane` 與 `stage` 已存在）
 - 錯誤：確認新增失敗時，依上方操作表顯示對應訊息
-- 無權限：不適用（spec 僅定義 `r-user` 一種角色，無角色差異）
+- 無權限：⚠️ 待確認（見 OQ-30）：`uc-member-add-card`（F02）roles 為 `r-board-member`，與本畫面現有 `r-user` 是否為同一操作、是否需要在本畫面另列角色，待釐清
 - 資料狀態差異：不適用
 
 ### 驗收條件
@@ -316,7 +316,7 @@
 - 取消後關閉對話框，且不觸發 `uc-add-card`
 
 ### 待確認事項
-- （無）
+- ⚠️ `uc-member-add-card`（F02 spec-user-membership.md）與本畫面已觸發的 `uc-add-card` 的關係推不出來：兩者 crud 都寫入 card，但 roles 分別是 `r-user`（`uc-add-card`）與 `r-board-member`（`uc-member-add-card`），且「ui-check」的 DS-05 要求同一操作列的可用角色須與所觸發 uc 的 roles 完全一致，兩者 roles 互斥（皆為單一角色）無法同列同時觸發；是否為同一動作、該不該在本畫面新增 `r-board-member` 角色列並另拆一列操作，見 OQ-30（ui-authoring-open-questions.md）
 
 ## s-card-detail：卡片詳情
 所屬 Feature：Card（卡片）編輯
