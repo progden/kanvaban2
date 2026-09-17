@@ -750,3 +750,19 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：下一個任務 T2.10（[F02] 定案 `s-activity-log`）。
+
+## Iteration 37 — 2026-09-17 21:45 — T2.10
+### Plan
+本輪任務：T2.10，定案 `s-activity-log`（列表），對應 `uc-view-board-activity-log`。開工先讀 `spec-user-membership.md`「Feature: 檢視看板活動紀錄」現況，依任務規則判斷走「已定案」或「尚未實作」分支。要改的檔案：`.dev/F02-user-membership/ui-user-membership.md`（該畫面骨架）。驗收條件：`ui-check` 對本畫面無 error（未定案時「狀態」為「未討論」一樣要通過格式檢查）；若走「尚未實作」分支，OQ 檔有對應列。預期 error 數變化：本畫面本身應維持 0 error。
+
+### Do
+- 讀 `spec-user-membership.md` 776～816 行，Feature 說明明文寫「本情境目前尚未實作」（跨 aggregate 查詢投影留給「kanban-spring」有 application／persistence 層時再做）→ 判定走「尚未實作」分支
+- `s-activity-log` 狀態維持「未討論」，八段標題各填「不適用，理由同上」（「狀態」段仍列出五個固定子項以符合 DS-04），並在檔頭補一段簡短說明引用 spec 原文與 OQ 編號
+- 追加 OQ-29（見 `ui-authoring-open-questions.md`），採用選項 1（維持「未討論」、僅八段標題與簡短說明）
+- commit：`0cdf519` `[spec/design](ui-user-membership) 暫緩定案看板活動紀錄畫面`；`[docs](loops) T2.10 完成：暫緩定案看板活動紀錄畫面`（下方 docs commit）
+
+### Check
+`./scripts/ui-check .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 最後一行：`20 error(s), 37 warning(s)`（全部 20 個 error 為既有跨模組 Screen 引用（F01 `s-board`／`s-stage-list`／`s-swimlane-list`、F02 `s-card-detail`）未在單檔模式解析、以及 `s-card-assignee-picker` 既有 1 筆 `roles` 反引號誤用，`s-activity-log` 本身 0 error）。`tools error-count .dev/F02-user-membership/ui-user-membership.md`＝1（即上述既有 `roles` 誤用，非本輪新增）。`tools accept-check` 對 T2.10 無機械 token 輸出，已肉眼核對：八段標題齊全（含五個狀態子項）、無新增 error、OQ-29 已建立。`verify-quotes.py`：「逐字引用驗證通過」。
+
+### Act
+完成：下一個任務 T2.11（跨模組收尾任務）。
