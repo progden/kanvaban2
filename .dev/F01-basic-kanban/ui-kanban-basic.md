@@ -264,7 +264,7 @@
 
 ### 待確認事項
 - ⚠️ 看板本體如何成為 F07 `s-canvas` 上的 `item`（機制細節）spec「待釐清」尚未定案，見 OQ-18
-- 成員頭像清單已改為 F07 `s-canvas` 上另一個獨立 `item`，跨 `item` 拖曳機制待 F07 補充
+- ⚠️ 成員頭像清單已改為 F07 `s-canvas` 上另一個獨立 `item`，跨 `item` 拖曳機制待 F07 補充，見 OQ-19
 
 ## s-card-add-dialog：新增卡片對話框
 所屬 Feature：Card（卡片）編輯
