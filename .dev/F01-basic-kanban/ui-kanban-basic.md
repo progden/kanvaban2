@@ -5,13 +5,13 @@
 ## s-swimlane-list：Swimlane 列表
 所屬 Feature：Swimlane 管理
 類型：列表
-狀態：討論中
+狀態：已定案
 
 ### 目的
 看板使用者在此檢視、新增、重新命名與拖曳排序看板的 Swimlane。
 
 ### 進入與離開
-- 從哪裡進來：⚠️ 待確認（見 OQ-01），暫定為模組入口
+- 從哪裡進來：`s-board` 的「管理 Swimlane」操作（見 OQ-01，已依 `s-board` 定案結果更新）
 - 完成後去哪裡：新增、重新命名、拖曳排序完成後停留本畫面，列表更新；刪除操作導向 `s-swimlane-delete-dialog`
 - 中途放棄會怎樣：不適用（本畫面各操作皆為即時提交，無中途放棄流程）
 
@@ -53,7 +53,7 @@
 - 點擊刪除操作開啟 `s-swimlane-delete-dialog`
 
 ### 待確認事項
-- ⚠️ 進入路徑未定：見 OQ-01（`ui-authoring-open-questions.md`）
+- （無）
 
 ## s-swimlane-delete-dialog：刪除 Swimlane 對話框
 所屬 Feature：Swimlane 管理
@@ -104,13 +104,13 @@
 ## s-stage-list：Stage 列表
 所屬 Feature：Stage（階段）管理
 類型：列表
-狀態：討論中
+狀態：已定案
 
 ### 目的
 看板使用者在此檢視、新增、重新命名、拖曳排序與設定角色（Start/Done）給看板的 Stage。
 
 ### 進入與離開
-- 從哪裡進來：⚠️ 待確認（見 OQ-02），暫定為模組入口
+- 從哪裡進來：`s-board` 的「管理 Stage」操作（見 OQ-02，已依 `s-board` 定案結果更新）
 - 完成後去哪裡：新增、重新命名、拖曳排序、設定角色完成後停留本畫面，列表更新；刪除操作導向 `s-stage-delete-dialog`
 - 中途放棄會怎樣：不適用（本畫面各操作皆為即時提交，無中途放棄流程）
 
@@ -155,7 +155,7 @@
 - 點擊刪除操作開啟 `s-stage-delete-dialog`
 
 ### 待確認事項
-- ⚠️ 進入路徑未定：見 OQ-02（`ui-authoring-open-questions.md`）
+- （無）
 
 ## s-stage-delete-dialog：刪除 Stage 對話框
 所屬 Feature：Stage（階段）管理
@@ -209,7 +209,67 @@
 ## s-board：看板
 所屬 Feature：Card（卡片）編輯
 類型：儀表板
-狀態：未討論
+狀態：討論中
+
+### 目的
+看板使用者在此檢視看板所有 Swimlane 與 Stage 交會格內的卡片，可拖曳卡片跨 Swimlane 或跨 Stage 移動，也可拖曳看板成員頭像到卡片上追加負責人。
+
+### 進入與離開
+- 從哪裡進來：⚠️ 待確認（見 OQ-04）：跨模組，需先選擇／開啟一個看板（見 F02 spec-user-membership.md），對應畫面尚未定案
+- 完成後去哪裡：拖曳移動卡片、拖曳頭像追加負責人完成後停留本畫面，交會格內容更新；新增卡片操作導向 `s-card-add-dialog`；點擊卡片導向 `s-card-detail`；刪除卡片操作導向 `s-card-delete-dialog`；管理 Swimlane 操作導向 `s-swimlane-list`；管理 Stage 操作導向 `s-stage-list`
+- 中途放棄會怎樣：不適用（拖曳操作皆為即時提交，無中途放棄流程；新增卡片的中途放棄行為由 `s-card-add-dialog` 定義）
+
+### 角色與權限
+| 角色 | 看得到 | 做得到 |
+|---|---|---|
+| `r-user` | 全部 Swimlane × Stage 交會格與其中卡片 | 拖曳卡片跨 Swimlane、拖曳卡片跨 Stage、拖曳成員頭像到卡片追加負責人、新增卡片、開啟卡片詳情、刪除卡片、前往管理 Swimlane、前往管理 Stage |
+
+### 資料
+| 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
+|---|---|---|---|---|
+| Swimlane 清單 | `board` 與 `swimlane` 的關係（依序） | 顯示 | — | 決定橫向分組與排列順序 |
+| Stage 清單 | `board` 與 `stage` 的關係（依序） | 顯示 | — | 決定縱向欄位與排列順序 |
+| 卡片所在位置 | `card.swimlane`、`card.stage` | 顯示 | — | 決定卡片顯示於哪個交會格 |
+| 卡片標題 | `card.title` | 顯示 | — | 顯示於交會格中的卡片縮圖 |
+| 卡片截止日期 | `card.due-date` | 顯示 | — | 依 `uc-edit-card` post：卡片縮圖顯示 `card.due-date` |
+| 卡片負責人 | `card.assignees`（見 F02 spec-user-membership.md） | 顯示 | — | 依 F02 `uc-set-card-assignees` post：卡片縮圖同步顯示 `card.assignees` 的所有成員 |
+| 看板成員清單 | `board-membership`（見 F02 spec-user-membership.md） | 顯示 | — | 供拖曳頭像指派負責人使用；⚠️ 待確認：於本畫面何處呈現成員清單，spec 未定義，見 OQ-05 |
+
+### 操作
+| 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
+|---|---|---|---|---|
+| 拖曳卡片跨 Swimlane | `uc-move-card-swimlane` | 卡片顯示於目的 Swimlane 與原 Stage 的交會格 | 不適用（`uc-move-card-swimlane` 無 fail 定義） | 否 |
+| 拖曳卡片跨 Stage | `uc-move-card-stage` | 卡片顯示於目的 Stage | 不適用（`uc-move-card-stage` 無 fail 定義） | 否 |
+| 拖曳成員頭像到卡片追加負責人 | `uc-assign-card-owner-by-drag`（F02） | 卡片負責人追加該成員（若原本已是負責人則維持不變） | 不適用（`uc-assign-card-owner-by-drag` 無 fail 定義） | 否 |
+| 新增卡片 | — | 開啟 `s-card-add-dialog` | 不適用 | 否 |
+| 開啟卡片詳情 | — | 開啟 `s-card-detail` | 不適用 | 否 |
+| 刪除卡片 | — | 開啟 `s-card-delete-dialog` | 不適用 | 否 |
+| 管理 Swimlane | — | 開啟 `s-swimlane-list` | 不適用 | 否 |
+| 管理 Stage | — | 開啟 `s-stage-list` | 不適用 | 否 |
+
+### 狀態
+- 載入中：載入 Swimlane、Stage 與卡片資料時顯示
+- 空資料：不適用（`board` 與 `swimlane`、`stage` 的關係 min 皆為 1，交會格結構至少存在；單一交會格內無卡片時顯示為空格，不視為錯誤）
+- 錯誤：拖曳移動卡片或拖曳指派負責人失敗時，依上方操作表顯示對應訊息（`uc-move-card-swimlane`／`uc-move-card-stage`／`uc-assign-card-owner-by-drag` 目前均無 fail 定義）
+- 無權限：不適用（F01 spec 僅定義 `r-user` 一種角色，無角色差異）
+- 資料狀態差異：不適用
+
+### 驗收條件
+- 每個 Swimlane × Stage 交會格依序顯示，格內列出屬於該交會格的卡片
+- 卡片縮圖顯示標題，並在有截止日期、負責人時一併顯示
+- 拖曳卡片到另一個 Swimlane 後，卡片顯示於目的 Swimlane 與原 Stage 的交會格，且觸發 `uc-move-card-swimlane`
+- 拖曳卡片到另一個 Stage 後，卡片顯示於目的 Stage，且觸發 `uc-move-card-stage`
+- 拖曳看板成員頭像到卡片後，卡片負責人追加該成員，且觸發 `uc-assign-card-owner-by-drag`
+- 點擊新增卡片開啟 `s-card-add-dialog`
+- 點擊卡片開啟 `s-card-detail`
+- 點擊刪除卡片開啟 `s-card-delete-dialog`
+- 點擊管理 Swimlane 開啟 `s-swimlane-list`
+- 點擊管理 Stage 開啟 `s-stage-list`
+
+### 待確認事項
+- ⚠️ 進入路徑未定：見 OQ-04（`ui-authoring-open-questions.md`）
+- ⚠️ 看板成員清單於本畫面的呈現位置未定：見 OQ-05（`ui-authoring-open-questions.md`）
+- ⚠️ F02 spec-user-membership.md 的 `uc-assign-card-owner-by-drag` 等卡片負責人相關 usecase 區塊的 roles 欄位填 `r-user`，但 F02 自身「角色定義」表只有 `r-system-user`／`r-board-owner`／`r-board-member`，未定義 `r-user`（`r-user` 是 F01 spec 定義的角色）：需回饋後端 Spec 確認是否為筆誤或刻意沿用 F01 角色，見 OQ-06（`ui-authoring-open-questions.md`）
 
 ## s-card-add-dialog：新增卡片對話框
 所屬 Feature：Card（卡片）編輯
