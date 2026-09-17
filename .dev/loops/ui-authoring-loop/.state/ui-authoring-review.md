@@ -380,3 +380,36 @@
 
 ### 關卡摘要
 下一個任務是 D-19，接著是 T5.01，都不是關卡，這次不用填。
+
+## Review — 2026-09-17 21:41 — f997b9a
+### 範圍
+- commit 區間：`0d6cf1e`（上次審查）..`f997b9a`，共 8 個 commit（含上次審查 commit `af36da0`）
+- 任務：D-19、D-20、D-21、T5.01、T5.02（皆 `done`）；`actionable` 目前是 T5.03，不是關卡
+- runtime/last-verify.md：PASS，沒有警告（範圍 38ab9da..f997b9a）。Iteration 55／57 各自修正了前一輪的 FAIL（Iteration 54 缺 ui-check 結果行、T5.01 骨架讓 D-15 的 `ui-check(all)` 破功），兩次都用追加的方式處理，沒有回頭改舊的 PDCA
+- 期間新增的 OQ：OQ-40～OQ-42
+- 目前 `./scripts/ui-check`：0 error、12 warning；F05 單檔 0 error（`s-workload-dashboard` 有 DS-07 warn，對應 OQ-41）；`verify-quotes.py` 回傳 0
+
+### 發現
+1. **中**：`s-workload-dashboard` 的「驗收條件」有三行把 spec post 照抄成領域規則（多位負責人各算一張、Done 不計入、不重複新增），斷言主詞不是畫面元素，違反 `ui-convention.md`「驗收條件……不寫領域狀態」。Iteration 57 的 Do 自己寫了「逐條對照 spec 四個 view Scenario」，這其實是把 Scenario 搬進 ui 檔。另外，「拖曳成員頭像到卡片後，該卡片負責人清單更新」預設本畫面會顯示卡片與負責人清單，但這件事在同一畫面已經用 ⚠️ 指向 OQ-42，表示尚未決定，前後矛盾，和上次審查 D-21 (2) 是同一類問題。→ **D-22**
+2. **低**（不開 D）：F03 已定案畫面的驗收條件也有類似的計算規則敘述（例如「統計摘要的 Cycle Time 平均值與百分位計算排除……」），但那些句子的主詞是畫面上的統計摘要，而且 D-17 已經審過，所以這次不追溯。建議收尾階段（G1 L-09）統一判斷。
+3. **低**（不開 D）：操作表的拖曳列、「角色與權限」都寫到「成員頭像」，但 spec（F02／F05）沒有頭像欄位，「資料」段也沒有頭像這一列。F01 `s-board` 的同類操作也是這樣寫，而且「頭像」是 Scenario 原文用語，不算發明新概念，這次只做記錄。
+4. **低**（不開 D）：拖曳列的「需確認？」欄寫「否（可透過 F02 `uc-set-card-assignees` 調整……）」，但 `uc-set-card-assignees` 的 roles 是 `r-board-member`，本畫面的角色是 `r-user`，兩者不一定是同一群人。「追加負責人可以還原」這個判斷本身合理，只是引用的還原路徑跨了角色，建議 G1 抽查時一併確認。
+5. **低**（不開 D）：OQ-42 選項 2（拖曳目標在 F01 `s-board`）如果被採用，本畫面的拖曳列會移到別的畫面，觸發的 uc 也可能要和 F02 `uc-assign-card-owner-by-drag` 合併（spec 的 OQ-09）。這要由人工決定，現在的「不預設」是正確做法。
+
+有檢查、沒發現偏差的面向：
+- 不定義新概念：`user.display-name`（F02）、`card.title`（F01）、`card.assignees`、`board-membership` 都確實存在；兩個衍生欄位都附上 post 依據；`r-user` 沿用 F03／F04 的跨模組寫法；「所屬 Feature：人員工作量檢視」和 spec 的 `## Feature:` 逐字相符。
+- 不寫業務結果：「失敗時」兩列都寫「無 fail 定義」，符合 spec 的 `fail: {}`（「成功後」的問題見第 1 點）。
+- 不寫排版視覺：沒有發現相關內容。
+- 狀態誠實性：F05 畫面是「討論中」，兩個 ⚠️ 分別對應 OQ-41、OQ-42。F04 `s-board-clock-control` 維持「討論中」，D-21 修正後，驗收條件那一行已加上 OQ-37。
+- 需確認判斷：F05 兩列都標「否」，檢視和追加負責人都可以還原，判斷合理（第 4 點例外）。
+- OQ 品質：OQ-40～42 都有 `[Level:]`，也沒有說服性字眼。OQ-40 標【推論】，正確指出 OQ-34 實際採用「進入路徑不預設」，D-21 (3) 已達成。OQ-41、OQ-42 的引文我已經對照 `spec-workload.md`，確認逐字相符。
+- 逐字引用：`verify-quotes.py` 回傳 0。
+- 跨模組一致：F05 沒有重複定義其他模組的畫面。F01 `s-board` 觸發的是 F02 `uc-assign-card-owner-by-drag`，F05 觸發的是自己的 `uc-drag-assign-card-owner`，兩個 ID 都存在，和 spec 的說明（OQ-09）一致。
+- 任務完成度：D-19／D-20 的結案符合上次審查的指示；D-21 的 (1)～(3) 我逐項核對，都已落實（不含「共同前置條件」、驗收條件那一行含 OQ-37、OQ-40 同時含「OQ-35」和「不預設」、OQ 舊列沒有被修改）；T5.01 的標題和三行標頭都在；T5.02 八段齊全、0 error。PDCA 的 Check 和實際結果一致（第 1 點是內容品質問題，不是 Check 不實）。
+
+需人工事後處理：
+- 第 2、4 點：G1 抽查時，一併決定驗收條件裡的「計算規則敘述」可以寫到什麼程度，以及需確認欄的還原路徑是否必須屬於同一角色。
+- 延續上次：`uc-guard-clock-monotonicity` 應該由哪個寫入畫面引用；`verify-quotes.py` 要支援同一行引用多份 spec（OQ-34／OQ-39 的「模組」欄仍填 canvas-layout）；D-15 的 `all` 判準遇到骨架檔時會 FAIL（Iteration 57 已再次發生，F06／F07 還會遇到）；F03 的 WIP 名詞定義和 Scenario 矛盾，要走 CR；D-09、OQ-30、OQ-34、OQ-41、OQ-42 待人工決定；「中途放棄」段是否允許寫「X 不變」；新增類操作的需確認判準要統一；commit `67e4907` 缺少 scope。
+
+### 關卡摘要
+下一個任務是 T5.03，不是關卡，這次不用填。
