@@ -1,8 +1,10 @@
 # UI 短規格撰寫 loop 規則書
 
-本檔放不隨進度改變的規則，是 [`ui-authoring-kickoff-prompt.md`](./ui-authoring-kickoff-prompt.md)（執行輪流程）與 [`ui-authoring-review-prompt.md`](./ui-authoring-review-prompt.md)（審查輪流程）共同遵守的鐵則來源，也是 `/loop` 手動模式直接重用的提示詞本體。進度與待辦看 [`ui-authoring-tasks.md`](./ui-authoring-tasks.md)（任務清單，唯一任務來源）；決策追溯看 [`ui-authoring-pdca.md`](./ui-authoring-pdca.md)（執行日誌）、[`ui-authoring-review.md`](./ui-authoring-review.md)（審查紀錄）與 [`ui-authoring-open-questions.md`](./ui-authoring-open-questions.md)（高風險假設）。
+本檔放不隨進度改變的規則，是 [`ui-authoring-kickoff-prompt.md`](./ui-authoring-kickoff-prompt.md)（執行輪流程）與 [`ui-authoring-review-prompt.md`](./ui-authoring-review-prompt.md)（審查輪流程）共同遵守的鐵則來源，也是 `/loop` 手動模式直接重用的提示詞本體。進度與待辦看 [`ui-authoring-tasks.md`](../.state/ui-authoring-tasks.md)（任務清單，唯一任務來源）；決策追溯看 [`ui-authoring-pdca.md`](../.state/ui-authoring-pdca.md)（執行日誌）、[`ui-authoring-review.md`](../.state/ui-authoring-review.md)（審查紀錄）與 [`ui-authoring-open-questions.md`](../.state/ui-authoring-open-questions.md)（高風險假設）。
 
-以下路徑中的 `<loop>` 代表 `.dev/loops/ui-authoring-loop`，`tools` 代表 `python3 <loop>/ui-authoring-tools.py`。
+本 loop 的檔案分三類目錄（見下方「檔案地圖」）：`prompts/` 放不隨進度變的提示詞（本檔就在這裡）、`.state/` 放隨進度累積的紀錄、`scripts/` 放輔助腳本；`run-ui-authoring-loop.sh`（自動模式驅動腳本）與 `runtime/`（執行期檔案，不進版控）留在 loop 根目錄。
+
+以下路徑中的 `<loop>` 代表 `.dev/loops/ui-authoring-loop`，`<prompts>`／`<state>`／`<scripts>` 代表其下的 `prompts/`／`.state/`／`scripts/` 子目錄，`tools` 代表 `python3 <scripts>/ui-authoring-tools.py`。
 
 這個 loop 有兩種跑法（見檔尾「操作手冊」）：
 
@@ -25,18 +27,18 @@
 
 | 檔案 | 用途 | 誰可以改 |
 |------|------|----------|
-| `<loop>/ui-authoring-prompt.md`（本檔） | 不變的規則 | 人工 |
-| `<loop>/ui-authoring-kickoff-prompt.md` | 執行輪流程（讀什麼、怎麼收尾） | 人工 |
-| `<loop>/ui-authoring-review-prompt.md` | 審查輪流程 | 人工 |
-| `<loop>/ui-authoring-tasks.md` | 任務清單，唯一任務來源 | 人工改任務內容（描述／驗收條件／依賴）；loop 只能改狀態欄，可追加 `D-xx`（狀態直接 `todo`，本 loop 沒有 proposed／rejected 中間狀態，任務描述要把判斷依據寫清楚） |
-| `<loop>/ui-authoring-pdca.md` | 執行輪日誌，只能追加 | loop（執行輪） |
-| `<loop>/ui-authoring-review.md` | 審查輪日誌，只能追加 | loop（審查輪）／人工 |
-| `<loop>/ui-authoring-state.md` | 狀態快照，每輪覆寫（20 行內） | loop（執行輪） |
-| `<loop>/ui-authoring-open-questions.md` | 高風險假設（OQ-xx），只能追加 | loop |
-| `<loop>/ui-authoring-tools.py` | 共用工具（任務清單／PDCA／OQ 解析、包裝 `ui-check`），供 `run-ui-authoring-loop.sh`、`verify-ui-authoring.sh` 與 loop 自我檢查用 | 人工（loop 只能執行，不能修改） |
-| `<loop>/verify-ui-authoring.sh` | 自動模式的外部驗證腳本 | 人工 |
-| `<loop>/run-ui-authoring-loop.sh` | 自動模式的驅動腳本 | 人工 |
-| `<loop>/verify-quotes.py` | 逐字引用驗證腳本，比對 OQ／`ui-*.md`『』引用是否與 spec 逐字相符 | 人工（loop 只能執行，不能修改） |
+| `<prompts>/ui-authoring-prompt.md`（本檔） | 不變的規則 | 人工 |
+| `<prompts>/ui-authoring-kickoff-prompt.md` | 執行輪流程（讀什麼、怎麼收尾） | 人工 |
+| `<prompts>/ui-authoring-review-prompt.md` | 審查輪流程 | 人工 |
+| `<state>/ui-authoring-tasks.md` | 任務清單，唯一任務來源 | 人工改任務內容（描述／驗收條件／依賴）；loop 只能改狀態欄，可追加 `D-xx`（狀態直接 `todo`，本 loop 沒有 proposed／rejected 中間狀態，任務描述要把判斷依據寫清楚） |
+| `<state>/ui-authoring-pdca.md` | 執行輪日誌，只能追加 | loop（執行輪） |
+| `<state>/ui-authoring-review.md` | 審查輪日誌，只能追加 | loop（審查輪）／人工 |
+| `<state>/ui-authoring-state.md` | 狀態快照，每輪覆寫（20 行內） | loop（執行輪） |
+| `<state>/ui-authoring-open-questions.md` | 高風險假設（OQ-xx），只能追加 | loop |
+| `<scripts>/ui-authoring-tools.py` | 共用工具（任務清單／PDCA／OQ 解析、包裝 `ui-check`），供 `run-ui-authoring-loop.sh`、`verify-ui-authoring.sh` 與 loop 自我檢查用 | 人工（loop 只能執行，不能修改） |
+| `<scripts>/verify-ui-authoring.sh` | 自動模式的外部驗證腳本 | 人工 |
+| `<scripts>/verify-quotes.py` | 逐字引用驗證腳本，比對 OQ／`ui-*.md`『』引用是否與 spec 逐字相符 | 人工（loop 只能執行，不能修改） |
+| `<loop>/run-ui-authoring-loop.sh` | 自動模式的驅動腳本，留在 loop 根目錄（是入口，不是子腳本） | 人工 |
 | `<loop>/runtime/`（不進版控） | `baseline`、`errors.json`、`gates/`、`logs/`、`DONE` | loop |
 | `.dev/F0x-*/ui-*.md` | 本 loop 的產出 | loop |
 | `.dev/F0x-*/spec-*.md`、`.dev/conventions/**`、`scripts/**`、`.gitignore`、`CLAUDE.md`、`design-*.md` | 規格、規範、檢查腳本 | **不可修改**（缺什麼標 `⚠️` 回饋，不自己補；發現腳本本身有 bug 記 OQ，不修腳本） |
@@ -94,7 +96,7 @@ Spec 沒有的資訊不要自己補（見上面「自主決策分級」）。
   - 骨架類任務（建立檔頭與畫面標題）：`DS-01` 不報 error 即可（八段內容還沒填，先別跑全段檢查）。
   - 單一畫面任務：該畫面所在檔案跑 `ui-check` 對它的 `DS-01`～`DS-05`、`REF-07` 不得有新增 error；本畫面若標「已定案」，其八段格式必須完整無漏；若標「討論中」，`ui-check` 仍要 0 error（討論中不代表格式可以不齊全，只代表內容還有 `⚠️`）。
   - 收尾類任務（每個模組最後一項）：整份 `ui-<模組>.md` 0 error。
-- 本輪若新增或修改了 OQ 表列、或 ui 檔「待確認事項」裡標【引用原文】／【矛盾】／【推論】／【覆蓋】的『』引用，收尾前另外跑一次 `python3 .dev/loops/ui-authoring-loop/verify-quotes.py`；非 0 視為本輪未完成，逐一修正對應列（引用文字改到與 spec 逐字相符，或承認引用錯誤重寫該列）到腳本通過為止，不可以放著沒驗證過的引用收尾。
+- 本輪若新增或修改了 OQ 表列、或 ui 檔「待確認事項」裡標【引用原文】／【矛盾】／【推論】／【覆蓋】的『』引用，收尾前另外跑一次 `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`；非 0 視為本輪未完成，逐一修正對應列（引用文字改到與 spec 逐字相符，或承認引用錯誤重寫該列）到腳本通過為止，不可以放著沒驗證過的引用收尾。
 - 做不完：commit 已完成的部分，任務標 `doing`，PDCA Act 寫清楚剩餘工作，下一輪從這裡接續。
 - 每輪結束：更新任務清單狀態、覆寫 `ui-authoring-state.md`（自動模式必做；手動模式若沒維護這個檔案可以省略，但建議一併寫，方便中斷後接續）、PDCA 追加一則、commit（見下方「commit 規範」）、一句話回報本輪做了什麼、下一個任務是什麼。
 
@@ -133,10 +135,10 @@ Spec 沒有的資訊不要自己補（見上面「自主決策分級」）。
 3. 用 Claude Code 內建的 `/loop` 指令驅動，不帶固定間隔（自我調節）：
 
    ```
-   /loop 讀 .dev/loops/ui-authoring-loop/ui-authoring-kickoff-prompt.md 並依其規則執行下一輪任務
+   /loop 讀 .dev/loops/ui-authoring-loop/prompts/ui-authoring-kickoff-prompt.md 並依其規則執行下一輪任務
    ```
 
-4. 每輪跑完看 `.dev/loops/ui-authoring-loop/ui-authoring-pdca.md` 尾巴確認進度；`ui-authoring-tasks.md` 看任務狀態；`.dev/loops/ui-authoring-loop/runtime/DONE` 出現代表六份 `ui-*.md` 全部完成。
+4. 每輪跑完看 `.dev/loops/ui-authoring-loop/.state/ui-authoring-pdca.md` 尾巴確認進度；`ui-authoring-tasks.md` 看任務狀態；`.dev/loops/ui-authoring-loop/runtime/DONE` 出現代表六份 `ui-*.md` 全部完成。
 5. loop 因為某任務 `blocked` 停下：看 `ui-authoring-open-questions.md` 最後幾列與該任務描述，人工決定後把任務狀態改回 `todo`，重新 `/loop` 即可接續（不需要重跑前面已 `done` 的任務）。
 6. 遇到 `G1` 關卡：手動模式下由執行輪自己完成自我審查並直接把 `G1` 標 `done`（任務描述裡寫的方式），不需要 `runtime/gates/G1.approved`；這個核准檔只有走自動模式（下方）時才需要。
 

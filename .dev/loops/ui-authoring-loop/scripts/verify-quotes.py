@@ -9,10 +9,11 @@ import re
 import sys
 from pathlib import Path
 
-LOOP_DIR = Path(__file__).resolve().parent
+SCRIPT_DIR = Path(__file__).resolve().parent
+LOOP_DIR = SCRIPT_DIR.parent
 REPO_ROOT = LOOP_DIR.parent.parent.parent
 DEV_DIR = REPO_ROOT / ".dev"
-OQ_FILE = LOOP_DIR / "ui-authoring-open-questions.md"
+OQ_FILE = LOOP_DIR / ".state" / "ui-authoring-open-questions.md"
 
 QUOTE_RE = re.compile(r"『(.*?)』")
 TAG_RE = re.compile(r"【(引用原文|矛盾|推論|覆蓋)】")

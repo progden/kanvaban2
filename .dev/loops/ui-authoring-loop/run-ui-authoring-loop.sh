@@ -21,15 +21,18 @@ REPO_ROOT="$(cd "$LOOP_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
 
 LOOP=".dev/loops/ui-authoring-loop"
+STATE_DIR="$LOOP/.state"
+SCRIPTS="$LOOP/scripts"
+PROMPTS="$LOOP/prompts"
 RUNTIME="$LOOP/runtime"
 GATES="$RUNTIME/gates"
 LOGS="$RUNTIME/logs"
-TOOLS="python3 $LOOP/ui-authoring-tools.py"
-LEDGER="$LOOP/ui-authoring-tasks.md"
-PDCA="$LOOP/ui-authoring-pdca.md"
-KICKOFF="$LOOP/ui-authoring-kickoff-prompt.md"
-REVIEW_PROMPT="$LOOP/ui-authoring-review-prompt.md"
-VERIFY="$LOOP/verify-ui-authoring.sh"
+TOOLS="python3 $SCRIPTS/ui-authoring-tools.py"
+LEDGER="$STATE_DIR/ui-authoring-tasks.md"
+PDCA="$STATE_DIR/ui-authoring-pdca.md"
+KICKOFF="$PROMPTS/ui-authoring-kickoff-prompt.md"
+REVIEW_PROMPT="$PROMPTS/ui-authoring-review-prompt.md"
+VERIFY="$SCRIPTS/verify-ui-authoring.sh"
 DONE_FILE="$RUNTIME/DONE"
 STATE="$RUNTIME/state"
 BASELINE="$RUNTIME/baseline"
@@ -142,7 +145,7 @@ while true; do
   if [ -z "$first" ]; then
     log "沒有可執行的任務（剩餘任務皆為 blocked 或依賴未完成），停止迴圈。"
     $TOOLS status-summary "$LEDGER"
-    echo "請查看 $LOOP/ui-authoring-open-questions.md 與任務清單中 blocked 的任務，處理後將其改回 todo 再重新啟動。"
+    echo "請查看 $STATE_DIR/ui-authoring-open-questions.md 與任務清單中 blocked 的任務，處理後將其改回 todo 再重新啟動。"
     break
   fi
 
@@ -151,7 +154,7 @@ while true; do
     if [ "$gate_name" != "$first" ]; then gate_name="$first"; gate_reviews=0; fi
     if [ "$reviewed_gate" = "$first" ]; then
       if [ "$AUTO_APPROVE_GATES" != 1 ]; then
-        log "等待人工關卡 $first：確認審查紀錄（$LOOP/ui-authoring-review.md）後執行"
+        log "等待人工關卡 $first：確認審查紀錄（$STATE_DIR/ui-authoring-review.md）後執行"
         echo "    touch $GATES/$first.approved"
         echo "  再重新啟動 loop。"
         break

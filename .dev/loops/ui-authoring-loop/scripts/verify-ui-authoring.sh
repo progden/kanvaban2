@@ -10,20 +10,23 @@ BASE="$1"
 MODE="$2"
 ROUND_START="$3"
 
-LOOP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LOOP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPO_ROOT="$(cd "$LOOP_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
 
 LOOP=".dev/loops/ui-authoring-loop"
+STATE_DIR="$LOOP/.state"
+SCRIPTS="$LOOP/scripts"
 RUNTIME="$LOOP/runtime"
 GATES="$RUNTIME/gates"
 TMP="$RUNTIME/tmp"
-TOOLS="python3 $LOOP/ui-authoring-tools.py"
-LEDGER="$LOOP/ui-authoring-tasks.md"
-PDCA="$LOOP/ui-authoring-pdca.md"
-STATE_MD="$LOOP/ui-authoring-state.md"
-REVIEW_LOG="$LOOP/ui-authoring-review.md"
-OQ="$LOOP/ui-authoring-open-questions.md"
+TOOLS="python3 $SCRIPTS/ui-authoring-tools.py"
+LEDGER="$STATE_DIR/ui-authoring-tasks.md"
+PDCA="$STATE_DIR/ui-authoring-pdca.md"
+STATE_MD="$STATE_DIR/ui-authoring-state.md"
+REVIEW_LOG="$STATE_DIR/ui-authoring-review.md"
+OQ="$STATE_DIR/ui-authoring-open-questions.md"
 REPORT="$RUNTIME/last-verify.md"
 ERRORS_JSON="$RUNTIME/errors.json"
 mkdir -p "$GATES" "$TMP"
@@ -115,7 +118,7 @@ snap "$OQ" "$TMP/oq-base.md"
 out="$($TOOLS check-oq "$TMP/oq-base.md" "$OQ")" || fail_lines "[5] " "$out"
 
 # 6. 逐字引用：OQ 與 ui 檔裡標【引用原文】／【矛盾】／【推論】／【覆蓋】的『』引用必須逐字相符 spec
-if ! out="$(python3 "$LOOP/verify-quotes.py" 2>&1)"; then
+if ! out="$(python3 "$SCRIPTS/verify-quotes.py" 2>&1)"; then
   fail_lines "[6] " "$out"
 fi
 
