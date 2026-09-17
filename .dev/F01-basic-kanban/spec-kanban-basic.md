@@ -79,6 +79,7 @@
 | 2026-09-13 | CR-004 | 開發完成 | 「kanban-core」的「Board」／「Card」事件時間已全面改用 Board Clock（「Board.now()」／「Board.newEventTime()」），不再直接呼叫「Instant.now()」；CR-004 狀態改「處理完成」 |
 | 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-add-swimlane`、`uc-rename-swimlane`、`uc-reorder-swimlane`、`uc-delete-swimlane`、`uc-add-stage`、`uc-rename-stage`、`uc-reorder-stage`、`uc-delete-stage`、`uc-set-stage-role`、`uc-add-card`、`uc-edit-card`、`uc-move-card-swimlane`、`uc-move-card-stage`、`uc-add-comment`、`uc-delete-card`） |
 | 2026-09-17 |  | 新增 | 補上遺漏的「留言」實體 `comment`（ui-authoring-loop OQ-09 發現：`uc-add-comment` post 描述留言內容、留言者、留言時間，但名詞定義完全沒有對應實體與欄位），新增 `comment.content`／`comment.author`／`comment.created-at`，`card`→`comment` 關係，`uc-add-comment` 的 crud、post、Aggregate 標記同步更新；本檔尚未進入開發，可直接補上，不需開 CR |
+| 2026-09-18 |  | 變更 | 修正 9 個結構調整 usecase 的角色（ui-authoring-loop OQ-25 發現：`uc-add-swimlane` 等 9 個 usecase 的 roles 寫 r-user，未區分 Owner／Member，但 F02 `uc-reject-structure-change-by-member` 明訂只有 Owner 能調整結構），`uc-add-swimlane`／`uc-rename-swimlane`／`uc-reorder-swimlane`／`uc-delete-swimlane`／`uc-add-stage`／`uc-rename-stage`／`uc-reorder-stage`／`uc-delete-stage`／`uc-set-stage-role` 的 roles 改為 r-board-owner；本檔尚未進入開發，可直接補上，不需開 CR |
 
 ---
 
@@ -88,7 +89,7 @@
 ```usecase
 - id: uc-add-swimlane
   name: 新增 Swimlane
-  roles: [r-user]
+  roles: [r-board-owner]
   crud: {board: RU, swimlane: C}
   pre:
     p1: "`swimlane.name` 非空"
@@ -103,7 +104,7 @@
 
 - id: uc-rename-swimlane
   name: 重新命名 Swimlane
-  roles: [r-user]
+  roles: [r-board-owner]
   crud: {board: U, swimlane: U}
   pre:
     p1: "指定的 `swimlane` 存在"
@@ -117,7 +118,7 @@
 
 - id: uc-reorder-swimlane
   name: 拖曳調整 Swimlane 順序
-  roles: [r-user]
+  roles: [r-board-owner]
   crud: {board: U, swimlane: U}
   pre:
     p1: "`board` 中依序存在多個 `swimlane`"
@@ -131,7 +132,7 @@
 
 - id: uc-delete-swimlane
   name: 刪除 Swimlane
-  roles: [r-user]
+  roles: [r-board-owner]
   crud: {board: U, swimlane: D, card: D}
   pre:
     p1: "`board` 中的 `swimlane` 數量大於 1"
@@ -240,7 +241,7 @@ Feature: Swimlane 管理
 ```usecase
 - id: uc-add-stage
   name: 新增 Stage
-  roles: [r-user]
+  roles: [r-board-owner]
   crud: {board: RU, stage: C}
   pre:
     p1: "`board` 存在"
@@ -254,7 +255,7 @@ Feature: Swimlane 管理
 
 - id: uc-rename-stage
   name: 重新命名 Stage
-  roles: [r-user]
+  roles: [r-board-owner]
   crud: {board: U, stage: U}
   pre:
     p1: "指定的 `stage` 存在"
@@ -268,7 +269,7 @@ Feature: Swimlane 管理
 
 - id: uc-reorder-stage
   name: 拖曳調整 Stage 順序
-  roles: [r-user]
+  roles: [r-board-owner]
   crud: {board: U, stage: U}
   pre:
     p1: "`board` 中依序存在多個 `stage`"
@@ -282,7 +283,7 @@ Feature: Swimlane 管理
 
 - id: uc-delete-stage
   name: 刪除 Stage
-  roles: [r-user]
+  roles: [r-board-owner]
   crud: {board: U, stage: D, card: U}
   pre:
     p1: "`board` 中的 `stage` 數量大於 1"
@@ -298,7 +299,7 @@ Feature: Swimlane 管理
 
 - id: uc-set-stage-role
   name: 設定 Stage 角色
-  roles: [r-user]
+  roles: [r-board-owner]
   crud: {board: U, stage: U}
   pre:
     p1: "指定的 `stage` 存在"
