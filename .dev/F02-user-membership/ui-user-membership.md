@@ -102,7 +102,49 @@
 ## s-board-list：我的 Board 列表
 所屬 Feature：Board 存取權限
 類型：列表
-狀態：未討論
+狀態：討論中
+
+### 目的
+系統使用者在此檢視自己有權限（Owner 或 Member）的 Board 清單，並選擇其中一個 Board 進入。
+
+### 進入與離開
+- 從哪裡進來：登入成功後（依 `s-login`「完成後去哪裡」，見 OQ-13，暫定導向本畫面）
+- 完成後去哪裡：選擇列表中的 Board 進入該 Board（F01 `s-board`，回應 `s-board`「從哪裡進來」OQ-04）
+- 中途放棄會怎樣：不適用（本畫面僅為列表檢視與導覽，無中途放棄流程）
+
+### 角色與權限
+| 角色 | 看得到 | 做得到 |
+|---|---|---|
+| `r-system-user` | 自己是 Owner 或 Member 的 `board` 清單 | 選擇列表中的 Board 進入該 Board、嘗試直接開啟不屬於自己的 Board |
+
+### 資料
+| 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
+|---|---|---|---|---|
+| Board 名稱 | ⚠️ 待確認，spec 未定義對應欄位，見 OQ-14 | 顯示 | — | 依 `uc-view-board-list` Scenario，用於識別列表中每個 Board |
+
+### 操作
+| 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
+|---|---|---|---|---|
+| 選擇 Board 進入 | — | 開啟該 Board（F01 `s-board`） | 不適用 | 否 |
+| 嘗試直接開啟不屬於自己的 Board | `uc-reject-board-access-by-nonmember` | 依 `uc-reject-board-access-by-nonmember` post：顯示訊息，⚠️ 停留畫面待確認（見 OQ-15） | 不適用（`uc-reject-board-access-by-nonmember` 無 fail 定義） | 否 |
+
+### 狀態
+- 載入中：載入 Board 列表時顯示
+- 空資料：使用者尚未是任何 `board` 的 Owner 或 Member 時，顯示空清單
+- 錯誤：不適用（`uc-view-board-list` 無 fail 定義）
+- 無權限：嘗試直接開啟不屬於自己的 Board 時，依 `uc-reject-board-access-by-nonmember` post 顯示訊息，操作者仍無法存取該 `board`
+- 資料狀態差異：不適用（spec 未定義 Owner／Member 列表呈現上的差異）
+
+### 驗收條件
+- 使用者是其 Owner 或 Member 的 Board 都顯示於列表，沒有權限的 Board 不顯示，且觸發 `uc-view-board-list`
+- 尚未擁有任何 Board 時，列表顯示空清單
+- 選擇列表中的 Board 後開啟該 Board（F01 `s-board`）
+- 嘗試直接開啟不屬於自己的 Board 時，觸發 `uc-reject-board-access-by-nonmember`，且操作者仍無法存取該 Board
+
+### 待確認事項
+- ⚠️ 「Board 名稱」欄位找不到對應 Attribute ID，見 OQ-14
+- ⚠️ 「嘗試直接開啟不屬於自己的 Board」失敗後停留於哪個畫面未定，見 OQ-15
+- ⚠️ 本畫面對 F01 `s-board` 的跨模組引用單獨檢查本檔時會被 `ui-check` 誤判為未定義（工具限制，見 OQ-16），需與 `ui-kanban-basic.md` 一起檢查才會消失
 
 ## s-board-create-dialog：建立 Board 對話框
 所屬 Feature：Board 建立與成員邀請
