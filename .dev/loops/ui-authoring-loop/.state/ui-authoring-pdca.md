@@ -1085,3 +1085,21 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：D-19（以追加 OQ-39 方式記錄修正，任務標 `doing` 待人工確認是否接受）。下一個任務：T5.01（[F05] 建立 `ui-workload.md`：檔頭 ＋ 1 個畫面標題骨架 `s-workload-dashboard`）。
+
+## Iteration 54 — 2026-09-17 22:30 — D-20
+### Plan
+`runtime/last-verify.md` 顯示上一輪驗證 PASS（範圍 0d6cf1e..af36da0，任務 D-19）；審查輪（af36da0）確認 Iteration 53 追加的 OQ-39 已達成 D-19 的實質目的，並新增 D-20（結案 D-19，只改狀態欄）、D-21。`actionable` 依優先序回傳 D-19（doing）在前，但 D-19 本身已無可執行的動作（其驗收條件在 OQ 只能追加的前提下無法逐字達成，這正是 D-20 存在的原因）；D-20 是明確指向「把 D-19 狀態由 doing 改成 done」的任務，本輪任務取 D-20。預期：只改任務清單狀態欄（D-19、D-20 兩列），不動 OQ 檔、不動 ui 檔；`verify-quotes.py` 通過；`git diff` 只觸及 `ui-authoring-tasks.md`。
+
+### Do
+- 將 `ui-authoring-tasks.md` 中 D-19 狀態由 `doing` 改為 `done`（僅改狀態欄，任務描述／驗收條件／依賴不動）。
+- 將 D-20 狀態由 `todo` 改為 `done`（本任務執行完畢）。
+- 未修改 `ui-authoring-open-questions.md`、任何 `ui-*.md` 檔案。
+
+### Check
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：逐字引用驗證通過（exit 0）。
+- `git diff --stat`：僅 `ui-authoring-tasks.md` 有變更（2 insertions, 2 deletions）。
+- `git diff -- ui-authoring-open-questions.md`：無變更，確認未動到 OQ 既有列。
+- 逐條對照 D-20 驗收條件：任務清單中 D-19 狀態為 `done`（達成）；本任務 commit 未變更 `ui-authoring-open-questions.md` 既有列（達成）；`verify-quotes.py` 回傳 0（達成）。
+
+### Act
+完成：D-19、D-20。下一個任務：D-21（[F04] 修正 `ui-board-clock.md` 兩處無 spec 依據寫法與 OQ-35 誤述）。
