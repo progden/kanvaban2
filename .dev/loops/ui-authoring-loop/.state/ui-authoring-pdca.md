@@ -584,3 +584,31 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 ### Act
 - 完成：T2.06 標 `done`。
 - 下一個任務：T2.07（[F02] 定案 `s-board-delete-dialog`，對應 `uc-delete-board`）。
+
+## Iteration 30 — 2026-09-17 — T2.07
+
+### Plan
+- 本輪任務：T2.07（[F02] 定案 `s-board-delete-dialog`，類型：對話框，對應 `uc-delete-board`；`uc-member-add-card` 不屬本畫面，留給 T2.08／T1.06）。
+- 要改的檔案：`.dev/F02-user-membership/ui-user-membership.md`——`s-board-delete-dialog` 八段內容補齊，結構比照 F01 `s-swimlane-delete-dialog` 前例（確認刪除前顯示將一併刪除的下層資料數量）。
+- 驗收條件：八段齊全；`uc-delete-board` 對應「確認刪除」操作；`ui-check` 對本畫面所在行號範圍無新增 error。
+- 預期 error 數變化：本畫面從骨架填滿八段內容，預期整份檔案 error 數從 52 下降。
+
+### Do
+- `fea21f3`　`[spec/design](user-membership) 定案刪除 Board 對話框畫面`：`s-board-delete-dialog` 補齊八段：
+  - 「資料」段列出 Board 名稱、Swimlane 數（`board`→`swimlane` 關係計數）、Stage 數（`board`→`stage` 關係計數）、卡片數（`swimlane`→`card`／`stage`→`card` 關係計數彙總），對應 `uc-delete-board` Scenario「這個 Board 有 2 個 Swimlane、3 個 Stage，以及數張卡片」。
+  - 「操作」表：「確認刪除」觸發 `uc-delete-board`，因 `fail: {}` 為空寫「不適用」；「需確認？」標「是（本畫面即確認）」，比照 `s-swimlane-delete-dialog` 前例（不可逆刪除操作、畫面本身即確認）。
+  - 「完成後去哪裡」依 post「該 board 不再存在」，推論導向 `s-board-list`（module 既有列表畫面，非新發明目的地，低風險決定，不記 OQ）。
+- 低風險決定：「無權限」段依 T2.05 `s-board-create-dialog` 前例寫「不適用（`uc-delete-board` roles 僅 `r-board-owner`，spec 未定義本畫面內的角色差異）」；spec Scenario 內雖有 Member 嘗試刪除被拒絕的文字，但未對應獨立 fail key 或 reject-uc（與 `uc-create-board` 同類，無對應 reject 機制可引用），比照既有前例不特別處理，不記 OQ。
+- 高風險（標 ⚠️、記 OQ、畫面維持「討論中」）：OQ-26——「從哪裡進來」spec 未定義，推論應由 F01 `s-board` 的 Owner 專屬操作進入，但該操作尚未列在 `s-board` 操作表中；與 OQ-22（`s-member-management` 同類缺口）情況相同、但對象是不同 Screen，故另開一列（不推翻 OQ-22，是新增一列）。
+- 修正一次格式問題：「進入與離開」段落內原本把 Board 實體寫成反引號 `` `board` ``，被 `DS-03` 解析成 Screen 引用而誤判「種類錯誤」；改為不加反引號的純文字「Board」後消除該 error（記入本輪 state「待注意」，供之後任務參考）。
+
+### Check
+- `./scripts/ui-check .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`52 error(s), ...warning(s)` → 本輪改動後 `52 error(s), 38 warning(s)`；`s-board-delete-dialog` 所在行號範圍（255～300）僅剩 1 筆 `DS-07` warn（沒有畫面導向它，符合 OQ-26 現況、非 error），無其他 error（已用 `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md .dev/F02-user-membership/ui-user-membership.md --spec "..."` 驗證 `s-board`／`s-swimlane-list`／`s-stage-list` 的跨檔 `REF-07` 皆消失，屬 OQ-16 既知限制）。
+- `tools error-count .dev/F02-user-membership/ui-user-membership.md`：39（原 52）。
+- `tools accept-check ui-authoring-tasks.md T2.07`：通過（無輸出，exit 0）。
+- 逐條對照任務描述：八段齊全——達成；對應 `uc-delete-board`——達成；`uc-member-add-card` 未放入本畫面——達成（維持給 T2.08／T1.06）。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：通過（新增 OQ-26 的『』引用與 spec 逐字相符）。
+
+### Act
+- 完成：T2.07 標 `done`。
+- 下一個任務：T2.08（[F02] 定案 `s-card-assignee-picker`，對應 `uc-set-card-assignees`／`uc-list-card-assignee-candidates`／`uc-view-card-assignees`）。
