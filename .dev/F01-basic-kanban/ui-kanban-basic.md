@@ -160,7 +160,7 @@
 ## s-stage-delete-dialog：刪除 Stage 對話框
 所屬 Feature：Stage（階段）管理
 類型：對話框
-狀態：討論中
+狀態：已定案
 
 ### 目的
 看板使用者刪除 Stage 前確認，若該 Stage 內有卡片，需選擇一個目的 Stage 來接收這些卡片。
@@ -180,7 +180,7 @@
 |---|---|---|---|---|
 | Stage 名稱 | `stage.name` | 顯示 | — | 要刪除的 Stage |
 | 卡片數 | `stage`→`card` 關係計數 | 顯示 | — | 提示使用者有幾張卡片需要轉移 |
-| 目的 Stage | `board`→`stage` 關係（同一 `board` 中的其他 Stage） | 輸入（卡片數大於 0 時必選） | ⚠️ 待確認（見 OQ-03）：是否排除欲刪除的 Stage 本身 | 依 `uc-delete-stage` post，接收該 Stage 內的卡片 |
+| 目的 Stage | `board`→`stage` 關係（同一 `board` 中的其他 Stage） | 輸入（卡片數大於 0 時必選） | 排除欲刪除的 Stage 本身，清單只列其他 Stage | 依 `uc-delete-stage` post，接收該 Stage 內的卡片 |
 
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
@@ -204,7 +204,7 @@
 - 取消後關閉對話框，Stage 與卡片不變
 
 ### 待確認事項
-- ⚠️ 目的 Stage 清單是否排除欲刪除的 Stage 本身：見 OQ-03（`ui-authoring-open-questions.md`）
+- （無）
 
 ## s-board：看板
 所屬 Feature：Card（卡片）編輯
@@ -222,7 +222,8 @@
 ### 角色與權限
 | 角色 | 看得到 | 做得到 |
 |---|---|---|
-| `r-user` | 全部 Swimlane × Stage 交會格與其中卡片 | 拖曳卡片跨 Swimlane、拖曳卡片跨 Stage、拖曳成員頭像到卡片追加負責人、新增卡片、開啟卡片詳情、刪除卡片、前往管理 Swimlane、前往管理 Stage |
+| `r-user` | 全部 Swimlane × Stage 交會格與其中卡片 | 拖曳卡片跨 Swimlane、拖曳卡片跨 Stage、新增卡片、開啟卡片詳情、刪除卡片、前往管理 Swimlane、前往管理 Stage |
+| `r-board-member`（F02，跨模組） | 同上 | 拖曳成員頭像到卡片追加負責人 |
 
 ### 資料
 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
@@ -233,7 +234,7 @@
 | 卡片標題 | `card.title` | 顯示 | — | 顯示於交會格中的卡片縮圖 |
 | 卡片截止日期 | `card.due-date` | 顯示 | — | 依 `uc-edit-card` post：卡片縮圖顯示 `card.due-date` |
 | 卡片負責人 | `card.assignees`（見 F02 spec-user-membership.md） | 顯示 | — | 依 F02 `uc-set-card-assignees` post：卡片縮圖同步顯示 `card.assignees` 的所有成員 |
-| 看板成員清單 | `board-membership`（見 F02 spec-user-membership.md） | 顯示 | — | 供拖曳頭像指派負責人使用；⚠️ 待確認：於本畫面何處呈現成員清單，spec 未定義，見 OQ-05 |
+| 看板成員清單 | `board-membership`（見 F02 spec-user-membership.md） | 顯示 | — | 供拖曳頭像指派負責人使用；⚠️ 已改為 F07 s-canvas 上另一個獨立 item，非本畫面資料，見 OQ-19，待 D-09 依 T7.02 完成後移除本列 |
 
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
@@ -267,9 +268,8 @@
 - 點擊管理 Stage 開啟 `s-stage-list`
 
 ### 待確認事項
-- ⚠️ 進入路徑未定：見 OQ-04（`ui-authoring-open-questions.md`）
-- ⚠️ 看板成員清單於本畫面的呈現位置未定：見 OQ-05（`ui-authoring-open-questions.md`）
-- ⚠️ F02 spec-user-membership.md 的 `uc-assign-card-owner-by-drag` 等卡片負責人相關 usecase 區塊的 roles 欄位填 `r-user`，但 F02 自身「角色定義」表只有 `r-system-user`／`r-board-owner`／`r-board-member`，未定義 `r-user`（`r-user` 是 F01 spec 定義的角色）：需回饋後端 Spec 確認是否為筆誤或刻意沿用 F01 角色，見 OQ-06（`ui-authoring-open-questions.md`）
+- ⚠️ 進入路徑已依 OQ-18 改為由 F07 s-canvas 承接（非「導向進入」），機制細節仍待 F07「待釐清」定案，見 OQ-18（`ui-authoring-open-questions.md`），待 D-09 依 T7.02 完成後改寫「從哪裡進來」
+- ⚠️ 看板成員清單已改為 F07 s-canvas 上另一個獨立 item，非本畫面資料：見 OQ-19（`ui-authoring-open-questions.md`），待 D-09 依 T7.02 完成後移除相關內容
 
 ## s-card-add-dialog：新增卡片對話框
 所屬 Feature：Card（卡片）編輯
@@ -344,7 +344,7 @@
 | 截止日期 | `card.due-date` | 顯示 / 輸入 | — | 依欄位表 `card.due-date` 限制欄無資料 |
 | 標籤 | `card.labels` | 顯示 / 輸入（多值） | — | 依欄位表 `card.labels` 限制欄無資料 |
 | 負責人 | ⚠️ 待確認：見 OQ-08 | 顯示 | — | F01 `card` 欄位表無負責人欄位（CR-002 移除），待 F02「卡片負責人指派」相關畫面定案後回填來源與指派入口 |
-| 留言列表 | ⚠️ 待確認：見 OQ-09 | 顯示 / 輸入（新增留言內容） | — | spec 未在名詞定義表定義「留言」實體或欄位，僅 `uc-add-comment` post 以文字描述留言內容、留言者、留言時間 |
+| 留言列表 | `comment.content`／`comment.author`／`comment.created-at` | 顯示 / 輸入（新增留言內容） | `comment.content` 非空 | 依 `uc-add-comment` post，`card` 底下的留言依 `comment.created-at` 排序顯示 |
 
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
@@ -368,7 +368,6 @@
 
 ### 待確認事項
 - ⚠️ 負責人欄位與指派入口：待 F02「卡片負責人指派」相關畫面（任務清單 T2.08 規劃的 s-card-assignee-picker）定案後回填，見 OQ-08（`ui-authoring-open-questions.md`）
-- ⚠️ 留言相關欄位缺乏可引用的 Attribute ID，需回饋後端 Spec 補上「留言」實體與欄位定義，見 OQ-09（`ui-authoring-open-questions.md`）
 
 ## s-card-delete-dialog：刪除卡片對話框
 所屬 Feature：Card（卡片）編輯
