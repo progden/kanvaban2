@@ -16,7 +16,7 @@
 
 | ID | 狀態 | 任務 | 驗收條件 | 依賴 |
 |----|------|------|----------|------|
-| T0.01 | todo | 確認起點：`./scripts/ui-check` 可執行（目前應印「找不到任何 ui 檔」，六個模組目錄下都還沒有 `ui-*.md`）；建立 `runtime/` 目錄，`git rev-parse HEAD` 寫入 `runtime/baseline`；PDCA 本則 Check 貼上述兩個指令的輸出 | `runtime/baseline` 存在且是合法 commit hash；PDCA 本則含 `ui-check` 的輸出行 | — |
+| T0.01 | done | 確認起點：`./scripts/ui-check` 可執行（目前應印「找不到任何 ui 檔」，六個模組目錄下都還沒有 `ui-*.md`）；建立 `runtime/` 目錄，`git rev-parse HEAD` 寫入 `runtime/baseline`；PDCA 本則 Check 貼上述兩個指令的輸出 | `runtime/baseline` 存在且是合法 commit hash；PDCA 本則含 `ui-check` 的輸出行 | — |
 
 ## 階段 1：F01 basic-kanban（`.dev/F01-basic-kanban/spec-kanban-basic.md` → `ui-kanban-basic.md`）
 

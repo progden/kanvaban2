@@ -20,3 +20,21 @@
 
 ### Act
 下一個任務：T0.01。
+
+---
+
+## Iteration 1 — 2026-09-17 09:00 — T0.01
+
+### Plan
+確認起點：跑 `./scripts/ui-check`（預期印「找不到任何 ui 檔」，因六個模組目錄下都還沒有 `ui-*.md`）；建立 `runtime/` 目錄，把 `git rev-parse HEAD` 寫入 `runtime/baseline`。驗收條件：`runtime/baseline` 存在且是合法 commit hash；本則 Check 貼上述兩個指令的輸出。
+
+### Do
+- 執行 `mkdir -p .dev/loops/ui-authoring-loop/runtime`。
+- 執行 `git rev-parse HEAD > .dev/loops/ui-authoring-loop/runtime/baseline`。
+
+### Check
+- `./scripts/ui-check` 輸出：`找不到任何 ui 檔`（符合預期，因六個模組尚無 `ui-*.md`）。
+- `cat .dev/loops/ui-authoring-loop/runtime/baseline` 輸出：`aa39f8215b7439ad9fd62ed1935e9d01c9281152`（等於 `git rev-parse HEAD`，是合法 commit hash）。
+
+### Act
+完成：T0.01。下一個任務：T1.01（[F01] 建立 `ui-kanban-basic.md` 檔頭與 8 個畫面標題骨架）。
