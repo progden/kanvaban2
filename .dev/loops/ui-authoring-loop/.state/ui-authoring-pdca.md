@@ -1442,3 +1442,22 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T8.01 完成，13 則 warning 中 1 則（`s-signup`）為格式 bug 已修正消除，其餘 12 則逐項確認皆有既存 OQ 或內文理由承接，不需回頭補。下一個任務：G1（自我審查關卡）。
+
+## Iteration 70 — 2026-09-17 — D-25
+### Plan
+`actionable` 第一項為 D-25（早於 G1）：修正 `ui-kanban-basic.md` `s-board`「待確認事項」段第二條（成員頭像清單那一行）。D-09（Iteration 66）改寫時拿掉了 ⚠️ 與 OQ-19 引用，但 OQ-19「採用」欄原文只說「待確認事項改為說明...」，未說已解決、未要求拿掉 ⚠️。處理方式：該行加回 ⚠️，句尾加「見 OQ-19」；不動其他文字、操作表、角色權限表、驗收條件、OQ 檔，畫面狀態維持「討論中」。預期：只改一行，`ui-check(all)` 維持 0 error。
+
+### Do
+- 編輯 `.dev/F01-basic-kanban/ui-kanban-basic.md:267`：「成員頭像清單已改為 F07 `s-canvas` 上另一個獨立 `item`，跨 `item` 拖曳機制待 F07 補充」→ 前面加「⚠️」、句尾加「，見 OQ-19」。
+- commit `418869e`：`[spec/design](kanban-basic) 修正 s-board 成員頭像清單待確認事項的狀態誠實性 (D-25)`。
+- 任務清單：D-25 狀態由 `todo` 改為 `done`。
+
+### Check
+- `./scripts/ui-check .dev/F0[1-7]-*/ui-*.md`：`0 error(s), 12 warning(s)`（與 T8.01 收尾一致，未新增 warning）。
+- `python3 .../ui-authoring-tools.py error-count .dev/F01-basic-kanban/ui-kanban-basic.md`：0。
+- 驗收條件對照：「該行同時含『⚠️』與『OQ-19』」達成；「`ui-check(.dev/F01-basic-kanban/ui-kanban-basic.md)=0`」「`ui-check(all)=0`」達成（單檔獨立跑會因跨檔 Screen 引用出現 REF-07 error，此為已知限制，`--spec` 只補 spec 定義不補其他 ui 檔定義的 Screen ID，故以 `tools error-count` 與全檔合跑結果為準）。
+- `python3 .../ui-authoring-tools.py accept-check ui-authoring-tasks.md D-25`：exit code 0（無輸出）。
+- 未新增『』引用，仍跑 `verify-quotes.py` 確認：通過。
+
+### Act
+完成：D-25 完成。下一個任務：D-26（`actionable` 第二項，早於 G1）。
