@@ -1212,3 +1212,22 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T5.03，F05 workload 模組收尾完成。下一個任務：T6.01（[F06] 建立 `ui-feature-cr-board.md`：檔頭 ＋ 1 個畫面標題骨架 `s-feature-cr-board`，同 T1.01 模式）。
+
+## Iteration 60 — 2026-09-17 — T6.01
+### Plan
+本輪任務：T6.01——[F06] 建立 `ui-feature-cr-board.md`：檔頭 ＋ 1 個畫面標題骨架（`s-feature-cr-board`），同 T1.01 模式（檔頭三段說明 ＋ 畫面標題下三行：所屬 Feature、類型、狀態：未討論，八段內容先留空）；驗收條件：畫面標題與三行標頭存在、`ui-check` 對 DS-01 不報 error；預期 error 數變化：找不到任何 ui 檔 → 骨架階段的 DS-02／DS-04／DS-07 error（同 T1.01 badd5ba 階段模式，DS-01 不報 error）。
+
+### Do
+- 讀 `.dev/F06-feature-cr-board/spec-feature-cr-board.md`：確認狀態為「定稿」，唯一 Feature「Feature／CR 追蹤表」，唯一 usecase `uc-view-feature-cr-board`（`roles: [r-user]`，唯讀 `board`／`card`）。
+- 新建 `.dev/F06-feature-cr-board/ui-feature-cr-board.md`：檔頭仿 `ui-workload.md`／`ui-kanban-basic.md` 三段說明；畫面 `s-feature-cr-board`：所屬 Feature 填「Feature／CR 追蹤表」（同 spec 的 Feature 標題）、類型參照 `s-workload-dashboard` 前例定為「儀表板」（唯讀彙總檢視，非表單/流程/設定）、狀態：未討論；八段內容留空。
+- commit `[spec/design](feature-cr-board) 建立檔頭與 1 個畫面標題骨架`。
+- 任務清單：T6.01 狀態由 `todo` 改為 `done`。
+- 未新增 OQ、未新增 D-xx（骨架階段無需推導內容，無高風險判斷）。
+
+### Check
+- `./scripts/ui-check .dev/F06-feature-cr-board/ui-feature-cr-board.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`13 error(s), 39 warning(s)`；本檔錯誤僅 DS-02（缺 8 段落）、DS-04（狀態段缺 5 項）、DS-07（無畫面導向它）warning，皆為骨架階段預期錯誤（同 T1.01 於 badd5ba 階段的模式），**無 DS-01 錯誤**，符合驗收條件「`ui-check` 對畫面標題格式（DS-01）不報 error」。
+- `tools error-count .dev/F06-feature-cr-board/ui-feature-cr-board.md`：13（骨架階段預期值，非收尾任務，不要求 0）。
+- `tools accept-check ui-authoring-tasks.md T6.01`：無機械 token 輸出（本任務無 `ui-check(...)=0` 格式驗收條件，改用上述肉眼核對）。
+
+### Act
+完成：T6.01。下一個任務：T6.02（[F06] 定案 `s-feature-cr-board`（類型：儀表板／列表）：對應 `uc-view-feature-cr-board`，同 T1.02 模式）。
