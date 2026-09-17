@@ -45,7 +45,7 @@
 | T2.06 | done | [F02] 定案 `s-member-management`（類型：對話框／側欄）：對應 `uc-invite-member`／`uc-change-member-role`／`uc-remove-member`；三個 `uc-reject-invite-by-member`／`uc-reject-role-change-by-member`／`uc-reject-structure-change-by-member` 的拒絕情境放對應操作的「失敗時」欄 | 同上 | T2.05 |
 | T2.07 | done | [F02] 定案 `s-board-delete-dialog`（類型：對話框）：對應 `uc-delete-board`；`uc-member-add-card` 屬於卡片操作，不在本畫面，改在 T2.08／T1.06 標註引用 | 同上 | T2.06 |
 | T2.08 | done | [F02] 定案 `s-card-assignee-picker`（類型：對話框／側欄，嵌入 F01 `s-card-detail`）：對應 `uc-set-card-assignees`／`uc-list-card-assignee-candidates`／`uc-view-card-assignees`；「進入與離開」寫明從 F01 `s-card-detail` 進入、完成回到該畫面 | 同上 | T2.07 |
-| T2.09 | todo | [F02] 定案 `s-cards-by-assignee`（類型：列表）：對應 `uc-list-cards-by-assignee` | 同上 | T2.08 |
+| T2.09 | done | [F02] 定案 `s-cards-by-assignee`（類型：列表）：對應 `uc-list-cards-by-assignee` | 同上 | T2.08 |
 | T2.10 | todo | [F02] 定案 `s-activity-log`（類型：列表／側欄）：對應 `uc-view-board-activity-log`。開工先讀 spec 該 uc 現況；若 spec 明確標注「尚未實作」一類字樣，畫面狀態維持「未討論」，待確認事項寫「依 spec 標注尚未實作，暫緩定案」，記入 OQ，不產出完整八段內容（仍要有八段標題，內容可簡短說明原因）；若 spec 已可正常推導，比照其他畫面正常定案 | `ui-check` 對本畫面無 error（未定案時「狀態」為「未討論」一樣要通過格式檢查）；若走「尚未實作」分支，OQ 檔有對應列 | T2.09 |
 | T2.11 | todo | [F02] 收尾：`ui-check .dev/F02-user-membership/ui-user-membership.md` 0 error；回頭補 `.dev/F01-basic-kanban/ui-kanban-basic.md` 的 `s-card-detail`（T1.08 留的 `⚠️`）——負責人欄位來源改填 `card.assignees`，「進入與離開」補上指派入口導向 `s-card-assignee-picker`；兩個檔案一起跑 `ui-check` 確認都 0 error；過一遍 `DS-06`／`DS-07` warn | `ui-check(.dev/F01-basic-kanban/ui-kanban-basic.md)=0`；`ui-check(.dev/F02-user-membership/ui-user-membership.md)=0`；`s-card-detail` 待確認事項不再含 T1.08 那條 `⚠️` | T2.10 |
 

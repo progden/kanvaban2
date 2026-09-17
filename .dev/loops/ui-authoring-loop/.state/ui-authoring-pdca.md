@@ -732,3 +732,21 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：下一個任務 T2.09（[F02] 定案 `s-cards-by-assignee`，類型：列表，對應 `uc-list-cards-by-assignee`）。
+
+## Iteration 36 — 2026-09-17 21:10 — T2.09
+### Plan
+本輪任務：T2.09，定案 `s-cards-by-assignee`（列表），對應 `uc-list-cards-by-assignee`。要改的檔案：`.dev/F02-user-membership/ui-user-membership.md`（該畫面骨架 → 八段完整內容）。驗收條件：同 T1.02 模式（`ui-check` 對本畫面無 error、八段齊全）。預期 error 數變化：本畫面本身應維持 0 error；因 spec 未描述入口，需標 ⚠️ 開 OQ，畫面狀態維持「討論中」。
+
+### Do
+- `spec-user-membership.md` `uc-list-cards-by-assignee`（roles: [r-board-member]，crud: {card: R}，pre/fail 皆空，post 僅「清單列出所有以指定成員為負責人的 card」）與唯一 Scenario「一位成員同時是多張卡片的負責人」未描述抵達本畫面的來源畫面 → 標高風險，`s-cards-by-assignee`「進入與離開」標 ⚠️，追加 OQ-28（見 `ui-authoring-open-questions.md`），畫面狀態訂為「討論中」
+- 資料表：「查詢對象」來源 `user.display-name`；「卡片清單」來源 `card`（透過 `card.assignees`）；「卡片標題」跨模組引用 F01 `card.title`
+- 操作表僅一列「開啟卡片詳情」（觸發 `—`，純前端導覽開啟 F01 `s-card-detail`，跨模組引用），無寫入操作，符合 `uc-list-cards-by-assignee` crud 僅 `card: R`
+- 低風險決定：不另立獨立畫面呈現「查詢對象」欄位樣式，直接列為資料表第一列（版面歸類）
+- 自我審查發現本畫面草稿一開始沿用 `s-card-assignee-picker` 既有的 `` `roles` `` 反引號寫法（"roles" 非六種允許 ID），改寫為「角色」不加反引號，避免新增 REF-07 error（`s-card-assignee-picker` 本身既有的同類錯誤是 T2.08 遺留，本輪未動，留給收尾任務）
+- commit：`95f96c5` `[spec/design](ui-user-membership) 定案依負責人查詢卡片畫面`；`[docs](loops) T2.09 完成：定案依負責人查詢卡片畫面`（下方 docs commit）
+
+### Check
+`./scripts/ui-check .dev/F02-user-membership/ui-user-membership.md .dev/F01-basic-kanban/ui-kanban-basic.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 最後一行：`14 error(s), 21 warning(s)`（全部 14 個 error 為既有 `s-activity-log` 骨架缺段落（T2.10 範圍）與 `s-card-assignee-picker` 既有 1 筆 `roles` 反引號誤用，`s-cards-by-assignee` 本身 0 error）。`tools accept-check` 對 T2.09 無機械 token 輸出（驗收條件為「同上」文字描述），已改用上述指令肉眼核對：八段齊全、無新增 error、`REF-07`／`DS-02`／`DS-04` 皆未新增。`verify-quotes.py`：「逐字引用驗證通過」。
+
+### Act
+完成：下一個任務 T2.10（[F02] 定案 `s-activity-log`）。
