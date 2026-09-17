@@ -106,13 +106,14 @@
 
 ### 進入與離開
 - 從哪裡進來：登入成功後（依 `s-login`「完成後去哪裡」）
-- 完成後去哪裡：選擇列表中的 Board 進入該 Board（F07 `s-canvas`，跨模組）；前往建立 Board 操作導向 `s-board-create-dialog`
+- 完成後去哪裡：選擇列表中的 Board 進入該 Board（F07 `s-canvas`，跨模組）；前往建立 Board 操作導向 `s-board-create-dialog`；刪除 Board 操作導向 `s-board-delete-dialog`
 - 中途放棄會怎樣：不適用（本畫面僅為列表檢視與導覽，無中途放棄流程）
 
 ### 角色與權限
 | 角色 | 看得到 | 做得到 |
 |---|---|---|
 | `r-system-user` | 自己是 Owner 或 Member 的 `board` 清單 | 選擇列表中的 Board 進入該 Board、嘗試直接開啟不屬於自己的 Board |
+| `r-board-owner` | 同上 | 刪除自己是 Owner 的 Board（依 `uc-delete-board` roles） |
 
 ### 資料
 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
@@ -125,6 +126,7 @@
 | 選擇 Board 進入 | — | 開啟該 Board（F07 `s-canvas`，跨模組） | 不適用 | 否 |
 | 嘗試直接開啟不屬於自己的 Board | `uc-reject-board-access-by-nonmember` | 依 `uc-reject-board-access-by-nonmember` post：顯示訊息，停留本畫面 | 不適用（`uc-reject-board-access-by-nonmember` 無 fail 定義） | 否 |
 | 前往建立 Board | — | 開啟 `s-board-create-dialog` | 不適用（純前端導覽） | 否 |
+| 刪除 Board | — | 開啟 `s-board-delete-dialog` | 不適用（純前端導覽） | 否 |
 
 ### 狀態
 - 載入中：載入 Board 列表時顯示
@@ -139,6 +141,7 @@
 - 選擇列表中的 Board 後開啟該 Board（F07 `s-canvas`，跨模組）
 - 嘗試直接開啟不屬於自己的 Board 時，觸發 `uc-reject-board-access-by-nonmember`，顯示訊息，停留本畫面
 - 觸發前往建立 Board 動作，開啟 `s-board-create-dialog`，不觸發任何 Use Case
+- 觸發刪除 Board 動作，開啟 `s-board-delete-dialog`，不觸發任何 Use Case
 
 ### 待確認事項
 - （無）
@@ -249,15 +252,15 @@ Board 擁有者在此檢視成員清單、邀請新成員、變更成員角色�
 ## s-board-delete-dialog：刪除 Board 對話框
 所屬 Feature：Board 權限管理
 類型：對話框
-狀態：討論中
+狀態：已定案
 
 ### 目的
 Board 擁有者刪除 Board 前確認，一併告知底下的 Swimlane、Stage 與卡片都將一同被刪除。
 
 ### 進入與離開
-- 從哪裡進來：⚠️ 待確認——spec 未描述如何抵達本畫面，推論應由 F01 `s-board` 的 Owner 專屬操作進入，但該操作尚未列在 `s-board` 操作表中，見 OQ-26
+- 從哪裡進來：`s-board-list` 的「刪除 Board」操作（依 OQ-47）
 - 完成後去哪裡：導向 `s-board-list`
-- 中途放棄會怎樣：關閉對話框，回到進入前的畫面
+- 中途放棄會怎樣：關閉對話框，回到 `s-board-list`
 
 ### 角色與權限
 | 角色 | 看得到 | 做得到 |
@@ -291,7 +294,7 @@ Board 擁有者刪除 Board 前確認，一併告知底下的 Swimlane、Stage �
 - 取消後關閉對話框，且不觸發 `uc-delete-board`
 
 ### 待確認事項
-- ⚠️ 本畫面「從哪裡進來」spec 未定義，推論應由 F01 `s-board` 的 Owner 專屬操作進入，但該操作尚未列在 `s-board` 操作表中，見 OQ-26
+- （無）
 
 ## s-card-assignee-picker：卡片負責人選取
 所屬 Feature：卡片負責人指派
