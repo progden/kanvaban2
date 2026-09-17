@@ -508,3 +508,28 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 ### Act
 - 未完成：T2.04 因 OQ-16（環境限制）標 `blocked`，需人工決定是否調整 `ui-authoring-tools.py` `findings()` 的 design 路徑邏輯（讓單檔案檢查也帶入全部既有 ui 檔，類比 T1.10 對 `--spec` 的修法）或調整驗收條件寫法，才能改回 `todo`／`done`。
 - 下一個任務：依任務清單，T2.05（`s-board-create-dialog`）依賴 T2.04 完成，在 T2.04 解除 `blocked` 前無法進行；若人工短期內不處理，loop 下一輪會回頭檢查 T2.04 是否已被人工改回 `todo`。
+
+## Iteration 27 — 2026-09-17 21:00 — D-10
+
+### Plan
+本輪任務 D-10（`actionable` 排在 T2.05 之前）：依人工在 OQ-11／OQ-12／OQ-13 上的決策，把 `ui-user-membership.md` 的 `s-signup`／`s-login` 從「暫定」改為「已確認」，並補上 `s-login` 缺少的「前往建立帳號」導覽操作。要改的檔案：`.dev/F02-user-membership/ui-user-membership.md` 的 `s-signup`、`s-login` 兩個區塊（進入與離開、操作表、驗收條件、待確認事項）。預期：兩畫面「待確認事項」清空為「（無）」；`ui-check` 對這兩個畫面不新增 error；因 `s-signup` 不再是「模組入口」也未被其他畫面 `nav_to` 導向（`s-login` 的新導覽放在操作表而非「進入與離開」段，`DS-07` 只解析「進入與離開」），預期會新增一筆 `DS-07` warn（不擋 `done`）。
+
+### Do
+- `c3cba5c`　`[spec/design](user-membership) 依人工決策解除 OQ-11/12/13`：
+  1. `s-login`「從哪裡進來」新增「未登入時的應用程式入口」，移除 OQ-11 的 ⚠️。
+  2. `s-login` 操作表新增「前往建立帳號」列（觸發 `—`，純前端導覽，成功後開啟 `s-signup`），並補一條對應驗收條件。
+  3. `s-signup`「從哪裡進來」改為「`s-login` 的『前往建立帳號』連結」，移除 OQ-11 的 ⚠️。
+  4. `s-signup`「完成後去哪裡」改為「導向 `s-login`」（內容不變，移除 OQ-12 的 ⚠️與「暫定」字樣）。
+  5. `s-login`「完成後去哪裡」改為「導向 `s-board-list`」（內容不變，移除 OQ-13 的 ⚠️與「暫定」字樣）。
+  6. `s-signup`、`s-login` 的「待確認事項」原本各兩條分別指向 OQ-11／OQ-12、OQ-11／OQ-13，全部移除後兩段皆改為「（無）」（依 `ui-convention.md` 132 行規則，清空段落寫「（無）」不省略段落）；`s-board-list` 未含這三個 OQ 的條目，任務描述「三畫面」與實際檔案內容（僅 `s-signup`／`s-login` 兩畫面）不符，以檔案現況為準，未額外改動 `s-board-list`。
+- 低風險決定：「前往建立帳號」操作表「需確認？」欄比照其他純前端導覽（如 `s-board-list` 的「選擇 Board 進入」）標「否」；「失敗時」欄依同類操作模式寫「不適用（純前端導覽）」。
+
+### Check
+- `./scripts/ui-check .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`83 error(s), 44 warning(s)` → 本輪改動後 `78 error(s)`（`s-signup`／`s-login` 所在行號範圍內 0 error；新增 1 筆 `DS-07` warn：「畫面 "s-signup" 沒有任何畫面導向它，也不是模組入口」，符合 Plan 預期，warn 不擋任務完成）。
+- `tools accept-check`（D-10）：`ui-check(.dev/F02-user-membership/ui-user-membership.md) 應為 0，實際 78` — 未通過。此 token 是對整份檔案的 error 數，目前 78 筆全部來自 T2.05～T2.10 尚未定案的骨架畫面（`s-board-create-dialog`／`s-member-management`／`s-board-delete-dialog`／`s-card-assignee-picker`／`s-cards-by-assignee`／`s-activity-log`），與本輪改動的 `s-signup`／`s-login` 無關；這個驗收條件要等到 T2.11（收尾任務，逐一定案完所有畫面）才可能整份歸零，D-10 本身無法在依賴任務之前單獨滿足它。依規則書「任務清單...loop 只能改狀態欄」不可改寫這條驗收條件，如實記錄差異。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：通過（本輪未新增【引用原文】類條目，既有引用仍全部相符）。
+- 逐條對照任務描述其餘驗收條件：`s-login`「進入與離開」含「應用程式入口」——達成；操作表含「前往建立帳號」列——達成；`s-signup`「進入與離開」不含 OQ-11／OQ-12 的 ⚠️——達成；`s-login`「進入與離開」不含 OQ-13 的 ⚠️——達成；相關「待確認事項」不含 OQ-11／OQ-12／OQ-13——達成。
+
+### Act
+- 內容已完成，僅整份檔案 `ui-check=0` 這條機械驗收條件因依賴 T2.05～T2.10 尚未完成而無法滿足，狀態標 `doing`（非本輪工作範圍造成，非本輪引入新 error）。
+- 下一個任務：`actionable` 重新排序後為 T2.05（[F02] 定案 `s-board-create-dialog`）。
