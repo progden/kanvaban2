@@ -856,7 +856,7 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 ### Act
 完成：T3.01。下一個任務：T3.02（[F03] 定案 `s-cycle-lead-time-dashboard`）。
 
-## Iteration 43 — 2026-09-17 21:05 — T3.02（含上一輪 D-15 迴歸修正）
+## Iteration 43 — 2026-09-17 21:05 — T3.02
 ### Plan
 上一輪驗證 FAIL：D-15 的驗收條件「ui-check(all)=0」因 T3.01 建立 F03 骨架（8 段留空）而破功（52 error）。依規則「先修正失敗項目，再繼續 state 記載的同一個任務」，本輪任務就是 state 記載的下一步 T3.02：定案 `s-cycle-lead-time-dashboard`（類型：儀表板），對應 `uc-view-cycle-lead-time`，藉由把該畫面八段補齊來消解這批 error 的一部分。要改的檔案：`.dev/F03-kanban-widgets/ui-kanban-widgets.md`（本畫面段落）、`ui-authoring-tasks.md`（T3.02 標 done）、`ui-authoring-open-questions.md`（新增 OQ-31）。驗收條件：`ui-check` 對本畫面無 error；八段齊全。預期 error 數：本檔全部 error 從 52 降到約 39（本畫面 13 筆 DS-02/DS-04 清除，其餘 3 個畫面骨架的 error 留待 T3.03～T3.05）。
 
@@ -876,3 +876,24 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T3.02。下一個任務：T3.03（[F03] 定案 `s-wip-dashboard`，對應 `uc-view-wip`／`uc-view-aging-wip`）。
+
+## Iteration 44 — 2026-09-17 22:00 — T3.03
+### Plan
+上一輪驗證 FAIL：[4] Iteration 43 標題含括號註記，格式不符 `## Iteration <n> — <YYYY-MM-DD HH:MM> — <任務編號>`；[9] D-15 的驗收條件 `ui-check(all)=0` 因 F03 尚未收尾（`s-wip-dashboard`／`s-throughput-cfd-dashboard`／`s-duedate-reminder` 仍是骨架）仍非 0。依規則「先修正失敗項目，再繼續 state 記載的同一個任務」：(1) 修正 Iteration 43 標題格式（只改標題這一行，不動 Plan/Do/Check/Act 內容）；(2) D-15 屬預期中的漸進修正，繼續完成 state 記載的下一步 T3.03：定案 `s-wip-dashboard`（類型：儀表板），對應 `uc-view-wip`／`uc-view-aging-wip`。要改的檔案：`ui-authoring-pdca.md`（Iteration 43 標題）、`.dev/F03-kanban-widgets/ui-kanban-widgets.md`（本畫面段落）、`ui-authoring-tasks.md`（T3.03 標 done）。驗收條件：`ui-check` 對本畫面無 error；八段齊全。預期 error 數：本檔全部 error 從 39 降到約 26～30。
+
+### Do
+- 修正 `ui-authoring-pdca.md` Iteration 43 標題，移除括號註記，僅改標題行。
+- Commit `826ac38`（`[spec/design](kanban-widgets) 定案 s-wip-dashboard 八段短規格`）：目的、進入與離開、角色與權限、資料（Stage 卡片數／卡片年齡）、操作（`uc-view-wip`／`uc-view-aging-wip`）、狀態五項、驗收條件、待確認事項。
+- 沿用既有 OQ-31（F01 `s-board` 尚無「檢視圖表」操作），未新增 OQ 列，符合 OQ-31 決議「預期在 T3.03～T3.05 重複出現，屆時直接引用不重開新列」。
+- 低風險決定：空資料狀態直接推論「某 Stage 卡片數為 0 或無進行中卡片時對應圖表顯示為空」，未開 OQ。
+- 修正一次 DS-05：初稿「角色與權限」表「做得到」欄寫「檢視圖表」，與操作表兩列「檢視 WIP 圖表」「檢視 Aging WIP 圖表」名稱不一致觸發 DS-05 error；改成「檢視 WIP 圖表、檢視 Aging WIP 圖表」（用「、」分隔，逐字對應操作名稱）後消解。
+- 任務清單：T3.03 標 `done`。
+
+### Check
+- `./scripts/ui-check .dev/F03-kanban-widgets/ui-kanban-widgets.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`30 error(s), 42 warning(s)`；篩選 `s-wip-dashboard`：僅 1 筆 `DS-07`（warn，尚無畫面導向它，非模組入口，與其他三個 F03 畫面同類情形），無 error。
+- `tools error-count .dev/F03-kanban-widgets/ui-kanban-widgets.md`：26（單檔計數，較上一輪 39 下降 13）。
+- `python3 verify-quotes.py`：「逐字引用驗證通過」。
+- 上一輪失敗項目：[4] 已修正（Iteration 43 標題格式已改正）；[9] D-15 的 `ui-check(all)=0` 本輪仍未回到 0（F03 剩 `s-throughput-cfd-dashboard`／`s-duedate-reminder` 骨架仍有 error），屬預期中的漸進修正，待 T3.04～T3.06 完成後應回到 0。
+
+### Act
+完成：T3.03。下一個任務：T3.04（[F03] 定案 `s-throughput-cfd-dashboard`，對應 `uc-view-throughput`／`uc-view-cfd`）。
