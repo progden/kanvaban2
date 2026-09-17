@@ -99,7 +99,7 @@
 ## s-board-list：我的 Board 列表
 所屬 Feature：Board 存取權限
 類型：列表
-狀態：討論中
+狀態：已定案
 
 ### 目的
 系統使用者在此檢視自己有權限（Owner 或 Member）的 Board 清單，選擇其中一個 Board 進入，或建立新的 Board。
