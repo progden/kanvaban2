@@ -200,3 +200,22 @@
 
 ### Act
 完成 D-02。下一個任務：D-03（[F01] 補上 T1.06 推翻 OQ-01／OQ-02 的紀錄）。
+
+## Iteration 10 — 2026-09-17 — D-03
+### Plan
+本輪任務：D-03（[F01] 補上 T1.06 推翻 OQ-01／OQ-02 的紀錄）。要改的檔案：`ui-authoring-open-questions.md`（表尾追加一列，「情況」欄以【推論】明講「推翻 OQ-01、OQ-02」並引用兩個 Feature Background 原文）、`.dev/F01-basic-kanban/ui-kanban-basic.md`（`s-swimlane-list`／`s-stage-list`「從哪裡進來」改成不宣稱 `s-board` 已定案的寫法，引用新 OQ 編號）。驗收條件：OQ 表新增一列含「推翻 OQ-01」與「推翻 OQ-02」；`ui-kanban-basic.md` 不含「定案結果更新」；`verify-quotes.py` 回傳 0。
+
+### Do
+- OQ 表尾追加 OQ-07：【推論】引用「Feature: Swimlane 管理」與「Feature: Stage（階段）管理」Background 原文『And 我已開啟一個名為 "產品開發看板" 的看板』，推論並明講「推翻 OQ-01、推翻 OQ-02」——`s-swimlane-list`／`s-stage-list` 的進入路徑是 `s-board` 操作表（T1.06 新增）的「管理 Swimlane」「管理 Stage」兩列，但強調 `s-board` 本身「從哪裡進來」仍為討論中（見 OQ-04／OQ-05／OQ-06），這個推論不代表 `s-board` 已定案。
+- `s-swimlane-list`／`s-stage-list`「從哪裡進來」由「見 OQ-01／OQ-02，已依 `s-board` 定案結果更新」改為「見 OQ-07；`s-board` 本身『從哪裡進來』仍為討論中，見 OQ-04」，移除與事實不符的「已依 `s-board` 定案結果更新」敘述；兩畫面狀態維持「已定案」不變（進入路徑本身已有 `s-board` 操作表列佐證，只是措辭不得宣稱 `s-board` 整體定案）。
+- commit `[docs](loops)`（OQ 檔與任務清單）與 `[spec/design](kanban-basic)`（ui 檔）分開提交。
+
+### Check
+- `grep -n "定案結果更新" .dev/F01-basic-kanban/ui-kanban-basic.md`：無比對結果。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：通過（回傳 0）。
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md`（不帶 `--spec`）：51 error(s), 4 warning(s)，與開工前持平。
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md --spec .dev/F02-user-membership/spec-user-membership.md`：39 error(s)，與開工前持平。
+- 驗收條件對照：OQ 表新增一列含「推翻 OQ-01」「推翻 OQ-02」（達成）；`ui-kanban-basic.md` 不含「定案結果更新」（達成）；`verify-quotes.py` 回傳 0（達成）。
+
+### Act
+完成 D-03。下一個任務：T1.07（[F01] 定案 `s-card-add-dialog`，對應 `uc-add-card`）。
