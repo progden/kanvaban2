@@ -18,6 +18,8 @@ Board Clock 是 F03（標準圖表）計算「asOf」、Aging、逾期判斷的�
 ### 欄位
 | ID | 型別／格式 | 限制 | 說明 |
 |---|---|---|---|
+| board.clock-time | datetime | 必填 | 該 `board` 目前的看板時間值（BoardClock 的「現在」） |
+| board.clock-status | enum(REALTIME, PAUSED) | 必填，預設 REALTIME | 看板時鐘目前模式，決定看板時間是否隨系統時間前進 |
 
 ### 關係
 | 來源 | 目標 | min | max | 說明 |
@@ -49,6 +51,7 @@ Board Clock 是 F03（標準圖表）計算「asOf」、Aging、逾期判斷的�
 | 2026-09-13 | CR-004 | 開發中 | 「kanban-core」完成「BoardClock」（「Board」內部值物件）與「Board.now()」／「adjustClock」／「pauseClock」／「resumeClock」；既有「Board」寫入方法的單調性檢查已生效（「BOARD_CLOCK_BEHIND_LAST_EVENT」）。對應 Cucumber Scenario（「board-clock.feature」）以 Board 既有寫入動作作為「新事件」的測試替身，全綠。「Card」尚未改用「Board.now()」，「kanban-spring」呼叫端尚未串接，留待下一輪。 |
 | 2026-09-13 | CR-004 | 開發完成 | 「Card」全部寫入方法改用呼叫端傳入的「OperationContext(operatorId, now)」，時間來源改為「Board.newEventTime()」；「board-clock.feature」「不可寫入新事件」情境改用真正建立卡片驗證。「kanban-spring」目前仍無 application 層程式碼，呼叫端串接留待該層實際開發時再處理，不阻塞本次結案。CR-004 狀態改「處理完成」。 |
 | 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-adjust-board-clock`、`uc-guard-clock-monotonicity`、`uc-pause-resume-board-clock`） |
+| 2026-09-18 |  | 新增 | 補上遺漏的看板時間欄位（ui-authoring-loop OQ-36 發現：名詞定義實體表／欄位表皆為空，`uc-adjust-board-clock`／`uc-pause-resume-board-clock` post 只用文字描述），新增 `board.clock-time`（目前值）、`board.clock-status`（enum REALTIME/PAUSED），兩個 usecase 的 post／fail 同步改為引用這兩個欄位；本檔尚未進入開發，可直接補上，不需開 CR |
 
 ---
 
@@ -63,10 +66,10 @@ Board Clock 是 F03（標準圖表）計算「asOf」、Aging、逾期判斷的�
   pre:
     p1: "我是該 `board` 的 Owner"
   post:
-    - "`board` 的看板時間更新為指定時間"
+    - "`board.clock-time` 更新為指定時間"
     - "該操作被記錄為 `board` 的一筆活動紀錄，說明看板時間被調整為指定時間，包含操作人與操作時間"
   fail:
-    p1: "拒絕，顯示錯誤訊息「只有 Owner 可以調整看板時間」，`board` 的看板時間維持不變"
+    p1: "拒絕，顯示錯誤訊息「只有 Owner 可以調整看板時間」，`board.clock-time` 維持不變"
   emits: []
   requires: []
   calls-sync: []
@@ -92,8 +95,8 @@ Board Clock 是 F03（標準圖表）計算「asOf」、Aging、逾期判斷的�
   pre:
     p1: "我是該 `board` 的 Owner"
   post:
-    - "暫停時，`board` 的看板時間狀態切換為 PAUSED，看板時間停在暫停當下的時間"
-    - "恢復時，`board` 的看板時間狀態切換為 REALTIME，看板時間從暫停時的時間繼續隨系統時間前進"
+    - "暫停時，`board.clock-status` 切換為 PAUSED，`board.clock-time` 停在暫停當下的時間"
+    - "恢復時，`board.clock-status` 切換為 REALTIME，`board.clock-time` 從暫停時的時間繼續隨系統時間前進"
     - "該操作被記錄為 `board` 的一筆活動紀錄，說明看板時間已暫停或已恢復，包含操作人與操作時間"
   fail: {}
   emits: []
