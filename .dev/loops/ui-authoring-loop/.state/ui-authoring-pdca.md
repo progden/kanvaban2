@@ -1254,3 +1254,22 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T6.02，同時修正上一輪 D-15 驗證 FAIL。下一個任務：T6.03（[F06] 收尾：`ui-check .dev/F06-feature-cr-board/ui-feature-cr-board.md` 0 error，目前已是 0 error，僅需重跑一次確認並收尾）。
+
+## Iteration 62 — 2026-09-17 — D-23
+### Plan
+上一輪驗證 PASS（範圍 f1a6520..0390e84），無失敗項目需修正；`actionable` 第一項是新加入的 D-23（審查 T6.02 產出後開的修正任務），優先於 T6.03。要改檔案：`.dev/F06-feature-cr-board/ui-feature-cr-board.md`（僅「驗收條件」段與「角色與權限」表、「狀態」段「無權限」行，不動操作表、資料表、OQ 檔）；驗收條件：「驗收條件」段不含「affects 標籤所指」「orphan CR 清單中」「不影響其他卡片」字樣、「角色與權限」表含「`r-user`（F01，跨模組）」、「無權限」行不含「spec 僅定義」、`ui-check` 本檔 0 error、`verify-quotes.py` 回傳 0；預期 error 數變化：本檔維持 0（純文字調整，不影響機械檢查）。
+
+### Do
+- 修正「驗收條件」段：刪除 4 行把 `uc-view-feature-cr-board` post p1～p4 照抄成領域分類規則的敘述，改寫成單一以畫面元素為主詞的句子「Feature 列表、CR 狀態、orphan CR 清單、警告訊息顯示 `uc-view-feature-cr-board` 回傳的內容」，保留「開啟畫面時觸發 `uc-view-feature-cr-board`」。
+- 修正「角色與權限」表：`r-user` 改為 `r-user`（F01，跨模組），比照 F05 `s-workload-dashboard` 寫法。
+- 修正「狀態」段「無權限」行：「spec 僅定義 `r-user` 一種角色」改為「F06 spec 僅使用跨模組 `r-user` 一種角色」，與事實相符（F06 spec 角色表本身是空表）。
+- commit `[spec/design](feature-cr-board) 修正 s-feature-cr-board 驗收條件與角色權限違規`（95e91f7）。
+- 任務清單：D-23 狀態由 `todo` 改為 `done`。
+
+### Check
+- `./scripts/ui-check .dev/F06-feature-cr-board/ui-feature-cr-board.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`0 error(s), 39 warning(s)`（本檔僅剩既有 DS-07 warning，即 OQ-43 對應的入口缺口）。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：「逐字引用驗證通過」，exit code 0。
+- grep 確認「驗收條件」段不含「affects 標籤所指」「orphan CR 清單中」「不影響其他卡片」；「角色與權限」表含「`r-user`（F01，跨模組）」；「無權限」行不含「spec 僅定義」——逐條核對通過（D-23 未要求改動的「資料」「狀態」段其餘行仍含「不影響其他卡片」字樣，屬未改動範圍，不在本任務驗收條件內）。
+
+### Act
+完成：D-23。下一個任務：T6.03（[F06] 收尾：`ui-check .dev/F06-feature-cr-board/ui-feature-cr-board.md` 0 error，目前已是 0 error，僅需重跑一次確認並收尾）。
