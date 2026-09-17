@@ -73,7 +73,7 @@
 | ID | 狀態 | 任務 | 驗收條件 | 依賴 |
 |----|------|------|----------|------|
 | T5.01 | done | [F05] 建立 `ui-workload.md`：檔頭 ＋ 1 個畫面標題骨架（`s-workload-dashboard`） | 同 T1.01 模式 | T4.03 |
-| T5.02 | todo | [F05] 定案 `s-workload-dashboard`（類型：儀表板）：對應 `uc-view-workload`／`uc-drag-assign-card-owner`（拖曳成員頭像到卡片） | 同 T1.02 模式 | T5.01 |
+| T5.02 | done | [F05] 定案 `s-workload-dashboard`（類型：儀表板）：對應 `uc-view-workload`／`uc-drag-assign-card-owner`（拖曳成員頭像到卡片） | 同 T1.02 模式 | T5.01 |
 | T5.03 | todo | [F05] 收尾：`ui-check .dev/F05-workload/ui-workload.md` 0 error | `ui-check(.dev/F05-workload/ui-workload.md)=0` | T5.02 |
 
 ## 階段 6：F06 feature-cr-board（`.dev/F06-feature-cr-board/spec-feature-cr-board.md` → `ui-feature-cr-board.md`）

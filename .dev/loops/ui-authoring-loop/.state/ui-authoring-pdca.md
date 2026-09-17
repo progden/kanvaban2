@@ -1148,3 +1148,29 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T5.01。下一個任務：T5.02（[F05] 定案 `s-workload-dashboard`（類型：儀表板）：對應 `uc-view-workload`／`uc-drag-assign-card-owner`）。
+## Iteration 57 — 2026-09-17 23:15 — T5.02
+
+### Plan
+上一輪驗證 FAIL（`runtime/last-verify.md`，範圍 e160302..38ab9da，任務 T5.01）：失敗項目為「已完成任務的驗收條件不成立：D-15：`ui-check(all)` 應為 0，實際 13」——T5.01 建立的 `s-workload-dashboard` 骨架只有標頭三行，八段內容未填，`ui-check` 對它報 13 個 DS-02／DS-04 error，把全域 `ui-check(all)=0` 的機械條件破功（D-15 本身內容與 F05 無關，只是共用同一個全域驗收條件）。依規則書「決定本輪任務」第 1 項：先修正失敗項目，再繼續 state 記載的同一個任務（T5.02）。本輪計畫：讀 `spec-workload.md` 名詞定義三張表（皆為空，實體／欄位依賴 F01／F02 既有 ID）、角色定義（空表，沿用 F01 `r-user`，比照 F03／F04 既有模式）、`uc-view-workload`／`uc-drag-assign-card-owner` 的 pre／post／fail，比對已完成的 F03 儀表板畫面（`ui-kanban-widgets.md`）與 F01 `s-board` 對 `uc-assign-card-owner-by-drag` 的既有寫法，把 `s-workload-dashboard` 八段內容定案；預期同時解掉 T5.01 造成的 13 個 error，並讓 D-15 的 `ui-check(all)=0` 重新成立。
+
+### Do
+- 讀 `.dev/F05-workload/spec-workload.md`：`## 名詞定義` 三張表（實體／欄位／關係）皆空，僅「其他名詞」表定義 Active Card／Workload／未指派（無 ID）；`## 角色定義` 表也是空的，usecase 區塊 `roles: [r-user]`，比對 F03／F04 spec 同樣是空角色表＋沿用 F01 `r-user`（`ui-kanban-widgets.md`／`ui-board-clock.md` 已用「`r-user`（F01，跨模組）」寫法），判定沿用同一模式，非「覆蓋 spec」。
+- 讀 F02 spec 欄位表確認 `user.display-name`（成員名稱來源）、`card.assignees`；讀 F01 spec 確認 `card.title` 存在。
+- 讀 `ui-kanban-basic.md` 244 行確認 F01 `s-board` 已有「拖曳成員頭像到卡片追加負責人」操作列（觸發 F02 `uc-assign-card-owner-by-drag`，需確認「否」），作為本畫面「拖曳成員頭像到卡片追加負責人」操作列的既有模式參照（本畫面觸發的是 F05 自己的 `uc-drag-assign-card-owner`，與 F01 `s-board` 那筆是同一物理互動但不同 uc ID，spec 已在「Feature: 人員工作量檢視」usecase 區塊前方文字說明原因，非本輪新發現）。
+- 填 `s-workload-dashboard` 八段：目的、角色與權限（`r-user`）、資料（成員名稱／成員工作量／未指派卡片數三個可從 post 推導的欄位，皆有 Attribute ID 或衍生說明）、操作（`uc-view-workload`／`uc-drag-assign-card-owner` 各一列）、狀態五項齊全、驗收條件（逐條對照 spec 四個 view Scenario 與兩個 drag Scenario）。
+- 高風險項目標 ⚠️，畫面狀態維持「討論中」：
+  1. 「從哪裡進來」：spec Background 只寫已開啟 Board，未描述前往路徑，比照 OQ-31／OQ-34／OQ-35／OQ-40 同類問題 → 追加 **OQ-41**。
+  2. 是否在本畫面列出個別卡片供拖曳頭像的目標：`uc-view-workload` post 只描述數量，未描述卡片清單；Scenario 提到拖曳到「卡片 B」但未說明卡片清單呈現在哪 → 「資料」段「卡片標題」列與「待確認事項」標 ⚠️，追加 **OQ-42**。
+- 追加 OQ-41、OQ-42 到 `ui-authoring-open-questions.md` 表尾（只追加，未動舊列）。
+- commit `add242c`：`[spec/design](ui-workload) 定案 s-workload-dashboard 八段內容`。
+- 任務清單：T5.02 狀態由 `todo` 改為 `done`。
+
+### Check
+- `./scripts/ui-check .dev/F05-workload/ui-workload.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`0 error(s), 38 warning(s)`（僅剩既有跨模組 DS-06／DS-07 warn，其中 `uc-drag-assign-card-owner` 的 DS-06 warn 已因本畫面操作表引用而消失；`s-workload-dashboard` 本身仍有 DS-07 warn：沒有其他畫面導向它，對應「進入路徑未定義」的 OQ-41，符合預期）。
+- `tools errors-json`：`all` 從破功前的非 0 回到 `0`（各檔皆 0），確認 D-15 的機械驗收條件 `ui-check(all)=0` 重新成立。
+- `tools accept-check ui-authoring-tasks.md D-15 T5.02`：無輸出、exit code 0，代表兩者的機械驗收條件皆已達成。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：「逐字引用驗證通過」，exit code 0（OQ-41／OQ-42 的『』引用皆與 spec 逐字相符）。
+- 逐條對照 T5.02 驗收條件（同 T1.02 模式）：`ui-check` 對本畫面無 error ✓；八段齊全 ✓（狀態維持「討論中」，因仍有 2 筆 ⚠️ 待確認，符合規則書「推不出來的留討論中」）。
+
+### Act
+完成：修正上一輪失敗項目（D-15 的 `ui-check(all)=0`）＋ T5.02。下一個任務：T5.03（[F05] 收尾：`ui-check .dev/F05-workload/ui-workload.md` 0 error，目前已是 0 error，本輪未做，留給下一輪跑收尾流程並提交）。
