@@ -363,3 +363,23 @@ T1.10 標 `blocked`，等待人工決定（調整驗收條件為含 `--spec` 版
 
 ### Act
 T1.10 改回 `todo`，是下一個 actionable 任務；本次介入只修工具與任務狀態，未實際完成 T1.10（仍要跑 DS-06／DS-07 warn 清單）也未動 F02～F06 任何 ui 內容，留給下一輪執行輪處理。
+
+## Iteration 18 — 2026-09-17 — T1.10
+
+### Plan
+本輪任務：T1.10（[F01] 收尾）。OQ-10 已由人工於 Iteration 17 解除（`ui-authoring-tools.py` 的 `findings()` 改成一律帶入全部模組 `--spec`），驗收條件 `ui-check(.dev/F01-basic-kanban/ui-kanban-basic.md)=0` 依上一輪 Check 已成立；本輪要做的是任務描述另一半：過一遍 `DS-06`／`DS-07` warn，沒理由的回頭補。預期 error 數維持 0，不改動 `ui-kanban-basic.md` 內容。
+
+### Do
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`0 error(s), 22 warning(s)`，全部 22 筆皆為 `DS-06`，且皆屬於 F02／F04／F05／F07 自己模組的寫入 uc（例如 `uc-create-user`／`uc-adjust-board-clock`／`uc-drag-assign-card-owner`／`uc-place-item` 等），這些模組的 `ui-*.md` 尚未撰寫（F02～F07 除 F01 外皆待後續階段），與 F01 無關，非本輪範圍，不需處理。
+- `grep -E "F01|DS-07"` 過濾同一份輸出：無任何 F01 自身的警告、也無任何 `DS-07`（畫面未被導向）警告——F01 八個畫面皆已有導向或標「模組入口」，F01 自己的寫入 uc 皆已被畫面觸發。結論：沒有「沒理由」需要回補的項目。
+- 未修改 `.dev/F01-basic-kanban/ui-kanban-basic.md` 內容（審查結果為無需修正）。
+- commit（本輪收尾一併提交）：`[docs](loops) 完成 T1.10 並核對 DS-06/DS-07 warn 清單`（`ui-authoring-tasks.md`／`ui-authoring-pdca.md`／`ui-authoring-state.md`）。
+
+### Check
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`0 error(s), 22 warning(s)`（皆為其他模組自身 `DS-06`，見上）。
+- `tools accept-check <state>/ui-authoring-tasks.md T1.10`：無輸出，exit 0（驗收條件成立）。
+- 驗收條件對照：`ui-check(.dev/F01-basic-kanban/ui-kanban-basic.md)=0` 成立；「PDCA 本則列出 DS-06／DS-07 warn 清單與處理結果」已列於上方 Do，結論為無需回補。
+- `python3 <scripts>/verify-quotes.py`：本輪未新增／修改 OQ 或『』引用，未執行。
+
+### Act
+T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md` 檔頭與 9 個畫面標題骨架）。

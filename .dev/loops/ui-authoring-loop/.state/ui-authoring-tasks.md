@@ -31,7 +31,7 @@
 | T1.07 | done | [F01] 定案 `s-card-add-dialog`（類型：表單）：對應 `uc-add-card` | 同上 | T1.06 |
 | T1.08 | done | [F01] 定案 `s-card-detail`（類型：表單）：對應 `uc-edit-card`／`uc-add-comment`；負責人相關欄位（顯示目前負責人、開啟指派）先標 `⚠️` 待確認、待確認事項寫「負責人欄位與指派入口待 F02 `s-card-assignee-picker` 定案後回填」，記入 OQ | 同上；待確認事項含上述 `⚠️` 條目；OQ 檔追加對應列 | T1.07 |
 | T1.09 | done | [F01] 定案 `s-card-delete-dialog`（類型：對話框）：對應 `uc-delete-card` | 同上 | T1.08 |
-| T1.10 | todo | [F01] 收尾：`ui-check .dev/F01-basic-kanban/ui-kanban-basic.md` 0 error；過一遍 `DS-06`（寫入 uc 有沒有被引用）／`DS-07`（畫面有沒有被導向）warn，沒理由的回頭補。OQ-10 已由人工解除：`ui-authoring-tools.py` 的 `findings()` 改成一律對所有既有 ui 檔的 `error-count`／`accept-check` 都帶入全部模組的 `spec-*.md`（`--spec`），不再只載入 target 自己模組的 spec，跨模組引用不再被 `REF-07` 誤判；本輪起 `ui-check(<檔>)=0` 這個 token 一律視為已含跨模組 spec 的結果。人工肉眼核對用原始 `./scripts/ui-check` 指令時，也要記得加 `--spec ".dev/F[0-9][0-9]-*/spec-*.md"`，否則會重現同一個誤判 | `ui-check(.dev/F01-basic-kanban/ui-kanban-basic.md)=0`；PDCA 本則列出 `DS-06`／`DS-07` warn 清單與處理結果 | T1.09 |
+| T1.10 | done | [F01] 收尾：`ui-check .dev/F01-basic-kanban/ui-kanban-basic.md` 0 error；過一遍 `DS-06`（寫入 uc 有沒有被引用）／`DS-07`（畫面有沒有被導向）warn，沒理由的回頭補。OQ-10 已由人工解除：`ui-authoring-tools.py` 的 `findings()` 改成一律對所有既有 ui 檔的 `error-count`／`accept-check` 都帶入全部模組的 `spec-*.md`（`--spec`），不再只載入 target 自己模組的 spec，跨模組引用不再被 `REF-07` 誤判；本輪起 `ui-check(<檔>)=0` 這個 token 一律視為已含跨模組 spec 的結果。人工肉眼核對用原始 `./scripts/ui-check` 指令時，也要記得加 `--spec ".dev/F[0-9][0-9]-*/spec-*.md"`，否則會重現同一個誤判 | `ui-check(.dev/F01-basic-kanban/ui-kanban-basic.md)=0`；PDCA 本則列出 `DS-06`／`DS-07` warn 清單與處理結果 | T1.09 |
 
 ## 階段 2：F02 user-membership（`.dev/F02-user-membership/spec-user-membership.md` → `ui-user-membership.md`）
 
