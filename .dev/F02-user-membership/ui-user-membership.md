@@ -193,7 +193,7 @@
 ## s-member-management：Board 成員管理
 所屬 Feature：Board 建立與成員邀請
 類型：對話框
-狀態：討論中
+狀態：已定案
 
 ### 目的
 Board 擁有者在此檢視成員清單、邀請新成員、變更成員角色或移除成員。
@@ -217,14 +217,14 @@ Board 擁有者在此檢視成員清單、邀請新成員、變更成員角色�
 | 成員角色 | `board-membership.role` | 顯示 | enum(Owner, Member)，依欄位表限制 | — |
 | 邀請對象帳號 | `user.username` | 輸入 | 須為系統中已存在帳號，且不是該 `board` 現有成員，依 `uc-invite-member` pre p2 | 邀請成員時輸入 |
 | 邀請角色 | `board-membership.role` | 輸入（單選） | enum(Owner, Member) | 邀請時指定的初始角色 |
-| 變更後角色 | `board-membership.role` | 輸入（單選） | 依 `uc-change-member-role` pre p2：目標須為該 `board` 的 Member；post 僅定義變更為 Owner，未定義將 Owner 降級為 Member 的情境，⚠️ 待確認，見 OQ-24 | — |
+| 變更後角色 | `board-membership.role` | 輸入（單選，僅 Owner） | 依 `uc-change-member-role` pre p2：目標須為該 `board` 的 Member；本用例僅支援 Member 升級為 Owner，spec 未定義任何操作可將 Owner 降級為 Member | — |
 
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
 |---|---|---|---|---|
 | 邀請成員 | `uc-invite-member` | 成員清單顯示新加入的成員 | 依 `uc-invite-member` fail p2：輸入內容保留，顯示訊息 | 否（可透過「移除成員」復原，見 `uc-remove-member`） |
 | 嘗試邀請成員 | `uc-reject-invite-by-member` | 不適用（本操作恆不成功） | 顯示訊息，停留本畫面 | 否 |
-| 變更成員角色 | `uc-change-member-role` | 清單中該成員的角色顯示為 Owner | 不適用（`uc-change-member-role` 無 fail 定義） | ⚠️ 待確認（可逆性判斷不出，見 OQ-24） |
+| 變更成員角色 | `uc-change-member-role` | 清單中該成員的角色顯示為 Owner | 不適用（`uc-change-member-role` 無 fail 定義） | 是（附掛於清單列上；spec 未定義將 Owner 降級為 Member 的操作，無法復原） |
 | 嘗試變更成員角色 | `uc-reject-role-change-by-member` | 不適用（本操作恆不成功） | 顯示訊息，停留本畫面 | 否 |
 | 移除成員 | `uc-remove-member` | 依 post：目標成員自清單移除 | 依 `uc-remove-member` fail p1：不移除，顯示訊息 | 是（附掛於清單列上；若該成員仍為 `card` 負責人，依 pre p2 需先顯示確認訊息並告知張數） |
 
@@ -246,7 +246,7 @@ Board 擁有者在此檢視成員清單、邀請新成員、變更成員角色�
 - 移除仍是卡片負責人的成員時，先顯示確認訊息並告知卡片張數，確認後才觸發 `uc-remove-member`
 
 ### 待確認事項
-- ⚠️ 「變更成員角色」操作是否可逆（spec 未定義 Owner 降級為 Member 的情境）待確認，見 OQ-24
+- （無）
 
 ## s-board-delete-dialog：刪除 Board 對話框
 所屬 Feature：Board 權限管理
