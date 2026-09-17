@@ -466,3 +466,22 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：下一個任務 D-08（[F01] 修正 `s-card-delete-dialog` 業務結果寫進 UI 段落）。
+
+## Iteration 25 — 2026-09-17 — D-08
+### Plan
+任務：D-08，[F01] 修正 `ui-kanban-basic.md` 的 `s-card-delete-dialog` 三處把業務結果「卡片不變」寫進 UI 段落。要改的檔案：`.dev/F01-basic-kanban/ui-kanban-basic.md`（操作表「取消」列、驗收條件、進入與離開「中途放棄會怎樣」）。驗收條件：段落不含「卡片不變」；`ui-check(.dev/F01-basic-kanban/ui-kanban-basic.md)=0`。預期 error 數：本檔維持 0。
+
+### Do
+- c12d165 [spec/design](kanban-basic) 修正 s-card-delete-dialog 業務結果寫進 UI 段落
+- 低風險決定：任務描述要求「中途放棄會怎樣」改成「關閉對話框，回到 `s-board`，不觸發 `uc-delete-card`」，實際套用後 `ui-check` 報 DS-03 error（`進入與離開.畫面 "uc-delete-card" 種類錯誤，應為 Screen`）——`parser_design.py` 對「進入與離開」段落所有反引號 ID 一律驗證為 Screen 種類，不論是 from／to／abort 哪一列。改為「關閉對話框，回到 `s-board`」（拿掉 `uc-delete-card` 反引號引用），「不觸發 `uc-delete-card`」的意思已由操作表「取消」列與驗收條件表達，未遺漏任何資訊，且未新增或改變業務結果，符合任務目的（去除「卡片不變」）。其餘 2 處依任務描述原文修正。
+- 未新增 OQ／D-xx
+
+### Check
+`./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 最後一行：`0 error(s), 22 warning(s)`（22 個 warning 皆為其他模組 DS-06「uc 未被任何畫面觸發」，與本任務無關，非新增）。
+逐條對照驗收條件：
+- `s-card-delete-dialog` 段落不含「卡片不變」：確認（`grep 卡片不變` 該段落無結果）。
+- `ui-check(.dev/F01-basic-kanban/ui-kanban-basic.md)=0`：達成。
+本輪未新增／修改 OQ 或待確認事項引用，未跑 `verify-quotes.py`。
+
+### Act
+完成。下一個任務：T2.04（[F02] 定案 `s-board-list`）。
