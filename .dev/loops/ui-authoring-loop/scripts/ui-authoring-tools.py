@@ -258,9 +258,16 @@ def check_oq(base_path, head_path):
 # ---------------------------------------------------------------- ui-check 包裝
 
 
+def all_spec_files():
+    return sorted(glob.glob(".dev/F[0-9][0-9]-*/spec-*.md"))
+
+
 def findings(target_path=None):
-    """對既有的 ui 檔跑一次 ui-check --format json；target_path 給單一檔案時只解析它自己
-    （不像 spec-check 需要一起解析找跨模組引用，ui-check 一份檔案就是一個模組）。"""
+    """對既有的 ui 檔跑一次 ui-check --format json；target_path 給單一檔案時只解析它自己，
+    但一律用 --spec 帶入全部模組的 spec 檔（不只 target 自己模組的），否則 ui-check 只會
+    自動載入同目錄同模組的 spec（見 scripts/speccheck/runner.py 的 specs_for_designs），
+    導致跨模組引用（`ui-convention.md` 明文允許）在單檔案檢查時被 REF-07 誤判為未定義
+    （見 OQ-10）。"""
     existing = [p for p in expected_ui_files() if os.path.isfile(p)]
     if not existing:
         return []
@@ -270,7 +277,10 @@ def findings(target_path=None):
     if cache and os.path.exists(cache):
         return json.loads(read(cache))
     paths = [target_path] if target_path else existing
-    r = subprocess.run([sys.executable, "scripts/ui-check", "--format", "json", *paths],
+    spec_args = []
+    for s in all_spec_files():
+        spec_args += ["--spec", s]
+    r = subprocess.run([sys.executable, "scripts/ui-check", "--format", "json", *spec_args, *paths],
                         capture_output=True, text=True)
     if r.returncode not in (0, 1):
         raise SystemExit(f"ui-check 執行失敗：{r.stderr.strip()[:300]}")
