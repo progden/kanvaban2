@@ -819,3 +819,22 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：D-15。下一個任務：D-16。
+
+## Iteration 41 — 2026-09-17 23:40 — D-16
+
+### Plan
+本輪任務 D-16：修正 `ui-user-membership.md` `s-card-assignee-picker` 兩處與原文不符的引用——「狀態」段「空資料」把畫面推論（候選清單全部未勾選）掛在 `uc-view-card-assignees` post 名下（該 post 原文只講「負責人」欄位顯示與卡片縮圖，沒提候選清單勾選狀態）；「操作」表「儲存變更」的「成功後」寫「卡片縮圖同步顯示」，但卡片縮圖在 F01 `s-board`，不在本畫面也不在回到的 `s-card-detail`。要改的檔案：`.dev/F02-user-membership/ui-user-membership.md` 第 329、334 行。驗收條件：段落不再同時出現「`uc-view-card-assignees` post」與「未勾選」；操作表「儲存變更」列不含「卡片縮圖同步顯示」；`ui-check`（全部 ui 檔 + `--spec` 全部模組）＝0 error。預期 error 數變化：維持 0（原本就是 0，本輪修正的是引用失實，非新增規則違反）。
+
+### Do
+- `72712a7` [spec/design](ui-user-membership) 修正卡片負責人選取畫面的失實引用：刪除「空資料」行的「依 `uc-view-card-assignees` post」錯誤歸因，保留畫面推論本身（與驗收條件「候選清單全部未勾選」一致，不需另掛 post）；刪除「儲存變更」列「卡片縮圖同步顯示」（該行為屬於 F01 `s-board`，本畫面與 `s-card-detail` 均無卡片縮圖元素，不寫成本畫面驗收條件）。
+- 低風險決定：未新增 OQ，因為兩處都是移除失實引用／越界描述，不是新的規則衝突或推不出來的資訊，直接依任務指示的「刪掉」選項處理。
+- 未新增 D-xx。
+
+### Check
+- `./scripts/ui-check .dev/F0*/ui-*.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 最後一行：`0 error(s), 19 warning(s)`（與上一輪相同，warning 皆為既有未觸發 uc 的 DS-06／DS-07，非本輪範圍）。
+- `tools accept-check ui-authoring-tasks.md D-16`：無輸出（通過，無機械 token 失敗）。
+- 驗收條件逐條核對：「空資料」行已不同時含「`uc-view-card-assignees` post」與「未勾選」✓；操作表「儲存變更」列已無「卡片縮圖同步顯示」✓；`ui-check(.dev/F02-user-membership/ui-user-membership.md)=0`（全部模組一起檢查）✓。
+- 本輪未新增或修改 OQ 表列、未新增『』引用，`verify-quotes.py` 不需另外執行。
+
+### Act
+完成：D-16。下一個任務：T3.01（[F03] 建立 `ui-kanban-widgets.md` 檔頭與 4 個畫面標題骨架）。
