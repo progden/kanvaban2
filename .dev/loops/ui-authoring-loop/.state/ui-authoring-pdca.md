@@ -709,3 +709,26 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 ### Act
 - 完成：D-13 標記 `done`；下一個任務 T2.08（定案 `s-card-assignee-picker`）。
 - 未完成：D-10 仍列 `doing`，待 T2.11 收尾任務整份歸零後改 `done`，不需再動內容。
+
+## Iteration 35 — 2026-09-17 20:20 — T2.08
+### Plan
+本輪任務 T2.08：在 `ui-user-membership.md` 定案 `s-card-assignee-picker`（對話框，嵌入 F01 `s-card-detail`），對應 `uc-set-card-assignees`／`uc-list-card-assignee-candidates`／`uc-view-card-assignees` 三個 uc；八段全部填齊，「進入與離開」明寫從 F01 `s-card-detail` 進入、完成回到該畫面。預期 error 數從 39 下降（原骨架缺八段內容造成的 DS-02／DS-04 錯誤會消失）。
+
+### Do
+- 8e858b1 [spec/design](ui-user-membership) 定案卡片負責人選取畫面
+- 低風險決定：候選清單「來源」欄只填 `board-membership`（Entity），把 `uc-list-card-assignee-candidates` 的引用改放到「驗證/格式」欄，避免 DS-03（資料表.來源只能是 Attribute/Entity）誤判
+- 低風險決定：`uc-view-card-assignees`（讀取用 uc，判斷卡片是否有負責人）放進「已選負責人」欄的驗證/格式說明與「狀態」段「空資料」項，因為它本身不是按鈕觸發的操作，不硬塞進操作表
+- 「儲存變更」操作「需確認？」判斷為「否」：`uc-set-card-assignees` 的 post 只描述 `card.assignees` 更新，可隨時重新開啟本畫面調整負責人，不是不可逆操作
+- 未新增 OQ／D-xx（本畫面所需資訊 spec 皆已齊備，未觸發自主決策分級的高風險或覆蓋 spec 情況）
+
+### Check
+`./scripts/ui-check .dev/F0*/ui-*.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 最後一行：`27 error(s), 37 warning(s)`（原 39 error）；`s-card-assignee-picker` 本身僅剩 1 個 warn（DS-07：無畫面導向它，因 F01 `s-card-detail` 尚未回填入口，屬 T2.11 範圍，預期內）。
+`tools accept-check T2.08`：無輸出（該任務驗收條件無機械 token，已改用上述肉眼核對）。
+逐條對照驗收條件：
+- 「進入與離開」含「F01 `s-card-detail` 的負責人指派入口」與回到 `s-card-detail` → 達成
+- 對應 `uc-set-card-assignees`（操作表）／`uc-list-card-assignee-candidates`（資料表）／`uc-view-card-assignees`（資料表、狀態段） → 達成
+- 八段格式齊全、狀態五項不省略、待確認事項清空為「（無）」 → 達成
+本輪未新增或修改 OQ／待確認事項的【引用原文】等標記，未跑 `verify-quotes.py`。
+
+### Act
+完成：下一個任務 T2.09（[F02] 定案 `s-cards-by-assignee`，類型：列表，對應 `uc-list-cards-by-assignee`）。
