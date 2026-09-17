@@ -90,7 +90,7 @@ F07 目前狀態：草稿，且「待釐清」段落明講 Canvas 的建立時�
 
 | ID | 狀態 | 任務 | 驗收條件 | 依賴 |
 |----|------|------|----------|------|
-| T7.01 | todo | [F07] 建立 `ui-canvas-layout.md`：檔頭 ＋ 1 個畫面標題骨架（`s-canvas`） | 同 T1.01 模式 | T6.03 |
+| T7.01 | done | [F07] 建立 `ui-canvas-layout.md`：檔頭 ＋ 1 個畫面標題骨架（`s-canvas`） | 同 T1.01 模式 | T6.03 |
 | T7.02 | todo | [F07] 定案 `s-canvas`（類型：流程／主畫面）：對應本模組全部 10 個 uc（`uc-place-item`／`uc-remove-item`／`uc-move-item`／`uc-resize-item`／`uc-set-item-capabilities`／`uc-set-item-anchor`／`uc-reorder-item`／`uc-move-items`／`uc-remove-items`／`uc-set-viewport`）；「進入與離開」需說明這是使用者從 F02 `s-board-list` 點擊某個 Board 進入後看到的畫面（見 spec 簡介「使用者開啟某個 Board 時，看到的就是該 Board 的 Canvas」），離開回到 `s-board-list`；`uc-place-item`／`uc-set-item-capabilities`／`uc-set-item-anchor` 這類非「拖曳／調整大小」的操作，觸發方式（工具列按鈕、右鍵選單等）不寫（排版與視覺），但仍要在操作表列出對應列。**人工決策（OQ-17／OQ-18）**：畫布中間預設有一個「看板本體」`item`；選中該 `item` 後顯示的屬性／操作面板（畫布左側）要在操作表另外列出 F01 的 `uc-add-swimlane`／`uc-add-stage`（跨模組引用，觸發欄填該 uc ID），並判斷 `s-swimlane-list`／`s-stage-list`／`s-swimlane-delete-dialog`／`s-stage-delete-dialog` 這幾個 F01 已定案的獨立 Screen 是否仍要存在（例如改成從這個面板彈出的小清單，還是維持獨立 Screen 但改標「側欄，嵌入 `s-canvas`」，類比 F02 `s-card-assignee-picker` 嵌入 F01 `s-card-detail` 的模式）；判斷結果記錄後直接建立或更新 D-09 | 同 T1.02 模式 | T7.01 |
 | T7.03 | todo | [F07] 收尾：`ui-check .dev/F07-canvas-layout/ui-canvas-layout.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 0 error；過一遍 `DS-06`／`DS-07` warn | `ui-check(.dev/F07-canvas-layout/ui-canvas-layout.md)=0` | T7.02 |
 

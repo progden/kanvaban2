@@ -1291,3 +1291,22 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T6.03，F06 收尾完成。下一個任務：T7.01（[F07] 建立 `ui-canvas-layout.md`：檔頭 ＋ 1 個畫面標題骨架 `s-canvas`）。
+
+## Iteration 64 — 2026-09-17 — T7.01
+### Plan
+本輪任務：T7.01（[F07] 建立 `ui-canvas-layout.md`：檔頭 ＋ 1 個畫面標題骨架 `s-canvas`）。同 T1.01 模式：只建立檔頭與畫面標題下三行（所屬 Feature、類型、狀態：未討論），八段內容先留空。要改的檔案：新建 `.dev/F07-canvas-layout/ui-canvas-layout.md`。驗收條件同 T1.01：`## s-canvas` 標題與三行標頭存在；`ui-check` 對畫面標題格式（DS-01）不報 error。開工前該檔不存在，`error-count` 視為 0；預期骨架建立後因八段未填會出現 DS-02／DS-04 error 與 DS-06／DS-07 warn，屬預期範圍，不影響 DS-01。
+
+### Do
+- 讀 `spec-canvas-layout.md` 名詞定義三張表與四個 `## Feature:` 標題（元件放置、畫布元素排列、畫布元素批次操作、檢視區）。
+- 低風險決定（版面歸類）：`s-canvas` 是涵蓋全部四個 Feature 操作的單一工作畫面（類比 F01 `s-board` 涵蓋卡片相關多個操作但只掛一個 Feature），所屬 Feature 選「元件放置」（放置元件是畫布最基礎的行為，其餘排列／批次／檢視區操作都作用在已放置的元素或檢視範圍上）；類型定為「儀表板」，比照 `s-board`（承載多個 uc 的主工作畫面，非單純列表／表單）。
+- 建立檔案：檔頭一段簡介＋ `## s-canvas：畫布` 標題與三行標頭（所屬 Feature：元件放置／類型：儀表板／狀態：未討論），八段內容不填。
+- commit `483dcb1`（`[spec/design](ui-canvas-layout) 建立檔頭與 s-canvas 畫面標題骨架`）。
+- 無新增 OQ、無新增 D-xx。
+
+### Check
+- `./scripts/ui-check .dev/F07-canvas-layout/ui-canvas-layout.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`13 error(s), 39 warning(s)`；逐條確認 13 筆全為 `s-canvas` 的 `DS-02`（八段未填）與 `DS-04`（狀態五項未填），無任何 `DS-01` error（`grep DS-01` 對此檔無輸出）。
+- `tools accept-check ui-authoring-tasks.md T7.01`：無機械 token 輸出，改肉眼核對：`## s-canvas：畫布` 標題與三行標頭皆存在，格式符合 `ui-convention.md`；`ui-check` 對 `DS-01` 0 error，達成。
+- 本輪未新增 OQ、未新增帶【】引用的待確認事項，未跑 `verify-quotes.py`。
+
+### Act
+完成：T7.01。下一個任務：T7.02（[F07] 定案 `s-canvas`：對應本模組全部 10 個 uc，含人工決策 OQ-17／OQ-18 相關的 D-09 判斷）。
