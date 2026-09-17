@@ -2,13 +2,13 @@
 
 本檔是 UI 撰寫 loop **唯一的任務來源**。規則：
 
-- **T／G 任務只有人工可以新增、刪除或改寫**任務描述、驗收條件、依賴；loop 只能改「狀態」欄。
-- loop 發現計畫外的必要工作：在「發現的任務」表追加 `D-xx`，狀態直接 `todo`（本 loop 沒有審查輪把關，任務描述要把判斷依據寫清楚，供人工事後稽核；描述與驗收條件寫好之後同樣不可再改，只能改狀態）。
+- **T／G 任務只有人工可以新增、刪除或改寫**任務描述、驗收條件、依賴；loop（不論執行輪或審查輪）只能改「狀態」欄。
+- loop 發現計畫外的必要工作：在「發現的任務」表追加 `D-xx`，狀態直接 `todo`（本 loop 沒有 proposed／rejected 中間狀態，執行輪與審查輪都可以直接新增；任務描述要把判斷依據寫清楚，供人工事後稽核；描述與驗收條件寫好之後同樣不可再改，只能改狀態）。
 - 狀態：`todo` 待做／`doing` 進行中（上一輪未完成）／`done` 完成／`blocked` 只用於環境限制（見規則書「自主決策分級」，只有人工可以解除）。
 - 挑選順序：`doing` → `D-xx` 的 `todo` → 依表格順序第一個 `todo`；依賴必須全部 `done`。
-- `G*` 是關卡：不單獨佔一輪，跟前一個任務的收尾一起做完，或作為某輪的本體任務執行（同一輪內完成自我審查並把關卡標 `done`）。
+- `G*` 是關卡。**手動模式**（`/loop`）：不單獨佔一輪，跟前一個任務的收尾一起做完，或作為某輪的本體任務執行（同一輪內完成自我審查並把關卡標 `done`）。**自動模式**（`run-ui-authoring-loop.sh`）：由獨立審查輪把關，只有 `.dev/loops/ui-authoring-loop/runtime/gates/<G>.approved` 存在（驅動腳本或人工建立，loop 本身不可自建）之後，下一個執行輪才能把該關卡標 `done`。
 - 「任務」欄開頭的 `[F0x]` 標示任務對應的模組。
-- 驗收條件裡的 `ui-check(<檔>)=0` 代表 `./scripts/ui-check <檔>` 的 error 數為 0；`ui-check(all)=0` 代表 `./scripts/ui-check`（不帶參數，掃全部）error 數為 0。warn 不擋 `done`，但收尾任務要逐項看過。
+- 驗收條件裡的 `ui-check(<檔>)=0` 代表 `./scripts/ui-check <檔>` 的 error 數為 0；`ui-check(all)=0` 代表 `./scripts/ui-check`（不帶參數，掃全部）error 數為 0。warn 不擋 `done`，但收尾任務要逐項看過。這個 token 語法也是 `ui-authoring-tools.py accept-check` 機械驗證用的格式，新增 D-xx 時若驗收條件能寫成這個格式就盡量寫，方便自動模式外部驗證。
 
 ---
 
@@ -89,7 +89,7 @@
 | ID | 狀態 | 任務 | 驗收條件 | 依賴 |
 |----|------|------|----------|------|
 | T7.01 | todo | 六份 `ui-*.md` 一起跑 `./scripts/ui-check` 到 0 error；`./scripts/ui-check --report` 看畫面總表與追溯矩陣，`DS-06`（寫入 uc 沒被任何畫面引用）／`DS-07`（畫面沒被任何畫面導向，也不是模組入口）warn 逐項確認有理由（例如背景作業、確實是模組入口）或回頭補 | `ui-check(all)=0`；PDCA 本則列出 `DS-06`／`DS-07` 完整 warn 清單與逐項處理結果 | T6.03 |
-| G1 | todo | 關卡：自我審查（同一輪內完成，不另外分審查輪）——依 `.dev/conventions/llm-review.md` L-09（「失敗時」是否對應 `fail`、「成功後」是否對應 `post`）與 `checks.md` DS-05（操作可用角色與 uc `roles` 是否一致）各抽查六個模組至少一個畫面；有偏差在對應 ui 檔直接修正並記錄，不開 D-xx 拖到下一輪 | PDCA 本則列出抽查的 6 個畫面與檢查結果；若有修正，修正後 `ui-check(all)=0` | T7.01 |
+| G1 | todo | 關卡：自我審查——依 `.dev/conventions/llm-review.md` L-09（「失敗時」是否對應 `fail`、「成功後」是否對應 `post`）與 `checks.md` DS-05（操作可用角色與 uc `roles` 是否一致）各抽查六個模組至少一個畫面；有偏差在對應 ui 檔直接修正並記錄。**手動模式**（`/loop`）：同一輪內完成，不開 D-xx 拖到下一輪，直接把本關卡標 `done`。**自動模式**（`run-ui-authoring-loop.sh`）：由獨立審查輪（`ui-authoring-review-prompt.md`）執行，偏差開成 `D-xx`（`todo`），審查後無待修項目才由驅動腳本建立 `runtime/gates/G1.approved`、下一輪才能把本關卡標 `done` | PDCA 或 `ui-authoring-review.md` 本則列出抽查的 6 個畫面與檢查結果；若有修正，修正後 `ui-check(all)=0` | T7.01 |
 | T7.02 | todo | 最終確認並建立 `runtime/DONE`：`ui-check(all)=0`；六份 `ui-*.md` 都存在；任務清單除本任務外無 `todo`／`doing`／`blocked` | `runtime/DONE` 存在（不進版控）；PDCA 本則貼 `ui-check` 最終結果行 | G1 |
 
 ## 發現的任務（D-xx）
