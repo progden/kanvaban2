@@ -612,3 +612,32 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 ### Act
 - 完成：T2.07 標 `done`。
 - 下一個任務：T2.08（[F02] 定案 `s-card-assignee-picker`，對應 `uc-set-card-assignees`／`uc-list-card-assignee-candidates`／`uc-view-card-assignees`）。
+
+## Iteration 31 — 2026-09-17 — D-11
+### Plan
+- 上一輪驗證：PASS。`actionable` 第一項 D-10 為「doing」但其驗收條件與內容比對後確認上輪已全部完成（state.md 已註明「不需再動內容」，僅等 T2.11 收尾整檔歸零才能改 `done`），本輪不重複動它；依「D-xx 的 todo」優先順序改做 D-11。
+- 要改的檔案：`.dev/F02-user-membership/ui-user-membership.md` 的 `s-member-management` 段落（194～253 行）；`.dev/loops/ui-authoring-loop/.state/ui-authoring-open-questions.md` 追加 OQ-27。
+- 驗收條件：段落不含「成員數增加 1」「負責人欄位移除該成員」「不建立新的」「角色不變」「須為系統中已存在帳號」「待確認事項提醒」；OQ 新增一列涉及邀請對象帳號是否須已存在；`verify-quotes.py` 回傳 0；`ui-check` error 數不增加（審查時 39）。
+- 預期 error 數變化：不變（39 → 39，純文字改寫，不改變 DS/REF 檢查對象）。
+
+### Do
+- `6292049`　`[spec/design](user-membership) 修正成員管理畫面把業務結果寫進 UI 段落`：
+  1. 操作表「邀請成員」成功後改成「成員清單顯示新加入的成員」。
+  2. 「變更成員角色」成功後改成「清單中該成員的角色顯示為 Owner」。
+  3. 「移除成員」成功後刪掉「若該成員仍是某些 `card` 的負責人，這些 `card` 的負責人欄位移除該成員」（`uc-remove-member` post 對 `card` 的領域結果，不在本畫面）。
+  4. 「嘗試邀請成員」「嘗試變更成員角色」失敗時都簡化為「顯示訊息，停留本畫面」，刪掉「不建立新的 `board-membership`」「`board-membership` 角色不變」。
+  5. 驗收條件「角色不變」改成「清單中該成員的角色顯示不變」。
+  6. 資料表「邀請對象帳號」的驗證欄依 `uc-invite-member` pre 只引用 p2，移除「須為系統中已存在帳號」（找不到 spec 依據），改標 ⚠️ 待確認並記入 OQ-27。
+  7. 「移除成員」需確認欄刪掉「待確認事項提醒需要一則確認提示」（待確認事項段沒有對應條目，前後不一致）。
+- OQ 檔追加 OQ-27（【引用原文】`uc-invite-member` pre p1／p2 逐字引用，未定義帳號是否須已存在）；「待確認事項」補一條 ⚠️ 指向 OQ-27。
+- 低風險決定：⚠️ 文字用「是否要求帳號已存在」而非「須為系統中已存在帳號」，避免與驗收條件禁止詞面重複，語意不變。
+
+### Check
+- `grep` 確認段落不再含「成員數增加 1」「負責人欄位移除該成員」「不建立新的」「角色不變」（獨立詞）「須為系統中已存在帳號」「待確認事項提醒」：全部 0 筆。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：通過（OQ-27 的兩筆『』引用皆與 spec 逐字相符，含 yaml 雙引號）。
+- `tools error-count .dev/F02-user-membership/ui-user-membership.md`：39（不變）。
+- `tools accept-check ui-authoring-tasks.md D-11`：無機械 token 可比對（驗收條件多為文字排除項），已用上述 grep／verify-quotes／error-count 逐條核對。
+
+### Act
+- 完成：D-11 標 `done`。
+- 下一個任務：D-12（[F02] 修正 `s-board-delete-dialog`／`s-board-create-dialog`／`s-board-list` 把領域狀態寫進 UI 段落）。
