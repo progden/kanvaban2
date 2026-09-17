@@ -272,3 +272,40 @@
 
 ### 關卡摘要
 下一個任務是 T3.02，不是關卡，這次不需要填。
+
+## Review — 2026-09-17 20:45 — a7b411a
+### 範圍
+- commit 區間：`14ab3ca`（上次審查）..`a7b411a`，共 9 個 commit（含上次審查 commit `9d0becf`）
+- 任務：T3.02、T3.03、T3.04、T3.05（都已標 `done`）；`actionable` 下一個是 T3.06，不是關卡
+- runtime/last-verify.md：PASS，沒有失敗或警告；`ui-check(all)` 的 error 已降到 0，上次審查第 1 點（D-15 的 `all` 判準）這次不再觸發
+- 期間新增的 OQ：OQ-31、OQ-32
+- 目前 `./scripts/ui-check`：0 error、9 warning（DS-06 1 筆、DS-07 8 筆，其中 4 筆是 F03 四個畫面）；`verify-quotes.py` 回傳 0
+
+### 發現
+1. **中**：`s-cycle-lead-time-dashboard`（「討論中」）的資料表「統計摘要」列和「待確認事項」第 2 行都有 ⚠️「百分位數 spec 未定義」，但 OQ 檔沒有對應的列（OQ-31 只處理進入路徑），不符合狀態誠實性的要求。→ **D-17 (1)**
+2. **中**：同一列的「來源」寫「Lead Time／Cycle Time 的統計計算，排除 Cycle Time 為「無」的卡片」，把排除規則擴大到 Lead Time 統計。Scenario 原文只有『統計摘要的 Cycle Time 平均值與百分位計算應該排除卡片 "B"』，這是超出 spec 的推論，而且沒有記錄成 OQ。→ **D-17 (2)**
+3. **中**：OQ-31 的「採用」是「暫定從 F01 `s-board` 的操作進入」，並寫「待 `s-board` 收尾任務補上該操作」，但沒有任何任務承接：T1.10 已完成，`s-board` 已定案。這個方向也和 D-09（看板本體改成 `s-canvas` 上的 `item`）以及 F07 spec「元件由所屬模組定義」的方向衝突。四個 F03 畫面的 ⚠️ 雖然都有對應到 OQ-31，但 OQ-31 的結論會讓人以為問題已經有人處理，實際上沒有。→ **D-18**
+4. **低**：`s-wip-dashboard` 的「空資料」寫「某 Stage 目前卡片數為 0……圖表顯示為空」，但 `uc-view-wip` post 是依 Stage 顯示數量，單一 Stage 為 0 時應顯示 0。Iteration 44 把這項列為「低風險決定」，但推論有誤。→ **D-17 (3)**
+5. **低**（不開 D，需人工事後處理）：spec 自己前後不一致。F03「其他名詞」表的 WIP 定義是『目前不在 Done 角色 Stage 的卡片數量』，但 Scenario「檢視各 Stage 目前的卡片數量」要求顯示 Stage "完成"（Done 角色）的卡片數 5。ui 照 post p1 寫，不算 ui 的偏差；這個矛盾要由人工透過 CR 處理 spec。
+6. **低**（不開 D）：Iteration 45、46 的 Check 把單檔 `ui-check ... --spec` 出現的 `s-board` REF-07 歸為「OQ-31 同款」，這個說法不正確。這些 error 出現的原因是單檔檢查沒有帶入 F01 ui 檔，因此找不到跨模組 Screen ID，和 OQ-31 無關。Iteration 46 後段已經寫出正確原因（`tools error-count` 會帶入全部 ui 檔）。PDCA 不能回頭修改，這裡只做記錄。
+7. **低**（不開 D）：`s-throughput-cfd-dashboard` 和 `s-duedate-reminder` 的資料表在範本五欄之前多加一欄（「圖表」／「清單」），`ui-check` 可以接受，T3.04 的任務欄也要求在同一個 Screen ID 內分開說明，所以這次不開 D。CFD「日期」列寫「資料範圍內的每一天」，但 spec 沒有定義資料範圍，而 `ui-convention.md` 的儀表板提問「時間範圍怎麼選」也還沒回答。建議 T3.06 或人工一併確認是否需要標 ⚠️。
+8. **低**（不開 D）：四個畫面的 commit 摘要都寫「定案」，但畫面狀態都是「討論中」。畫面狀態本身沒有造假（⚠️ 都還在），只是 commit 用語和 T 任務措辭不一致。
+
+有檢查、沒發現偏差的面向：
+- 不定義新概念：六個 uc（`uc-view-cycle-lead-time`、`uc-view-wip`、`uc-view-aging-wip`、`uc-view-throughput`、`uc-view-cfd`、`uc-view-duedate-reminder`）都存在；`card.title`、`card.due-date`、`stage` 都是 F01 的真實 ID；Lead／Cycle Time、年齡、完成數都標為「衍生」，並引用 post；角色只用 uc roles 的 `r-user`。
+- 不寫業務結果：操作表「失敗時」都寫「不適用（無 fail 定義）」，和 `fail: {}` 一致。
+- 不寫排版視覺：沒有顏色、間距、元件選型；「散佈圖」這類圖形用語沒有寫進 ui 檔。
+- 狀態誠實性：四個畫面都是「討論中」，⚠️ 都在（缺 OQ 的情況見第 1 點）。
+- 需確認判斷：全部是讀取 uc，「需確認？」都標「否」，判斷合理。
+- OQ 品質：OQ-31、OQ-32 都使用【引用原文】，也都有 `[Level:]`，引用可以逐字比對，沒有說服性字眼。OQ-31 的 Level 只列 `s-cycle-lead-time-dashboard`，但實際涵蓋四個畫面（小瑕疵，由 D-18 新列處理）。
+- 逐字引用：`verify-quotes.py` 回傳 0。
+- 跨模組一致：沒有重複定義的畫面；F03 沒有引用不存在的 `s-` ID。
+- 任務完成度：T3.02～T3.05 的「八段齊全、本畫面無 error」都已達成；T3.04 的「同一 Screen ID、不拆兩畫面」已達成。
+
+需人工事後處理：
+- 第 5 點：F03 WIP 名詞定義和 Scenario 矛盾（需要 CR）。
+- D-09、OQ-30 仍待人工決定；D-18 會把 F03 的進入路徑也掛到 D-09／F07 整合的決定上。
+- 先前遺留：「中途放棄」段是否允許寫「X 不變」、新增類操作的需確認判準要統一、commit `67e4907` 缺少 scope。
+
+### 關卡摘要
+下一個任務是 T3.06，不是關卡，這次不需要填。
