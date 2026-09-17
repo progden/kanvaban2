@@ -276,3 +276,22 @@
 
 ### Act
 完成 D-04。下一個任務：D-05（[F01] 修正 `s-card-add-dialog` 3 處寫到領域狀態）。
+
+## Iteration 14 — 2026-09-17 — D-05
+### Plan
+本輪任務：D-05（[F01] 修正 `s-card-add-dialog` 3 處寫到領域狀態）。要改的檔案：`.dev/F01-basic-kanban/ui-kanban-basic.md` 的 `s-card-add-dialog` 資料表「目的 Swimlane」「目的 Stage」兩列說明欄、驗收條件「標題輸入為空」「取消」兩列。驗收條件：`s-card-add-dialog` 段落的驗收條件不含「不建立」；資料表不含「設為此」；`ui-check` error 數不比開工前（25）多。
+
+### Do
+- commit `f2f5469`：`[spec/design](kanban-basic) 修正 s-card-add-dialog 三處寫到領域狀態`。
+- 資料表「目的 Swimlane」「目的 Stage」說明欄刪除「建立後 `card.swimlane`／`card.stage` 設為此 Swimlane／Stage」，只留「依進入情境帶入…，本畫面不可變更」。
+- 驗收條件「標題輸入為空時確認新增」改為「對話框維持開啟、輸入內容保留、顯示訊息」（刪除「不建立新卡片」）。
+- 驗收條件「取消後」改為「關閉對話框，且不觸發 `uc-add-card`」（刪除「不建立卡片」）。
+- 只改寫法，未變動業務結果；未新增 OQ／D-xx。
+
+### Check
+- `grep` 確認 `s-card-add-dialog` 段落的驗收條件不含「不建立」、資料表不含「設為此」（「進入與離開」段的「不建立卡片」不屬驗收條件或資料表，不在本任務範圍）。
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md`：25 error(s), 1 warning(s)（開工前 25，未增加）。
+- 驗收條件對照：三項皆達成；本輪未新增待驗證引用，未跑 `verify-quotes.py`。
+
+### Act
+完成 D-05。下一個任務：T1.09（[F01] 定案 `s-card-delete-dialog`）。
