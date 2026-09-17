@@ -64,3 +64,35 @@
 
 ### 關卡摘要
 下一個任務是 T1.07，不是關卡，這次不需要填。
+
+## Review — 2026-09-17 15:09 — ed3c8d8
+### 範圍
+- commit 區間：`dc4cf62`（上次審查）..`ed3c8d8`，共 9 個 commit
+- 任務：D-02、D-03、T1.07、T1.08；下一個任務是 T1.09（不是關卡）
+- runtime/last-verify.md：PASS，沒有警告；error 數 38 → 25
+- 期間新增的 OQ：OQ-07～OQ-09
+
+### 發現
+1. **中**：`s-card-detail` 操作表「儲存變更」的「成功後」（第 352 行）寫「依 `uc-edit-card` post：`card.description`、`card.due-date`、`card.labels` 更新為編輯內容」，驗收條件（第 365 行）寫「描述、截止日期、標籤更新為輸入內容」。這兩處都是在重述 post 的資料更新，跟 D-02 是同一類問題。→ **D-04**
+2. **中**：`s-card-add-dialog` 已標「已定案」，但驗收條件第 314、316 行用「不建立新卡片」「不建立卡片」當斷言，這是領域狀態（`uc-add-card` fail p1），不是畫面元素；資料表第 296、297 行的說明欄寫「建立後 `card.swimlane`／`card.stage` 設為此…」，也是在重述業務結果。→ **D-05**
+3. **低**（不開 D）：PDCA Iteration 12 寫「沿用 T1.06 已定案的 `s-board` 操作表」，但 `s-board` 的狀態仍是「討論中」（D-03 才剛修過同一類措辭）。這只出現在 PDCA，ui 檔本身沒有這樣寫；PDCA 不可回改，只記在這裡。
+4. **低**（不開 D）：`s-card-detail` 的「新增留言」需確認標「否」。spec 沒有刪除留言的 uc，所以這個 post 實際上沒辦法還原；不過 spec 的 Scenario「為卡片新增留言」也沒有確認步驟，而 `ui-convention.md` 對「送出」類操作要不要確認的寫法有解讀空間（之前的新增類操作也一律標「否」）。這屬於 UI 可以自己決定的範圍，交由人工判斷。
+5. **低**（不開 D）：`s-card-detail` 的「卡片標題」寫「標題不可於此編輯」。這是從 `uc-edit-card` post 只列 `card.description`／`card.due-date`／`card.labels`，以及 F01 沒有任何更新 `card.title` 的 uc 推出來的，說明欄有寫依據，沒有發明行為。
+6. **低**（不開 D）：`s-card-add-dialog`／`s-card-detail` 的類型依任務描述從「對話框」「詳情」改成「表單」，回應了上次審查第 4 點；T1.07 的 PDCA 有寫理由，T1.08 沒有，但兩者都是合法類型。
+
+有檢查、沒發現偏差的面向：
+- 不定義新概念：`card.title`、`card.description`、`card.due-date`、`card.labels`、`swimlane.name`、`stage.name` 都存在於 spec 欄位表；留言沒有對應的 Attribute ID，執行輪沒有發明 `comment` 實體，而是標 `⚠️` 並開 OQ-09，處理正確；負責人欄位標 `⚠️`（OQ-08），也沒有提前引用 F02 的 `s-card-assignee-picker`。
+- 不寫業務結果（失敗時）：`uc-add-card` 引用 p1，沒有抄「卡片標題不可為空」原文；`uc-edit-card`／`uc-add-comment` 的 `fail` 確實是 `{}`，寫「不適用」正確。
+- 不寫排版視覺：沒有顏色、間距、元件選型。
+- 狀態誠實性：`s-card-add-dialog` 標「已定案」，八段齊全、沒有 `⚠️`（寫法問題見第 2 點）；`s-card-detail` 標「討論中」，兩個 `⚠️` 都對應 OQ-08／OQ-09。D-03 已經拿掉「定案結果更新」的措辭，改成引用 OQ-07，並明講 `s-board` 仍是討論中。
+- 需確認判斷：「確認新增」「儲存變更」標「否」，後者可以再編輯還原；「新增留言」見第 4 點。
+- OQ 品質：OQ-07 用【推論】寫法，明講「推翻 OQ-01、推翻 OQ-02」，【覆蓋】以外的列都不需要「暫不覆蓋」；OQ-08／OQ-09 用【引用原文】寫法，逐字引用 CR-002 與 `uc-add-comment` post；三列都有 `[Level:]` 標記，沒有說服性字眼。
+- 逐字引用：`verify-quotes.py` 回傳 0。
+- 跨模組一致：這段期間沒有新增跨模組 ID 引用；`s-card-detail` 刻意用純文字提 `s-card-assignee-picker`，避免引用還不存在的 ID。沒有重複定義的畫面。
+- 任務完成度：D-02、D-03 的驗收字串都核對過，確實達成；T1.07、T1.08 的畫面範圍（第 274～320 行、第 322～372 行）沒有 error，剩下的 25 個 error 分別是 `s-board` 的 12 個跨模組 REF-07，以及還沒動工的 `s-card-delete-dialog`（第 373 行）的 13 個；T1.08 待確認事項有負責人的 `⚠️`，OQ 檔也追加了 OQ-08。
+
+需人工事後處理：
+- 上次審查列的「`ui-check` 不支援跨模組 spec，T1.10／T2.11 的 `ui-check(...)=0` 達不成」仍然存在，T1.10 快到了，要優先處理。
+
+### 關卡摘要
+下一個任務是 T1.09，不是關卡，這次不需要填。
