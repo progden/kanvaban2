@@ -433,3 +433,19 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：下一個任務 T2.04（[F02] 定案 `s-board-list`，類型：列表，對應 `uc-view-board-list`；無權限狀態對應 `uc-reject-board-access-by-nonmember`）。
+
+## Iteration 23 — 2026-09-17 — D-06
+### Plan
+本輪任務：D-06（[F02] 修正 `ui-user-membership.md` 的 `s-login` 操作表「登出」列第 84 行 REF-07 error：「失敗時」欄把 `fail` 包在反引號裡被誤判為未定義 Entity ID）。要改的檔案：`.dev/F02-user-membership/ui-user-membership.md` 第 84 行一處文字。驗收條件：`ui-check` 輸出無 REF-07；`s-login` 段落（`## s-login` 到 `## s-board-list` 之間）內無任何 error；`error-count` 較審查時的 92 減少。預期 error 數變化：92 → 91。
+
+### Do
+- 讀 `ui-user-membership.md` 第 84 行，確認「不適用（`uc-logout` 無 `fail`）」把 `fail` 包在反引號裡；`ui-check` 反引號只給 entity／`entity.attr`／`r-`／`uc-`／`ev-`／`s-` 六種 ID 用，`fail` 不在其中會被當成未定義 ID 觸發 REF-07。
+- 改成「不適用（`uc-logout` 無 fail 定義）」，拿掉反引號，語意不變。
+- 全檔搜尋其餘 `` `fail` `` 反引號誤用，無其他處。
+- commit `0f08058`：`[spec/design](user-membership) 修正 s-login 登出失敗欄反引號誤標為 Entity ID`。
+
+### Check
+`./scripts/ui-check .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：91 error(s), 43 warning(s)，輸出中無 REF-07；`s-login` 行號範圍（53～102 行）內無任何 error（本輪錯誤全在 `s-activity-log`，與本任務無關）。`tools error-count`：91，較審查時 92 減 1，符合預期。`tools accept-check` 無機械 token，逐條對照驗收條件皆達成。本輪未新增或修改 OQ／『』引用，未跑 `verify-quotes.py`。
+
+### Act
+完成：下一個任務 D-07（[F02] 修正 `ui-user-membership.md` `s-signup`／`s-login` 驗收條件中以領域狀態為主詞的斷言）。
