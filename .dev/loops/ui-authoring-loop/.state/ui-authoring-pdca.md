@@ -258,3 +258,21 @@
 
 ### Act
 完成 T1.08。下一個任務：T1.09（[F01] 定案 `s-card-delete-dialog`，對應 `uc-delete-card`）。
+
+## Iteration 13 — 2026-09-17 — D-04
+### Plan
+本輪任務：D-04（[F01] 修正 `s-card-detail` 2 處把 `uc-edit-card` 的 post 重述為領域狀態）。要改的檔案：`.dev/F01-basic-kanban/ui-kanban-basic.md` 的 `s-card-detail` 操作表「儲存變更」列、驗收條件對應列。驗收條件：不含「更新為編輯內容」「更新為輸入內容」；操作表該列不含「依 `uc-edit-card` post」；`ui-check` error 數不比開工前（25）多。
+
+### Do
+- commit `1c9416d`：`[spec/design](kanban-basic) 修正 s-card-detail 儲存變更改寫為畫面斷言`。
+- 操作表「儲存變更」「成功後」改為「停留本畫面，描述、截止日期、標籤欄位顯示儲存後的內容」。
+- 驗收條件改為「儲存變更後，本畫面的描述、截止日期、標籤欄位顯示儲存的內容，且觸發 `uc-edit-card`」。
+- 只改寫法，未變動業務結果；未新增 OQ／D-xx。
+
+### Check
+- `grep` 確認 `s-card-detail` 段落不再含「更新為編輯內容」「更新為輸入內容」，操作表該列不含「依 \`uc-edit-card\` post」（其餘段落的「依 \`uc-edit-card\` post」為不同語境，不在本任務範圍）。
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md`：25 error(s), 1 warning(s)（開工前 25，未增加）。
+- 驗收條件對照：三項皆達成。
+
+### Act
+完成 D-04。下一個任務：D-05（[F01] 修正 `s-card-add-dialog` 3 處寫到領域狀態）。
