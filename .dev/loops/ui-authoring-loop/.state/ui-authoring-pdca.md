@@ -99,3 +99,22 @@
 
 ### Act
 完成：T1.03。下一個任務：T1.04（[F01] 定案 `s-stage-list`，對應 `uc-add-stage`／`uc-rename-stage`／`uc-reorder-stage`／`uc-set-stage-role`）。
+
+## Iteration 5 — 2026-09-17 16:10 — D-01
+
+### Plan
+修正 `ui-kanban-basic.md` 第 35、36 行 REF-07 error：「失敗時」欄位中的「無 `fail` 定義」把 `fail` 誤用反引號（反引號只給六種 ID 用），改成不加反引號的寫法，語意不變。預期整檔 error 數從 80 降到 78，不新增其他 error。
+
+### Do
+- 讀 D-01 任務描述與指定行號，確認第 35、36 行分別是「重新命名 Swimlane」「拖曳調整順序」兩列的「失敗時」欄。
+- 將「不適用（`uc-rename-swimlane` 無 `fail` 定義）」「不適用（`uc-reorder-swimlane` 無 `fail` 定義）」改為「不適用（`uc-rename-swimlane` 無 fail 定義）」「不適用（`uc-reorder-swimlane` 無 fail 定義）」，僅移除 `fail` 的反引號，其餘文字不變。
+- commit `.dev/F01-basic-kanban/ui-kanban-basic.md`（`[spec/design](kanban-basic)`）與任務清單／state（`[docs](loops)`）。
+
+### Check
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md` 最後一行：`78 error(s), 17 warning(s)`（由 80 降為 78）；輸出中無任何 `REF-07`。
+- `s-swimlane-list` 行號範圍（第 5～57 行）內用該行號範圍比對 `ui-check` 輸出，無任何 error 落在此範圍。
+- 驗收條件三項：無 REF-07（達成）、`s-swimlane-list` 範圍內無 error（達成）、整檔 error 數 ≤78（達成，剛好 78）。
+- 本輪未新增／修改 OQ 或帶引用標記的待確認事項，未跑 `verify-quotes.py`。
+
+### Act
+完成：D-01。下一個任務：T1.04（[F01] 定案 `s-stage-list`，對應 `uc-add-stage`／`uc-rename-stage`／`uc-reorder-stage`／`uc-set-stage-role`）。

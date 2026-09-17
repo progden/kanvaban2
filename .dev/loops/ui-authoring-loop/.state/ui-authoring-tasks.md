@@ -96,4 +96,4 @@
 
 | ID | 狀態 | 任務 | 驗收條件 | 依賴 |
 |----|------|------|----------|------|
-| D-01 | todo | [F01] 修正 `ui-kanban-basic.md` 的 `s-swimlane-list` 操作表第 35、36 行的 REF-07 error：「失敗時」欄寫成「無 `fail` 定義」，把 `fail` 包在反引號裡，被 `ui-check` 當成未定義的 Entity ID（規範：反引號只給六種 ID 用）。改成不加反引號的寫法（例如「無 fail 定義」或「fail 為空」），語意不變。T1.02 的 PDCA 用 `grep -i swimlane-list` 核對，但 `ui-check` 的輸出只有行號、沒有 Screen ID，所以沒抓到這兩行；之後核對「本畫面無 error」請改用該畫面的行號範圍比對 | `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md` 輸出中沒有 `REF-07`；`s-swimlane-list` 所在行號範圍（`## s-swimlane-list` 到下一個 `## s-`）內沒有任何 error；整檔 error 數 ≤ 78 | — |
+| D-01 | done | [F01] 修正 `ui-kanban-basic.md` 的 `s-swimlane-list` 操作表第 35、36 行的 REF-07 error：「失敗時」欄寫成「無 `fail` 定義」，把 `fail` 包在反引號裡，被 `ui-check` 當成未定義的 Entity ID（規範：反引號只給六種 ID 用）。改成不加反引號的寫法（例如「無 fail 定義」或「fail 為空」），語意不變。T1.02 的 PDCA 用 `grep -i swimlane-list` 核對，但 `ui-check` 的輸出只有行號、沒有 Screen ID，所以沒抓到這兩行；之後核對「本畫面無 error」請改用該畫面的行號範圍比對 | `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md` 輸出中沒有 `REF-07`；`s-swimlane-list` 所在行號範圍（`## s-swimlane-list` 到下一個 `## s-`）內沒有任何 error；整檔 error 數 ≤ 78 | — |
