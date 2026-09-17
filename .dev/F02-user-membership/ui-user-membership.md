@@ -302,7 +302,48 @@ Board 擁有者刪除 Board 前確認，一併告知底下的 Swimlane、Stage �
 ## s-card-assignee-picker：卡片負責人選取
 所屬 Feature：卡片負責人指派
 類型：對話框
-狀態：未討論
+狀態：已定案
+
+### 目的
+看板成員在此從看板成員中選擇一位或多位卡片負責人。
+
+### 進入與離開
+- 從哪裡進來：F01 `s-card-detail` 的負責人指派入口
+- 完成後去哪裡：回到 `s-card-detail`，負責人欄位顯示更新後的負責人名單
+- 中途放棄會怎樣：關閉本畫面，不套用本次未儲存的勾選變更，卡片負責人維持進入前的樣子
+
+### 角色與權限
+| 角色 | 看得到 | 做得到 |
+|---|---|---|
+| `r-board-member` | 負責人候選清單、卡片目前的負責人 | 勾選／取消勾選負責人、儲存變更、取消 |
+
+### 資料
+| 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
+|---|---|---|---|---|
+| 負責人候選清單 | `board-membership` | 顯示 | 不顯示非該 `board` 成員的 `user`，依 `uc-list-card-assignee-candidates` post | 選單來源，僅列出該 `card` 所屬 `board` 的成員 |
+| 已選負責人 | `card.assignees` | 顯示 / 輸入（多選） | 只能選擇該看板的成員，依欄位表 `card.assignees` 限制；依 `uc-view-card-assignees` post，沒有指派負責人時顯示為未指派 | 使用者從候選清單勾選的結果 |
+
+### 操作
+| 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
+|---|---|---|---|---|
+| 儲存變更 | `uc-set-card-assignees` | 關閉本畫面，回 `s-card-detail`，負責人欄位顯示儲存後的名單，卡片縮圖同步顯示 | 不適用（`uc-set-card-assignees` 無 fail 定義） | 否（可重新開啟本畫面調整負責人，非不可逆操作） |
+| 取消 | — | 關閉本畫面，不套用變更 | — | 否 |
+
+### 狀態
+- 載入中：載入負責人候選清單與卡片目前負責人時顯示
+- 空資料：卡片目前沒有指派負責人時，依 `uc-view-card-assignees` post，候選清單全部維持未勾選
+- 錯誤：不適用（`uc-set-card-assignees`、`uc-list-card-assignee-candidates`、`uc-view-card-assignees` 均無 fail 定義）
+- 無權限：不適用（三個對應 Use Case 的 `roles` 皆僅 `r-board-member`，spec 未定義本畫面內的角色差異）
+- 資料狀態差異：不適用
+
+### 驗收條件
+- 開啟時，候選清單只列出該 `card` 所屬 `board` 的成員，不含非成員
+- 開啟時，卡片目前的負責人於候選清單中顯示為已勾選；卡片目前沒有負責人時，候選清單全部未勾選
+- 勾選一位或多位候選人後儲存，觸發 `uc-set-card-assignees`，回到 `s-card-detail` 且負責人欄位顯示儲存後的名單
+- 取消後關閉本畫面，且不觸發 `uc-set-card-assignees`，`s-card-detail` 的負責人欄位維持進入前的樣子
+
+### 待確認事項
+- （無）
 
 ## s-cards-by-assignee：依負責人查詢卡片
 所屬 Feature：卡片負責人指派
