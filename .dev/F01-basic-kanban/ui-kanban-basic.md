@@ -349,7 +349,7 @@
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
 |---|---|---|---|---|
-| 儲存變更 | `uc-edit-card` | 依 `uc-edit-card` post：`card.description`、`card.due-date`、`card.labels` 更新為編輯內容，停留本畫面 | 不適用（`uc-edit-card` 無 fail 定義） | 否 |
+| 儲存變更 | `uc-edit-card` | 停留本畫面，描述、截止日期、標籤欄位顯示儲存後的內容 | 不適用（`uc-edit-card` 無 fail 定義） | 否 |
 | 新增留言 | `uc-add-comment` | 依 `uc-add-comment` post：該留言顯示於留言列表 | 不適用（`uc-add-comment` 無 fail 定義） | 否 |
 | 關閉 | — | 回到 `s-board`，看板交會格內容更新 | — | 否 |
 
@@ -362,7 +362,7 @@
 
 ### 驗收條件
 - 開啟時顯示卡片標題、描述、截止日期、標籤與既有留言列表
-- 儲存變更後，描述、截止日期、標籤更新為輸入內容，且觸發 `uc-edit-card`
+- 儲存變更後，本畫面的描述、截止日期、標籤欄位顯示儲存的內容，且觸發 `uc-edit-card`
 - 新增留言後，該留言顯示於留言列表，且觸發 `uc-add-comment`
 - 關閉後回到 `s-board`，看板交會格內容更新
 
