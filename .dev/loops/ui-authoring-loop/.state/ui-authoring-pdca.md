@@ -238,3 +238,23 @@
 
 ### Act
 完成 T1.07。下一個任務：T1.08（[F01] 定案 `s-card-detail`，對應 `uc-edit-card`／`uc-add-comment`；負責人欄位先標 `⚠️` 待確認並記 OQ）。
+
+## Iteration 12 — 2026-09-17 — T1.08
+### Plan
+本輪任務：T1.08（[F01] 定案 `s-card-detail`，類型：表單，對應 `uc-edit-card`／`uc-add-comment`）。要改的檔案：`.dev/F01-basic-kanban/ui-kanban-basic.md` 的 `s-card-detail` 骨架，補齊八段；負責人相關欄位先標 `⚠️` 並記 OQ。驗收條件：`ui-check` 錯誤數不比開工前（38）多；待確認事項含負責人 `⚠️` 條目；OQ 檔追加對應列。
+
+### Do
+- 讀 `spec-kanban-basic.md` 的 `uc-edit-card`（post 僅更新 `card.description`／`card.due-date`／`card.labels`，標題不可編輯；fail 為空）、`uc-add-comment`（post 僅文字描述「留言」「留言者」「留言時間」，fail 為空）、名詞定義三張表、CR-002 變更紀錄（負責人欄位已移至 F02）。
+- 補齊 `s-card-detail` 八段：目的、進入與離開（從 `s-board`「開啟卡片詳情」進入，沿用 T1.06 已定案的 `s-board` 操作表；中途放棄不套用未儲存變更）、角色與權限（`r-user`）、資料（`card.title` 顯示不可編輯、`card.description`／`card.due-date`／`card.labels` 顯示＋輸入；負責人與留言列表無法對應到 spec 已定義的 Attribute ID，兩項皆標 `⚠️`）、操作（儲存變更觸發 `uc-edit-card`、新增留言觸發 `uc-add-comment`、關閉）、狀態五項、驗收條件、待確認事項（負責人＋留言兩條 `⚠️`）。
+- 高風險決定：留言相關欄位在 spec 名詞定義表完全沒有對應 Entity／Attribute ID（僅 `uc-add-comment` post 用文字描述），比任務描述原先只預期的「負責人」`⚠️` 多一項缺口；依鐵則 1（不定義新概念）不自行發明 `comment` 實體，改在資料表以文字描述並標 `⚠️`，新增 OQ-09（【引用原文】），比照 OQ-08（負責人，【引用原文】CR-002）處理。
+- 自我修正：初稿在「角色與權限」「做得到」欄與資料表「說明」欄誤用反引號包住尚未存在的 `s-card-assignee-picker`（觸發 REF-07 error，且角色欄句子含「並」導致 DS-05 操作名稱比對失敗），改為不掛反引號的純文字敘述、角色欄改列精確操作名稱（儲存變更、新增留言、關閉）。
+- commit `[spec/design](kanban-basic)`（ui 檔）與 `[docs](loops)`（任務清單、OQ 檔、state、PDCA）分開提交。
+
+### Check
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md`：25 error(s), 1 warning(s)（開工前 38，未增加；下降因 `s-card-detail` 補齊八段消除原本的 DS-02／DS-04 缺口）。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：通過（回傳 0）。
+- `tools accept-check`：本任務無機械驗收 token，改以上述 `ui-check` 肉眼核對。
+- 驗收條件對照：error 數未增加（達成）；待確認事項含負責人 `⚠️`（OQ-08）與留言 `⚠️`（OQ-09）條目（達成）；OQ 檔追加 OQ-08、OQ-09 兩列（達成）；畫面狀態維持「討論中」（達成，符合高風險項目未清空前不得標「已定案」的規則）。
+
+### Act
+完成 T1.08。下一個任務：T1.09（[F01] 定案 `s-card-delete-dialog`，對應 `uc-delete-card`）。
