@@ -28,7 +28,7 @@
 | Cycle Time | 衍生：`card` 第一次進入 Start 角色 Stage 到完成的時間差；未曾進入 Start 就完成時顯示「無」 | 顯示 | — | 依 `uc-view-cycle-lead-time` post p1／p2 |
 | 完成時間 | 衍生：`card` 最後一次進入 Done 角色 Stage 的時間 | 顯示 | — | 依 `uc-view-cycle-lead-time` post p3，離開 Done 後再進入以最後一次為準 |
 | 排除計算的卡片數 | 衍生：Cycle Time 顯示為「無」的卡片數量加總 | 顯示 | — | 依 `uc-view-cycle-lead-time` post p2 |
-| 統計摘要（平均值、百分位） | 衍生：卡片清單 Lead Time／Cycle Time 的統計計算，排除 Cycle Time 為「無」的卡片 | 顯示 | ⚠️ 待確認：統計摘要涵蓋哪些百分位數（例如 P50／P85）spec 未定義 | 依 `uc-view-cycle-lead-time` post p2 |
+| 統計摘要（平均值、百分位） | 衍生：卡片清單 Cycle Time 統計排除 Cycle Time 為「無」的卡片；Lead Time 統計是否比照排除，spec 未定義，見 OQ-33 | 顯示 | ⚠️ 待確認：具體百分位數（例如 P50／P85）spec 未定義，見 OQ-33 | 依 `uc-view-cycle-lead-time` post p2 |
 
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
@@ -45,14 +45,14 @@
 ### 驗收條件
 - 已完成卡片清單顯示每張卡片的 Lead Time 與 Cycle Time
 - 未曾進入 Start 角色 Stage 就完成的卡片，Cycle Time 顯示為「無」
-- 統計摘要的平均值與百分位計算排除 Cycle Time 顯示為「無」的卡片
+- 統計摘要的 Cycle Time 平均值與百分位計算排除 Cycle Time 顯示為「無」的卡片
 - 統計摘要顯示「排除計算的卡片數」
 - 卡片離開 Done 後再次完成時，完成時間顯示為最後一次進入 Done 的時間
 - 開啟畫面時觸發 `uc-view-cycle-lead-time`
 
 ### 待確認事項
 - ⚠️ 進入路徑未定義，見 OQ-31：F01 `s-board` 操作表尚無「檢視圖表」操作
-- ⚠️ 統計摘要的百分位計算所指定的百分位數（例如 P50／P85）spec 未定義
+- ⚠️ 統計摘要的百分位計算所指定的具體百分位數（例如 P50／P85），以及 Lead Time 統計是否比照 Cycle Time 排除「無」的卡片，spec 未定義，見 OQ-33
 
 ## s-wip-dashboard：WIP 與 Aging WIP 儀表板
 所屬 Feature：WIP 與 Aging WIP 監控
@@ -88,7 +88,7 @@
 
 ### 狀態
 - 載入中：載入 Stage 卡片數量與卡片時間軸以計算年齡時顯示
-- 空資料：某 Stage 目前卡片數為 0，或沒有已進入 Start、尚未進入 Done 的卡片時，對應圖表顯示為空
+- 空資料：看板沒有任何卡片時，WIP 圖表顯示為空；沒有已進入 Start、尚未進入 Done 的卡片時，Aging WIP 清單顯示為空
 - 錯誤：不適用（`uc-view-wip`／`uc-view-aging-wip` 皆無 fail 定義）
 - 無權限：不適用（F03 spec 僅使用跨模組 `r-user` 一種角色，無角色差異）
 - 資料狀態差異：不適用（兩個 uc 的 post 未定義清單以外的呈現差異）
