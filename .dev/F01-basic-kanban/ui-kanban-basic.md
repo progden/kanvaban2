@@ -104,7 +104,58 @@
 ## s-stage-list：Stage 列表
 所屬 Feature：Stage（階段）管理
 類型：列表
-狀態：未討論
+狀態：討論中
+
+### 目的
+看板使用者在此檢視、新增、重新命名、拖曳排序與設定角色（Start/Done）給看板的 Stage。
+
+### 進入與離開
+- 從哪裡進來：⚠️ 待確認（見 OQ-02），暫定為模組入口
+- 完成後去哪裡：新增、重新命名、拖曳排序、設定角色完成後停留本畫面，列表更新；刪除操作導向 `s-stage-delete-dialog`
+- 中途放棄會怎樣：不適用（本畫面各操作皆為即時提交，無中途放棄流程）
+
+### 角色與權限
+| 角色 | 看得到 | 做得到 |
+|---|---|---|
+| `r-user` | 全部 Stage 及其名稱、順序、角色 | 新增 Stage、重新命名 Stage、拖曳調整順序、設定 Stage 角色、刪除 Stage |
+
+### 資料
+| 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
+|---|---|---|---|---|
+| 階段名稱 | `stage.name` | 顯示、輸入（新增與重新命名時） | — | — |
+| 順序 | `board` 與 `stage` 的關係（依序） | 顯示（可拖曳調整） | — | 決定 Stage 在看板中的排列順序，依 `uc-reorder-stage` 調整 |
+| 角色 | `stage.role` | 顯示、輸入（設定角色時） | enum(NONE, START, DONE)；同一 `board` 中 START、DONE 各至多一個 | 依 `uc-set-stage-role` 設定 |
+
+預設排序：依 `board` 與 `stage` 目前的關係順序。
+
+### 操作
+| 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
+|---|---|---|---|---|
+| 新增 Stage | `uc-add-stage` | 新 Stage 依指定位置插入列表，未指定位置時加到最後 | 不適用（`uc-add-stage` 無 fail 定義） | 否 |
+| 重新命名 Stage | `uc-rename-stage` | 該列名稱更新為新名稱 | 不適用（`uc-rename-stage` 無 fail 定義） | 否 |
+| 拖曳調整順序 | `uc-reorder-stage` | 列表依拖曳結果重新排列 | 不適用（`uc-reorder-stage` 無 fail 定義） | 否 |
+| 設定 Stage 角色 | `uc-set-stage-role` | 該列角色更新為指定角色；若 `board` 中原本已有其他 Stage 持有該角色，該列角色顯示變回 NONE | 不適用（`uc-set-stage-role` 無 fail 定義） | 否 |
+| 刪除 Stage | — | 開啟 `s-stage-delete-dialog` | 不適用 | 否 |
+
+### 狀態
+- 載入中：載入 Stage 清單時顯示
+- 空資料：不適用（`board` 與 `stage` 的關係 min 為 1，看板至少保留一個 Stage，不會出現空列表）
+- 錯誤：新增、重新命名、拖曳排序或設定角色失敗時，依上方操作表顯示對應訊息
+- 無權限：不適用（spec 僅定義 `r-user` 一種角色，無角色差異）
+- 資料狀態差異：僅剩 1 個 Stage 時，刪除操作不可用（依 `uc-delete-stage` p1：「`board` 中的 `stage` 數量大於 1」）；設定某 Stage 角色為 START 或 DONE 時，原持有該角色的 Stage 該列角色顯示同步變回 NONE
+
+### 驗收條件
+- 既有 Stage 依序顯示於列表，含各自角色
+- 新增成功後，新 Stage 顯示在指定位置（未指定位置時在最後），且觸發 `uc-add-stage`
+- 重新命名送出後，該列名稱更新為新名稱，且觸發 `uc-rename-stage`
+- 拖曳排序完成後，列表順序依拖曳結果更新，且觸發 `uc-reorder-stage`
+- 設定角色送出後，該列角色更新為指定角色，且觸發 `uc-set-stage-role`
+- 將某 Stage 設為 START 或 DONE 後，原持有該角色的 Stage 該列角色顯示變回 NONE
+- 僅剩 1 個 Stage 時，刪除操作無法使用
+- 點擊刪除操作開啟 `s-stage-delete-dialog`
+
+### 待確認事項
+- ⚠️ 進入路徑未定：見 OQ-02（`ui-authoring-open-questions.md`）
 
 ## s-stage-delete-dialog：刪除 Stage 對話框
 所屬 Feature：Stage（階段）管理
