@@ -317,3 +317,25 @@
 
 ### Act
 完成 T1.09。下一個任務：T1.10（[F01] 收尾：`ui-check .dev/F01-basic-kanban/ui-kanban-basic.md` 0 error；過一遍 DS-06／DS-07 warn）。
+
+## Iteration 16 — 2026-09-17 15:40 — T1.10
+
+### Plan
+本輪任務：T1.10（[F01] 收尾：`ui-check .dev/F01-basic-kanban/ui-kanban-basic.md` 0 error；過一遍 `DS-06`／`DS-07` warn）。要改的檔案：預期只需確認現況，若能修正就改 `ui-kanban-basic.md`；驗收條件是該檔 `ui-check` 降到 0 error，且 PDCA 列出 `DS-06`／`DS-07` warn 清單。開工前該檔 error 數 12（全落在 `s-board`，上一輪已知為 F02 跨模組引用）。
+
+### Do
+- 逐一核對 12 筆 `REF-07`（`card.assignees`／`uc-set-card-assignees`／`board-membership`／`uc-assign-card-owner-by-drag`／`r-board-member`／`r-board-owner`／`r-system-user`）：`grep` 確認全部 6 個 ID 都已在 `spec-user-membership.md` 的「Use Case 定義」「名詞定義」「角色定義」正式定義（非註解、非草稿區塊），不是內容缺陷。
+- 讀 `scripts/speccheck/runner.py` 的 `specs_for_designs`／`main_ui`：確認 `ui-check` 對單一檔案目標只會載入同目錄同模組的 spec，不會因為引用了其他模組 ID 而額外載入該模組 spec；`ui-authoring-tools.py` 的 `accept-check`／`count` 對非 `all` 的 target 一樣只傳該單一檔案給 `ui-check`，永遍不會帶 `--spec`。用 `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md --spec .dev/F02-user-membership/spec-user-membership.md` 驗證：加上 `--spec` 後這 12 筆全部消失，變成 0 error(s)（另外浮現 8 筆屬於 F02 自己模組、與 F01 無關的 `DS-06` warn）。
+- 結論：這是規則書「自主決策分級」表「環境限制」列的情況——`ui-check` 對單一模組檔案的檢查範圍限制，不是 `s-board` 內容錯誤；`s-board` 的跨模組引用本身是正確且被規則書明文鼓勵的寫法（`ui-authoring-prompt.md`「跨模組可以互相引用……ID 存在即可，不因為跨模組就要重新定義」），不宜為了讓單檔案 `ui-check` 通過而刪除或改寫這些引用。
+- 依規則書處理：`ui-authoring-open-questions.md` 表尾追加 OQ-10（【推論】，引用 `uc-assign-card-owner-by-drag` post 原文，說明 6 個 ID 均已定義、問題出在工具的單檔案載入範圍），狀態 `blocked`；`ui-authoring-tasks.md` 把 T1.10 狀態改為 `blocked`。未改動 `ui-kanban-basic.md` 內容（內容本身無需修正）。
+- DS-06／DS-07 review（用 `--spec` 補齊模型後才看得到完整結果，供人工參考，不影響本任務被 block 的結論）：`DS-07` 在 F01+F02 合併模型下對 F01 六個畫面無任何 warn（`s-swimlane-list`／`s-swimlane-delete-dialog`／`s-stage-list`／`s-stage-delete-dialog`／`s-board`／`s-card-add-dialog`／`s-card-detail`／`s-card-delete-dialog` 皆有畫面導向或標「模組入口」）；`DS-06` 的 8 筆 warn（`uc-create-user`／`uc-create-board`／`uc-invite-member`／`uc-change-member-role`／`uc-remove-member`／`uc-delete-board`／`uc-member-add-card`／`uc-set-card-assignees`）全部是 F02 自己的寫入 uc，尚無 F02 畫面（`ui-user-membership.md` 待 T2.01 建立），與 F01 無關、非本輪範圍。
+- commit（本輪收尾一併提交）：`[docs](loops) 標記 T1.10 為 blocked 並記錄 OQ-10`（涵蓋 `ui-authoring-tasks.md`／`ui-authoring-open-questions.md`／`ui-authoring-pdca.md`／`ui-authoring-state.md`）。
+
+### Check
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md`：`12 error(s), 0 warning(s)`（與開工前相同，未新增也未減少，因未修改該檔內容）。
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md --spec .dev/F02-user-membership/spec-user-membership.md`：`0 error(s), 8 warning(s)`（8 筆皆為 F02 自身 `DS-06`，見上）。
+- `tools accept-check ui-authoring-tasks.md T1.10`：`ui-check(.dev/F01-basic-kanban/ui-kanban-basic.md) 應為 0，實際 12`——驗收條件目前不成立，符合「環境限制」判斷，任務標 `blocked` 後不算入 `--done` 的機械驗收（`verify-ui-authoring.sh` 第 9 項只查 `--done` 的任務）。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：通過（OQ-10 的『』引用逐字相符 `spec-user-membership.md`）。
+
+### Act
+T1.10 標 `blocked`，等待人工決定（調整驗收條件為含 `--spec` 版本、或改到跨模組收尾階段才檢查、或調整 `ui-check`／`ui-authoring-tools.py` 的載入邏輯）後改回 `todo`；在此之前 loop 沒有其他可執行的 `todo`（T2.01 依賴 T1.10 完成）。
