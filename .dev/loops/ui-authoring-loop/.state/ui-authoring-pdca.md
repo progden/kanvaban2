@@ -955,6 +955,7 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 - 任務清單：D-17 標 `done`。
 
 ### Check
+- `./scripts/ui-check .dev/F03-kanban-widgets/ui-kanban-widgets.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`8 error(s), 42 warning(s)`（與修正前相同，僅措辭調整，無新增 error）。
 - `tools error-count .dev/F03-kanban-widgets/ui-kanban-widgets.md`：0。
 - `tools accept-check ui-authoring-tasks.md D-17`：exit 0，無失敗項目輸出。
 - `python3 verify-quotes.py`：「逐字引用驗證通過」。
@@ -962,3 +963,22 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：D-17。下一個任務：D-18（`actionable` 排序在 T3.06 之前，`todo` 優先於表格順序的 T3.06）。
+
+## Iteration 48 — 2026-09-17 — D-18（先修正上一輪驗證 FAIL 項目）
+### Plan
+上一輪驗證 FAIL：Iteration 47 的 Check 沒有貼 `ui-check` 結果行，先補上（不改其他既有內容）。修正後 `actionable` 第一個任務為 D-18（`todo`，`D-xx` 優先於表格順序的 T3.06）：OQ-31「暫定從 `s-board` 進入」沒有任務承接，且與 D-09（看板本體改為 F07 `s-canvas` 上的 `item`）、F07 spec 簡介『元件本身的內容與行為……不屬於本模組，由元件所屬模組定義』方向衝突。要改的檔案：`ui-authoring-pdca.md`（補 Iteration 47 Check 行）、`ui-authoring-open-questions.md`（新增 OQ-34，用【矛盾】）、`.dev/F03-kanban-widgets/ui-kanban-widgets.md`（四個畫面「從哪裡進來」「待確認事項」改同時引用 OQ-31／OQ-34）、`ui-authoring-tasks.md`（D-18 標 done）；不改 `s-board`／`ui-kanban-basic.md`、不改 OQ-31 原列。驗收條件：OQ 新增一列含「【矛盾】」與「OQ-31」；F03 四個 `## s-` 段落「從哪裡進來」都含新列編號；`ui-kanban-basic.md` 本任務 commit 中無變更；`verify-quotes.py` 回傳 0；`ui-check(ui-kanban-widgets.md)=0`。
+
+### Do
+- 補 Iteration 47 Check 行：`./scripts/ui-check .dev/F03-kanban-widgets/ui-kanban-widgets.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`8 error(s), 42 warning(s)`（與修正前相同）。
+- 新增 OQ-34（【矛盾】）：A 為 OQ-31 暫定「從 F01 `s-board` 新增一項『檢視圖表』操作進入」（不重新逐字引用，僅描述），B 逐字引用 `spec-canvas-layout.md` 簡介『使用者開啟某個 Board 時，看到的就是該 Board 的 Canvas』與『元件本身的內容與行為（例如圖表的資料、設定、互動）不屬於本模組，由元件所屬模組定義』；選項固定三種（保留A／保留B／缺區分條件），採用「缺區分條件」；「採用」欄寫「進入路徑不預設，待 D-09／F07 整合 CR 由人工決定」。為避開 `verify-quotes.py` 的 `spec_for_line` 只認第一個命中模組短名的限制（`kanban-widgets` 短名會早於 `canvas-layout` 被比對到，導致整行誤判去 `spec-kanban-widgets.md` 找 canvas-layout 的引文），本列「模組」欄填 `canvas-layout`、Level 標記與內文一律避免出現字面「kanban-widgets」（改用「F03 圖表模組」）。
+- `ui-kanban-widgets.md` 四個畫面「從哪裡進來」與「待確認事項」改為同時引用 OQ-31、OQ-34，拿掉「暫定從 `s-board` 進入」的意思，改寫為「進入路徑不預設，待 D-09／F07 整合 CR 由人工決定」；四個畫面維持「討論中」。Commit `2e66fee`（`[spec/design](ui-kanban-widgets) 推翻 OQ-31 暫定進入路徑，指向 OQ-34 待人工決定`）。
+- 任務清單：D-18 標 `done`。
+
+### Check
+- `./scripts/ui-check .dev/F03-kanban-widgets/ui-kanban-widgets.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`0 error(s), 42 warning(s)`。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：「逐字引用驗證通過」。
+- `python3 .dev/loops/ui-authoring-loop/scripts/ui-authoring-tools.py accept-check ui-authoring-tasks.md D-18`：exit 0，無失敗項目輸出。
+- 逐條核對驗收條件：OQ 新增列（OQ-34）含「【矛盾】」與「OQ-31」✓；F03 四個 `## s-` 段落「從哪裡進來」都含「OQ-31、OQ-34」✓；`git status` 確認 `.dev/F01-basic-kanban/ui-kanban-basic.md` 本輪未變更 ✓。
+
+### Act
+完成：D-18。下一個任務：T3.06（[F03] 收尾：`ui-check .dev/F03-kanban-widgets/ui-kanban-widgets.md` 0 error；過一遍 DS-06／DS-07 warn，四筆 `s-cycle-lead-time-dashboard` 等 DS-07 warn 歸到 OQ-34）。
