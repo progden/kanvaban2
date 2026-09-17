@@ -415,3 +415,21 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：下一個任務 T2.03（[F02] 定案 `s-login`，類型：表單，對應 `uc-login`；`uc-logout` 併入本畫面操作表）。
+
+## Iteration 22 — 2026-09-17 — T2.03
+### Plan
+本輪任務：T2.03（[F02] 定案 `s-login`，類型：表單，對應 `uc-login`；`uc-logout` 併入本畫面操作表，不獨立開畫面）。要改的檔案：`.dev/F02-user-membership/ui-user-membership.md`（填 `s-login` 八段內容，操作表含 `uc-login`／`uc-logout` 兩列）；OQ 檔追加「完成後去哪裡」一筆，並在「從哪裡進來」回引 OQ-11／OQ-12。驗收條件：`ui-check` 對本畫面無 error、八段齊全（同 T2.02 模式，操作表含兩列）。預期 error 數變化：`s-login` 本身 0 error，全域 error 總數應下降（原骨架的 DS-02/DS-04 缺段落 error 消失）。
+
+### Do
+- 讀 `spec-user-membership.md`「Feature: 使用者登入與登出」`uc-login`／`uc-logout`（roles/pre/post/fail）與相關 Gherkin Scenario。
+- 填 `s-login` 八段：資料表對照 `user.username`／`user.password` 兩個欄位，驗證/格式欄引用 `uc-login` pre p1／p2；操作表兩列「送出登入表單」（`uc-login`）與「登出」（`uc-logout`），兩者「需確認」皆標「否」——`uc-login` 失敗可重新輸入，`uc-logout` 登出後仍可重新登入，皆非不可逆操作。
+- 「從哪裡進來」列出兩個已由 spec 直接確認的路徑（`s-signup` 完成後導向、`uc-logout` post 明確寫「回到登入頁面」），未登入應用程式進入點是否也導向本畫面標 ⚠️ 並回引既有 OQ-11（查重後未重開新列）。
+- 高風險：「完成後去哪裡」`uc-login` post 只寫『TopBar 顯示該 `user` 的帳號名稱』未描述導向畫面，標 ⚠️ 新增 OQ-13（推論暫定導向 `s-board-list`），畫面狀態維持「討論中」。
+- 低風險：「角色與權限」表「做得到」欄首次寫成分號＋括號混合格式，`ui-check` 報 DS-05（可用角色 `[]` 與 uc roles 不一致，因 `_split_ops` 只用頓號／逗號切字，未能取出精確操作字串）；改寫成純頓號分隔、逐字等於操作表操作名稱（「輸入帳號 ID、密碼、送出登入表單、登出」），附註說明移到「看得到」欄，修正後歸零。
+- commit `f134dec`：`[spec/design](ui-user-membership) 定案 s-login 八段短規格`。
+
+### Check
+`./scripts/ui-check .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：94 error(s), 43 warning(s)（其餘 5 個未填畫面與 F04/F05/F07 warn 屬預期，與本輪無關；起點 104 error(s), 44 warning(s)，本輪淨減 10 error／1 warning）；篩選 `s-login`／`s-signup` 相關訊息：兩者皆 0 筆 error。`tools error-count .dev/F02-user-membership/ui-user-membership.md`：92（含跨模組 REF/DS 統計口徑略有差異，仍為淨減）。八段齊全，逐條對照驗收條件（`ui-check` 對本畫面無 error；操作表含 `uc-login` 與 `uc-logout` 兩列）達成。`tools accept-check T2.03`：無機械 token，肉眼核對通過。本輪新增 OQ-13 一筆『』引用，跑 `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：通過（exit 0）。
+
+### Act
+完成：下一個任務 T2.04（[F02] 定案 `s-board-list`，類型：列表，對應 `uc-view-board-list`；無權限狀態對應 `uc-reject-board-access-by-nonmember`）。
