@@ -109,7 +109,7 @@
 
 ### 進入與離開
 - 從哪裡進來：登入成功後（依 `s-login`「完成後去哪裡」）
-- 完成後去哪裡：選擇列表中的 Board 進入該 Board（F01 `s-board`；未來依 OQ-18 改為導向 F07 s-canvas，見本畫面「待確認事項」）；前往建立 Board 操作導向 `s-board-create-dialog`
+- 完成後去哪裡：選擇列表中的 Board 進入該 Board（F07 `s-canvas`，跨模組）；前往建立 Board 操作導向 `s-board-create-dialog`
 - 中途放棄會怎樣：不適用（本畫面僅為列表檢視與導覽，無中途放棄流程）
 
 ### 角色與權限
@@ -125,7 +125,7 @@
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
 |---|---|---|---|---|
-| 選擇 Board 進入 | — | 開啟該 Board（F01 `s-board`） | 不適用 | 否 |
+| 選擇 Board 進入 | — | 開啟該 Board（F07 `s-canvas`，跨模組） | 不適用 | 否 |
 | 嘗試直接開啟不屬於自己的 Board | `uc-reject-board-access-by-nonmember` | 依 `uc-reject-board-access-by-nonmember` post：顯示訊息，停留本畫面 | 不適用（`uc-reject-board-access-by-nonmember` 無 fail 定義） | 否 |
 | 前往建立 Board | — | 開啟 `s-board-create-dialog` | 不適用（純前端導覽） | 否 |
 
@@ -139,12 +139,12 @@
 ### 驗收條件
 - 使用者是其 Owner 或 Member 的 Board 都顯示於列表，沒有權限的 Board 不顯示，且觸發 `uc-view-board-list`
 - 尚未擁有任何 Board 時，列表顯示空清單
-- 選擇列表中的 Board 後開啟該 Board（F01 `s-board`）
+- 選擇列表中的 Board 後開啟該 Board（F07 `s-canvas`，跨模組）
 - 嘗試直接開啟不屬於自己的 Board 時，觸發 `uc-reject-board-access-by-nonmember`，顯示訊息，停留本畫面
 - 觸發前往建立 Board 動作，開啟 `s-board-create-dialog`，不觸發任何 Use Case
 
 ### 待確認事項
-- ⚠️ 依 OQ-17／OQ-18（人工決策，F07 是類 Miro 畫布），「完成後去哪裡」與操作表「選擇 Board 進入」引用的 F01 `s-board` 未來會改成導向 F07 s-canvas（該 Screen 尚未定案，T7.02 完成前不掛反引號引用），暫不修改本畫面內容，待 D-09 一併處理
+- （無）
 
 ## s-board-create-dialog：建立 Board 對話框
 所屬 Feature：Board 建立與成員邀請

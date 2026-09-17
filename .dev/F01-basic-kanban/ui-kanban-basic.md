@@ -11,7 +11,7 @@
 看板使用者在此檢視、新增、重新命名與拖曳排序看板的 Swimlane。
 
 ### 進入與離開
-- 從哪裡進來：`s-board` 的「管理 Swimlane」操作（見 OQ-07；`s-board` 本身「從哪裡進來」仍為討論中，見 OQ-04）
+- 從哪裡進來：F07 `s-canvas`（跨模組）選中看板 item 後的屬性／操作面板的「開啟管理 Swimlane」操作，見 OQ-17
 - 完成後去哪裡：新增、重新命名、拖曳排序完成後停留本畫面，列表更新；刪除操作導向 `s-swimlane-delete-dialog`
 - 中途放棄會怎樣：不適用（本畫面各操作皆為即時提交，無中途放棄流程）
 
@@ -110,7 +110,7 @@
 看板使用者在此檢視、新增、重新命名、拖曳排序與設定角色（Start/Done）給看板的 Stage。
 
 ### 進入與離開
-- 從哪裡進來：`s-board` 的「管理 Stage」操作（見 OQ-07；`s-board` 本身「從哪裡進來」仍為討論中，見 OQ-04）
+- 從哪裡進來：F07 `s-canvas`（跨模組）選中看板 item 後的屬性／操作面板的「開啟管理 Stage」操作，見 OQ-17
 - 完成後去哪裡：新增、重新命名、拖曳排序、設定角色完成後停留本畫面，列表更新；刪除操作導向 `s-stage-delete-dialog`
 - 中途放棄會怎樣：不適用（本畫面各操作皆為即時提交，無中途放棄流程）
 
@@ -215,14 +215,14 @@
 看板使用者在此檢視看板所有 Swimlane 與 Stage 交會格內的卡片，可拖曳卡片跨 Swimlane 或跨 Stage 移動，也可拖曳看板成員頭像到卡片上追加負責人。
 
 ### 進入與離開
-- 從哪裡進來：⚠️ 待確認（見 OQ-04）：跨模組，需先選擇／開啟一個看板（見 F02 spec-user-membership.md），對應畫面尚未定案
-- 完成後去哪裡：拖曳移動卡片、拖曳頭像追加負責人完成後停留本畫面，交會格內容更新；新增卡片操作導向 `s-card-add-dialog`；點擊卡片導向 `s-card-detail`；刪除卡片操作導向 `s-card-delete-dialog`；管理 Swimlane 操作導向 `s-swimlane-list`；管理 Stage 操作導向 `s-stage-list`
+- 從哪裡進來：不適用——內容以 F07 item 形式顯示於 `s-canvas`（跨模組），見 spec-canvas-layout.md；機制仍待該 spec「待釐清」定案
+- 完成後去哪裡：拖曳移動卡片、拖曳頭像追加負責人完成後停留本畫面，交會格內容更新；新增卡片操作導向 `s-card-add-dialog`；點擊卡片導向 `s-card-detail`；刪除卡片操作導向 `s-card-delete-dialog`
 - 中途放棄會怎樣：不適用（拖曳操作皆為即時提交，無中途放棄流程；新增卡片的中途放棄行為由 `s-card-add-dialog` 定義）
 
 ### 角色與權限
 | 角色 | 看得到 | 做得到 |
 |---|---|---|
-| `r-user` | 全部 Swimlane × Stage 交會格與其中卡片 | 拖曳卡片跨 Swimlane、拖曳卡片跨 Stage、新增卡片、開啟卡片詳情、刪除卡片、前往管理 Swimlane、前往管理 Stage |
+| `r-user` | 全部 Swimlane × Stage 交會格與其中卡片 | 拖曳卡片跨 Swimlane、拖曳卡片跨 Stage、新增卡片、開啟卡片詳情、刪除卡片 |
 | `r-board-member`（F02，跨模組） | 同上 | 拖曳成員頭像到卡片追加負責人 |
 
 ### 資料
@@ -234,7 +234,6 @@
 | 卡片標題 | `card.title` | 顯示 | — | 顯示於交會格中的卡片縮圖 |
 | 卡片截止日期 | `card.due-date` | 顯示 | — | 依 `uc-edit-card` post：卡片縮圖顯示 `card.due-date` |
 | 卡片負責人 | `card.assignees`（見 F02 spec-user-membership.md） | 顯示 | — | 依 F02 `uc-set-card-assignees` post：卡片縮圖同步顯示 `card.assignees` 的所有成員 |
-| 看板成員清單 | `board-membership`（見 F02 spec-user-membership.md） | 顯示 | — | 供拖曳頭像指派負責人使用；⚠️ 已改為 F07 s-canvas 上另一個獨立 item，非本畫面資料，見 OQ-19，待 D-09 依 T7.02 完成後移除本列 |
 
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
@@ -245,8 +244,6 @@
 | 新增卡片 | — | 開啟 `s-card-add-dialog` | 不適用 | 否 |
 | 開啟卡片詳情 | — | 開啟 `s-card-detail` | 不適用 | 否 |
 | 刪除卡片 | — | 開啟 `s-card-delete-dialog` | 不適用 | 否 |
-| 管理 Swimlane | — | 開啟 `s-swimlane-list` | 不適用 | 否 |
-| 管理 Stage | — | 開啟 `s-stage-list` | 不適用 | 否 |
 
 ### 狀態
 - 載入中：載入 Swimlane、Stage 與卡片資料時顯示
@@ -264,12 +261,10 @@
 - 點擊新增卡片開啟 `s-card-add-dialog`
 - 點擊卡片開啟 `s-card-detail`
 - 點擊刪除卡片開啟 `s-card-delete-dialog`
-- 點擊管理 Swimlane 開啟 `s-swimlane-list`
-- 點擊管理 Stage 開啟 `s-stage-list`
 
 ### 待確認事項
-- ⚠️ 進入路徑已依 OQ-18 改為由 F07 s-canvas 承接（非「導向進入」），機制細節仍待 F07「待釐清」定案，見 OQ-18（`ui-authoring-open-questions.md`），待 D-09 依 T7.02 完成後改寫「從哪裡進來」
-- ⚠️ 看板成員清單已改為 F07 s-canvas 上另一個獨立 item，非本畫面資料：見 OQ-19（`ui-authoring-open-questions.md`），待 D-09 依 T7.02 完成後移除相關內容
+- ⚠️ 看板本體如何成為 F07 `s-canvas` 上的 `item`（機制細節）spec「待釐清」尚未定案，見 OQ-18
+- 成員頭像清單已改為 F07 `s-canvas` 上另一個獨立 `item`，跨 `item` 拖曳機制待 F07 補充
 
 ## s-card-add-dialog：新增卡片對話框
 所屬 Feature：Card（卡片）編輯
