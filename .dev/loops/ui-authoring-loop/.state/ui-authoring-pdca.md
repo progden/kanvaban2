@@ -1409,3 +1409,36 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T7.03 完成，F07 收尾確認無 DS-06／DS-07 相關警告需處理。下一個任務：T8.01（七份 ui 檔跨模組收尾，逐項處理其餘 13 則 DS-06／DS-07 warn）。
+
+## Iteration 69 — 2026-09-17 — T8.01
+### Plan
+`actionable` 唯一項目為 T8.01：七份 `ui-*.md` 一起跑 `./scripts/ui-check` 到 0 error；`--report` 看畫面總表與追溯矩陣；逐項處理 13 則現存 `DS-06`／`DS-07` warning（state 記載分布：F02 1 DS-06＋4 DS-07、F03 4 DS-07、F04 1 DS-06＋1 DS-07、F05 1 DS-07、F06 1 DS-07）。預期：多數已有 OQ 承接理由，不需修改；若發現純格式問題（例如反引號沒被解析器抓到）才回頭補。開工前 error 數：0；開工前 warning 數：13。
+
+### Do
+- `./scripts/ui-check .dev/F0[1-7]-*/ui-*.md`：`0 error(s), 13 warning(s)`，清單與 T7.03 記載一致。
+- 逐項核對：
+  - F02 `uc-member-add-card`（DS-06）：`ui-kanban-basic.md:304、314` 已有 ⚠️ 與 OQ-30 說明（`r-board-member` 與 `s-board` 既有 `r-user` 角色關係推不出來，DS-05 要求角色與觸發 uc 完全一致，無法同列觸發）——有理由，不修。
+  - F02 `s-member-management`（DS-07）：OQ-22，spec 未描述入口，暫定由 F01 `s-board` Owner 專屬操作進入但該操作尚未列出——有理由，不修。
+  - F02 `s-board-delete-dialog`（DS-07）：OQ-26，同類缺口——有理由，不修。
+  - F02 `s-activity-log`（DS-07）：畫面「未討論」狀態，OQ-29，spec 明文本情境尚未實作（留給 kanban-spring 有 application 層時再做）——有理由，不修。
+  - F02 `s-signup`（DS-07）：核對後發現不是理由缺口而是格式 bug——`s-login`「從哪裡進來」用巢狀子項目列三個來源，其中一項『依 `s-signup`「完成後去哪裡」，導向本畫面』的反引號因巢狀子項目不符合 `parser_design.py` 的 `BULLET_RE`／`NAV_ITEMS` 解析（外層「從哪裡進來：」冒號後為空字串，子項目本身不含「關鍵字：」格式），使 `s-signup` 沒有被登記進 `referenced` 集合。改成單行條列（`從哪裡進來：A；B；C`）讓解析器正確抓到 `` `s-signup` `` 反引號；同時把「未登入時的應用程式入口」標註「（模組入口）」（`s-login` 本來就是登入模組唯一入口，此前未被判定為 warning 是因為已被其他畫面的巢狀外層文字帶到，但明確標註更準確）。改動後一度新增 `DS-03` error（因為同一行內把 `` `uc-logout` `` 也用反引號標了，被巢狀解析器誤判為 Screen 種類），改為不用反引號描述（「見本畫面操作表「登出」」）後排除。
+  - F03 四個 dashboard（`s-cycle-lead-time-dashboard`／`s-wip-dashboard`／`s-throughput-cfd-dashboard`／`s-duedate-reminder`，DS-07）：OQ-31、OQ-34，spec Background 未描述入口，進入路徑待 D-09／F07 整合 CR 由人工決定，明確標註「不預設」——有理由，不修。
+  - F04 `uc-guard-clock-monotonicity`（DS-06）：`ui-board-clock.md:34` 操作表「失敗時」欄已說明「屬於建立新事件時的限制，不是本操作的失敗，不獨立成一列」——本質是跨 uc 的守門條件，不是可被畫面直接觸發的操作，有理由，不修。
+  - F04 `s-board-clock-control`（DS-07）：OQ-35，同類入口缺口，且 OQ-40 已修正 OQ-35「情況」欄敘述——有理由，不修。
+  - F05 `s-workload-dashboard`（DS-07）：OQ-41，同類缺口——有理由，不修。
+  - F06 `s-feature-cr-board`（DS-07）：OQ-43，同類缺口——有理由，不修。
+- 修正後重跑：`0 error(s), 12 warning(s)`（僅 `s-signup` 消失，其餘 12 則維持，均為已有 OQ／內文理由承接）。
+- `./scripts/ui-check .dev/F0[1-7]-*/ui-*.md --report`：畫面總表／追溯矩陣「未被畫面觸發的寫入 UseCase」清單為 `uc-member-add-card`、`uc-guard-clock-monotonicity`，與上述核對一致，無遺漏。
+- commit `f07bb5f`：`[spec/design](ui-user-membership) 修正 s-login 進入格式讓 s-signup 被正確判定為已導向 (T8.01)`。
+- 任務清單：T8.01 狀態由 `todo` 改為 `done`。
+- 本輪未新增 OQ（既有 OQ 已涵蓋所有需要理由的警告）。
+
+### Check
+- `python3 .../ui-authoring-tools.py error-count all`：0。
+- `./scripts/ui-check .dev/F0[1-7]-*/ui-*.md`：`0 error(s), 12 warning(s)`。
+- 驗收條件對照：「`ui-check(all)=0`」達成（0 error；warning 非驗收條件本身，但已逐項確認理由）；「PDCA 本則列出 `DS-06`／`DS-07` 完整 warn 清單與逐項處理結果」達成（見上方 Do）。
+- `python3 .../ui-authoring-tools.py accept-check ui-authoring-tasks.md T8.01`：exit code 0（無輸出）。
+- 本輪未新增／修改 OQ 或『』引用，未跑 `verify-quotes.py`。
+
+### Act
+完成：T8.01 完成，13 則 warning 中 1 則（`s-signup`）為格式 bug 已修正消除，其餘 12 則逐項確認皆有既存 OQ 或內文理由承接，不需回頭補。下一個任務：G1（自我審查關卡）。
