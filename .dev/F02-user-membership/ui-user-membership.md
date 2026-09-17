@@ -333,7 +333,7 @@ Board 擁有者刪除 Board 前確認，一併告知底下的 Swimlane、Stage �
 - 載入中：載入負責人候選清單與卡片目前負責人時顯示
 - 空資料：卡片目前沒有指派負責人時，依 `uc-view-card-assignees` post，候選清單全部維持未勾選
 - 錯誤：不適用（`uc-set-card-assignees`、`uc-list-card-assignee-candidates`、`uc-view-card-assignees` 均無 fail 定義）
-- 無權限：不適用（三個對應 Use Case 的 `roles` 皆僅 `r-board-member`，spec 未定義本畫面內的角色差異）
+- 無權限：不適用（三個對應 Use Case 的 roles 皆僅 `r-board-member`，spec 未定義本畫面內的角色差異）
 - 資料狀態差異：不適用
 
 ### 驗收條件
