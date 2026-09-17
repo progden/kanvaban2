@@ -54,7 +54,7 @@
 | ID | 狀態 | 任務 | 驗收條件 | 依賴 |
 |----|------|------|----------|------|
 | T3.01 | done | [F03] 建立 `ui-kanban-widgets.md`：檔頭 ＋ 4 個畫面標題骨架（`s-cycle-lead-time-dashboard`、`s-wip-dashboard`、`s-throughput-cfd-dashboard`、`s-duedate-reminder`） | 同 T1.01 模式 | T2.11 |
-| T3.02 | todo | [F03] 定案 `s-cycle-lead-time-dashboard`（類型：儀表板）：對應 `uc-view-cycle-lead-time`；資料段列出每個數字/圖表的來源 Attribute 或衍生計算方式 | 同 T1.02 模式 | T3.01 |
+| T3.02 | done | [F03] 定案 `s-cycle-lead-time-dashboard`（類型：儀表板）：對應 `uc-view-cycle-lead-time`；資料段列出每個數字/圖表的來源 Attribute 或衍生計算方式 | 同 T1.02 模式 | T3.01 |
 | T3.03 | todo | [F03] 定案 `s-wip-dashboard`（類型：儀表板）：對應 `uc-view-wip`／`uc-view-aging-wip` | 同上 | T3.02 |
 | T3.04 | todo | [F03] 定案 `s-throughput-cfd-dashboard`（類型：儀表板）：對應 `uc-view-throughput`／`uc-view-cfd`；兩個資料區塊（Throughput 圖、CFD 圖）在同一個 Screen ID 內用「資料」段分開說明，不拆兩個畫面 | 同上 | T3.03 |
 | T3.05 | todo | [F03] 定案 `s-duedate-reminder`（類型：列表）：對應 `uc-view-duedate-reminder` | 同上 | T3.04 |

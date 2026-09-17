@@ -855,3 +855,24 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T3.01。下一個任務：T3.02（[F03] 定案 `s-cycle-lead-time-dashboard`）。
+
+## Iteration 43 — 2026-09-17 21:05 — T3.02（含上一輪 D-15 迴歸修正）
+### Plan
+上一輪驗證 FAIL：D-15 的驗收條件「ui-check(all)=0」因 T3.01 建立 F03 骨架（8 段留空）而破功（52 error）。依規則「先修正失敗項目，再繼續 state 記載的同一個任務」，本輪任務就是 state 記載的下一步 T3.02：定案 `s-cycle-lead-time-dashboard`（類型：儀表板），對應 `uc-view-cycle-lead-time`，藉由把該畫面八段補齊來消解這批 error 的一部分。要改的檔案：`.dev/F03-kanban-widgets/ui-kanban-widgets.md`（本畫面段落）、`ui-authoring-tasks.md`（T3.02 標 done）、`ui-authoring-open-questions.md`（新增 OQ-31）。驗收條件：`ui-check` 對本畫面無 error；八段齊全。預期 error 數：本檔全部 error 從 52 降到約 39（本畫面 13 筆 DS-02/DS-04 清除，其餘 3 個畫面骨架的 error 留待 T3.03～T3.05）。
+
+### Do
+- Commit `e964ca7`（`[spec/design](kanban-widgets) 定案 s-cycle-lead-time-dashboard 八段短規格`）：目的、進入與離開、角色與權限、資料（含 Lead Time／Cycle Time／完成時間／排除計算卡片數／統計摘要衍生計算來源）、操作（`uc-view-cycle-lead-time`）、狀態五項、驗收條件、待確認事項。
+- 低風險決定：空資料狀態直接推論「尚無已完成卡片時清單與統計摘要顯示為空」，未開 OQ（純資料量最小值的自然推論，不牽涉 spec 未定義的業務規則）。
+- 新增 OQ-31：F03 四個圖表畫面共通的「從哪裡進來」缺口（F01 `s-board` 操作表尚無「檢視圖表」操作），本輪只在 `s-cycle-lead-time-dashboard`「進入與離開」「待確認事項」標 ⚠️ 並引用 OQ-31；OQ 條目已註明同一缺口預期在 T3.03～T3.05 重複出現，屆時直接引用 OQ-31 不重開新列。
+- 另標 ⚠️：統計摘要涵蓋的百分位數（P50／P85 等）spec 未定義。
+- 任務清單：T3.02 標 `done`。
+
+### Check
+- `./scripts/ui-check .dev/F03-kanban-widgets/ui-kanban-widgets.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`41 error(s), 42 warning(s)`；篩選 `s-cycle-lead-time-dashboard`：僅 1 筆 `DS-07`（warn，尚無畫面導向它，非模組入口，與 `s-board` 同類情形），無 error。
+- `tools error-count .dev/F03-kanban-widgets/ui-kanban-widgets.md`：39（單檔計數，較上一輪 52 下降 13，對應本畫面 DS-02×8／DS-04×5 全部清除）。
+- `tools accept-check ui-authoring-tasks.md T3.02`：無輸出（同 T1.02，無機械 token，已肉眼核對：8 段標題與三行標頭齊全 ✓；本畫面無 error ✓）。
+- `python3 verify-quotes.py`：「逐字引用驗證通過」。
+- 上一輪失敗項目（D-15 的 `ui-check(all)=0`）：本輪尚未完全恢復（F03 剩 3 個畫面骨架仍有 error），屬預期中的漸進修正，非新缺陷；待 T3.03～T3.05 完成後應回到 0。
+
+### Act
+完成：T3.02。下一個任務：T3.03（[F03] 定案 `s-wip-dashboard`，對應 `uc-view-wip`／`uc-view-aging-wip`）。
