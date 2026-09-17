@@ -919,3 +919,25 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T3.04。下一個任務：T3.05（[F03] 定案 `s-duedate-reminder`，對應 `uc-view-duedate-reminder`）。
+
+## Iteration 46 — 2026-09-17 23:20 — T3.05
+### Plan
+上一輪驗證 FAIL：[9] D-15 的驗收條件 `ui-check(all)=0` 仍非 0（13）。判斷：屬預期中的漸進修正（F03 尚有 1 個畫面骨架未定案），繼續完成 state 記載的下一步 T3.05：定案 `s-duedate-reminder`（類型：列表），對應 `uc-view-duedate-reminder`。要改的檔案：`.dev/F03-kanban-widgets/ui-kanban-widgets.md`（本畫面段落）、`ui-authoring-tasks.md`（T3.05 標 done）、`ui-authoring-open-questions.md`（視需要追加新 OQ）。驗收條件：`ui-check` 對本畫面無 error；八段齊全。預期 error 數：本檔全部 error 從 13 降到約 6～8（仍會保留既有 `s-board` REF-07／DS-07 warn 同款缺口）。
+
+### Do
+- 讀 `spec-kanban-widgets.md`「Feature: 截止日期提醒」`uc-view-duedate-reminder`（post p1 已逾期、p2 即將到期＋門檻天數使用者輸入）與「待釐清」段落確認門檻天數已定案為查詢參數（非固定值）；確認 F01 `card.due-date` 為對應欄位 ID（F03 名詞定義三張表為空，欄位來源需跨模組引用 F01）。
+- 撰寫 `s-duedate-reminder` 八段：目的、進入與離開（沿用 OQ-31）、角色與權限（`r-user`，做得到「檢視逾期提醒圖表」）、資料（同一張表加「清單」欄，值為 共用／已逾期／即將到期，含門檻天數輸入列與各清單的卡片標題／截止日期列）、操作（`uc-view-duedate-reminder` 一列）、狀態五項、驗收條件、待確認事項。
+- 沿用既有 OQ-31（F01 `s-board` 尚無「檢視圖表」操作）。
+- 高風險：門檻天數的型別／範圍（正整數？有無上限？）spec 僅給範例值「3 天」，找不到型別／範圍定義；判斷為高風險（找不到來源的資料），依規則標 ⚠️ 並新開 OQ-32（獨立於 OQ-31，因為是資料欄位驗證缺口，不是入口缺口），「驗證／格式」欄標 ⚠️ 待確認，畫面狀態維持「討論中」，未自行假設型別。
+- Commit `<pending>`（`[spec/design](kanban-widgets) 定案 s-duedate-reminder 八段短規格`）。
+- 任務清單：T3.05 標 `done`。
+
+### Check
+- `./scripts/ui-check .dev/F03-kanban-widgets/ui-kanban-widgets.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`8 error(s), 42 warning(s)`；篩選本畫面（154～200 行）：僅既有 `s-board` REF-07（OQ-31 同款）與 `DS-07` warn，無新增 error。
+- `tools error-count .dev/F03-kanban-widgets/ui-kanban-widgets.md`：0（單檔計數，`ui-authoring-tools.py` 已內建帶入既有全部 ui 檔，較裸跑 `ui-check` 的 8 少了 8 筆跨模組 `s-board` REF-07 誤判，與前三個畫面同款）。
+- `python3 verify-quotes.py`：「逐字引用驗證通過」（本輪新增 OQ-32 一則【引用原文】引用，驗證通過）。
+- 驗收條件核對：八段齊全 ✓；本畫面無新增 error ✓。
+- 上一輪失敗項目：[9] D-15 的 `ui-check(all)=0` 本輪仍未回到 0（F03 尚未跑 T3.06 收尾，且既有 `s-board` REF-07／DS-06／DS-07 warn 需 OQ-31 解決才會清空），待 T3.06 完成後視情況回頭確認此驗收條件的實際語意（是否計入這批已知缺口）。
+
+### Act
+完成：T3.05。下一個任務：T3.06（[F03] 收尾：`ui-check .dev/F03-kanban-widgets/ui-kanban-widgets.md` 0 error；過一遍 DS-06／DS-07 warn）。
