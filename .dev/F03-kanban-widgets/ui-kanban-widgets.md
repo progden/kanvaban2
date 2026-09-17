@@ -5,7 +5,54 @@
 ## s-cycle-lead-time-dashboard：Cycle Time 與 Lead Time 儀表板
 所屬 Feature：Cycle Time 與 Lead Time 分析
 類型：儀表板
-狀態：未討論
+狀態：討論中
+
+### 目的
+看板使用者檢視卡片從開始到完成花費的時間，以便評估團隊的交付速度與承諾交期。
+
+### 進入與離開
+- 從哪裡進來：⚠️ 待確認（見 OQ-31）：跨模組，F01 `s-board` 操作表（T1.06 已定案內容）目前沒有「檢視圖表」操作，spec Background 只寫已開啟 Board，未描述如何前往本畫面
+- 完成後去哪裡：不適用（純檢視畫面，無完成後導向其他畫面的動作）
+- 中途放棄會怎樣：不適用（無多步驟流程）
+
+### 角色與權限
+| 角色 | 看得到 | 做得到 |
+|---|---|---|
+| `r-user`（F01，跨模組） | 全部已完成卡片的 Lead Time／Cycle Time 與統計摘要 | 檢視圖表 |
+
+### 資料
+| 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
+|---|---|---|---|---|
+| 卡片標題 | `card.title` | 顯示 | — | 識別卡片清單中每一列 |
+| Lead Time | 衍生：`card` 建立時間到進入 Done 角色 Stage 的時間差 | 顯示 | — | 依 `uc-view-cycle-lead-time` post p1 |
+| Cycle Time | 衍生：`card` 第一次進入 Start 角色 Stage 到完成的時間差；未曾進入 Start 就完成時顯示「無」 | 顯示 | — | 依 `uc-view-cycle-lead-time` post p1／p2 |
+| 完成時間 | 衍生：`card` 最後一次進入 Done 角色 Stage 的時間 | 顯示 | — | 依 `uc-view-cycle-lead-time` post p3，離開 Done 後再進入以最後一次為準 |
+| 排除計算的卡片數 | 衍生：Cycle Time 顯示為「無」的卡片數量加總 | 顯示 | — | 依 `uc-view-cycle-lead-time` post p2 |
+| 統計摘要（平均值、百分位） | 衍生：卡片清單 Lead Time／Cycle Time 的統計計算，排除 Cycle Time 為「無」的卡片 | 顯示 | ⚠️ 待確認：統計摘要涵蓋哪些百分位數（例如 P50／P85）spec 未定義 | 依 `uc-view-cycle-lead-time` post p2 |
+
+### 操作
+| 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
+|---|---|---|---|---|
+| 檢視圖表 | `uc-view-cycle-lead-time` | 顯示卡片清單、Lead Time／Cycle Time 與統計摘要 | 不適用（`uc-view-cycle-lead-time` 無 fail 定義） | 否 |
+
+### 狀態
+- 載入中：載入卡片與 Stage 歷史資料以計算 Lead Time／Cycle Time 時顯示
+- 空資料：尚無已完成卡片時，卡片清單與統計摘要顯示為空
+- 錯誤：不適用（`uc-view-cycle-lead-time` 無 fail 定義）
+- 無權限：不適用（F03 spec 僅使用跨模組 `r-user` 一種角色，無角色差異）
+- 資料狀態差異：不適用（`uc-view-cycle-lead-time` post 未定義卡片清單以外的呈現差異；Cycle Time「無」與排除計算卡片數已列於「資料」段）
+
+### 驗收條件
+- 已完成卡片清單顯示每張卡片的 Lead Time 與 Cycle Time
+- 未曾進入 Start 角色 Stage 就完成的卡片，Cycle Time 顯示為「無」
+- 統計摘要的平均值與百分位計算排除 Cycle Time 顯示為「無」的卡片
+- 統計摘要顯示「排除計算的卡片數」
+- 卡片離開 Done 後再次完成時，完成時間顯示為最後一次進入 Done 的時間
+- 開啟畫面時觸發 `uc-view-cycle-lead-time`
+
+### 待確認事項
+- ⚠️ 進入路徑未定義，見 OQ-31：F01 `s-board` 操作表尚無「檢視圖表」操作
+- ⚠️ 統計摘要的百分位計算所指定的百分位數（例如 P50／P85）spec 未定義
 
 ## s-wip-dashboard：WIP 與 Aging WIP 儀表板
 所屬 Feature：WIP 與 Aging WIP 監控
