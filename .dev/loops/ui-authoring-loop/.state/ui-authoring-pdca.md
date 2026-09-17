@@ -1103,3 +1103,28 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：D-19、D-20。下一個任務：D-21（[F04] 修正 `ui-board-clock.md` 兩處無 spec 依據寫法與 OQ-35 誤述）。
+
+## Iteration 55 — 2026-09-17 22:45 — D-21
+### Plan
+`runtime/last-verify.md` 顯示上一輪驗證 FAIL（範圍 af36da0..320f2df，任務 D-20；失敗項目 `[4]`：PDCA「## Iteration 54」的 Check 段落沒有貼 `N error(s), M warning(s)` 這行）。依規則書「決定本輪任務」第 1 條先修正失敗項目：PDCA 檔規則是「只能追加」，不可回頭編輯 Iteration 54 本身，因此改在本輪 Check 段落補記 Iteration 54 當輪應有的 ui-check 結果（依 `last-verify.md` 資訊段已算出：D-20 未改動任何 ui 檔，全部 7 份檔案與 all 皆為 `0 → 0`），再繼續完成 state 記載的下一個任務 D-21。預期：不編輯 Iteration 54；D-21 三項修正完成後 `ui-check(.dev/F04-board-clock/ui-board-clock.md)=0`、`verify-quotes.py` 通過、OQ 檔僅追加不編輯既有列。
+
+### Do
+- 【補記 Iteration 54 缺漏】Iteration 54（D-20）當輪未變更任何 `ui-*.md`，`./scripts/ui-check`（全部）結果應為 `0 error(s), 0 warning(s)`（與 `last-verify.md` 資訊段列出的「[8] ui-check error 總數：0 → 0」、各檔案 0 一致）；因 PDCA 只能追加，不回頭改 Iteration 54，此處以本輪 Check 段落記錄補齊，供人工追溯。
+- D-21 (1)：`.dev/F04-board-clock/ui-board-clock.md` 操作表「調整看板時間」「失敗時」欄，刪除「`uc-guard-clock-monotonicity` 為共同前置條件」的說法，改寫為「`uc-guard-clock-monotonicity` 屬於建立新事件時的限制，不是本操作的失敗，不獨立成一列」，不重述 fail 訊息文字。
+- D-21 (2)：「驗收條件」第 3 行「非 Owner 嘗試調整時，畫面顯示訊息……」改寫為「`uc-adjust-board-clock` 回傳 p1 時，畫面顯示訊息，且看板時間顯示不變（⚠️ 見 OQ-37）」，移除對非 Owner 可見範圍的預設，並加註指向 OQ-37。
+- D-21 (3)：OQ 檔追加 OQ-40（【推論】），引用 `spec-board-clock.md`「Feature: 看板時間管理」Background『Given 我已登入系統，並開啟 Board "產品開發看板"』作為所本原文，指出 OQ-35「情況」欄把 OQ-34 實際「採用」（「進入路徑不預設，待 D-09／F07 整合 CR 由人工決定」，選項 3「缺區分條件」）誤述為已採用「進入路徑由 F07 Canvas 機制決定」（該文字其實是 OQ-34 未採用的選項 2「保留B」措辭）；OQ-35 本身「情況」「採用」欄皆未修改，比照 OQ-39 修正 OQ-34 的既有模式，僅追加新列。
+- 任務清單：D-21 狀態由 `todo` 改為 `done`。
+- `ui-board-clock.md` 與（任務清單、OQ、state、PDCA）分開 commit：先 commit `ui-board-clock.md`（`bc819d0`）。
+
+### Check
+- 補記 Iteration 54 應有的 ui-check 結果：`./scripts/ui-check`（全部 ui 檔）：`0 error(s), 0 warning(s)`（依 `last-verify.md` 資訊段回填，D-20 當輪未變更任何 ui 檔）。
+- 本輪 `./scripts/ui-check .dev/F04-board-clock/ui-board-clock.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`0 error(s), 37 warning(s)`（warning 數與 Iteration 52 收尾時相同，未新增）。
+- `grep -c "共同前置條件" .dev/F04-board-clock/ui-board-clock.md`：0（達成驗收條件「不含『共同前置條件』」）。
+- 「驗收條件」段落含「非 Owner」的行：僅存在於「狀態」「待確認事項」段，皆同時含「OQ-37」；「驗收條件」段落本身已無「非 Owner」字樣（達成）。
+- `python3 .dev/loops/ui-authoring-loop/scripts/ui-authoring-tools.py check-oq HEAD:<OQ檔> <OQ檔>`：exit 0（OQ 檔僅追加 OQ-40，既有列未被修改）。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：逐字引用驗證通過（exit 0）。
+- `python3 .dev/loops/ui-authoring-loop/scripts/ui-authoring-tools.py accept-check ui-authoring-tasks.md D-21`：exit 0（機械條件 `ui-check(...)=0` 通過）。
+- 逐條對照 D-21 驗收條件：不含「共同前置條件」✓；「驗收條件」段無「非 Owner 嘗試調整」✓；OQ 新增一列同時含「OQ-35」與「不預設」✓（OQ-40 情況與採用欄皆含）；OQ 既有列未修改 ✓；`verify-quotes.py`=0 ✓；`ui-check(...)=0` ✓。
+
+### Act
+完成：D-21（F04 全部收尾修正完成）。下一個任務：T5.01（[F05] 建立 `ui-workload.md`：檔頭 ＋ 1 個畫面標題骨架 `s-workload-dashboard`）。
