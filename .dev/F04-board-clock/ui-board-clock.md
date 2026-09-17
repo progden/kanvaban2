@@ -5,7 +5,7 @@
 ## s-board-clock-control：看板時鐘控制
 所屬 Feature：看板時間管理
 類型：對話框
-狀態：討論中
+狀態：已定案
 
 ### 目的
 看板 Owner 調整、暫停或恢復該看板的時鐘，以模擬不同時間點的操作，觀察圖表與統計如何變化。
@@ -26,7 +26,7 @@
 |---|---|---|---|---|
 | 看板時間目前值 | `board.clock-time` | 顯示 | — | 依 Feature Background，看板時間有一個目前值 |
 | 看板時間狀態 | `board.clock-status` | 顯示 | enum(REALTIME, PAUSED) | 決定顯示「暫停」或「恢復」操作 |
-| 調整目標時間 | `board.clock-time` | 輸入 | ⚠️ 待確認，見 OQ-38（型別／範圍 spec 未定義） | 供「調整看板時間」操作使用 |
+| 調整目標時間 | `board.clock-time` | 輸入 | 型別 datetime，格式 YYYY-MM-DD HH:mm:ss；不限制方向或範圍（可調至過去或未來） | 供「調整看板時間」操作使用 |
 
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
@@ -51,4 +51,4 @@
 - 恢復看板時間後，畫面顯示狀態為 REALTIME，且觸發 `uc-pause-resume-board-clock`
 
 ### 待確認事項
-- ⚠️ 調整目標時間輸入的型別／範圍限制 spec 未定義，見 OQ-38
+- （無）
