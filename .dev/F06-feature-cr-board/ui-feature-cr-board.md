@@ -18,7 +18,7 @@
 ### 角色與權限
 | 角色 | 看得到 | 做得到 |
 |---|---|---|
-| `r-user` | 全部 Feature／CR 狀態、orphan CR 清單與格式錯誤警告 | 檢視 Feature／CR 追蹤表 |
+| `r-user`（F01，跨模組） | 全部 Feature／CR 狀態、orphan CR 清單與格式錯誤警告 | 檢視 Feature／CR 追蹤表 |
 
 ### 資料
 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
@@ -40,14 +40,11 @@
 - 載入中：讀取 `board` 全部 `card` 標籤以計算 Feature／CR 狀態時顯示
 - 空資料：`board` 沒有任何符合 Feature 卡或 CR 卡標籤格式的 `card` 時，清單顯示為空
 - 錯誤：不適用（`uc-view-feature-cr-board` 無 fail 定義）
-- 無權限：不適用（spec 僅定義 `r-user` 一種角色，無角色差異）
+- 無權限：不適用（F06 spec 僅使用跨模組 `r-user` 一種角色，無角色差異）
 - 資料狀態差異：`card` 同時帶有兩個 Feature 標籤時，顯示一筆警告訊息，但不影響其他卡片的 Feature／CR 統計（依 post p4）
 
 ### 驗收條件
-- Feature 狀態依所在 Stage 的 `stage.role` 顯示「未開發」「開發中」「已完成」三者之一
-- CR 顯示在其 affects 標籤所指的 Feature 底下，狀態依所在 Stage 的 `stage.role` 顯示
-- affects 標籤指到不存在 Feature 編號的 CR 出現在 orphan CR 清單中
-- 同時帶有兩個 Feature 標籤的卡片顯示一筆警告訊息，且不影響其他卡片的 Feature／CR 統計顯示
+- Feature 列表、CR 狀態、orphan CR 清單、警告訊息顯示 `uc-view-feature-cr-board` 回傳的內容
 - 開啟畫面時觸發 `uc-view-feature-cr-board`
 
 ### 待確認事項
