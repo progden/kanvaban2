@@ -533,3 +533,26 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 ### Act
 - 內容已完成，僅整份檔案 `ui-check=0` 這條機械驗收條件因依賴 T2.05～T2.10 尚未完成而無法滿足，狀態標 `doing`（非本輪工作範圍造成，非本輪引入新 error）。
 - 下一個任務：`actionable` 重新排序後為 T2.05（[F02] 定案 `s-board-create-dialog`）。
+
+## Iteration 28 — 2026-09-17 — T2.05
+### Plan
+- 本輪任務：T2.05（[F02] 定案 `s-board-create-dialog`，類型：表單，對應 `uc-create-board`）。D-10 雖仍列 `doing`（其整檔 `ui-check=0` 驗收條件依賴 T2.05～T2.10 完成，上一輪已記錄「下一個任務：T2.05」），本輪按此接續往下做，不重複處理 D-10 本身內容。
+- 要改的檔案：`.dev/F02-user-membership/ui-user-membership.md`——`s-board-create-dialog` 八段內容補齊；為讓「進入與離開」與已定案的 `s-board-list` 對得上（規則書「輸入怎麼讀」第四點），同步在 `s-board-list` 補上「前往建立 Board」的操作列、目的、進入與離開、驗收條件一行，並非重新定義 `s-board-list` 的既有結論。
+- 驗收條件：`s-board-create-dialog`「進入與離開」「角色與權限」「資料」「操作」「狀態」「驗收條件」依 `uc-create-board`（`roles: [r-board-owner]`、`post`、`fail: {}`）與 `board.name` 欄位表推導；`ui-check` 對兩個畫面所在行號範圍不得新增 error；預期整份檔案 error 數從 78 降到約 65（新增一個畫面內容 + `s-board-list` 補一列，扣掉原本骨架的 DS-02/DS-04 系列 error）。
+
+### Do
+- `git commit`：`[spec/design](ui-user-membership) 定案建立 Board 對話框畫面`——`s-board-create-dialog` 補齊八段：`從哪裡進來` 為 `s-board-list` 的「前往建立 Board」操作；`確認建立` 觸發 `uc-create-board`；因存在 `uc-delete-board` 可完整復原新建的 Board，`需確認？` 判定為「否」；`uc-create-board` 的 `fail: {}` 為空，「失敗時」「錯誤」段落依既有 `uc-logout` 前例寫「不適用（`uc-create-board` 無 fail 定義）」。
+- 同一 commit 內同步修正 `s-board-list`：目的補「或建立新的 Board」；「進入與離開」完成後去哪裡新增「前往建立 Board 操作導向 `s-board-create-dialog`」（`DS-07` 只認「進入與離開」的反引號，操作表本身的引用不算，故補在這裡）；操作表新增「前往建立 Board」列（觸發 `—`，純前端導覽）；驗收條件新增對應一行。
+- 低風險決定：畫面標題行「類型」由骨架的「對話框」改為「表單」（本畫面有實際輸入欄位，比照 F01 `s-card-add-dialog` 前例：名稱含「對話框」但因有表單欄位標「表單」，任務描述本身也指定「類型：表單」）；操作名稱定為「前往建立 Board」，比照 `s-login`「前往建立帳號」命名模式。
+- 無新增 OQ／`⚠️`；本畫面內容可完全從 spec 推導，狀態標「已定案」。
+
+### Check
+- `./scripts/ui-check .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 最後一行：`70 error(s), 43 warning(s)`（原 78 error）；`s-board-create-dialog`、`s-board-list` 所在行號範圍內查無任何 error 或 warn（`grep` 篩選確認，含 `REF-07`／`DS-02`／`DS-04`／`DS-07`）。
+- `tools error-count .dev/F02-user-membership/ui-user-membership.md`：65（用 `ui-check --report` 隱含全域計數口徑，與 70 的差異為既有 F01 跨檔 `s-board` REF-07 未計入單檔模式，屬既知 OQ-16 限制，非本輪引入）。
+- `tools accept-check ui-authoring-tasks.md T2.05`：通過（無輸出、exit 0）。
+- 逐條對照任務描述驗收條件：`s-board-create-dialog` 八段完整、對應 `uc-create-board`——達成；與 `s-board-list` 進入/離開互相對得上——達成。
+- 本輪未新增 OQ 或『』引用，未跑 `verify-quotes.py`。
+
+### Act
+- 完成：T2.05 標 `done`。
+- 下一個任務：T2.06（[F02] 定案 `s-member-management`）。
