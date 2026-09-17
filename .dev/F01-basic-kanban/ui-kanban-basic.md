@@ -293,8 +293,8 @@
 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
 |---|---|---|---|---|
 | 卡片標題 | `card.title` | 輸入 | 非空 | 依 `uc-add-card` pre p1 |
-| 目的 Swimlane | `swimlane.name` | 顯示 | — | 依進入情境帶入：`s-board` 觸發「新增卡片」時所在交會格的 Swimlane；建立後 `card.swimlane` 設為此 Swimlane，本畫面不可變更 |
-| 目的 Stage | `stage.name` | 顯示 | — | 依進入情境帶入：`s-board` 觸發「新增卡片」時所在交會格的 Stage；建立後 `card.stage` 設為此 Stage，本畫面不可變更 |
+| 目的 Swimlane | `swimlane.name` | 顯示 | — | 依進入情境帶入：`s-board` 觸發「新增卡片」時所在交會格的 Swimlane，本畫面不可變更 |
+| 目的 Stage | `stage.name` | 顯示 | — | 依進入情境帶入：`s-board` 觸發「新增卡片」時所在交會格的 Stage，本畫面不可變更 |
 
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
@@ -311,9 +311,9 @@
 
 ### 驗收條件
 - 開啟時顯示目的 Swimlane、目的 Stage 名稱
-- 標題輸入為空時確認新增，輸入內容保留、顯示訊息，不建立新卡片
+- 標題輸入為空時確認新增，對話框維持開啟、輸入內容保留、顯示訊息
 - 確認新增成功後，關閉對話框，回到 `s-board`，該卡片顯示於指定 Swimlane 與 Stage 的交會格，且觸發 `uc-add-card`
-- 取消後關閉對話框，不建立卡片
+- 取消後關閉對話框，且不觸發 `uc-add-card`
 
 ### 待確認事項
 - （無）
