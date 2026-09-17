@@ -556,3 +556,31 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 ### Act
 - 完成：T2.05 標 `done`。
 - 下一個任務：T2.06（[F02] 定案 `s-member-management`）。
+
+## Iteration 29 — 2026-09-17 — T2.06
+### Plan
+- 本輪任務：T2.06（[F02] 定案 `s-member-management`，類型依任務描述為「對話框／側欄」，對應 `uc-invite-member`／`uc-change-member-role`／`uc-remove-member`；三個拒絕 uc `uc-reject-invite-by-member`／`uc-reject-role-change-by-member`／`uc-reject-structure-change-by-member` 放對應操作「失敗時」欄）。
+- 要改的檔案：`.dev/F02-user-membership/ui-user-membership.md`——`s-member-management` 八段內容補齊。
+- 驗收條件：同 T1.02 模式——`ui-check(.dev/F02-user-membership/ui-user-membership.md)` 對本畫面無 error；八段齊全。
+- 預期 error 數變化：本畫面從骨架（缺 7 段）填滿八段內容，預期整份檔案 error 數下降。
+
+### Do
+- `git commit`：`[spec/design](ui-user-membership) 定案 Board 成員管理畫面`——`s-member-management` 補齊八段：邀請／變更角色／移除成員三個成功操作對應 Owner，兩個拒絕操作（嘗試邀請成員、嘗試變更成員角色）對應 Member。
+- 低風險決定：畫面標題「類型」欄實際填「對話框」（非任務描述字面的「對話框／側欄」）——`ui-check` 的 `TYPES` 常數（`scripts/speccheck/parser_design.py`）只接受 `['列表','詳情','表單','儀表板','流程','對話框','設定']` 七個字面值，比照既有骨架 `s-card-assignee-picker` 前例（同樣任務描述寫「對話框／側欄」但檔案實際值是「對話框」）。
+- 高風險（標 ⚠️、記 OQ、畫面維持「討論中」）：
+  - OQ-22：「從哪裡進來」spec 未描述，推論由 F01 `s-board` 的 Owner 專屬操作進入，但該操作目前不在 `s-board` 操作表中。
+  - OQ-23：`r-board-member` 是否真的看得到本畫面完整成員清單（僅操作被拒絕），或本來就看不到本畫面。
+  - OQ-24：`uc-change-member-role` post 只定義變成 Owner，未定義 Owner 降級為 Member，「變更成員角色」操作是否可逆判斷不出，資料段「變更後角色」與操作表「需確認？」欄一併標 ⚠️。
+  - OQ-25：`uc-reject-structure-change-by-member` 的 crud／post 對象是看板結構（Swimlane），不是成員，判定不屬於本畫面操作範圍，不列入操作表；待確認是否應回填到 F01 `s-swimlane-list`／`s-stage-list` 的操作失敗欄（跨模組）。
+- `uc-reject-invite-by-member`／`uc-reject-role-change-by-member` 兩個拒絕 uc 依任務描述放入對應操作列；操作表操作名稱與角色表「做得到」欄需逐字相同（`DS-05` 檢查邏輯），故兩處拒絕操作命名統一為「嘗試邀請成員」「嘗試變更成員角色」（不含「（非 Owner）」等額外文字，該資訊改寫在驗收條件與待確認事項的敘述句裡）。
+
+### Check
+- `./scripts/ui-check .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`52 error(s), ...warning(s)`（原 65）；`s-member-management` 所在行號範圍（194～253）僅剩 1 筆 `DS-07` warn（沒有畫面導向它，符合 OQ-22 現況、非 error）；`s-board`／`s-swimlane-list`／`s-stage-list` 的 `REF-07` 為既知跨檔限制（OQ-16 同類問題），已用 `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md .dev/F02-user-membership/ui-user-membership.md --spec "..."` 驗證：兩檔一起跑後這些 `REF-07` 全部消失，僅剩上述同一筆 `DS-07` warn。
+- `tools error-count .dev/F02-user-membership/ui-user-membership.md`：52。
+- `tools accept-check ui-authoring-tasks.md T2.06`：無輸出（該任務驗收條件為「同上」文字敘述，非機械 token，已改用上述 `ui-check` 肉眼核對）。
+- 逐條對照任務描述：八段齊全——達成；`uc-invite-member`／`uc-change-member-role`／`uc-remove-member` 皆有對應成功操作列——達成；`uc-reject-invite-by-member`／`uc-reject-role-change-by-member` 放入對應操作「失敗時」邏輯上的拒絕列——達成；`uc-reject-structure-change-by-member` 判定不適用本畫面，改記 OQ-25 說明理由（非直接照單全收放進操作表）。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：通過（新增 OQ-22～OQ-25 的『』引用皆與 spec 逐字相符）。
+
+### Act
+- 完成：T2.06 標 `done`。
+- 下一個任務：T2.07（[F02] 定案 `s-board-delete-dialog`，對應 `uc-delete-board`）。
