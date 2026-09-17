@@ -84,13 +84,23 @@
 | T6.02 | todo | [F06] 定案 `s-feature-cr-board`（類型：儀表板／列表）：對應 `uc-view-feature-cr-board` | 同 T1.02 模式 | T6.01 |
 | T6.03 | todo | [F06] 收尾：`ui-check .dev/F06-feature-cr-board/ui-feature-cr-board.md` 0 error | `ui-check(.dev/F06-feature-cr-board/ui-feature-cr-board.md)=0` | T6.02 |
 
-## 階段 7：跨模組收尾
+## 階段 7：F07 canvas-layout（`.dev/F07-canvas-layout/spec-canvas-layout.md` → `ui-canvas-layout.md`）
+
+F07 目前狀態：草稿，且「待釐清」段落明講 Canvas 的建立時機、看板本體如何成為一個 `item`、`item.component`／`viewport.user` 的 ref 化都還沒定案（見 spec 檔尾）。依規則書「輸入怎麼讀」，這些缺口一律走「自主決策分級」標 `⚠️` 記 OQ，不要因為 spec 是草稿就放寬不寫，也不要越權替 SA 把「待釐清」的項目定案。
 
 | ID | 狀態 | 任務 | 驗收條件 | 依賴 |
 |----|------|------|----------|------|
-| T7.01 | todo | 六份 `ui-*.md` 一起跑 `./scripts/ui-check` 到 0 error；`./scripts/ui-check --report` 看畫面總表與追溯矩陣，`DS-06`（寫入 uc 沒被任何畫面引用）／`DS-07`（畫面沒被任何畫面導向，也不是模組入口）warn 逐項確認有理由（例如背景作業、確實是模組入口）或回頭補 | `ui-check(all)=0`；PDCA 本則列出 `DS-06`／`DS-07` 完整 warn 清單與逐項處理結果 | T6.03 |
-| G1 | todo | 關卡：自我審查——依 `.dev/conventions/llm-review.md` L-09（「失敗時」是否對應 `fail`、「成功後」是否對應 `post`）與 `checks.md` DS-05（操作可用角色與 uc `roles` 是否一致）各抽查六個模組至少一個畫面；有偏差在對應 ui 檔直接修正並記錄。**手動模式**（`/loop`）：同一輪內完成，不開 D-xx 拖到下一輪，直接把本關卡標 `done`。**自動模式**（`run-ui-authoring-loop.sh`）：由獨立審查輪（`ui-authoring-review-prompt.md`）執行，偏差開成 `D-xx`（`todo`），審查後無待修項目才由驅動腳本建立 `runtime/gates/G1.approved`、下一輪才能把本關卡標 `done` | PDCA 或 `ui-authoring-review.md` 本則列出抽查的 6 個畫面與檢查結果；若有修正，修正後 `ui-check(all)=0` | T7.01 |
-| T7.02 | todo | 最終確認並建立 `runtime/DONE`：`ui-check(all)=0`；六份 `ui-*.md` 都存在；任務清單除本任務外無 `todo`／`doing`／`blocked` | `runtime/DONE` 存在（不進版控）；PDCA 本則貼 `ui-check` 最終結果行 | G1 |
+| T7.01 | todo | [F07] 建立 `ui-canvas-layout.md`：檔頭 ＋ 1 個畫面標題骨架（`s-canvas`） | 同 T1.01 模式 | T6.03 |
+| T7.02 | todo | [F07] 定案 `s-canvas`（類型：流程／主畫面）：對應本模組全部 10 個 uc（`uc-place-item`／`uc-remove-item`／`uc-move-item`／`uc-resize-item`／`uc-set-item-capabilities`／`uc-set-item-anchor`／`uc-reorder-item`／`uc-move-items`／`uc-remove-items`／`uc-set-viewport`）；「進入與離開」需說明這是使用者從 F02 `s-board-list` 點擊某個 Board 進入後看到的畫面（見 spec 簡介「使用者開啟某個 Board 時，看到的就是該 Board 的 Canvas」），離開回到 `s-board-list`；`uc-place-item`／`uc-set-item-capabilities`／`uc-set-item-anchor` 這類非「拖曳／調整大小」的操作，觸發方式（工具列按鈕、右鍵選單等）不寫（排版與視覺），但仍要在操作表列出對應列 | 同 T1.02 模式 | T7.01 |
+| T7.03 | todo | [F07] 收尾：`ui-check .dev/F07-canvas-layout/ui-canvas-layout.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 0 error；過一遍 `DS-06`／`DS-07` warn | `ui-check(.dev/F07-canvas-layout/ui-canvas-layout.md)=0` | T7.02 |
+
+## 階段 8：跨模組收尾
+
+| ID | 狀態 | 任務 | 驗收條件 | 依賴 |
+|----|------|------|----------|------|
+| T8.01 | todo | 七份 `ui-*.md` 一起跑 `./scripts/ui-check` 到 0 error；`./scripts/ui-check --report` 看畫面總表與追溯矩陣，`DS-06`（寫入 uc 沒被任何畫面引用）／`DS-07`（畫面沒被任何畫面導向，也不是模組入口）warn 逐項確認有理由（例如背景作業、確實是模組入口）或回頭補 | `ui-check(all)=0`；PDCA 本則列出 `DS-06`／`DS-07` 完整 warn 清單與逐項處理結果 | T7.03 |
+| G1 | todo | 關卡：自我審查——依 `.dev/conventions/llm-review.md` L-09（「失敗時」是否對應 `fail`、「成功後」是否對應 `post`）與 `checks.md` DS-05（操作可用角色與 uc `roles` 是否一致）各抽查七個模組至少一個畫面；有偏差在對應 ui 檔直接修正並記錄。**手動模式**（`/loop`）：同一輪內完成，不開 D-xx 拖到下一輪，直接把本關卡標 `done`。**自動模式**（`run-ui-authoring-loop.sh`）：由獨立審查輪（`ui-authoring-review-prompt.md`）執行，偏差開成 `D-xx`（`todo`），審查後無待修項目才由驅動腳本建立 `runtime/gates/G1.approved`、下一輪才能把本關卡標 `done` | PDCA 或 `ui-authoring-review.md` 本則列出抽查的 7 個畫面與檢查結果；若有修正，修正後 `ui-check(all)=0` | T8.01 |
+| T8.02 | todo | 最終確認並建立 `runtime/DONE`：`ui-check(all)=0`；七份 `ui-*.md` 都存在；任務清單除本任務外無 `todo`／`doing`／`blocked` | `runtime/DONE` 存在（不進版控）；PDCA 本則貼 `ui-check` 最終結果行 | G1 |
 
 ## 發現的任務（D-xx）
 

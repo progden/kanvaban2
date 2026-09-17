@@ -19,7 +19,7 @@
 
 ## 目標
 
-1. F01～F06 六份 `.dev/F0x-*/ui-*.md` 全部存在，`./scripts/ui-check`（不帶參數，掃全部）0 error。
+1. F01～F07 七份 `.dev/F0x-*/ui-*.md` 全部存在，`./scripts/ui-check`（不帶參數，掃全部）0 error。
 2. 每個畫面的「狀態」誠實反映現況：能從 spec 完整推導的標「已定案」；推不出來的留「討論中」，「待確認事項」寫清楚、標 `⚠️`，不強行定案。
 3. 不定義 spec 沒有的實體、屬性、角色、Use Case；不重寫業務結果；不寫排版與視覺（`ui-convention.md`「明確不寫的東西」）。
 
@@ -110,7 +110,7 @@ Spec 沒有的資訊不要自己補（見上面「自主決策分級」）。
 | 任務清單、PDCA、OQ 檔 | `[docs](loops) <摘要>` |
 
 - 兩種改動分開 commit；摘要中文祈使句、50 字內、句尾不加標點；只 `git add` 本輪修改的檔案；不 `git push`。
-- `<模組名>` 用目錄名去掉編號（`kanban-basic`、`user-membership`、`kanban-widgets`、`board-clock`、`workload`、`feature-cr-board`），不要寫 `F01`（`git-convension.md` scope 只允許小寫英文與連字號）。跨模組收尾的 commit 省略 scope。
+- `<模組名>` 用 `ui-<模組名>.md` 的 `<模組名>` 部分（`kanban-basic`、`user-membership`、`kanban-widgets`、`board-clock`、`workload`、`feature-cr-board`、`canvas-layout`），不要寫 `F01`（`git-convension.md` scope 只允許小寫英文與連字號）。跨模組收尾的 commit 省略 scope。
 
 ## 禁止事項
 
@@ -124,7 +124,7 @@ Spec 沒有的資訊不要自己補（見上面「自主決策分級」）。
 
 ## 收尾條件
 
-任務清單最後一項（跨模組收尾階段的最終確認任務）完成時：`./scripts/ui-check`（全部 ui 檔）0 error、六份 ui 檔都存在、任務清單除該項外全部 `done`（無 `todo`／`doing`／`blocked`）→ 建立 `<loop>/runtime/DONE`（不進版控），並在回報裡明講「UI 撰寫 loop 完成」。
+任務清單最後一項（跨模組收尾階段的最終確認任務）完成時：`./scripts/ui-check`（全部 ui 檔）0 error、七份 ui 檔都存在、任務清單除該項外全部 `done`（無 `todo`／`doing`／`blocked`）→ 建立 `<loop>/runtime/DONE`（不進版控），並在回報裡明講「UI 撰寫 loop 完成」。
 
 ---
 
@@ -140,7 +140,7 @@ Spec 沒有的資訊不要自己補（見上面「自主決策分級」）。
    /loop 讀 .dev/loops/ui-authoring-loop/prompts/ui-authoring-kickoff-prompt.md 並依其規則執行下一輪任務
    ```
 
-4. 每輪跑完看 `.dev/loops/ui-authoring-loop/.state/ui-authoring-pdca.md` 尾巴確認進度；`ui-authoring-tasks.md` 看任務狀態；`.dev/loops/ui-authoring-loop/runtime/DONE` 出現代表六份 `ui-*.md` 全部完成。
+4. 每輪跑完看 `.dev/loops/ui-authoring-loop/.state/ui-authoring-pdca.md` 尾巴確認進度；`ui-authoring-tasks.md` 看任務狀態；`.dev/loops/ui-authoring-loop/runtime/DONE` 出現代表七份 `ui-*.md` 全部完成。
 5. loop 因為某任務 `blocked` 停下：看 `ui-authoring-open-questions.md` 最後幾列與該任務描述，人工決定後把任務狀態改回 `todo`，重新 `/loop` 即可接續（不需要重跑前面已 `done` 的任務）。
 6. 遇到 `G1` 關卡：手動模式下由執行輪自己完成自我審查並直接把 `G1` 標 `done`（任務描述裡寫的方式），不需要 `runtime/gates/G1.approved`；這個核准檔只有走自動模式（下方）時才需要。
 

@@ -1,11 +1,11 @@
 # UI 撰寫狀態快照（每輪覆寫，20 行內）
 
-- 更新：2026-09-17
-- 目前階段：階段 1（F01 Swimlane／Stage／Card）— **卡在 T1.10，等待人工解除 blocked**
-- 上一輪任務：T1.10（收尾 `ui-kanban-basic.md`，判定為環境限制，標 `blocked`）
-- 下一個任務：無可執行的 `todo`（T2.01 依賴 T1.10 完成，loop 需人工介入才能繼續）
-- 進行中任務的剩餘工作：T1.10 卡住的原因見 OQ-10；`s-board` 內容本身不需修改
-- 已完成的模組：無；F01 骨架已建立，`s-swimlane-list`、`s-swimlane-delete-dialog`、`s-stage-list`、`s-card-add-dialog`、`s-card-delete-dialog` 已定案（`s-card-detail` 仍有 2 條 ⚠️ 待確認）；`s-stage-delete-dialog`、`s-board` 討論中（各自有未解 OQ）
-- 已定義的共用 ID：`s-swimlane-list`（已定案）、`s-swimlane-delete-dialog`（已定案）、`s-stage-list`（已定案）、`s-card-add-dialog`（已定案）、`s-card-delete-dialog`（已定案）、`s-card-detail`（討論中，OQ-08／09）、`s-stage-delete-dialog`（討論中，OQ-03）、`s-board`（討論中，OQ-04／05／06）
-- 最近 3 條 OQ：OQ-08（負責人欄位與指派入口待 F02 回填）；OQ-09（留言相關欄位缺乏可引用 Attribute ID）；OQ-10（**blocked**：`ui-check` 對單一檔案目標不會載入其他模組 spec，導致 `s-board` 合法的 12 筆 F02 跨模組引用被 `REF-07` 誤判為未定義，T1.10 驗收條件無法機械達成，內容本身無誤）
-- 待注意：`./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md` 仍是 `12 error(s), 0 warning(s)`（全部是 OQ-10 描述的跨模組誤判，非內容缺陷）；加 `--spec .dev/F02-user-membership/spec-user-membership.md` 後為 `0 error(s), 8 warning(s)`（8 筆是 F02 自身 `DS-06`，等 T2.01 建立 `ui-user-membership.md` 後處理，與 F01 無關）；T1.10 需人工調整驗收條件寫法或工具載入邏輯後改回 `todo`，loop 才能繼續往 T2.01 走。
+- 更新：2026-09-17（人工介入：解除 OQ-10、新增 F07 canvas-layout 進任務清單）
+- 目前階段：階段 1（F01）收尾中；階段 7（F07 canvas-layout）已加入任務清單，尚未開始
+- 上一輪任務：人工解除 OQ-10（`ui-authoring-tools.py` 的 `findings()` 改成一律帶入全部模組 `--spec`），T1.10 改回 `todo`；另新增 F07 spec（Canvas／Item／Viewport，每 Board 一份 Canvas）與對應的階段 7（T7.01～T7.03），原「跨模組收尾」順延為階段 8（T8.01／G1／T8.02）
+- 下一個任務：T1.10（[F01] 收尾，見任務清單最新驗收條件說明）
+- 進行中任務的剩餘工作：無（T1.10 未開工，`todo`）
+- 已完成的模組：無模組全部完成；F01 八個畫面除 `s-card-detail`（OQ-08／09 待確認）、`s-stage-delete-dialog`（OQ-03）、`s-board`（OQ-04／05／06）外皆已定案；F02～F07 尚未開始（F07 剛新增，spec 已是 `狀態：草稿`，`./scripts/spec-check` 0 error）
+- 已定義的共用 ID：無新增（本輪只動 loop 文件與工具）
+- 最近 3 條 OQ：OQ-08、OQ-09（F01 待確認，見上）；OQ-10（**已解除**，見 PDCA Iteration 17；工具修好後不再自動決議掉，只是狀態改回 `todo`）
+- 待注意：跑 `./scripts/ui-check <單一檔案>` 時務必加 `--spec ".dev/F[0-9][0-9]-*/spec-*.md"`（見規則書「執行單位」）；F07 的 `s-canvas` 待定案內容需注意 spec 本身「待釐清」段落（Canvas 建立時機、看板本體如何成為 item）尚未解決，撰寫 ui 檔時走「自主決策分級」記 OQ，不要越權定案。
