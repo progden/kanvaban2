@@ -25,10 +25,10 @@ python3 -m unittest discover -s scripts/tests   # 腳本的測試
 
 ## 文件結構
 
-`.dev/F<兩位數>-<名稱>/` 一個功能模組一個目錄，編號連續（目前 F01～F06），內含：
+`.dev/F<兩位數>-<名稱>/` 一個功能模組一個目錄，編號連續（目前 F01～F07），內含：
 
 - `spec-<模組>.md`：BDD 規格（Gherkin + usecase 區塊），是行為的唯一依據，`spec-check` 解析它
-- `ui-<模組>.md`（選填，目前尚無）：UI 短規格，依 `ui-convention.md`，`ui-check` 解析它
+- `ui-<模組>.md`（選填，目前僅 F01 有）：UI 短規格，依 `ui-convention.md`，`ui-check` 解析它
 - `legacy-spec-<模組>.md`：遷移前的規格備份（spec 遷移 loop 用來比對行為），不被腳本掃描、不可修改，遷移確認後可刪
 - `design-<模組>.md`（F01～F04 有）：**後端**領域模型設計備忘，不被任何腳本解析；spec 內文仍以舊名 `design.md` 稱呼它，遷移時一併改
 
@@ -40,11 +40,13 @@ python3 -m unittest discover -s scripts/tests   # 腳本的測試
 | F04 | board-clock | 每個 Board 自己的時鐘，所有 Board/Card 事件時間取自 Board Clock（CR-004） |
 | F05 | workload | 依 Active Card 的負責人統計工作量 |
 | F06 | feature-cr-board | 用看板追蹤 Feature／CR 卡的開發狀態 |
+| F07 | canvas-layout | 看板版面容器化（Canvas／Container），可調整位置與大小；草稿，尚未與 F01 看板顯示、F03 圖表元件整合 |
 
 跨模組的關鍵關係（需讀多份文件才看得出來）：
 
 - F01 已上線，F02～F05 的需求回頭改動 F01 行為時都透過 CR 處理（CR-001 操作人記錄、CR-002 負責人多選、CR-003 Stage 角色 Start/Done、CR-004 事件時間改用 Board Clock）。
 - Stage 角色（CR-003）是 F03 計算 Cycle/Lead Time、F05 判斷卡片是否完成、F06 判斷 Feature／CR 狀態的共同基礎。
+- F07（Canvas／Container）目前是獨立草稿，尚未接上 F01 的看板顯示或 F02 的看板建立流程，也還沒定義 F03 圖表元件如何成為 Container；整合時機與方式待後續 CR 決定，見 `spec-canvas-layout.md`「待釐清」。
 - Board Clock（F04）是 F03 `asOf`、Aging、逾期判斷的時間基準；User／BoardMembership 事件仍用系統時間。
 
 改功能編號時，要同步更新目錄名、文件內文字與相對路徑引用；範例資料中的標籤（例如 F06 規格裡的 `"F01"`、`"F02"`）不是功能引用，不要跟著改。
