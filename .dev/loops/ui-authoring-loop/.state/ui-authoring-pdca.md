@@ -1336,3 +1336,28 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T7.02，同時修正上一輪 D-15 驗證 FAIL。下一個任務：D-09（人工決策已確認，依 T7.02 結果修正 F01／F02 兩份 ui 檔的進入路徑與資料段），其後為 T7.03（F07 收尾確認）。
+
+## Iteration 66 — 2026-09-17 — D-09
+### Plan
+`actionable` 第一項為 D-09（人工決策已確認方向，依 T7.02 定案的 `s-canvas` 內容修正 F01／F02 兩份 ui 檔）。要改檔案：`.dev/F01-basic-kanban/ui-kanban-basic.md`（`s-swimlane-list`／`s-stage-list`「從哪裡進來」、`s-board`「從哪裡進來」「完成後去哪裡」「角色與權限」「資料」「操作」「驗收條件」「待確認事項」）、`.dev/F02-user-membership/ui-user-membership.md`（`s-board-list`「完成後去哪裡」「操作」「驗收條件」「待確認事項」）。驗收條件：D-09 列出的六項文字條件、`ui-check(ui-kanban-basic.md)=0`、`ui-check(ui-user-membership.md)=0`（皆含全模組 `--spec`）。預期 error 數變化：兩檔開工前皆 0（上一輪 T7.02 已讓全域維持 0），改動後仍應為 0。
+
+### Do
+- 重讀 T7.02 定案的 `s-canvas` 操作表：「新增 Swimlane」「新增 Stage」直接觸發 F01 `uc-add-swimlane`／`uc-add-stage`；「開啟管理 Swimlane」「開啟管理 Stage」導向既有 `s-swimlane-list`／`s-stage-list`，確認與 D-09 描述一致。
+- `ui-kanban-basic.md`：
+  - `s-swimlane-list`／`s-stage-list`「從哪裡進來」改為指向 F07 `s-canvas`（跨模組）選中看板 item 後的屬性／操作面板的「開啟管理 Swimlane」／「開啟管理 Stage」操作，引用 OQ-17，不再指向 `s-board` 操作列（Screen 維持獨立不合併，沿用 T7.02 已做的判斷）。
+  - `s-board`「從哪裡進來」依 OQ-18 改為「不適用——內容以 F07 item 形式顯示於 s-canvas，見 spec-canvas-layout.md；機制仍待該 spec「待釐清」定案」；「完成後去哪裡」移除「管理 Swimlane／Stage 操作導向」子句；角色與權限「做得到」欄移除「前往管理 Swimlane、前往管理 Stage」；操作表移除「管理 Swimlane」「管理 Stage」兩列；資料段移除「看板成員清單」列；驗收條件移除對應兩條；待確認事項改寫為兩條（機制仍待定案的 ⚠️ 續留＋成員頭像清單改為獨立 item 的說明，移除 ⚠️ 標記）。
+  - 修正 DS-03：`進入與離開` 欄位的反引號只能給 Screen ID，`item`、`spec-canvas-layout.md`（檔名）不可加反引號，否則被判為「應為 Screen」的錯誤引用；改為不加反引號的純文字。
+- `ui-user-membership.md`：`s-board-list`「完成後去哪裡」與操作表「選擇 Board 進入」列的 F01 `s-board` 改為 F07 `s-canvas`（跨模組）；驗收條件同步；「待確認事項」移除原本指向此變更的 ⚠️，改為「（無）」。
+- commit `[spec/design](ui) 依 T7.02 定案結果修正 s-board 進入路徑與資料段`（兩檔一起，因同一個任務、同一組決策）。
+- 任務清單：D-09 狀態由 `todo` 改為 `done`。
+
+### Check
+- `python3 .dev/loops/ui-authoring-loop/scripts/ui-authoring-tools.py error-count .dev/F01-basic-kanban/ui-kanban-basic.md`：0（中途因 DS-03 誤用反引號一度為 4，修正後歸零）。
+- `python3 .dev/loops/ui-authoring-loop/scripts/ui-authoring-tools.py error-count .dev/F02-user-membership/ui-user-membership.md`：0。
+- `python3 .dev/loops/ui-authoring-loop/scripts/ui-authoring-tools.py error-count all`：0。
+- `python3 .dev/loops/ui-authoring-loop/scripts/ui-authoring-tools.py accept-check ui-authoring-tasks.md D-09`：exit code 0。
+- 逐條對照 D-09 驗收條件：`s-board` 操作表不含「管理 Swimlane」「管理 Stage」✓；`s-board`「進入與離開」不含「待 F02 s-board-list 定案後回填」✓；`s-board` 資料段不含「看板成員清單」✓；`s-swimlane-list`／`s-stage-list`「進入與離開」指向 `s-canvas` 而非 `s-board` ✓；`s-board-list`「完成後去哪裡」與操作表指向 `s-canvas` ✓。
+- 本輪未新增 OQ、未新增帶【】引用的待確認事項，未跑 `verify-quotes.py`。
+
+### Act
+完成：D-09。下一個任務：D-24 或 T7.03（依 `actionable` 順序，下一輪重新讀取任務清單確認）。
