@@ -485,3 +485,26 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成。下一個任務：T2.04（[F02] 定案 `s-board-list`）。
+
+## Iteration 26 — 2026-09-17 — T2.04
+
+### Plan
+本輪任務 T2.04：[F02] 定案 `s-board-list`（類型：列表），對應 `uc-view-board-list`（列表只顯示有權限的 Board）、`uc-reject-board-access-by-nonmember`（無權限狀態）。要改的檔案：`.dev/F02-user-membership/ui-user-membership.md` 的 `s-board-list` 區塊，填滿八段。預期發現：Board 名稱缺 Attribute ID（比照 OQ-09 留言欄位的處理）、無權限情境的停留畫面未定；預期 `ui-check` 對本畫面的 error 數從骨架的 13 筆降到接近 0，但因跨模組引用 F01 `s-board` 可能撞到 OQ-10 同類的單檔案 design 載入限制。
+
+### Do
+- `39f6...`（實際 commit hash 見 git log）`[spec/design](user-membership) 定案 s-board-list 八段短規格`：填入目的、進入與離開（登入後進入，見 OQ-13；選 Board 進入 F01 `s-board`）、角色與權限、資料（Board 名稱標 ⚠️）、操作（選擇 Board 進入、嘗試直接開啟不屬於自己的 Board）、狀態五項、驗收條件、待確認事項。
+- 低風險決定：「中途放棄會怎樣」比照 `s-swimlane-list` 模式標「不適用」（列表型畫面皆即時導覽，無中途放棄流程）；「建立 Board」入口不在本畫面猜測、留給 T2.05 `s-board-create-dialog` 自己的「從哪裡進來」回答，避免跨 Feature 臆測。
+- 新增 OQ-14（【引用原文】Board 名稱找不到 Attribute ID，同 OQ-09 模式，資料表改文字描述不掛 ID）、OQ-15（【引用原文】`uc-reject-board-access-by-nonmember` post 未寫停留畫面，暫定停留本畫面）、OQ-16（【推論】F02 `s-board-list` 對 F01 `s-board` 的合法跨模組 Screen 引用，單獨檢查 `ui-user-membership.md` 時被 `ui-authoring-tools.py` `findings()` 的 `paths = [target_path]` 誤判 REF-07，兩檔一起跑則 0 error/warn，環境限制同 OQ-10 但這次是 design 路徑而非 spec 路徑）。
+- 修正 DS-05：`角色與權限`表「做得到」欄補上「嘗試直接開啟不屬於自己的 Board」，使可用角色集合與 `uc-reject-board-access-by-nonmember` 的 `roles: [r-system-user]` 一致。
+- 因 OQ-16 屬環境限制，T2.04 狀態標為 `blocked`（內容已完成，僅單檔案機械檢查因工具限制無法顯示 0 error）。
+
+### Check
+- `./scripts/ui-check .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`83 error(s), 43 warning(s)`（`s-board-list` 所在行號範圍 102-147 內僅剩 4 筆 `REF-07`，全部是對 F01 `s-board` 的引用）。
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`（兩份 ui 檔一起檢查）：`s-board-list` 所在行號範圍內 0 error、0 warn，證實 4 筆 REF-07 是單檔案 design 載入限制造成的誤判，非畫面內容缺陷。
+- `tools accept-check`：T2.04 未標 `done`，不受「已完成任務」機械驗收條件約束；DS-05 之前的角色不一致 error 已修正，重跑確認該筆消失。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：通過（含 OQ-14／OQ-15／OQ-16 三筆新引用）。
+- 驗收條件逐條對照：使用者只看到自己有權限的 Board（`uc-view-board-list` post）已寫入驗收條件；空清單情境已涵蓋；選 Board 進入 F01 `s-board`、非成員直接開啟被拒絕兩條也都已涵蓋；八段格式齊全但因 OQ-16 標「討論中」而非「已定案」。
+
+### Act
+- 未完成：T2.04 因 OQ-16（環境限制）標 `blocked`，需人工決定是否調整 `ui-authoring-tools.py` `findings()` 的 design 路徑邏輯（讓單檔案檢查也帶入全部既有 ui 檔，類比 T1.10 對 `--spec` 的修法）或調整驗收條件寫法，才能改回 `todo`／`done`。
+- 下一個任務：依任務清單，T2.05（`s-board-create-dialog`）依賴 T2.04 完成，在 T2.04 解除 `blocked` 前無法進行；若人工短期內不處理，loop 下一輪會回頭檢查 T2.04 是否已被人工改回 `todo`。
