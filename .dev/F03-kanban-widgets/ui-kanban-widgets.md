@@ -105,7 +105,53 @@
 ## s-throughput-cfd-dashboard：Throughput 與累積流量圖儀表板
 所屬 Feature：Throughput 與累積流量圖
 類型：儀表板
-狀態：未討論
+狀態：討論中
+
+### 目的
+看板使用者檢視單位時間完成的卡片數量與各 Stage 卡片數量隨時間的變化，以便掌握團隊的產出趨勢與流程瓶頸。
+
+### 進入與離開
+- 從哪裡進來：⚠️ 待確認（見 OQ-31）：跨模組，F01 `s-board` 操作表（T1.06 已定案內容）目前沒有「檢視圖表」操作，spec Background 只寫已開啟 Board，未描述如何前往本畫面
+- 完成後去哪裡：不適用（純檢視畫面，無完成後導向其他畫面的動作）
+- 中途放棄會怎樣：不適用（無多步驟流程）
+
+### 角色與權限
+| 角色 | 看得到 | 做得到 |
+|---|---|---|
+| `r-user`（F01，跨模組） | 各期間完成卡片數量趨勢、每一天每個 Stage 的累積卡片數量 | 檢視 Throughput 圖表、檢視 CFD 圖表 |
+
+### 資料
+Throughput 圖與 CFD 圖兩個資料區塊以「圖表」欄區分，同一個 Screen ID 內不拆兩個畫面。
+
+| 圖表 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
+|---|---|---|---|---|---|
+| Throughput | 單位時間 | 使用者選擇（列舉：日、週） | 輸入 | 僅限「日」或「週」 | 依 `uc-view-throughput` post p1 |
+| Throughput | 期間完成數 | 衍生：依選定單位時間分組，該期間內進入 Done 的 `card` 數量 | 顯示 | — | 依 `uc-view-throughput` post p1 |
+| CFD | Stage 名稱 | `stage`（F01，跨模組） | 顯示 | — | CFD 依 Stage 分層堆疊 |
+| CFD | 日期 | 衍生：資料範圍內的每一天 | 顯示 | — | 依 `uc-view-cfd` post p1 |
+| CFD | 累積卡片數 | 衍生：該日期、該 Stage 的累積 `card` 數量 | 顯示 | — | 依 `uc-view-cfd` post p1 |
+
+### 操作
+| 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
+|---|---|---|---|---|
+| 檢視 Throughput 圖表 | `uc-view-throughput` | 依選定單位時間顯示各期間完成卡片數量 | 不適用（`uc-view-throughput` 無 fail 定義） | 否 |
+| 檢視 CFD 圖表 | `uc-view-cfd` | 顯示每一天、每個 Stage 的累積卡片數量 | 不適用（`uc-view-cfd` 無 fail 定義） | 否 |
+
+### 狀態
+- 載入中：載入卡片時間軸以計算各期間完成數量／各 Stage 每日累積數時顯示
+- 空資料：選定範圍內無完成卡片，或尚無卡片資料時，對應圖表顯示為空
+- 錯誤：不適用（`uc-view-throughput`／`uc-view-cfd` 皆無 fail 定義）
+- 無權限：不適用（F03 spec 僅使用跨模組 `r-user` 一種角色，無角色差異）
+- 資料狀態差異：不適用（兩個 uc 的 post 未定義清單以外的呈現差異）
+
+### 驗收條件
+- 依選定單位時間（日／週）分組，顯示各期間完成卡片數量
+- CFD 圖顯示每一天、每個 Stage 的累積卡片數量
+- 開啟畫面時觸發 `uc-view-throughput`
+- 開啟畫面時觸發 `uc-view-cfd`
+
+### 待確認事項
+- ⚠️ 進入路徑未定義，見 OQ-31：F01 `s-board` 操作表尚無「檢視圖表」操作
 
 ## s-duedate-reminder：截止日期提醒列表
 所屬 Feature：截止日期提醒
