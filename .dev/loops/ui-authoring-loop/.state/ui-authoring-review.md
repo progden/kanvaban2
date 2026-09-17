@@ -527,3 +527,35 @@
 - F01 已定案畫面（`s-card-detail`、`s-card-add-dialog`、`s-card-delete-dialog`）的「回到 `s-board`」，等看板本體 item 化的整合 CR 時要一起檢視。
 - PDCA 標題缺 `HH:MM` 時，verify 並不一定會抓到（Iteration 66／68／69 都缺，T8.01 仍然 PASS），`check-pdca-append` 的判斷條件要人工確認。
 - 延續上次：OQ-44（F07 角色與 F01／F02 角色的對應）；驗收條件的計算規則敘述可以寫到什麼程度，以及需確認欄的還原路徑是否必須屬於同一角色；`uc-guard-clock-monotonicity` 應該由哪個畫面引用；`verify-quotes.py` 要改成依「模組」欄判斷對照哪份 spec，並支援同一行引用多份 spec；D-15 的 `all` 判準遇到骨架檔時的問題；F03 的 WIP 名詞定義和 Scenario 矛盾，要走 CR；OQ-30、OQ-34、OQ-41、OQ-42、OQ-43 待人工決定；「中途放棄」段是否允許寫「X 不變」；新增類操作的需確認判準要統一；commit `67e4907` 缺少 scope。
+
+## Review — 2026-09-17 22:40 — f804072
+### 範圍
+- commit 區間：`2e348fa`（上次審查）..`f804072`，共 5 個 commit（含上次審查 commit `661f85f`）
+- 任務：D-25、D-26（皆 `done`）；`actionable` 目前是 **G1**，本次審查要產出關卡摘要
+- runtime/last-verify.md：PASS（D-26），沒有警告
+- 期間新增的 OQ：無
+- 目前 `./scripts/ui-check`：0 error、12 warning（和 T8.01 收尾時相同）；`verify-quotes.py` 回傳 0
+
+### 發現
+沒有需要開 D-xx 的偏差。以下是低嚴重度的觀察：
+1. **低**（不開 D）：PDCA Iteration 70 的標題仍然缺 `HH:MM`；Iteration 71 標題寫「16:00」，但對應的 commit 時間是 22:3x，這個時間看起來不是實際時間。PDCA 只能追加，不回頭改；下一輪請寫實際時間。
+2. **低**（不開 D）：Iteration 71 的 Act 寫「手動模式下由執行輪自己完成審查並直接標 done，不需要 `runtime/gates/G1.approved`」。本 loop 目前由 `run-ui-authoring-loop.sh` 驅動（last-verify 模式為 exec），屬於自動模式。依 G1 任務欄，自動模式必須等驅動腳本建立 `G1.approved` 後，下一輪才能把 G1 標 `done`。執行輪不可以照 Act 那句話，在沒有 approved 檔的情況下自行標記。
+3. **低**（不開 D）：D-26 的 Check 記錄了單檔執行 `ui-check` 時出現 18 個 error，原因是跨檔 Screen 參照（REF-07），屬於已知的工具限制，最後以 `tools error-count` 與全檔合跑的 0 為準，處理方式合理。
+
+有檢查、沒發現偏差的面向：
+- 不定義新概念：D-25 只在原句加上「⚠️」和「見 OQ-19」；D-26 只改了狀態行，兩者都沒有引入新的欄位、角色或 uc。
+- 不寫業務結果、不寫排版視覺：這段期間沒有改到操作表、驗收條件或資料表。
+- 狀態誠實性：D-25 修正後，`s-board`「待確認事項」的兩條都有 ⚠️，並各自引用 OQ-18、OQ-19，畫面維持「討論中」，前後一致。D-26 部分我逐段檢查了 `s-board-list` 的八段：沒有 ⚠️，每段都有內容或「不適用」並附理由；導向 `s-canvas` 依據的是人工已採用的 OQ-17／OQ-18，不是未決事項，改成「已定案」有依據。
+- 需確認判斷、OQ 品質：這段期間沒有新增或修改。
+- 逐字引用：`verify-quotes.py` 回傳 0。
+- 跨模組一致：`s-board-list` 導向 F07 `s-canvas`，這個畫面存在於 `ui-canvas-layout.md`；`s-board` 引用的 OQ-18／OQ-19 都存在，Level 也都標了 kanban-basic 的 `s-board`。
+- 任務完成度：D-25 的條件（同一行同時含「⚠️」與「OQ-19」）、D-26 的條件（選項 a：「狀態：已定案」而且畫面內沒有「⚠️」）我逐一核對，都已達成；PDCA 的 Check 和實際結果一致。
+
+### 關卡摘要
+**G1：自我審查**。上次審查（HEAD `2e348fa`）已經依 L-09／DS-05，對七個模組各抽查一個畫面（`s-card-detail`、`s-board-create-dialog`、`s-wip-dashboard`、`s-board-clock-control`、`s-workload-dashboard`、`s-feature-cr-board`、`s-canvas`），結果都通過；那次開出的關卡前待修項目 D-25、D-26 都已完成，這次複核也沒有問題。這次沒有新開 `todo` 的 D-xx，**同意 G1 自動核准**。核准後，下一輪可以把 G1 標 `done`，接著執行 T8.02。
+
+需人工事後處理（延續上次，這次沒有新增）：
+- `parser_design.py` 無法解析「進入與離開」段的巢狀子項目，而且同一行出現 `uc-` 反引號時會被誤判為 Screen 參照；單檔執行 `ui-check` 時，跨檔 Screen 參照會產生 REF-07 誤報。
+- F01 已定案畫面的「回到 `s-board`」，要在看板本體 item 化的整合 CR 時一起檢視。
+- `check-pdca-append` 沒有抓到 PDCA 標題缺 `HH:MM`，也沒有抓到時間不實（Iteration 66／68／69／70／71）。
+- OQ-44（F07 角色與 F01／F02 角色的對應）；OQ-18／OQ-19（看板本體與成員頭像清單 item 化的機制）；OQ-30、OQ-34、OQ-41、OQ-42、OQ-43 待人工決定；驗收條件的計算規則敘述可以寫到什麼程度；需確認欄的還原路徑是否必須屬於同一角色；`uc-guard-clock-monotonicity` 應該由哪個畫面引用；`verify-quotes.py` 要改成依「模組」欄判斷對照哪份 spec；D-15 的 `all` 判準遇到骨架檔時的問題；F03 WIP 名詞定義和 Scenario 矛盾，要走 CR；「中途放棄」段是否允許寫「X 不變」；新增類操作的需確認判準要統一；commit `67e4907` 缺少 scope。
