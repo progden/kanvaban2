@@ -215,7 +215,7 @@ Board 擁有者在此檢視成員清單、邀請新成員、變更成員角色�
 | 成員帳號 | `user.username` | 顯示 | — | 清單中每一列的成員帳號 |
 | 成員顯示名稱 | `user.display-name` | 顯示 | — | 清單中每一列的成員顯示名稱 |
 | 成員角色 | `board-membership.role` | 顯示 | enum(Owner, Member)，依欄位表限制 | — |
-| 邀請對象帳號 | `user.username` | 輸入 | 不是該 `board` 現有成員，依 `uc-invite-member` pre p2；⚠️ 是否要求帳號已存在，spec 未定義，見 OQ-27 | 邀請成員時輸入 |
+| 邀請對象帳號 | `user.username` | 輸入 | 須為系統中已存在帳號，且不是該 `board` 現有成員，依 `uc-invite-member` pre p2 | 邀請成員時輸入 |
 | 邀請角色 | `board-membership.role` | 輸入（單選） | enum(Owner, Member) | 邀請時指定的初始角色 |
 | 變更後角色 | `board-membership.role` | 輸入（單選） | 依 `uc-change-member-role` pre p2：目標須為該 `board` 的 Member；post 僅定義變更為 Owner，未定義將 Owner 降級為 Member 的情境，⚠️ 待確認，見 OQ-24 | — |
 
@@ -247,7 +247,6 @@ Board 擁有者在此檢視成員清單、邀請新成員、變更成員角色�
 
 ### 待確認事項
 - ⚠️ 「變更成員角色」操作是否可逆（spec 未定義 Owner 降級為 Member 的情境）待確認，見 OQ-24
-- ⚠️ 邀請對象帳號是否要求帳號已存在，`uc-invite-member` pre 未定義，待確認，見 OQ-27
 
 ## s-board-delete-dialog：刪除 Board 對話框
 所屬 Feature：Board 權限管理
