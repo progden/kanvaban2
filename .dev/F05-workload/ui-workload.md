@@ -32,7 +32,7 @@
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
 |---|---|---|---|---|
 | 檢視工作量表 | `uc-view-workload` | 顯示各成員工作量與未指派卡片數量 | 不適用（`uc-view-workload` 無 fail 定義） | 否 |
-| 拖曳成員頭像到卡片追加負責人 | `uc-drag-assign-card-owner` | 卡片負責人清單更新，包含追加的成員；若該成員已是負責人，畫面不變 | 不適用（`uc-drag-assign-card-owner` 無 fail 定義） | 否（可透過 F02 `uc-set-card-assignees` 調整負責人清單，非不可逆操作） |
+| 拖曳成員頭像到卡片追加負責人 | `uc-drag-assign-card-owner` | 觸發 `uc-drag-assign-card-owner`（⚠️ 見 OQ-42） | 不適用（`uc-drag-assign-card-owner` 無 fail 定義） | 否（可透過 F02 `uc-set-card-assignees` 調整負責人清單，非不可逆操作） |
 
 ### 狀態
 - 載入中：載入 `board-membership` 成員清單與 Active Card 分佈以計算工作量時顯示
@@ -42,13 +42,10 @@
 - 資料狀態差異：不適用（兩個 uc 的 post 未定義清單以外的呈現差異）
 
 ### 驗收條件
-- 各成員顯示其擔任負責人的 Active Card 數量作為工作量
-- 同時有多位負責人的卡片，每位負責人的工作量都包含該卡片
+- 成員工作量數字顯示 `uc-view-workload` 回傳的值
 - 未指派任何負責人的 Active Card 數量顯示為「未指派」
-- 所在 Stage 角色為 Done 的卡片不計入任何負責人的工作量
 - 開啟畫面時觸發 `uc-view-workload`
-- 拖曳成員頭像到卡片後，該卡片負責人清單更新，且觸發 `uc-drag-assign-card-owner`
-- 拖曳已經是負責人的成員頭像到卡片後，負責人清單不重複新增，仍觸發 `uc-drag-assign-card-owner`
+- 拖曳成員頭像到卡片後，觸發 `uc-drag-assign-card-owner`（⚠️ 見 OQ-42）
 
 ### 待確認事項
 - ⚠️ 進入路徑未定義，見 OQ-41：進入路徑不預設，待後續決定
