@@ -661,3 +661,27 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 ### Act
 - 完成：補上 Iteration 31 遺漏的 ui-check 結果行；D-11 維持 `done`。
 - 下一個任務：D-12（[F02] 修正 `s-board-delete-dialog`／`s-board-create-dialog`／`s-board-list` 把領域狀態寫進 UI 段落）。
+
+## Iteration 33 — 2026-09-17 20:05 — D-12
+### Plan
+- 任務：D-12（[F02] 修正 `s-board-delete-dialog`／`s-board-create-dialog`／`s-board-list` 把領域狀態寫進 UI 段落，同 D-11 規則）。
+- 要改的檔案與段落：`.dev/F02-user-membership/ui-user-membership.md`——`s-board-delete-dialog`「進入與離開」「操作」「驗收條件」；`s-board-create-dialog`「操作」「驗收條件」；`s-board-list`「狀態」「驗收條件」「待確認事項」。
+- 驗收條件：檔案不含「不再存在」「Board 與其資料不變」「角色為 Owner」「仍無法存取」「OQ-16 已由人工修正」；`ui-check(ui-user-membership.md)` error 數不增加（起點 39）。
+- 預期 error 數變化：0（純文字改寫，不動格式與 ID）。
+
+### Do
+- `2a3fbff` [spec/design](user-membership) 修正三畫面把業務結果寫進 UI 段落。
+- 逐項對照任務描述四點改寫：(1) `s-board-delete-dialog` 完成後去哪裡／中途放棄／操作表「成功後」／驗收條件都改成只留畫面斷言（導向 `s-board-list`、回到進入前的畫面、不觸發 `uc-delete-board`）。(2) `s-board-create-dialog` 操作表與驗收條件的「操作者對該 Board 角色為 Owner」改成「`s-board-list` 顯示新建立的 Board」。(3) `s-board-list` 狀態段「無權限」與驗收條件的「操作者仍無法存取該 Board」改成「顯示訊息，停留本畫面」。(4) 刪除 `s-board-list`「待確認事項」裡已解決的 OQ-16 那一條，保留 OQ-17／OQ-18 那條。
+- 低風險決定：無需另外判斷，皆為任務描述明講的文字替換。
+- 無新增 OQ／D-xx。
+
+### Check
+- `./scripts/ui-check .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 最後一行：`51 error(s), 38 warning(s)`（此指令因 `--spec` 帶入全部模組 spec 而混入其他模組既有的 warning／error，非本檔獨有數字）。
+- `tools error-count .dev/F02-user-membership/ui-user-membership.md`：39（與起點相同，未增加）。
+- `tools accept-check ui-authoring-tasks.md D-12`：無輸出、exit=0（無機械 token 可比對，已用 grep 核對四個關鍵字串均不存在）。
+- `grep -n "不再存在\|Board 與其資料不變\|角色為 Owner\|仍無法存取\|OQ-16 已由人工修正" ui-user-membership.md`：無結果，驗收條件達成。
+- 本輪未新增或修改 OQ 表列、未新增『』標註引用，未跑 `verify-quotes.py`。
+
+### Act
+- 完成：D-12 標 `done`。
+- 下一個任務：D-13（[F02] `s-signup`／`s-login` 狀態行從「討論中」改「已定案」，前提確認無殘留 `⚠️`）。
