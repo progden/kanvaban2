@@ -1020,3 +1020,26 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T4.01。下一個任務：T4.02（[F04] 定案 `s-board-clock-control`：對應 `uc-adjust-board-clock`／`uc-pause-resume-board-clock`；`uc-guard-clock-monotonicity` 寫在 `uc-adjust-board-clock` 操作的「失敗時」欄）。
+
+## Iteration 51 — 2026-09-17 — T4.02
+### Plan
+上一輪驗證 FAIL：D-15「ui-check(all)=0」因 T4.01 留下的骨架（`s-board-clock-control` 八段未填）產生 13 個 error 而破功。本輪先修正此失敗項目，再依 state 記載繼續同一個任務 T4.02：定案 `.dev/F04-board-clock/ui-board-clock.md` 的 `s-board-clock-control`，對應 `uc-adjust-board-clock`／`uc-pause-resume-board-clock`，`uc-guard-clock-monotonicity` 寫進「調整看板時間」操作的失敗時欄，不獨立成操作列。預期：補齊八段後 `ui-check(all)` 應由 13 降回 0，一併解掉 D-15 的 FAIL。
+
+### Do
+- 讀 `spec-board-clock.md` 全文確認：`## 角色定義`、`### 欄位`、`### 實體` 三張表皆為空表，僅「其他名詞」文字描述 Board Clock／REALTIME／PAUSED／單調性；usecase 區塊 `roles` 皆為 `r-board-owner`（F02，跨模組）。
+- 補齊 `s-board-clock-control` 八段：目的、進入與離開（⚠️ 待確認見 OQ-35）、角色與權限（`r-board-owner` 做得到全部；`r-user` 可見範圍 ⚠️ 見 OQ-37）、資料（看板時間目前值／狀態／調整目標時間三欄皆無 Attribute ID，⚠️ 見 OQ-36，調整目標時間驗證規則另 ⚠️ 見 OQ-38）、操作（調整看板時間／暫停／恢復／關閉四列，`uc-guard-clock-monotonicity` 寫入「調整看板時間」失敗時欄，註明是下游限制不獨立成列）、狀態（五項齊全）、驗收條件、待確認事項。
+- 低風險決定：暫停／恢復拆成兩個操作列（Scenario 分別描述），需確認欄皆標「否」（各自有對應的反向操作可還原）。
+- 新增 OQ-35（進入路徑，推論，比照 OQ-31／OQ-34 同類缺口）、OQ-36（看板時間相關欄位缺 Attribute ID，引用原文，同 OQ-09／OQ-14 處理方式）、OQ-37（非 Owner 可見範圍，引用原文）、OQ-38（調整目標時間驗證規則，引用原文，同 OQ-32 處理方式）。
+- 修正一處反引號誤用（角色與權限表 `r-user` 列原本把「roles」包成反引號，被 `ui-check` 判成未定義 Entity，改為不掛 ID 的文字敘述）。
+- commit：`95c39fc [spec/design](ui-board-clock) 定案看板時鐘控制畫面短規格`
+
+### Check
+- `./scripts/ui-check .dev/F04-board-clock/ui-board-clock.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`0 error(s), 37 warning(s)`（37 筆 warn 皆為既有跨模組 DS-06 與本畫面新增的 1 筆 DS-07，DS-07 對應 OQ-35）
+- `tools error-count all`：0（修正前 13）
+- `tools accept-check ui-authoring-tasks.md T4.02`：exit 0（通過）
+- `tools accept-check ui-authoring-tasks.md D-15`：exit 0（通過，上一輪 FAIL 項目已解決）
+- `python3 verify-quotes.py`：逐字引用驗證通過（OQ-35～OQ-38 的『』引用皆與 spec 逐字相符）
+- 驗收條件逐條核對：`s-board-clock-control` 本畫面無 error ✓；八段齊全 ✓
+
+### Act
+完成：T4.02 標 `done`。下一個任務：T4.03（F04 收尾：`ui-check .dev/F04-board-clock/ui-board-clock.md` 0 error，DS-06／DS-07 warn 歸類確認）。
