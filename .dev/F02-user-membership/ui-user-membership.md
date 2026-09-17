@@ -244,7 +244,6 @@ Board 擁有者在此檢視成員清單、邀請新成員、變更成員角色�
 
 ### 待確認事項
 - ⚠️ 「變更成員角色」操作是否可逆（spec 未定義 Owner 降級為 Member 的情境）待確認，見 OQ-24
-- ⚠️ `uc-reject-structure-change-by-member`（非 Owner 嘗試調整看板結構）不屬於本畫面操作範圍（該操作對象是 Swimlane／Stage，非成員），本畫面不列入操作表；是否應回頭在 F01 `s-swimlane-list`／`s-stage-list` 的操作失敗欄跨模組引用，待確認，見 OQ-25
 - ⚠️ 邀請對象帳號是否要求帳號已存在，`uc-invite-member` pre 未定義，待確認，見 OQ-27
 
 ## s-board-delete-dialog：刪除 Board 對話框

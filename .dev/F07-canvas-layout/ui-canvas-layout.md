@@ -12,7 +12,7 @@
 
 ### 進入與離開
 - 從哪裡進來：F02 `s-board-list`（跨模組）選擇某個 Board 進入；依 spec 簡介「使用者開啟某個 Board 時，看到的就是該 Board 的 Canvas」
-- 完成後去哪裡：各操作皆為即時提交，完成後停留本畫面，對應元素或檢視區即時更新；離開操作回到 F02 `s-board-list`（跨模組）
+- 完成後去哪裡：各操作皆為即時提交，完成後停留本畫面，對應元素或檢視區即時更新；離開操作回到 F02 `s-board-list`（跨模組）；開啟管理 Swimlane／Stage 分別導向 F01 `s-swimlane-list`（跨模組）、`s-stage-list`（跨模組）；於「看板成員」item 選擇加入成員導向 F02 `s-member-management`（跨模組）
 - 中途放棄會怎樣：不適用（各操作皆為即時提交，無中途放棄流程）
 
 ### 角色與權限
@@ -20,8 +20,7 @@
 |---|---|---|
 | `r-canvas-editor` | 全部畫布元素與自己的檢視區 | 放置元件、移除元件、移動元件、調整元件大小、設定元件能力、設定元件錨定方式、調整元件層序（置頂／置底）、批次移動元件、批次移除元件、平移／縮放檢視區、離開、開啟管理 Swimlane、開啟管理 Stage（⚠️ 見 OQ-44） |
 | `r-canvas-viewer` | 全部畫布元素與自己的檢視區 | 平移／縮放檢視區、離開 |
-| `r-user`（F01，跨模組） | 新增 Swimlane、新增 Stage 所需範圍（⚠️ 見 OQ-44） | 新增 Swimlane、新增 Stage |
-| `r-board-owner`（F02，跨模組） | 「看板成員」item | 於「看板成員」item 選擇加入成員 |
+| `r-board-owner`（F02，跨模組） | 新增 Swimlane、新增 Stage 所需範圍；「看板成員」item（⚠️ 與 `r-canvas-editor` 的對應關係見 OQ-44） | 新增 Swimlane、新增 Stage、於「看板成員」item 選擇加入成員 |
 
 ### 資料
 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
@@ -78,4 +77,4 @@
 
 ### 待確認事項
 - ⚠️ 看板本體如何成為 `s-canvas` 上的一個 `item`（`item.component` 對應值、預設位置與大小、建立時機）spec「待釐清」尚未定義；人工已確認固定顯示於畫布中間的方向，確切機制待整合 CR 定案，見 OQ-17／OQ-18
-- ⚠️ `r-canvas-editor`／`r-canvas-viewer`／`r-user`（F01）三者的對應關係 spec 未定義，見 OQ-44
+- ⚠️ `r-canvas-editor`／`r-canvas-viewer`／`r-board-owner`（F02）三者的對應關係 spec 未定義，見 OQ-44

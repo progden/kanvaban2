@@ -18,7 +18,7 @@
 ### 角色與權限
 | 角色 | 看得到 | 做得到 |
 |---|---|---|
-| `r-user` | 全部 Swimlane 及其名稱、順序 | 新增 Swimlane、重新命名 Swimlane、拖曳調整順序、刪除 Swimlane |
+| `r-board-owner` | 全部 Swimlane 及其名稱、順序 | 新增 Swimlane、重新命名 Swimlane、拖曳調整順序、刪除 Swimlane |
 
 ### 資料
 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
@@ -40,7 +40,7 @@
 - 載入中：載入 Swimlane 清單時顯示
 - 空資料：不適用（`board` 與 `swimlane` 的關係 min 為 1，看板至少保留一個 Swimlane，不會出現空列表）
 - 錯誤：新增、重新命名或拖曳排序失敗時，依上方操作表顯示對應訊息
-- 無權限：不適用（spec 僅定義 `r-user` 一種角色，無角色差異）
+- 無權限：非 `r-board-owner` 嘗試調整結構時，依 `uc-reject-structure-change-by-member`（F02，跨模組）post 顯示訊息，操作不生效
 - 資料狀態差異：僅剩 1 個 Swimlane 時，刪除操作不可用（依 `uc-delete-swimlane` p1：「`board` 中的 `swimlane` 數量大於 1」）
 
 ### 驗收條件
@@ -71,7 +71,7 @@
 ### 角色與權限
 | 角色 | 看得到 | 做得到 |
 |---|---|---|
-| `r-user` | 該 Swimlane 名稱、其內卡片數量 | 確認刪除、取消 |
+| `r-board-owner` | 該 Swimlane 名稱、其內卡片數量 | 確認刪除、取消 |
 
 ### 資料
 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
@@ -117,7 +117,7 @@
 ### 角色與權限
 | 角色 | 看得到 | 做得到 |
 |---|---|---|
-| `r-user` | 全部 Stage 及其名稱、順序、角色 | 新增 Stage、重新命名 Stage、拖曳調整順序、設定 Stage 角色、刪除 Stage |
+| `r-board-owner` | 全部 Stage 及其名稱、順序、角色 | 新增 Stage、重新命名 Stage、拖曳調整順序、設定 Stage 角色、刪除 Stage |
 
 ### 資料
 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
@@ -141,7 +141,7 @@
 - 載入中：載入 Stage 清單時顯示
 - 空資料：不適用（`board` 與 `stage` 的關係 min 為 1，看板至少保留一個 Stage，不會出現空列表）
 - 錯誤：新增、重新命名、拖曳排序或設定角色失敗時，依上方操作表顯示對應訊息
-- 無權限：不適用（spec 僅定義 `r-user` 一種角色，無角色差異）
+- 無權限：非 `r-board-owner` 嘗試調整結構時，依 `uc-reject-structure-change-by-member`（F02，跨模組）post 顯示訊息，操作不生效
 - 資料狀態差異：僅剩 1 個 Stage 時，刪除操作不可用（依 `uc-delete-stage` p1：「`board` 中的 `stage` 數量大於 1」）；設定某 Stage 角色為 START 或 DONE 時，原持有該角色的 Stage 該列角色顯示同步變回 NONE
 
 ### 驗收條件
@@ -173,7 +173,7 @@
 ### 角色與權限
 | 角色 | 看得到 | 做得到 |
 |---|---|---|
-| `r-user` | 該 Stage 名稱、其內卡片數量、可選擇的目的 Stage 清單 | 選擇目的 Stage、確認刪除、取消 |
+| `r-board-owner` | 該 Stage 名稱、其內卡片數量、可選擇的目的 Stage 清單 | 選擇目的 Stage、確認刪除、取消 |
 
 ### 資料
 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
