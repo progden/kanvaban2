@@ -78,3 +78,24 @@
 
 ### Act
 完成：T1.02。下一個任務：T1.03（[F01] 定案 `s-swimlane-delete-dialog`，對應 `uc-delete-swimlane`）。
+
+## Iteration 4 — 2026-09-17 15:50 — T1.03
+
+### Plan
+定案 `s-swimlane-delete-dialog`（.dev/F01-basic-kanban/ui-kanban-basic.md）：填齊八段，對應 `uc-delete-swimlane`，含「該 Swimlane 內有卡片時一併刪除」的提示與確認、「僅剩最後一個 Swimlane」的失敗情境。預期本畫面 `ui-check` 0 error；整檔 error 數應從 93 下降。
+
+### Do
+- 讀 `spec-kanban-basic.md`「Feature: Swimlane 管理」`uc-delete-swimlane`（`pre.p1`／`post`／`fail.p1`）與三則相關 Scenario（刪除空的 Swimlane、刪除包含卡片的 Swimlane 需要確認、看板至少保留一個 Swimlane）；`post` 明確寫「若該 swimlane 內有 card，一併被刪除」，沒有轉移到其他泳道的行為。
+- 低風險：任務清單描述提到「含目的泳道選擇的成功／失敗情境」，但比對 spec 後該 uc 是刪除卡片而非轉移，故本畫面不含「目的泳道」欄位；未改任務描述，僅在 state／PDCA 記錄依據為 spec 而非任務描述字面。
+- 填入目的、進入與離開（`s-swimlane-list` 進來，完成回 `s-swimlane-list`）、角色與權限（僅 `r-user`）、資料（`swimlane.name` 顯示；`swimlane`→`card` 關係計數顯示）、操作（確認刪除→`uc-delete-swimlane`，需確認＝是（本畫面即確認）；取消→`—`，需確認＝否）、狀態五項、驗收條件、待確認事項（無）；畫面狀態標「已定案」（spec 資訊足夠完整推導，無 `⚠️`）。
+- 「失敗時」欄引用 `uc-delete-swimlane` p1（僅剩最後一個 Swimlane），供併發刪除情境使用；不重述業務結果文字。
+- commit `.dev/F01-basic-kanban/ui-kanban-basic.md`（`[spec/design](kanban-basic)`）與任務清單／state（`[docs](loops)`）。
+
+### Check
+- `./scripts/ui-check .dev/F01-basic-kanban/ui-kanban-basic.md`：輸出中無任何提及 `s-swimlane-delete-dialog` 的 error（本畫面 0 error）；整檔最後一行 `80 error(s), 17 warning(s)`（較上一輪 93 error 下降，其餘 error/warn 屬其餘尚未定案的骨架畫面與既有 `REF-07`/`DS-06` 項目，非本輪範圍）。
+- `tools accept-check ... T1.03`：無輸出（驗收條件「同上，本畫面無 error」非機械 token），改用 `ui-check` 輸出肉眼核對：無 error 通過。
+- 逐條對照驗收條件：開啟顯示 Swimlane 名稱（資料表已列）、有卡片時顯示卡片數（資料表已列）、確認刪除後回 `s-swimlane-list` 且觸發 `uc-delete-swimlane`（操作表已列）、取消後關閉對話框資料不變（操作表已列）——皆達成。
+- 本輪未新增／修改 OQ 或帶【引用原文】等標記的待確認事項，未跑 `verify-quotes.py`。
+
+### Act
+完成：T1.03。下一個任務：T1.04（[F01] 定案 `s-stage-list`，對應 `uc-add-stage`／`uc-rename-stage`／`uc-reorder-stage`／`uc-set-stage-role`）。
