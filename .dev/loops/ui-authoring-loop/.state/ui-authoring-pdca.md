@@ -1000,3 +1000,23 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T3.06（F03 全部收尾）。下一個任務：T4.01（[F04] 建立 `ui-board-clock.md`：檔頭 ＋ 1 個畫面標題骨架 `s-board-clock-control`）。
+
+## Iteration 50 — 2026-09-17 — T4.01
+### Plan
+`actionable` 第一個任務為 T4.01（F03 全部 `done`，無 `blocked`／`doing`）：建立 `ui-board-clock.md`，同 T1.01 模式——檔頭 ＋ 1 個畫面標題骨架（`s-board-clock-control`），只填標題下三行（所屬 Feature、類型、狀態：未討論），八段內容留空。預期：`ui-check` 對本檔的 `DS-01` 不報 error；`DS-02`／`DS-04`（八段未填）維持 error 屬預期，比照 T1.01／T2.01／T3.01 骨架任務的驗收方式。
+
+### Do
+- 讀 `.dev/F04-board-clock/spec-board-clock.md`：Feature 名稱「看板時間管理」（`## Feature: 看板時間管理`），`狀態：定稿`。
+- 建立 `.dev/F04-board-clock/ui-board-clock.md`：檔頭一段簡介＋對應 spec 檔；`## s-board-clock-control：看板時鐘控制` 標題下三行「所屬 Feature：看板時間管理」「類型：對話框」「狀態：未討論」。
+- 低風險決定：畫面類型原任務描述寫「對話框／側欄」，但 `ui-convention.md` 固定類型只有七種（列表、詳情、表單、儀表板、流程、對話框、設定），無「側欄」，故取「對話框」（`DS-01` 驗證通過）；PDCA 記錄即可，不算高風險。
+- 未新增 OQ／D-xx。
+- Commit `2420702`（`[spec/design](ui-board-clock) 建立檔頭與 1 個畫面標題骨架`）。
+- 任務清單：T4.01 標 `done`。
+
+### Check
+- `./scripts/ui-check .dev/F04-board-clock/ui-board-clock.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：本檔 `DS-01` 無 error；`DS-02`（8 段落缺）、`DS-04`（狀態段 5 項缺）各 8／5 筆 error，屬骨架任務預期（八段內容尚未填）；`DS-07` warn 1 筆（尚無畫面導向它），屬預期。
+- 驗收條件核對：`## s-board-clock-control：看板時鐘控制` 標題與三行標頭存在 ✓；`DS-01`（畫面標題或標頭格式）不報 error ✓。
+- 未修改 OQ 或既有『』引用，未跑 `verify-quotes.py`。
+
+### Act
+完成：T4.01。下一個任務：T4.02（[F04] 定案 `s-board-clock-control`：對應 `uc-adjust-board-clock`／`uc-pause-resume-board-clock`；`uc-guard-clock-monotonicity` 寫在 `uc-adjust-board-clock` 操作的「失敗時」欄）。
