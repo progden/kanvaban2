@@ -479,3 +479,51 @@
 
 ### 關卡摘要
 下一個任務是 D-09（其後是 T7.03），不是關卡，這次不用填。
+
+## Review — 2026-09-17 22:28 — 2e348fa
+### 範圍
+- commit 區間：`937f82b`（上次審查）..`2e348fa`，共 8 個 commit（含上次審查 commit `0da64ad`）
+- 任務：D-09、D-24、T7.03、T8.01（皆 `done`）；`actionable` 目前是 **G1**，本次審查要產出關卡摘要
+- runtime/last-verify.md：PASS（T8.01），沒有警告
+- 期間新增的 OQ：無
+- 目前 `./scripts/ui-check`：0 error、12 warning（T8.01 修掉 `s-signup` 的 DS-07，其餘 12 則都已有 OQ 或內文說明理由）；`verify-quotes.py` 回傳 0
+
+### 發現
+1. **中**：F01 `s-board`「待確認事項」第二條（`ui-kanban-basic.md` 約第 267 行），D-09 改寫成「成員頭像清單已改為 F07 `s-canvas` 上另一個獨立 `item`，跨 `item` 拖曳機制待 F07 補充」，同時拿掉 ⚠️，也沒有引用 OQ-19。「跨 `item` 拖曳機制待 F07 補充」仍是未決事項，OQ-19 的「採用」也沒有說這件事已經解決。拿掉 ⚠️ 和 OQ 引用後，這個未決事項就查不到出處。Iteration 66 的 Do 只寫了「移除 ⚠️ 標記」，沒有說明依據。→ **D-25**
+2. **低**（不開 D）：F01 `s-card-detail`（已定案）的「進入與離開」和「關閉」操作仍寫「回到 `s-board`」。OQ-18 採用後，`s-board` 改成以 `item` 的形式顯示在 `s-canvas` 上，所以「回到 `s-board`」實際上就是回到 `s-canvas` 上的看板 `item`，語意仍然成立。D-09 的範圍本來就不含這個畫面，看板本體 item 化的機制也還在 F07「待釐清」裡，等整合 CR 時再一起處理。
+3. **低**（不開 D）：T8.01 為了讓 `s-signup` 被判定為「已導向」，把 `s-login`「從哪裡進來」的巢狀子項目改成單行，並拿掉 `uc-logout` 的反引號。內容沒有改變（登出來源改成引用本畫面操作表），「（模組入口）」標註也符合事實，可以接受。根本原因是 `parser_design.py` 無法解析巢狀子項目，屬於腳本限制，列入需人工事後處理。
+4. **低**（不開 D）：PDCA Iteration 66／68／69 的標題缺 `HH:MM`，verify 沒有抓到（last-verify 是 PASS）。PDCA 只能追加，不要回頭改；下一輪請用正確格式。
+5. **低**（不開 D）：F05 拖曳列的「成功後」仍寫觸發動作，沒有寫呈現方式，延續上次審查第 4 點的判斷，等 OQ-42 決定。
+6. **中**：F02 `s-board-list`（`ui-user-membership.md` 第 99 行起）在 D-09 把唯一的 ⚠️ 移除、「待確認事項」改成「（無）」之後，整個畫面已經沒有任何 ⚠️ 或 OQ 引用，狀態卻還是「討論中」。這就是「標討論中但沒有對應 OQ、拖著不處理」的情況。Iteration 66 沒有判斷畫面狀態是否該跟著改。→ **D-26**
+
+有檢查、沒發現偏差的面向：
+- 不定義新概念：D-09 寫入的「選中看板 item 後的屬性／操作面板」和 OQ-17 選項 2 的文字逐字相符（來自人工決策），不是新發明；D-24 的「新增 Swimlane、新增 Stage 所需範圍」沒有引入新的欄位或角色。
+- 不寫業務結果：D-24 已把驗收條件的「檢視區不變」移除；D-09 移除的兩列是純導覽列，沒有連帶的業務結果。
+- 不寫排版視覺：沒有發現相關內容（「左側選單」只出現在 OQ-17，ui 檔沒有寫）。
+- 狀態誠實性：`s-swimlane-list`／`s-stage-list` 仍是「已定案」，新的進入路徑依據的是人工已採用的 OQ-17 選項 2，不是未決事項，沒有問題；`s-board`、`s-board-list`、`s-canvas` 維持「討論中」；問題見第 1 點與第 6 點。
+- 需確認判斷：期間沒有新增或修改「需確認？」欄。
+- OQ 品質：期間沒有新增 OQ。
+- 逐字引用：`verify-quotes.py` 回傳 0。
+- 跨模組一致：`s-canvas`↔`s-board-list`、`s-canvas`→`s-swimlane-list`／`s-stage-list` 的雙向引用一致；`s-board` 不再宣稱自己是導覽目標，這和 `s-board-list` 已改為導向 `s-canvas` 相符。
+- 任務完成度：D-09 的五項文字條件、D-24 的五項條件我逐一核對，都已落實；T7.03 的結論（沒有 F07 相關警告）和 `ui-check` 的輸出一致；T8.01 的 12 則 warning 我逐一對照 OQ-22／26／29／30／31／34／35／41／43 與 `ui-board-clock.md` 操作表的說明，理由都存在。
+
+### 關卡摘要
+**G1：自我審查**。依 `llm-review.md` L-09（「失敗時」對應 `fail`、「成功後」對應 `post`）與 `checks.md` DS-05（操作可用角色與 uc `roles` 一致），每個模組抽查一個畫面：
+
+| 模組 | 畫面 | L-09 | DS-05 | 結果 |
+|---|---|---|---|---|
+| F01 | `s-card-detail` | `uc-edit-card`／`uc-add-comment` 的 `fail: {}` 對應「不適用」；「成功後」對應 post（描述／截止日期／標籤更新、留言加入列表） | 兩個 uc 的 `roles: [r-user]`，和角色表 `r-user` 的「儲存變更、新增留言」相符 | 通過 |
+| F02 | `s-board-create-dialog` | `uc-create-board` 的 `fail: {}` 對應「不適用」；「成功後」對應 post p1（新 Board 出現在列表）；「必填、非空」來自欄位表 `board.name` 的限制，屬於前端驗證，不是 fail | `roles: [r-board-owner]` 相符 | 通過 |
+| F03 | `s-wip-dashboard` | 兩個 uc 都是 `fail: {}`；「成功後」對應各自 post 的唯一一條 | `roles: [r-user]` 相符 | 通過 |
+| F04 | `s-board-clock-control` | 「調整看板時間」的「失敗時」引用 fail p1，只寫呈現方式；pause/resume 的 `fail: {}` 對應「不適用」；`uc-guard-clock-monotonicity` 不列入本畫面有說明 | 兩個 uc 的 `roles: [r-board-owner]` 相符；`r-user` 不可操作，和 roles 一致（能不能看見由 OQ-37 承接） | 通過 |
+| F05 | `s-workload-dashboard` | `uc-view-workload` 相符；拖曳列的「成功後」只寫觸發（見發現第 5 點，由 OQ-42 承接） | 兩個 uc 的 `roles: [r-user]` 相符 | 通過（有已知保留事項） |
+| F06 | `s-feature-cr-board` | `fail: {}` 相符；「成功後」涵蓋 post p1～p4，p5 寫在資料段 | `roles: [r-user]` 相符 | 通過 |
+| F07 | `s-canvas` | 10 個本模組 uc 的 fail key 上次審查已逐一核對；跨模組的 `uc-add-swimlane` p1、`uc-add-stage` `fail: {}` 相符 | `r-user` 列「新增 Swimlane、新增 Stage」和 F01 roles 相符（D-24 修正時 DS-05 已由機械檢查驗證） | 通過 |
+
+抽查的 L-09／DS-05 都沒有需要修正的偏差。這次沒有自動核准，原因是**關卡前還有兩項必須修正**：**D-25**（`s-board` 未決事項的 ⚠️／OQ-19 引用被移除）、**D-26**（`s-board-list` 沒有未決事項，狀態卻還是「討論中」）。兩項都完成後，下一輪審查若沒有再開新的 D-xx，就同意 G1 自動核准。
+
+需人工事後處理：
+- `parser_design.py` 無法解析「進入與離開」段的巢狀子項目（T8.01 被迫改成單行），而且同一行出現 `uc-` 反引號時，會被誤判為 Screen 參照（DS-03）。
+- F01 已定案畫面（`s-card-detail`、`s-card-add-dialog`、`s-card-delete-dialog`）的「回到 `s-board`」，等看板本體 item 化的整合 CR 時要一起檢視。
+- PDCA 標題缺 `HH:MM` 時，verify 並不一定會抓到（Iteration 66／68／69 都缺，T8.01 仍然 PASS），`check-pdca-append` 的判斷條件要人工確認。
+- 延續上次：OQ-44（F07 角色與 F01／F02 角色的對應）；驗收條件的計算規則敘述可以寫到什麼程度，以及需確認欄的還原路徑是否必須屬於同一角色；`uc-guard-clock-monotonicity` 應該由哪個畫面引用；`verify-quotes.py` 要改成依「模組」欄判斷對照哪份 spec，並支援同一行引用多份 spec；D-15 的 `all` 判準遇到骨架檔時的問題；F03 的 WIP 名詞定義和 Scenario 矛盾，要走 CR；OQ-30、OQ-34、OQ-41、OQ-42、OQ-43 待人工決定；「中途放棄」段是否允許寫「X 不變」；新增類操作的需確認判準要統一；commit `67e4907` 缺少 scope。
