@@ -17,6 +17,7 @@
 | swimlane | Swimlane（泳道） | board | 橫向分組，用於區分不同類別的工作（例如：專案、優先度、負責團隊） |
 | stage | Stage（階段） | board | 縱向欄位，代表工作流程狀態（例如：待辦、進行中、完成） |
 | card | Card（卡片） | card（root） | 代表一項工作項目，隸屬於某個 Swimlane 與 Stage 的交會格 |
+| comment | Comment（留言） | card | 卡片底下的一則留言，依附於 `card`，不單獨存在 |
 
 ### 欄位
 | ID | 型別／格式 | 限制 | 說明 |
@@ -30,6 +31,9 @@
 | card.labels | string（多值） | | 標籤 |
 | card.swimlane | ref swimlane | 建立時必填 | 卡片所屬泳道 |
 | card.stage | ref stage | 建立時必填 | 卡片所屬階段 |
+| comment.content | string | 非空 | 留言內容 |
+| comment.author | ref user | 必填 | 留言者，`user` 定義於 `.dev/F02-user-membership/spec-user-membership.md` |
+| comment.created-at | datetime | 必填 | 留言的操作時間，依「操作時間（occurredAt）」慣例取自 Board Clock |
 
 ### 關係
 | 來源 | 目標 | min | max | 說明 |
@@ -38,6 +42,7 @@
 | board | stage | 1 | n | 看板至少保留一個 Stage |
 | swimlane | card | 0 | n | 一個泳道可以有多張卡片 |
 | stage | card | 0 | n | 一個階段可以有多張卡片 |
+| card | comment | 0 | n | 一張卡片可以有多則留言 |
 
 ### 其他名詞
 | 名詞 | 說明 |
@@ -52,7 +57,7 @@
 
 ## Aggregate 標記說明
 
-`board`（含 `swimlane`、`stage`）與 `card` 是兩個獨立的 Aggregate。每個 Scenario 前方以 Gherkin 註解標記該情境會存取哪個 Aggregate、以及是「讀取」還是「寫入」，格式如下：
+`board`（含 `swimlane`、`stage`）與 `card`（含 `comment`）是兩個獨立的 Aggregate。每個 Scenario 前方以 Gherkin 註解標記該情境會存取哪個 Aggregate、以及是「讀取」還是「寫入」，格式如下：
 
 ```gherkin
 # Related aggregate:
@@ -73,6 +78,7 @@
 | 2026-09-13 | CR-004 | 變更 | 名詞定義補上「操作時間（occurredAt）」，明訂 Board/Card 事件時間一律取自 Board Clock（見 F04），既有 Scenario 文字不需修改，故不掛 Scenario 層級 tag |
 | 2026-09-13 | CR-004 | 開發完成 | 「kanban-core」的「Board」／「Card」事件時間已全面改用 Board Clock（「Board.now()」／「Board.newEventTime()」），不再直接呼叫「Instant.now()」；CR-004 狀態改「處理完成」 |
 | 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-add-swimlane`、`uc-rename-swimlane`、`uc-reorder-swimlane`、`uc-delete-swimlane`、`uc-add-stage`、`uc-rename-stage`、`uc-reorder-stage`、`uc-delete-stage`、`uc-set-stage-role`、`uc-add-card`、`uc-edit-card`、`uc-move-card-swimlane`、`uc-move-card-stage`、`uc-add-comment`、`uc-delete-card`） |
+| 2026-09-17 |  | 新增 | 補上遺漏的「留言」實體 `comment`（ui-authoring-loop OQ-09 發現：`uc-add-comment` post 描述留言內容、留言者、留言時間，但名詞定義完全沒有對應實體與欄位），新增 `comment.content`／`comment.author`／`comment.created-at`，`card`→`comment` 關係，`uc-add-comment` 的 crud、post、Aggregate 標記同步更新；本檔尚未進入開發，可直接補上，不需開 CR |
 
 ---
 
@@ -475,12 +481,12 @@ Feature: Stage（階段）管理
 - id: uc-add-comment
   name: 為卡片新增留言
   roles: [r-user]
-  crud: {card: U}
+  crud: {card: R, comment: C}
   pre:
     p1: "`card` 存在"
   post:
-    - "新增的留言加入 `card` 的留言列表中"
-    - "留言連同留言者與留言時間一併保存於 `card`"
+    - "新的 `comment` 建立成功，`comment.content` 為輸入內容，`comment.author` 為留言者，`comment.created-at` 為留言的操作時間"
+    - "新的 `comment` 加入 `card` 的留言列表"
   fail: {}
   emits: []
   requires: []
@@ -574,7 +580,8 @@ Feature: Card（卡片）編輯
 
   @uc-add-comment
   # Related aggregate:
-  #   card: read, write
+  #   card: read
+  #   comment: write
   Scenario: 為卡片新增留言
     Given 存在一張卡片 "設計登入頁面"
     When 我在卡片中新增留言 "已完成初稿，請協助審閱"
