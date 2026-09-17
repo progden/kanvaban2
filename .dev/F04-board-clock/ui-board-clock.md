@@ -19,7 +19,7 @@
 | 角色 | 看得到 | 做得到 |
 |---|---|---|
 | `r-board-owner`（F02，跨模組） | 看板時間目前值與狀態 | 調整看板時間、暫停看板時間、恢復看板時間 |
-| `r-user`（F01，跨模組） | ⚠️ 待確認，見 OQ-37 | 不做得到（依 `uc-adjust-board-clock`／`uc-pause-resume-board-clock` 的角色定義僅 `r-board-owner`） |
+| `r-board-member`（F02，跨模組） | 看板時間目前值與狀態（依 OQ-55，比照畫布 item 一律可見） | 不做得到（依 `uc-adjust-board-clock`／`uc-pause-resume-board-clock` 的角色定義僅 `r-board-owner`） |
 
 ### 資料
 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
@@ -40,16 +40,15 @@
 - 載入中：載入看板時間目前值與狀態時顯示
 - 空資料：不適用（每個 Board 都有自己的時鐘，一定有值）
 - 錯誤：`uc-adjust-board-clock` 失敗時保留對話框與已輸入值，顯示訊息；`uc-pause-resume-board-clock` 目前無 fail 定義
-- 無權限：⚠️ 待確認，見 OQ-37（非 Owner 是否仍看得到本畫面）
+- 無權限：非 Owner（`r-board-member`）嘗試調整或暫停／恢復看板時間時，依 `uc-adjust-board-clock`／`uc-pause-resume-board-clock` 的角色定義，操作按鈕不可用或觸發後被拒絕；仍可檢視看板時間目前值與狀態
 - 資料狀態差異：PAUSED 狀態下顯示「恢復」操作，REALTIME 狀態下顯示「暫停」操作
 
 ### 驗收條件
 - 開啟時顯示看板時間目前值與狀態（REALTIME／PAUSED）
 - 調整看板時間後，畫面顯示更新為調整後的時間，且觸發 `uc-adjust-board-clock`
-- `uc-adjust-board-clock` 回傳 p1 時，畫面顯示訊息，且看板時間顯示不變（⚠️ 見 OQ-37）
+- `uc-adjust-board-clock` 回傳 p1 時，畫面顯示訊息，且看板時間顯示不變
 - 暫停看板時間後，畫面顯示狀態為 PAUSED，且觸發 `uc-pause-resume-board-clock`
 - 恢復看板時間後，畫面顯示狀態為 REALTIME，且觸發 `uc-pause-resume-board-clock`
 
 ### 待確認事項
-- ⚠️ 非 Owner（`r-user`）是否看得到本畫面 spec 未定義，見 OQ-37
 - ⚠️ 調整目標時間輸入的型別／範圍限制 spec 未定義，見 OQ-38
