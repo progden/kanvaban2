@@ -982,3 +982,21 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：D-18。下一個任務：T3.06（[F03] 收尾：`ui-check .dev/F03-kanban-widgets/ui-kanban-widgets.md` 0 error；過一遍 DS-06／DS-07 warn，四筆 `s-cycle-lead-time-dashboard` 等 DS-07 warn 歸到 OQ-34）。
+
+## Iteration 49 — 2026-09-17 — T3.06
+### Plan
+`actionable` 第一個任務為 T3.06（D-17／D-18 皆已 `done`，無 `blocked`／`doing` 任務）：F03 收尾，確認 `ui-check .dev/F03-kanban-widgets/ui-kanban-widgets.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"` 0 error，並過一遍 `DS-06`／`DS-07` warn。預期：D-18 已把四個畫面的「從哪裡進來」「待確認事項」改為同時引用 OQ-31、OQ-34，`ui-check` 應已是 0 error；本輪只需驗證並歸類 warn，不預期需要修改 `ui-kanban-widgets.md` 內容。
+
+### Do
+- 讀完整份 `.dev/F03-kanban-widgets/ui-kanban-widgets.md`：四個畫面（`s-cycle-lead-time-dashboard`、`s-wip-dashboard`、`s-throughput-cfd-dashboard`、`s-duedate-reminder`）「從哪裡進來」與「待確認事項」皆已同時引用 OQ-31、OQ-34，八段齊全，狀態皆為「討論中」且對應 ⚠️ 均有 OQ 編號。
+- 過一遍 `DS-06`／`DS-07` warn：本檔僅有 4 筆 `DS-07`（`s-cycle-lead-time-dashboard`／`s-wip-dashboard`／`s-throughput-cfd-dashboard`／`s-duedate-reminder` 沒有任何畫面導向它，也不是模組入口），已在 D-18 歸類到 OQ-34（進入路徑不預設，待人工決定）；其餘 `DS-06` warn 全部屬於 F01／F02／F04／F05／F07 尚未觸發的 uc，與本檔無關，不在本任務範圍。確認不需要修改 `ui-kanban-widgets.md` 內容。
+- 任務清單：T3.06 標 `done`。
+
+### Check
+- `./scripts/ui-check .dev/F03-kanban-widgets/ui-kanban-widgets.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`0 error(s), 42 warning(s)`；本檔 4 筆 `DS-07` warn 已於 D-18 歸類到 OQ-34。
+- `tools error-count .dev/F03-kanban-widgets/ui-kanban-widgets.md`：0。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：「逐字引用驗證通過」。
+- 驗收條件核對：`ui-check(.dev/F03-kanban-widgets/ui-kanban-widgets.md)=0` ✓。
+
+### Act
+完成：T3.06（F03 全部收尾）。下一個任務：T4.01（[F04] 建立 `ui-board-clock.md`：檔頭 ＋ 1 個畫面標題骨架 `s-board-clock-control`）。

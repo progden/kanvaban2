@@ -58,7 +58,7 @@
 | T3.03 | done | [F03] 定案 `s-wip-dashboard`（類型：儀表板）：對應 `uc-view-wip`／`uc-view-aging-wip` | 同上 | T3.02 |
 | T3.04 | done | [F03] 定案 `s-throughput-cfd-dashboard`（類型：儀表板）：對應 `uc-view-throughput`／`uc-view-cfd`；兩個資料區塊（Throughput 圖、CFD 圖）在同一個 Screen ID 內用「資料」段分開說明，不拆兩個畫面 | 同上 | T3.03 |
 | T3.05 | done | [F03] 定案 `s-duedate-reminder`（類型：列表）：對應 `uc-view-duedate-reminder` | 同上 | T3.04 |
-| T3.06 | todo | [F03] 收尾：`ui-check .dev/F03-kanban-widgets/ui-kanban-widgets.md` 0 error；過一遍 `DS-06`／`DS-07` warn | `ui-check(.dev/F03-kanban-widgets/ui-kanban-widgets.md)=0` | T3.05 |
+| T3.06 | done | [F03] 收尾：`ui-check .dev/F03-kanban-widgets/ui-kanban-widgets.md` 0 error；過一遍 `DS-06`／`DS-07` warn | `ui-check(.dev/F03-kanban-widgets/ui-kanban-widgets.md)=0` | T3.05 |
 
 ## 階段 4：F04 board-clock（`.dev/F04-board-clock/spec-board-clock.md` → `ui-board-clock.md`）
 
