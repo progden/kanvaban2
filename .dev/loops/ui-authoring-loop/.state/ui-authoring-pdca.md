@@ -383,3 +383,19 @@ T1.10 改回 `todo`，是下一個 actionable 任務；本次介入只修工具�
 
 ### Act
 T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md` 檔頭與 9 個畫面標題骨架）。
+
+## Iteration 19 — 2026-09-17 — T2.01
+### Plan
+本輪任務：T2.01（[F02] 建立 `ui-user-membership.md`：檔頭 ＋ 9 個畫面標題骨架）；要改的檔案：新建 `.dev/F02-user-membership/ui-user-membership.md`（檔頭 ＋ `s-signup`、`s-login`、`s-board-list`、`s-board-create-dialog`、`s-member-management`、`s-board-delete-dialog`、`s-card-assignee-picker`、`s-cards-by-assignee`、`s-activity-log` 九個畫面標題與三行標頭，八段內容留空，狀態皆「未討論」）；驗收條件：9 個 `## s-` 標題與三行標頭都存在，`ui-check` 對 `DS-01` 不報 error；預期 error 數：DS-01 為 0，其餘段落缺漏的 error（`DS-02`／`DS-04`）屬預期，本輪不處理。
+
+### Do
+- 讀 `spec-user-membership.md` 七個 Feature（建立使用者帳號、使用者登入與登出、Board 建立與成員邀請、Board 權限管理、Board 存取權限、卡片負責人指派、檢視看板活動紀錄）與各自 `uc-` 清單，依任務指定的 9 個 Screen ID 逐一對應 Feature：`s-signup`→建立使用者帳號、`s-login`→使用者登入與登出、`s-board-list`→Board 存取權限（`uc-view-board-list`）、`s-board-create-dialog`／`s-member-management`→Board 建立與成員邀請（`uc-create-board`／`uc-invite-member`／`uc-change-member-role`／`uc-remove-member`）、`s-board-delete-dialog`→Board 權限管理（`uc-delete-board`）、`s-card-assignee-picker`／`s-cards-by-assignee`→卡片負責人指派、`s-activity-log`→檢視看板活動紀錄。
+- 類型依 `ui-convention.md`／`parser_design.py` 七種固定值（列表、詳情、表單、儀表板、流程、對話框、設定）指派：`s-signup`／`s-login`＝表單、`s-board-list`／`s-member-management`／`s-cards-by-assignee`／`s-activity-log`＝列表、`s-board-create-dialog`／`s-board-delete-dialog`／`s-card-assignee-picker`＝對話框。低風險命名／分類決定，未寫 OQ。
+- commit `badd5ba` 同模式：只建檔頭與畫面標題三行，八段內容留空標題。
+- Commit：`e...`（`[spec/design](ui-user-membership) 建立檔頭與 9 個畫面標題骨架`）。
+
+### Check
+`./scripts/ui-check .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：117 error(s), 47 warning(s)（八段內容未填屬預期，其中 F04／F05／F07 warn 與本輪無關）；篩選 `DS-01`：0 筆，符合骨架任務判準。`tools accept-check T2.01`：無機械 token（同 T1.01），改肉眼核對，達成。本輪未新增 OQ 或『』引用，未跑 `verify-quotes.py`。
+
+### Act
+完成：下一個任務 T2.02（[F02] 定案 `s-signup`，類型：表單，對應 `uc-create-user`）。
