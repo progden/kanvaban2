@@ -31,7 +31,7 @@
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
 |---|---|---|---|---|
-| 調整看板時間 | `uc-adjust-board-clock` | 依 `uc-adjust-board-clock` post：看板時間顯示更新為調整後的時間 | 依 `uc-adjust-board-clock` p1：保留對話框與已輸入的目標時間，顯示訊息；`uc-guard-clock-monotonicity` 為共同前置條件，其 p1 是調整後、於本 Board 建立新事件時才會發生的下游限制，非本操作的即時失敗，不獨立成一列 | 否 |
+| 調整看板時間 | `uc-adjust-board-clock` | 依 `uc-adjust-board-clock` post：看板時間顯示更新為調整後的時間 | 依 `uc-adjust-board-clock` p1：保留對話框與已輸入的目標時間，顯示訊息；`uc-guard-clock-monotonicity` 屬於建立新事件時的限制，不是本操作的失敗，不獨立成一列 | 否 |
 | 暫停看板時間 | `uc-pause-resume-board-clock` | 依 `uc-pause-resume-board-clock` post：看板時間狀態顯示為 PAUSED | 不適用（`uc-pause-resume-board-clock` fail 為空） | 否 |
 | 恢復看板時間 | `uc-pause-resume-board-clock` | 依 `uc-pause-resume-board-clock` post：看板時間狀態顯示為 REALTIME | 不適用（`uc-pause-resume-board-clock` fail 為空） | 否 |
 | 關閉 | — | 關閉對話框 | — | 否 |
@@ -46,7 +46,7 @@
 ### 驗收條件
 - 開啟時顯示看板時間目前值與狀態（REALTIME／PAUSED）
 - 調整看板時間後，畫面顯示更新為調整後的時間，且觸發 `uc-adjust-board-clock`
-- 非 Owner 嘗試調整時，畫面顯示訊息且看板時間顯示維持不變，依 `uc-adjust-board-clock` p1
+- `uc-adjust-board-clock` 回傳 p1 時，畫面顯示訊息，且看板時間顯示不變（⚠️ 見 OQ-37）
 - 暫停看板時間後，畫面顯示狀態為 PAUSED，且觸發 `uc-pause-resume-board-clock`
 - 恢復看板時間後，畫面顯示狀態為 REALTIME，且觸發 `uc-pause-resume-board-clock`
 
