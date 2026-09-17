@@ -238,3 +238,37 @@
 
 ### 關卡摘要
 下一個任務是 T3.01，不是關卡，這次不需要填。
+
+## Review — 2026-09-17 23:55 — 14ab3ca
+### 範圍
+- commit 區間：`7bc5847`（上次審查）..`14ab3ca`，共 8 個 commit
+- 任務：D-14、D-15、D-16、T3.01（都已標 `done`）；`actionable` 下一個是 T3.02，不是關卡
+- runtime/last-verify.md：**FAIL**，有 1 項：`[9] D-15：ui-check(all) 應為 0，實際 52`。沒有警告
+- 期間新增的 OQ：OQ-30
+- 目前 `ui-check`（全部 ui 檔，帶 `--spec`）：52 error、23 warning，52 個 error 都在 F03 骨架（DS-02／DS-04）；`verify-quotes.py` 回傳 0
+
+### 發現
+1. **高**（不開 D，需人工事後處理）：last-verify FAIL [9] 不是 D-15 的內容退步，而是 D-15 的驗收條件寫了 `ui-check(all)=0`，T3.01 依規定建立 F03 骨架後，骨架階段本來就會有 DS-02／DS-04 error，所以 `all` 變成 52。F01、F02 的 error 數仍然都是 0，D-15 的實質修正（OQ-30 加上 `s-card-add-dialog` 的 ⚠️）還在。這個 FAIL 在 T3.02～T3.05 把 F03 四個畫面填完之前都會持續出現，執行輪收到「先修正失敗項目」時沒有合規的修法：審查輪不能改 D-15，執行輪也不應該為了讓 FAIL 消失而改已完成任務的驗收條件，或一次趕填 F03。這個判準是上次審查（D-15 由上次審查開立）寫得不夠精確造成的，責任在審查端。建議人工把 D-15 的 `ui-check(all)=0` 改成 `ui-check(.dev/F01-basic-kanban/ui-kanban-basic.md)=0` 和 `ui-check(.dev/F02-user-membership/ui-user-membership.md)=0`；或讓 `accept-check --done` 對 `all` 排除仍在骨架階段的檔案。在人工處理之前，執行輪應該照順序做 T3.02，並在 PDCA 註明這個 FAIL 是骨架階段的預期結果。之後開 D-xx 時，驗收條件不要再用 `ui-check(all)`。
+2. **低**（不開 D）：Iteration 40（D-15）的 Check 寫「`0 error(s), 5 warning(s)`」，但前後兩輪（Iteration 39、41）用同樣範圍跑出來的是 19 個 warning，數字對不上，推測這輪沒有帶全部 ui 檔或 `--spec`。error 數都是 0，不影響結論。PDCA 不能回頭修改，這裡只做記錄。
+3. **低**（不開 D）：OQ-30 標的是【引用原文】，但描述 F01 `uc-add-card` 的部分自己註明「不逐字引用，僅描述既有定義」。我已對照 spec 確認內容正確（`roles: [r-user]`、`crud: {board: R, card: C}`），不過同一列混用引用原文和轉述，不符合四種寫法擇一的精神。原因是 `verify-quotes.py` 的 `spec_for_line` 一行只能對應一份 spec（Iteration 40 有記錄），屬於工具限制。另外，`[Level: kanban-basic/...]` 和「模組」欄的 user-membership 不一致。
+4. **低**（不開 D）：OQ-30 選項 2（新增 `r-board-member` 角色列，另拆一列操作觸發 `uc-member-add-card`）在 DS-05 下其實可行，Iteration 40 試過的是「同一列掛兩個 uc」，不是選項 2。採用選項 3「維持 ⚠️ 等人工決定」仍然誠實，因為兩個 uc 是不是同一個動作，spec 確實看不出來。不過 `s-card-add-dialog`「待確認事項」寫的「無法同列同時觸發」只說明了失敗的做法，人工決定時要知道選項 2 可行。另外，這段待確認事項用工具規則（「ui-check」的 DS-05）當理由，ui 檔內容混入工具機制，建議人工處理 OQ-30 時一併改寫。
+5. **低**（不開 D）：PDCA 的時間又不連續：Iteration 42（T3.01）記錄 20:35，前一則 Iteration 41 是 23:40。只做記錄。
+
+有檢查、沒發現偏差的面向：
+- 不定義新概念：D-14 只新增導覽引用（`s-cards-by-assignee` 在 F02 真實存在）；F03 骨架的四個「所屬 Feature」和 `spec-kanban-widgets.md` 的四個 `## Feature:` 標題（第 60、122、182、241 行）逐字相符；T3.02～T3.05 會用到的六個 uc 都存在於 spec。
+- 不寫業務結果：D-16 已經刪掉「卡片縮圖同步顯示」和掛錯 post 的歸因；`s-card-detail`「關閉」的「回到 `s-board` 時，看板交會格內容更新」是畫面呈現。
+- 不寫排版視覺：沒有新增顏色、間距或元件選型。
+- 狀態誠實性：`s-card-add-dialog` 已改回「討論中」，兩處 ⚠️ 都對應 OQ-30；`s-card-detail`、`s-card-assignee-picker` 維持「已定案」，範圍內沒有 ⚠️；F03 四個畫面都是「未討論」。
+- 需確認判斷：這次沒有改動「需確認？」欄。
+- OQ 品質：OQ-30 有 `[Level:]`，沒有說服性字眼，「採用」是維持現狀並標 ⚠️（其餘見第 3、4 點）。
+- 逐字引用：`verify-quotes.py` 回傳 0。
+- 跨模組一致：`s-card-detail` 和 `s-cards-by-assignee` 的雙向導覽已經對上，上次審查第 1 點解除；沒有重複定義的畫面。
+- 任務完成度：D-14（段落含 `s-cards-by-assignee`）、D-16（「空資料」行已經不含「`uc-view-card-assignees` post」、「儲存變更」列已經不含「卡片縮圖同步顯示」）、D-15（走 (b) 分支：OQ-30 加上 ⚠️）的實質條件都已達成，只有 `ui-check(all)` 受 F03 骨架影響，見第 1 點；T3.01 的四個標題和三行標頭都存在，而且沒有 DS-01 error。
+
+需人工事後處理：
+- 第 1 點：修正 D-15 的 `ui-check(all)` 判準，或調整 `accept-check --done` 對骨架檔的處理。
+- OQ-30：決定 `uc-add-card` 和 `uc-member-add-card` 的關係（開 CR 改 roles，或拆成兩列操作）。
+- 先前遺留：「中途放棄」段是否允許寫「X 不變」、新增類操作的需確認判準要統一、commit `67e4907` 缺少 scope。
+
+### 關卡摘要
+下一個任務是 T3.02，不是關卡，這次不需要填。
