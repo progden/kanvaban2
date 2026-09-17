@@ -1174,3 +1174,25 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：修正上一輪失敗項目（D-15 的 `ui-check(all)=0`）＋ T5.02。下一個任務：T5.03（[F05] 收尾：`ui-check .dev/F05-workload/ui-workload.md` 0 error，目前已是 0 error，本輪未做，留給下一輪跑收尾流程並提交）。
+
+## Iteration 58 — 2026-09-17 23:30 — D-22
+### Plan
+本輪任務：D-22——修正 `s-workload-dashboard`「驗收條件」段與操作表「成功後」欄違規（`ui-convention.md`「斷言主詞只能是畫面元素或是否觸發 uc-xxx，不寫領域狀態」）；要改的檔案：`.dev/F05-workload/ui-workload.md` 的「操作」表「拖曳成員頭像到卡片追加負責人」列與「驗收條件」段；驗收條件：`s-workload-dashboard`「驗收條件」段不含「不計入」「每位負責人」「不重複新增」字樣，含「負責人清單」的行若無「OQ-42」不得含「更新」，`ui-check(.dev/F05-workload/ui-workload.md)=0`，`verify-quotes.py` 回傳 0；預期 error 數不變（原本就是 0）。
+
+### Do
+- 讀 D-22 任務描述與 `.dev/conventions/ui-convention.md` 驗收條件斷言主詞規則，確認要刪 3 行領域規則、改寫 2 處（操作表「成功後」欄、驗收條件段拖曳那行）。
+- 操作表「拖曳成員頭像到卡片追加負責人」列「成功後」欄，由「卡片負責人清單更新，包含追加的成員；若該成員已是負責人，畫面不變」（領域規則＋預設畫面顯示卡片清單，與 OQ-42 未定衝突）改為「觸發 `uc-drag-assign-card-owner`（⚠️ 見 OQ-42）」。
+- 驗收條件段：刪除「同時有多位負責人的卡片，每位負責人的工作量都包含該卡片」「所在 Stage 角色為 Done 的卡片不計入任何負責人的工作量」「拖曳已經是負責人的成員頭像到卡片後，負責人清單不重複新增，仍觸發 `uc-drag-assign-card-owner`」三行（皆為 uc post 領域規則照抄）；「各成員顯示其擔任負責人的 Active Card 數量作為工作量」改寫為「成員工作量數字顯示 `uc-view-workload` 回傳的值」（以畫面元素＋uc 回傳值為主詞）；「拖曳成員頭像到卡片後，該卡片負責人清單更新，且觸發 `uc-drag-assign-card-owner`」改為「拖曳成員頭像到卡片後，觸發 `uc-drag-assign-card-owner`（⚠️ 見 OQ-42）」，移除預設畫面顯示負責人清單的斷言。
+- 未動操作表的觸發欄、需確認欄，未動 OQ 檔，畫面狀態維持「討論中」。
+- commit `55df777`：`[spec/design](ui-workload) 修正驗收條件段落主詞違規`。
+- 任務清單：D-22 狀態由 `todo` 改為 `done`。
+
+### Check
+- `./scripts/ui-check .dev/F05-workload/ui-workload.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`0 error(s), 38 warning(s)`（warning 集合與上一輪相同，皆為既有跨模組 DS-06／DS-07，非本輪新增）。
+- `grep -n "不計入\|每位負責人\|不重複新增"`：僅剩「資料」段「成員工作量」列一處（非「驗收條件」段，D-22 驗收條件未限制該段），符合要求。
+- 「驗收條件」段已無「負責人清單」字樣；操作表「拖曳成員頭像到卡片追加負責人」列同時含「OQ-42」與不含「更新」，符合「若沒有同時含 OQ-42 就不能含更新」規則。
+- `tools accept-check ui-authoring-tasks.md D-22`：無輸出、exit code 0，機械驗收條件達成。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：「逐字引用驗證通過」，exit code 0。
+
+### Act
+完成：D-22。下一個任務：T5.03（[F05] 收尾：`ui-check .dev/F05-workload/ui-workload.md` 0 error，目前已是 0 error，僅需跑一次確認並收尾）。
