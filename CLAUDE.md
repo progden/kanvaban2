@@ -40,13 +40,13 @@ python3 -m unittest discover -s scripts/tests   # 腳本的測試
 | F04 | board-clock | 每個 Board 自己的時鐘，所有 Board/Card 事件時間取自 Board Clock（CR-004） |
 | F05 | workload | 依 Active Card 的負責人統計工作量 |
 | F06 | feature-cr-board | 用看板追蹤 Feature／CR 卡的開發狀態 |
-| F07 | canvas-layout | 看板版面容器化（Canvas／Container），可調整位置與大小；草稿，尚未與 F01 看板顯示、F03 圖表元件整合 |
+| F07 | canvas-layout | 每個 Board 一個 Canvas，上面的 Item（元件放置）可移動／調整大小／排層序／批次操作，Viewport 記錄每位使用者的平移縮放；草稿，尚未與 F01 看板顯示、F03 圖表元件整合 |
 
 跨模組的關鍵關係（需讀多份文件才看得出來）：
 
 - F01 已上線，F02～F05 的需求回頭改動 F01 行為時都透過 CR 處理（CR-001 操作人記錄、CR-002 負責人多選、CR-003 Stage 角色 Start/Done、CR-004 事件時間改用 Board Clock）。
 - Stage 角色（CR-003）是 F03 計算 Cycle/Lead Time、F05 判斷卡片是否完成、F06 判斷 Feature／CR 狀態的共同基礎。
-- F07（Canvas／Container）目前是獨立草稿，尚未接上 F01 的看板顯示或 F02 的看板建立流程，也還沒定義 F03 圖表元件如何成為 Container；整合時機與方式待後續 CR 決定，見 `spec-canvas-layout.md`「待釐清」。
+- F07（Canvas／Item／Viewport）每個 Board 對應一個 Canvas（`canvas.board` 參照 F01 的 `board`），但目前是獨立草稿，尚未接上 F01 的看板顯示或 F02 的看板建立流程，也還沒定義 F03 圖表元件如何成為 Item；整合時機與方式待後續 CR 決定，見 `spec-canvas-layout.md`「待釐清」。
 - Board Clock（F04）是 F03 `asOf`、Aging、逾期判斷的時間基準；User／BoardMembership 事件仍用系統時間。
 
 改功能編號時，要同步更新目錄名、文件內文字與相對路徑引用；範例資料中的標籤（例如 F06 規格裡的 `"F01"`、`"F02"`）不是功能引用，不要跟著改。
