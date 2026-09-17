@@ -1461,3 +1461,24 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：D-25 完成。下一個任務：D-26（`actionable` 第二項，早於 G1）。
+
+## Iteration 71 — 2026-09-17 16:00 — D-26
+
+### Plan
+本輪任務：D-26——判斷並修正 `ui-user-membership.md` `s-board-list` 畫面狀態。逐段檢視八段內容是否完整、有無未決事項；預期若八段皆完整則改「狀態」為「已定案」（選項 a），否則補 ⚠️ 與 OQ 引用（選項 b）。預期 error 數不變（維持 0）。
+
+### Do
+逐段核對 `s-board-list`：目的、進入與離開（已依 OQ-18 決定改為導向 F07 `s-canvas`，跨模組導覽已標明）、角色與權限、資料、操作、狀態（五項皆有值或標「不適用」，均有依據）、驗收條件、待確認事項（無 ⚠️）——八段皆完整、無未決事項，判斷屬選項 (a)。導向的 `s-canvas` 本身狀態「討論中」不影響本畫面內容，因為 OQ-17／OQ-18 已明確決定此畫面完成後導向 `s-canvas`，屬於既有已決事項的結果，不是本畫面未決。
+- commit 1：`[spec/design](ui-user-membership) 修正 s-board-list 畫面狀態誠實性` — 把「狀態」從「討論中」改為「已定案」
+- commit 2（本則，隨後）：任務清單標 D-26 done、state 覆寫、PDCA 追加
+
+### Check
+- `./scripts/ui-check .dev/F02-user-membership/ui-user-membership.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：18 error(s)（皆為既有、與本畫面無關的 `s-card-detail` 未定義等問題，行號落在 `s-cards-by-assignee`／`s-activity-log`，非本輪改動範圍）
+- `tools error-count .dev/F02-user-membership/ui-user-membership.md`：0（此工具內建正確的 `--spec` 邏輯與模組範圍判斷，為權威結果）
+- `./scripts/ui-check`（全部）：0 error(s), 12 warning(s)，與上一輪一致
+- `tools accept-check ui-authoring-tasks.md D-26`：exit 0，通過
+- `python3 verify-quotes.py`：通過（本輪未新增引用）
+- 逐條對照驗收條件：「狀態：已定案」且整份畫面段落不含「⚠️」→ 達成；`ui-check(F02)=0`（依 tools 判定）→ 達成；`ui-check(all)=0`→ 達成；`verify-quotes.py`=0 → 達成
+
+### Act
+完成：D-26。下一個任務：G1（跨模組收尾自我審查關卡，`actionable` 排序上下一個；手動模式下由執行輪自己完成審查並直接標 done，不需要 `runtime/gates/G1.approved`）。
