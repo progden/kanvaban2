@@ -81,7 +81,7 @@
 | ID | 狀態 | 任務 | 驗收條件 | 依賴 |
 |----|------|------|----------|------|
 | T6.01 | done | [F06] 建立 `ui-feature-cr-board.md`：檔頭 ＋ 1 個畫面標題骨架（`s-feature-cr-board`） | 同 T1.01 模式 | T5.03 |
-| T6.02 | todo | [F06] 定案 `s-feature-cr-board`（類型：儀表板／列表）：對應 `uc-view-feature-cr-board` | 同 T1.02 模式 | T6.01 |
+| T6.02 | done | [F06] 定案 `s-feature-cr-board`（類型：儀表板／列表）：對應 `uc-view-feature-cr-board` | 同 T1.02 模式 | T6.01 |
 | T6.03 | todo | [F06] 收尾：`ui-check .dev/F06-feature-cr-board/ui-feature-cr-board.md` 0 error | `ui-check(.dev/F06-feature-cr-board/ui-feature-cr-board.md)=0` | T6.02 |
 
 ## 階段 7：F07 canvas-layout（`.dev/F07-canvas-layout/spec-canvas-layout.md` → `ui-canvas-layout.md`）

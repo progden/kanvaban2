@@ -1231,3 +1231,26 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T6.01。下一個任務：T6.02（[F06] 定案 `s-feature-cr-board`（類型：儀表板／列表）：對應 `uc-view-feature-cr-board`，同 T1.02 模式）。
+
+## Iteration 61 — 2026-09-17 — T6.02（修正上一輪驗證 FAIL）
+### Plan
+上一輪外部驗證 FAIL：`last-verify.md` 指出已完成任務 D-15 的驗收條件「`ui-check(all)=0`」不成立，實際為 13（因 T6.01 建立的 F06 骨架缺八段內容）；依規則書「先修正失敗項目，再繼續 state 記載的同一個任務」，本輪定案 `s-feature-cr-board` 八段內容（`actionable` 下一個任務即 T6.02，同 T5.01→T5.02 修正 D-15 的既有模式），一併解決 D-15 全域驗收破功。要改檔案：`.dev/F06-feature-cr-board/ui-feature-cr-board.md`（八段內容）、`ui-authoring-open-questions.md`（追加 OQ）；驗收條件：`ui-check(.dev/F06-feature-cr-board/ui-feature-cr-board.md)` 對本畫面無 error、八段齊全；預期 error 數變化：本檔 13 → 0，全域 13 → 0。
+
+### Do
+- 讀 `spec-feature-cr-board.md`：唯一 usecase `uc-view-feature-cr-board`（唯讀 `board`／`card`，`roles: [r-user]`），名詞定義三張表（實體／欄位／關係）皆為空，資料完全來自「其他名詞」表（Feature 卡／CR 卡／affects 標籤／狀態／orphan CR）與既有 `card.labels`／`stage.role` 欄位。
+- 填入八段內容：「目的」改寫自 Feature 敘述；「進入與離開」比照 OQ-31／OQ-41 同類缺口標 ⚠️（Background 未描述進入路徑）；「角色與權限」僅 `r-user` 一種、無角色差異；「資料」七列，來源分別引用「其他名詞」表項目與 `card.labels`／`stage.role`，Feature／CR 狀態顯示文字（未開發／開發中／已完成）直接引用「其他名詞」表「狀態」定義，不需額外 OQ（post p1 雖只寫 Done／Start，但「其他名詞」表已完整定義 NONE／START／DONE 三者對應文字）；「操作」僅 1 列（`uc-view-feature-cr-board`，無 fail）；「狀態」五項齊全；「驗收條件」5 條；「待確認事項」1 項 ⚠️ 指向新增的 OQ-43。
+- 新增 OQ-43（[Level: feature-cr-board/s-feature-cr-board]，【引用原文】進入路徑缺口，比照 OQ-31／OQ-41 同類問題採用「進入路徑不預設」）。
+- 查重：掃過既有 OQ 與各 ui 檔「待確認事項」，無重複的 uc／Screen 紀錄。
+- 畫面狀態維持「討論中」（進入路徑為高風險缺口，未定案）。
+- commit `[spec/design](feature-cr-board) 定案 s-feature-cr-board 八段內容`。
+- 任務清單：T6.02 狀態由 `todo` 改為 `done`。
+
+### Check
+- `./scripts/ui-check .dev/F06-feature-cr-board/ui-feature-cr-board.md --spec ".dev/F[0-9][0-9]-*/spec-*.md"`：`0 error(s), 39 warning(s)`（本檔僅剩 DS-07 warning，即 OQ-43 對應的入口缺口，其餘 warning 皆為其他模組既有 DS-06）。
+- `./scripts/ui-check`（全部 ui 檔）：`0 error(s), 13 warning(s)`，D-15「`ui-check(all)=0`」恢復成立。
+- `python3 .dev/loops/ui-authoring-loop/scripts/verify-quotes.py`：「逐字引用驗證通過」，exit code 0。
+- `tools accept-check ui-authoring-tasks.md T6.02`：exit code 0，驗收條件（本畫面無 error、八段齊全）達成。
+- `tools accept-check ui-authoring-tasks.md D-15`：exit code 0，全域驗收恢復。
+
+### Act
+完成：T6.02，同時修正上一輪 D-15 驗證 FAIL。下一個任務：T6.03（[F06] 收尾：`ui-check .dev/F06-feature-cr-board/ui-feature-cr-board.md` 0 error，目前已是 0 error，僅需重跑一次確認並收尾）。
