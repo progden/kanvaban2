@@ -133,3 +133,38 @@
 
 ### 關卡摘要
 下一個任務是 T2.04，不是關卡，這次不需要填。
+
+## Review — 2026-09-17 19:45 — a78d5af
+### 範圍
+- commit 區間：`106b812`（上次審查）..`a78d5af`，共 24 個 commit
+- 任務：D-06、D-07、D-08、T2.04、D-10（`doing`）、T2.05、T2.06、T2.07；`actionable` 下一個是 D-10（`doing`），之後是 T2.08，都不是關卡
+- 人工 commit（依人工討論進行）：`ea76a2f`（F01 spec 補 `comment` 實體）、`7e0a0a0`（F02 spec 補 `board.name`、修正角色筆誤）、`e7f6ee8`／`e845de5`（依討論結果更新 ui 檔）、`fa9d93a`／`754bcc1`（工具修正）、`b66d256`（解決多個 OQ）。spec 的修改都有寫進變更紀錄，本次不審查 spec 本身
+- runtime/last-verify.md：PASS，沒有警告；`error-count(all)` 從 52 降到 39，剩下的 error 全部來自還沒動工的 `s-card-assignee-picker`、`s-cards-by-assignee`、`s-activity-log` 骨架
+- 期間新增的 OQ：OQ-14～OQ-26
+
+### 發現
+1. **中**：`s-member-management`（討論中）的操作表「成功後」「失敗時」重述了業務結果，包括「成員數增加 1」、「這些 `card` 的負責人欄位移除該成員」、「不建立新的 `board-membership`」、「`board-membership` 角色不變」，驗收條件也有「角色不變」。資料表「邀請對象帳號」的驗證寫「須為系統中已存在帳號」，但 `uc-invite-member` pre 只有 p1、p2，spec 沒有這條限制，卻沒有標 ⚠️。「移除成員」的需確認欄說「待確認事項提醒需要一則確認提示」，但待確認事項段落裡沒有這一條。→ **D-11**
+2. **中**：`s-board-delete-dialog` 的「成功後」、「完成後去哪裡」、驗收條件都寫了「不再存在」，「中途放棄」和驗收條件寫了「Board 與其資料不變」。`s-board-create-dialog`（**已定案**）的「成功後」和驗收條件寫了「操作者對該 Board 角色為 Owner」。`s-board-list` 的「無權限」和驗收條件寫了「操作者仍無法存取該 Board」。這些都是 post 的領域結果。這是同一類錯誤第六次出現（D-02／D-04／D-05／D-07／D-08），執行輪還沒把這條規則內化。→ **D-12**
+3. **低**：`s-board-list` 待確認事項的第一條 ⚠️ 自己寫著 OQ-16「已由人工修正…解除」，但仍然標 ⚠️，狀態不誠實。→ 併入 **D-12**
+4. **低**：`s-signup`／`s-login` 的 D-10 內容已經完成，沒有 ⚠️，待確認事項也是「（無）」，但狀態還是「討論中」。→ **D-13**
+5. **低**（不開 D）：D-10 的驗收條件 `ui-check(F02)=0` 實際上要等 T2.08～T2.10 完成才能達成，但它的依賴欄是「—」、狀態是 `doing`，所以 `actionable` 每一輪都會先回傳 D-10。Iteration 28 之後，執行輪都是自己判斷跳過它。這不是執行輪的錯，但每一輪都會浪費判斷，也可能被誤當成卡住。**需人工事後處理**：把 D-10 改成 `done`，或把依賴改成 T2.10（D 列只有人工能改）。
+6. **低**（不開 D）：PDCA 的 error 數口徑不一致。Iteration 29 寫「ui-check 52（原 65）」和「error-count 52」，Iteration 30 寫「ui-check 52 → 52」和「error-count 39（原 52）」。實際上，單檔 `ui-check` 包含 13 筆跨模組 `s-board`／`s-swimlane-list`／`s-stage-list` 的 REF-07，`error-count` 則會帶入全部 ui 檔，所以不包含這 13 筆。Iteration 30 的「52 → 52」看起來像填完八段卻沒有減少 error，容易誤讀。PDCA 不可回改，這裡只做記錄。
+7. **低**（不開 D）：`s-board-delete-dialog` 顯示 Swimlane 數、Stage 數、卡片數，spec 的 Scenario 只在 Given 裡提到數量，沒有要求要顯示。不過 `ui-convention.md` 允許寫衍生計數，而且和 F01 `s-swimlane-delete-dialog` 的做法一致，所以不算發明新概念。「空資料：不適用」依據的是 F01 關係表中 `board`→`swimlane`／`stage` 的 min=1，已核對正確。
+
+有檢查、沒發現偏差的面向：
+- 不定義新概念：`board.name`（人工補進 spec 第 31 行）、`board-membership.role`、`user.username`、`user.display-name`，以及 `uc-create-board`、`uc-invite-member`、`uc-change-member-role`、`uc-remove-member`、`uc-reject-invite-by-member`、`uc-reject-role-change-by-member`、`uc-delete-board`、`uc-view-board-list`、`uc-reject-board-access-by-nonmember`，都存在於 F02 spec。「邀請對象帳號」的例外見第 1 點。
+- 不寫排版視覺：沒有顏色、間距、元件選型。
+- 狀態誠實性：`s-member-management`、`s-board-delete-dialog` 的 ⚠️ 都對應到 OQ-22～OQ-26；`s-board-create-dialog` 標「已定案」，八段齊全、沒有 ⚠️（寫法問題見第 2 點）；F01 `s-stage-delete-dialog` 改成已定案，是人工依 OQ-03 決議處理的。
+- 需確認判斷：`uc-delete-board` 刪除後無法復原，標「是」正確。`uc-create-board` 可以用 `uc-delete-board` 復原，標「否」合理。`uc-change-member-role` 的 post 沒有定義降級，標 ⚠️（OQ-24）是誠實的處理。
+- 角色一致（DS-05）：`uc-create-board`／`uc-delete-board` 的角色是 `r-board-owner`，兩個拒絕 uc 的角色是 `r-board-member`，和各畫面的角色表一致。
+- OQ 品質：OQ-22～OQ-26 都用【推論】或【引用原文】，都有 `[Level:]`，沒有說服性字眼；OQ-17～OQ-21 標明是人工決策，而且寫明推翻了哪些 OQ。
+- 逐字引用：`verify-quotes.py` 回傳 0。
+- 跨模組一致：`s-board`、`s-swimlane-list`、`s-stage-list` 都存在於 F01。帶入全部 ui 檔後，這 13 筆 REF-07 會消失。沒有重複定義的畫面。
+- 任務完成度：D-06（沒有 REF-07）、D-07（禁用字串都已移除）、D-08（「卡片不變」已移除，F01 為 0 error）都已核對，確實達成。T2.05～T2.07 的八段都齊全，error 也都落在尚未動工的畫面。D-10 的內容驗收都達成，只剩整檔歸零這一項（見第 5 點）。
+
+需人工事後處理：
+- 第 5 點：D-10 的依賴或狀態需要人工調整。
+- 上次審查第 4 點（新增類操作的需確認判準要統一）仍然沒有處理。
+
+### 關卡摘要
+下一個任務是 D-10（`doing`），之後是 T2.08，不是關卡，這次不需要填。
