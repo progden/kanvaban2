@@ -941,3 +941,24 @@ T1.10 標 `done`。下一個任務：T2.01（[F02] 建立 `ui-user-membership.md
 
 ### Act
 完成：T3.05。下一個任務：T3.06（[F03] 收尾：`ui-check .dev/F03-kanban-widgets/ui-kanban-widgets.md` 0 error；過一遍 DS-06／DS-07 warn）。
+
+## Iteration 47 — 2026-09-17 23:55 — D-17
+### Plan
+`actionable` 第一個任務為 D-17（`todo`，`D-xx` 優先於表格順序）：修正 `ui-kanban-widgets.md` 三處沒有 OQ 對應或超出 spec 的寫法。要改的檔案：`.dev/F03-kanban-widgets/ui-kanban-widgets.md`（`s-cycle-lead-time-dashboard` 資料表「統計摘要」列、待確認事項、驗收條件第 3 行；`s-wip-dashboard`「空資料」）、`ui-authoring-open-questions.md`（新增 OQ-33）、`ui-authoring-tasks.md`（D-17 標 done）。驗收條件見任務描述：OQ 新增一列含「百分位」與新編號並帶 `[Level: kanban-widgets/s-cycle-lead-time-dashboard]`；`s-cycle-lead-time-dashboard` 每個 ⚠️ 都含「OQ-」；「統計摘要」列不含「Lead Time／Cycle Time 的統計計算，排除」；`s-wip-dashboard`「空資料」不含「某 Stage 目前卡片數為 0」；`verify-quotes.py` 回傳 0；`ui-check(該檔)=0`。預期 error 數：`tools error-count` 維持 0（僅措辭調整，不動格式結構）。
+
+### Do
+- 讀 `spec-kanban-widgets.md`「Feature: Cycle Time 與 Lead Time 分析」`uc-view-cycle-lead-time` post p2 逐字原文，確認百分位數確實未指定；並確認 Scenario「沒有經過 Start 就完成的卡片，Cycle Time 不計入統計」只提到「統計摘要的 Cycle Time 平均值與百分位計算」排除，未提及 Lead Time。
+- 新增 OQ-33（【引用原文】＋【推論】合併記錄）：引用 post p2 百分位敘述，並記錄 post p2「統計摘要」措辭未區分 Lead/Cycle、但 Scenario 只驗證 Cycle Time 排除的落差；採用「來源」欄僅描述 Cycle Time 排除、「驗證／格式」欄標 ⚠️ 待確認百分位數。
+- `s-cycle-lead-time-dashboard`：「統計摘要」列「來源」改為「衍生：卡片清單 Cycle Time 統計排除 Cycle Time 為「無」的卡片；Lead Time 統計是否比照排除，spec 未定義，見 OQ-33」，「驗證／格式」改為「⚠️ 待確認：具體百分位數（例如 P50／P85）spec 未定義，見 OQ-33」；驗收條件第 3 行改為「統計摘要的 Cycle Time 平均值與百分位計算排除 Cycle Time 顯示為「無」的卡片」；待確認事項第 2 行改為指向 OQ-33 並補上 Lead Time 落差說明。
+- `s-wip-dashboard`：「空資料」改為「看板沒有任何卡片時，WIP 圖表顯示為空；沒有已進入 Start、尚未進入 Done 的卡片時，Aging WIP 清單顯示為空」，移除「某 Stage 卡片數為 0」這個與 `uc-view-wip` post p1（依 Stage 分組顯示數量，含 0）矛盾的條件。
+- Commit `229ffd5`（`[spec/design](ui-kanban-widgets) 修正統計摘要與空資料缺 OQ 對應的寫法`）。
+- 任務清單：D-17 標 `done`。
+
+### Check
+- `tools error-count .dev/F03-kanban-widgets/ui-kanban-widgets.md`：0。
+- `tools accept-check ui-authoring-tasks.md D-17`：exit 0，無失敗項目輸出。
+- `python3 verify-quotes.py`：「逐字引用驗證通過」。
+- 逐條核對驗收條件：OQ-33 含「百分位」且帶 `[Level: kanban-widgets/s-cycle-lead-time-dashboard]` ✓；`s-cycle-lead-time-dashboard` 段落 4 個 ⚠️ 皆含「OQ-」✓；「統計摘要」列不含「Lead Time／Cycle Time 的統計計算，排除」✓；`s-wip-dashboard`「空資料」不含「某 Stage 目前卡片數為 0」✓。
+
+### Act
+完成：D-17。下一個任務：D-18（`actionable` 排序在 T3.06 之前，`todo` 優先於表格順序的 T3.06）。
