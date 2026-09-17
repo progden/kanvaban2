@@ -152,7 +152,7 @@ Spec 沒有的資訊不要自己補（見上面「自主決策分級」）。
    ```
 
    會自動切到（或建立）`loop/ui-authoring` 分支、記錄 `runtime/baseline`、記錄起點 error 數，然後開始無限迴圈，每輪都是全新的 `claude -p` process。可用環境變數調整行為（`MAX_ITERATIONS`、`MODEL`、`EFFORT`、`REVIEW_EVERY`、`AUTO_APPROVE_GATES`、`GATE_MAX_REVIEWS` 等，見腳本開頭）。
-3. 觀察：`runtime/logs/` 每輪的完整輸出與摘要；`runtime/last-verify.md` 上一輪外部驗證結果；`ui-authoring-review.md` 審查紀錄。
+3. 觀察：主控台與 `runtime/logs/iter-*.jsonl` 開頭會印每輪的 `mode`（`exec`／`review`）、實際用的 `model`／`effort`、用途（執行輪或審查輪、做什麼）與本輪任務摘要；`runtime/logs/iter-*.summary.txt` 存這四行方便事後查；`runtime/last-verify.md` 是上一輪外部驗證結果；`<state>/ui-authoring-review.md` 是審查紀錄。
 4. 停止條件：`runtime/DONE` 出現（完成）、`MAX_ITERATIONS` 用完、沒有可執行任務、同一任務連續驗證失敗 `MAX_TASK_FAILS` 次、連續 `MAX_NO_PROGRESS` 輪沒有前進——腳本會印出停止原因，人工介入後可重新執行同一指令接續（`runtime/` 保留跨輪狀態，已完成的任務不會重做）。
 5. 遇到 `G*` 關卡：腳本會先跑審查輪（讀 `ui-authoring-review-prompt.md`），若審查後沒有新增待修的 `D-xx`，下一輪自動核准（建立 `runtime/gates/<G>.approved`）；`AUTO_APPROVE_GATES=0` 則改成印出核准指令、停下來等人工確認。
 6. 兩種模式可以交替使用（例如先手動跑幾輪熟悉狀況，再切自動模式跑完剩下的），任務清單與 PDCA 是共用的狀態來源，不會互相衝突；但自動模式產生的 commit 一律用 `--dangerously-skip-permissions`，第一次用建議先在測試分支確認腳本行為符合預期。

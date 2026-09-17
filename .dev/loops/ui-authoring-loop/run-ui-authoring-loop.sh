@@ -176,18 +176,26 @@ while true; do
   round_start="$(date +%s)"
   summary="$(summarize_round "$mode" "$next_ids")"
 
+  if [ "$mode" = review ]; then
+    prompt_file="$REVIEW_PROMPT"; round_model="$REVIEW_MODEL"; round_effort="$REVIEW_EFFORT"
+    purpose="審查輪：獨立審查最近變更，唯讀 spec／ui，只能新增 D-xx 或追加審查紀錄"
+  else
+    prompt_file="$KICKOFF"; round_model="$MODEL"; round_effort="$EFFORT"
+    purpose="執行輪：完成任務清單裡的一個 actionable 任務"
+  fi
+
   echo "=================================================="
-  log "Iteration $i 開始（全新 context，mode=$mode）"
+  log "Iteration $i 開始（全新 context，mode=$mode，model=$round_model，effort=$round_effort）"
+  log "用途：$purpose"
   log "本輪任務：$summary"
   echo "=================================================="
 
-  if [ "$mode" = review ]; then
-    prompt_file="$REVIEW_PROMPT"; round_model="$REVIEW_MODEL"; round_effort="$REVIEW_EFFORT"
-  else
-    prompt_file="$KICKOFF"; round_model="$MODEL"; round_effort="$EFFORT"
-  fi
   round_log="$LOGS/iter-$(date +%Y%m%d-%H%M%S)-$i-$mode.jsonl"
-  echo "$summary" > "${round_log%.jsonl}.summary.txt"
+  {
+    echo "mode=$mode model=$round_model effort=$round_effort"
+    echo "purpose=$purpose"
+    echo "summary=$summary"
+  } > "${round_log%.jsonl}.summary.txt"
 
   # --dangerously-skip-permissions：跳過所有工具使用確認，才能無人值守執行 git commit。
   # 請在專用分支執行；每一輪結果仍由 verify-ui-authoring.sh 外部驗證。
