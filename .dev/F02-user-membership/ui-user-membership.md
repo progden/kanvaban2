@@ -105,11 +105,11 @@
 狀態：討論中
 
 ### 目的
-系統使用者在此檢視自己有權限（Owner 或 Member）的 Board 清單，並選擇其中一個 Board 進入。
+系統使用者在此檢視自己有權限（Owner 或 Member）的 Board 清單，選擇其中一個 Board 進入，或建立新的 Board。
 
 ### 進入與離開
 - 從哪裡進來：登入成功後（依 `s-login`「完成後去哪裡」）
-- 完成後去哪裡：選擇列表中的 Board 進入該 Board（F01 `s-board`；未來依 OQ-18 改為導向 F07 s-canvas，見本畫面「待確認事項」）
+- 完成後去哪裡：選擇列表中的 Board 進入該 Board（F01 `s-board`；未來依 OQ-18 改為導向 F07 s-canvas，見本畫面「待確認事項」）；前往建立 Board 操作導向 `s-board-create-dialog`
 - 中途放棄會怎樣：不適用（本畫面僅為列表檢視與導覽，無中途放棄流程）
 
 ### 角色與權限
@@ -127,6 +127,7 @@
 |---|---|---|---|---|
 | 選擇 Board 進入 | — | 開啟該 Board（F01 `s-board`） | 不適用 | 否 |
 | 嘗試直接開啟不屬於自己的 Board | `uc-reject-board-access-by-nonmember` | 依 `uc-reject-board-access-by-nonmember` post：顯示訊息，停留本畫面 | 不適用（`uc-reject-board-access-by-nonmember` 無 fail 定義） | 否 |
+| 前往建立 Board | — | 開啟 `s-board-create-dialog` | 不適用（純前端導覽） | 否 |
 
 ### 狀態
 - 載入中：載入 Board 列表時顯示
@@ -140,6 +141,7 @@
 - 尚未擁有任何 Board 時，列表顯示空清單
 - 選擇列表中的 Board 後開啟該 Board（F01 `s-board`）
 - 嘗試直接開啟不屬於自己的 Board 時，觸發 `uc-reject-board-access-by-nonmember`，且操作者仍無法存取該 Board
+- 觸發前往建立 Board 動作，開啟 `s-board-create-dialog`，不觸發任何 Use Case
 
 ### 待確認事項
 - ⚠️ 本畫面對 F01 `s-board` 的跨模組引用單獨檢查本檔時會被 ui-check 誤判為未定義（工具限制，見 OQ-16），需與 `.dev/F01-basic-kanban/ui-kanban-basic.md` 一起檢查才會消失；OQ-16 已由人工修正 ui-authoring-tools.py 解除
@@ -147,8 +149,47 @@
 
 ## s-board-create-dialog：建立 Board 對話框
 所屬 Feature：Board 建立與成員邀請
-類型：對話框
-狀態：未討論
+類型：表單
+狀態：已定案
+
+### 目的
+系統使用者在此輸入 Board 名稱，建立一個新的 Board，並自動成為該 Board 的 Owner。
+
+### 進入與離開
+- 從哪裡進來：`s-board-list` 的「前往建立 Board」操作
+- 完成後去哪裡：關閉對話框，回到 `s-board-list`，新的 Board 顯示於列表中
+- 中途放棄會怎樣：取消，關閉對話框，不建立 Board
+
+### 角色與權限
+| 角色 | 看得到 | 做得到 |
+|---|---|---|
+| `r-board-owner` | 本畫面表單欄位 | 輸入 Board 名稱、確認建立、取消 |
+
+### 資料
+| 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
+|---|---|---|---|---|
+| Board 名稱 | `board.name` | 輸入 | 必填、非空，依名詞定義欄位表 `board.name` 限制 | 建立後作為該 Board 的名稱 |
+
+### 操作
+| 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
+|---|---|---|---|---|
+| 確認建立 | `uc-create-board` | 依「完成後去哪裡」導向下一畫面，操作者對該 Board 角色為 Owner | 不適用（`uc-create-board` 無 fail 定義） | 否（可透過 `uc-delete-board` 刪除復原，見該 uc post） |
+| 取消 | — | 關閉對話框 | — | 否 |
+
+### 狀態
+- 載入中：不適用（本畫面無需載入既有資料）
+- 空資料：不適用（本畫面僅為輸入表單，無列表資料）
+- 錯誤：不適用（`uc-create-board` 無 fail 定義）
+- 無權限：不適用（`uc-create-board` roles 僅 `r-board-owner`，spec 未定義本畫面內的角色差異）
+- 資料狀態差異：不適用
+
+### 驗收條件
+- 開啟時顯示空白的 Board 名稱輸入欄
+- 輸入 Board 名稱後確認建立，觸發 `uc-create-board`，成功後依「完成後去哪裡」導向下一畫面，且操作者對該 Board 角色為 Owner
+- 取消後關閉對話框，且不觸發 `uc-create-board`
+
+### 待確認事項
+- （無）
 
 ## s-member-management：Board 成員管理
 所屬 Feature：Board 建立與成員邀請
