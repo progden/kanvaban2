@@ -76,3 +76,9 @@
 - 決策：退回，狀態從 `review-pending` 改回 `doing`，追加 D-01（HTTP 狀態碼選擇要登記成高風險 OQ）、D-02（`user.username`『非空』限制沒落實，要登記 OQ）。
 - 理由：第 1 點，Review 自己重跑 `./gradlew clean build --no-daemon`，建置成功，5 個測試報告共 20 個測試全過；第 2 點，兩份 feature 檔和 spec 的 Gherkin `diff` 過是逐字一致，抽查的 fail-p1／fail-p2 都確實做到「拒絕、訊息、資料不變」，但欄位表的『非空』沒有對應實作，也沒有 OQ；第 3 點，`kanban-core` 沒有 Spring／JPA import；第 4 點，diff 範圍乾淨；第 5 點不通過，失敗情境的 HTTP 狀態碼正是 `iteration-prompt.md` 第 5 節點名的高風險例子，Dev 卻回報「沒有待確認事項」，OQ 登記有遺漏；第 6 點不適用。
 - 影響：不合併回 `loop/implementation`；T-02／T-04／T-10 繼續等待。下一輪 Dev 在同一個 worktree 處理 D-01、D-02，不需要改動既有業務邏輯，除非 D-02 的 OQ 另有結論。
+
+### 2026-09-18 T-01-be-user（Dev，處理 D-01／D-02）
+- 決策：只補登記兩則 OQ（`open-questions.md` OQ-IMPL-09、OQ-IMPL-10），不改動任何 `kanban-core`／`kanban-spring` 程式碼；`user.username` 為空的防護維持現狀（不加暫行防護），因為還沒有依據可以決定拒絕訊息文字，怕先寫一個訊息反而變成既成事實，之後 OQ 有結論時還要再改一次。
+- 理由：D-01 本身已明講「程式碼可以不改，這一項是補登記」；D-02 允許先做暫行防護但非必須，且 review 特別強調「不可以自己編一個錯誤訊息當成定案」——目前兩個候選方向（新增 `pre p3`／或解讀成僅資料庫層 NOT NULL）對「使用者看到什麼訊息」的答案完全不同，任何暫行寫法都等於替 OQ 預設了一個答案，選擇不動code風險更低。OQ-IMPL-09 的情況分類用【推論＋所本原文】（HTTP 狀態碼是程式碼既有推論、spec 沒訂），OQ-IMPL-10 用【兩處矛盾並列】（欄位表『非空』vs. `pre p2` 沒有非空、且 ui 檔的引用本身對不上它引用的 `pre p2` 原文）。
+- 影響：`open-questions.md` 新增 OQ-IMPL-09、OQ-IMPL-10（皆「待處理」）；`tasks.md` D-01／D-02 改為 `done`，母任務 T-01-be-user 轉回 `review-pending`；`state.md` 覆寫本輪摘要。下一輪 Review 依規則只能附保留核准（兩則 OQ 皆待處理），不能核准成不帶保留的 `done`。
+- ADR：無（單一任務內的登記補正，非架構決策）。

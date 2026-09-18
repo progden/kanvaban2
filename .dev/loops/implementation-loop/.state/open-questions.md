@@ -73,3 +73,25 @@ spec原文（逐字）：`.dev/loops/ui-authoring-loop/.state/ui-authoring-open-
 事實：影響 T-09、T-13（權限檢查邏輯），間接影響 T-14～T-20（凡是「編輯 vs 唯讀」要區分操作可見性的畫面）。
 狀態：**已解除（2026-09-18，人工決策）**。
 解除說明：人工確認採選項 A 的映射方向，且不是「暫定」——`.dev/F02-user-membership/spec-user-membership.md` 角色定義表逐字已有『r-board-viewer | Board 唯讀成員 | 被邀請加入 Board 的唯讀角色，可檢視看板與相關統計圖表，不能新增／編輯／移動／刪除任何內容…』（2026-09-18 稍早的變更紀錄新增，本 OQ 原引用只寫到 `r-system-user`／`r-board-owner`／`r-board-member` 三個角色，遺漏了這個，一併更正）。對應關係：`board-membership.role` 為 Owner 或 Member（即 `r-board-owner`／`r-board-member`）對應 `r-canvas-editor`；為 Viewer（即 `r-board-viewer`）對應 `r-canvas-viewer`。已直接寫入 `spec-canvas-layout.md` 角色定義表（草稿階段，不需 CR），`./scripts/spec-check` 0 error。T-09／T-13 的權限檢查依此實作。
+
+## OQ-IMPL-09
+
+[Level: F02-user-membership/T-01-be-user]
+情況：【推論＋所本原文】
+spec原文：`.dev/F02-user-membership/spec-user-membership.md` `uc-create-user` 的 `fail` 逐字：『p1: "拒絕，不建立新的 `user`"』『p2: "拒絕，不建立新的 `user`"』；`uc-login` 的 `fail` 逐字：『p1: "拒絕，顯示錯誤訊息 \"帳號或密碼錯誤\"，`user.username` 與 `user.password` 不變，我仍停留在登入頁面"』『p2: 同上』；`uc-logout` 的 `post` 逐字：『"登出成功，回到登入頁面，且不重新登入即無法存取任何 `board`"』。以上都沒有提到 HTTP 狀態碼。`ui-user-membership.md` 的操作表對 `uc-create-user`／`uc-login` 失敗時也只寫『依 `uc-create-user` p1／p2：輸入內容保留，顯示訊息』一類的呈現方式，同樣沒有訂狀態碼。
+推論（目前程式碼已採用，非定案）：`kanban-spring/src/main/java/io/progden/kanban/spring/web/UserController.java` 的 `statusFor` 把 `uc-create-user` fail p1（`PASSWORD_TOO_LONG`）對到 400、fail p2（`USERNAME_ALREADY_EXISTS`）對到 409；`uc-login` fail p1／p2（`INVALID_CREDENTIALS`）對到 401；`GET /api/session` 未登入時回 401；`POST /api/logout` 成功回 204。這是依 REST 慣例（輸入不合法用 400、資源衝突用 409、未認證用 401、成功無回應內容用 204）做的推論，不是 spec 逐字規定。
+問題：`uc-create-user`／`uc-login`／`uc-logout`／`GET /api/session` 各情境的 HTTP 狀態碼，要不要定案為目前程式碼採用的對應？
+選項：A. 維持目前對應（400／409／401／204／401，如上）；B. 改用其他對應（例如所有拒絕情境統一回 400，由回應內容的錯誤代碼區分細節）；C. 以上皆非，另訂對應規則並記錄在 `design-user-membership.md` 或另一份技術備忘。
+狀態：待處理。
+
+## OQ-IMPL-10
+
+[Level: F02-user-membership/T-01-be-user]
+情況：【兩處矛盾並列】
+spec原文：`.dev/F02-user-membership/spec-user-membership.md`「名詞定義」§欄位表逐字：『| user.username | string | 非空、全系統不可重複 | 帳號 ID，登入用 |』。
+同檔 `uc-create-user` 的 `pre` 逐字：『p1: "`user.password` 長度不可超過 40 字"』『p2: "`user.username` 在系統中不可重複"』——只有「不可重複」，沒有「非空」這一條，`fail` 也只有對應 p1／p2 兩則，沒有第三則。
+`ui-user-membership.md` 資料表逐字：『| 帳號 ID | `user.username` | 輸入 | 非空、全系統不可重複，依 `uc-create-user` pre p2 | 登入用 |』——這裡把「非空」也標成依 `pre p2`，但 `pre p2` 原文只講「不可重複」，沒有講「非空」，ui 檔這個標註本身跟它引用的 `pre p2` 原文對不上。
+問題：`user.username` 為空字串（或未提供）時，`uc-create-user` 應該如何拒絕？訊息是什麼？是否要新增一條 `pre p3`／對應 `fail p3`？
+選項：A. 補一條 `uc-create-user` 的 `pre p3`（例如「`user.username` 不可為空」）與對應 `fail p3`，訊息比照現有兩則的語氣另訂；B. 維持現狀，把欄位表的「非空」解讀為僅要求資料庫層 NOT NULL 約束，應用層不需要額外拒絕與訊息；C. 以上皆非。
+事實（程式碼推論，未實際送過請求）：`kanban-core` 的 `User.create` 目前沒有檢查 `username` 是否為空字串；`kanban-spring` 的 `UserJpaEntity.username` 只標了 `nullable = false`。因此 `POST /api/users` 送 `username: ""` 會建立成功（201），跟欄位表「非空」矛盾；送 `username: null` 會在寫入資料庫時丟出未轉換的例外，不會回 `ErrorResponse`。
+狀態：待處理。在本 OQ 有結論前，`kanban-core`／`kanban-spring` 未新增任何防護或錯誤訊息，避免自行編一個訊息當成定案。
