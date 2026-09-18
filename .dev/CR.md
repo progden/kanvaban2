@@ -10,6 +10,7 @@
 | CR-006 | 建立帳號時 username 不可留空的 pre／fail 補齊 | 變更 | implementation-loop（T-01-be-user，OQ-IMPL-10） | 2026-09-18 | spec-user-membership | `uc-create-user` | 處理完成 | 2026-09-18 | |
 | CR-007 | 登入後 TopBar 顯示 display-name | 變更 | implementation-loop（T-10-fe-shell，OQ-IMPL-11） | 2026-09-18 | spec-user-membership、ui-user-membership | `uc-login`、`s-login` | 待處理 | | |
 | CR-008 | 帳號 ID 重複時的驗收條件改為「觸發 uc-create-user」 | 變更 | implementation-loop（T-11-fe-auth，OQ-IMPL-13） | 2026-09-19 | ui-user-membership | `s-signup` | 處理完成 | 2026-09-19 | |
+| CR-009 | 建立看板時的預設 Swimlane／Stage | 變更 | implementation-loop（T-02-be-board，OQ-IMPL-14） | 2026-09-19 | spec-user-membership | `uc-create-board` | 修改規格 | | |
 
 ### CR-001：Board/Card 補上操作人記錄
 - 背景：Swimlane／Stage／Card 會改變狀態的情境，原本沒有記錄是誰做的操作，F02 要做活動紀錄需要這份資料。
@@ -50,3 +51,8 @@
 - 背景：`ui-user-membership.md` `s-signup` 驗收條件原文「帳號 ID 與系統中既有帳號重複時確認建立帳號，輸入內容保留、顯示訊息，且不觸發 `uc-create-user`」。帳號是否重複只有後端知道（`uc-create-user` pre p2／fail p2），畫面不呼叫 Use Case 就無從得知，這一條做不到；同檔 `s-member-management` 對同類情況（`uc-invite-member` p2）的寫法是「觸發 `uc-invite-member`，輸入內容保留、顯示訊息」。`implementation-loop` T-11-fe-auth 的 Dev 與 Review 因此各讀出一種意思（OQ-IMPL-13），2026-09-19 人工決議比照 `s-member-management` 改寫。
 - 變更內容：該條驗收條件改為「帳號 ID 與系統中既有帳號重複時確認建立帳號，觸發 `uc-create-user`，輸入內容保留、顯示訊息」。spec 不變（`uc-create-user` pre p2／fail p2 與 Scenario「帳號 ID（username）不可重複」本來就是這個行為）。同時在 `ui-convention.md`「驗收條件」補上「觸發」的定義與兩種 `pre` 的寫法（convention 改動不屬於 CR 範圍，記在這裡供追溯）。
 - 驗收標準：`ui-check` 0 error；`kanban-frontend` `SignupPage.test.tsx` 對應測試的名稱與這條驗收條件一致，且斷言有送出 `POST /api/users`；`pnpm test` 通過。程式碼行為不需要改（現況已是送出請求、後端回 409、畫面保留輸入並顯示訊息）。
+
+### CR-009：建立看板時的預設 Swimlane／Stage
+- 背景：`spec-kanban-basic.md` 關係表規定 `board`→`swimlane`、`board`→`stage` 的 min 都是 1（「看板至少保留一個 Swimlane／Stage」），新建的看板不能是空的，但 `uc-create-board` 的 post 沒有寫新看板帶什麼；F01 多條 Scenario 的前提用到「預設泳道」與「待辦／進行中／完成」，`implementation-loop` T-02-be-board 依此推論實作（OQ-IMPL-14）。2026-09-19 人工定案：採用這組預設，Stage 角色皆為 NONE——角色是要看 Cycle/Lead Time 圖表時才由 `uc-set-stage-role` 設定（CR-003），跟建立看板是不同時機。
+- 變更內容：`uc-create-board` 新增 post「新的 `board` 帶有 1 個 `swimlane`（名稱「預設泳道」）與 3 個 `stage`，依序為「待辦」、「進行中」、「完成」，`stage.role` 皆為 NONE」，`crud` 補 `swimlane: C`、`stage: C`；新增 Scenario「建立 Board 後帶有預設的 Swimlane 與 Stage」；既有 Scenario 的 Aggregate 註解同步。
+- 驗收標準：新增的 Scenario 由 Cucumber 驗證通過（step definition 由 `implementation-loop` 任務 T-04-be-board-membership 一併補上，`uc-create-board` 的 Owner membership post 也在該任務完成）；`kanban-core` 的「Board.create」行為不需要改（現況已符合）。

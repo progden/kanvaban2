@@ -80,6 +80,7 @@
 | 2026-09-18 |  | 新增 | 新增唯讀角色 `r-board-viewer`（ui-authoring-loop OQ-44 發現：F07 `spec-canvas-layout.md` 的 `r-canvas-viewer` 找不到對應的看板角色），`board-membership.role` enum 新增 Viewer 值；本次僅新增角色定義與欄位值，既有 use case 的 roles 欄位是否要一併加入 `r-board-viewer`（例如各種檢視類 use case）尚未逐一檢視，見「待釐清」；本檔尚未進入開發，可直接補上，不需開 CR |
 | 2026-09-13 |  | 開發完成 | （原票號 F05）「kanban-core」的「Card」新增「addAssignee」（追加單一負責人，重複則靜默忽略、不產生活動紀錄），對應上述兩條 Scenario 的實作 |
 | 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-create-user`…`uc-view-board-activity-log`） |
+| 2026-09-19 | CR-009 | 變更 | `uc-create-board` post 補上新看板的預設內容（1 個 `swimlane`「預設泳道」＋3 個 `stage`「待辦」「進行中」「完成」，`stage.role` 皆為 NONE），「crud」補上 `swimlane`、`stage` 的 C；新增 Scenario「建立 Board 後帶有預設的 Swimlane 與 Stage」；既有 Scenario「建立 Board 的人自動成為 Owner」只改 Aggregate 註解。Stage 角色不在建立看板時設定——那是要看 Cycle/Lead Time 圖表時才用 `uc-set-stage-role` 設定（CR-003）（implementation-loop T-02-be-board OQ-IMPL-14） |
 | 2026-09-18 | CR-007 | 變更 | `uc-login` post 的「帳號名稱」明訂為顯示名字（`user.display-name`；post 內文用欄位表的名稱「顯示名字」而不寫 Attribute ID，避免 「spec-check」UC-07 把它當成更新欄位）（原文沒有對應到欄位表的任何一個 Attribute）；新增 Scenario「登入後 TopBar 顯示的是顯示名字而不是帳號 ID」。既有 Scenario「使用正確帳號密碼登入」不變——"user1" 未指定顯示名字，依欄位表預設等於 `user.username`（implementation-loop T-10-fe-shell OQ-IMPL-11） |
 | 2026-09-18 | CR-006 | 變更 | `uc-create-user` 新增 pre.p3／fail.p3（`user.username` 非空），新增「帳號 ID（username）不可留空」Scenario；欄位表原本已寫「非空」，這是補齊 usecase 定義與欄位表一致，不是新規則（implementation-loop T-01-be-user OQ-IMPL-10 發現） |
 
@@ -270,12 +271,13 @@ Feature: 使用者登入與登出
 - id: uc-create-board
   name: 建立 Board
   roles: [r-board-owner]
-  crud: {board: C, board-membership: C}
+  crud: {board: C, swimlane: C, stage: C, board-membership: C}
   pre:
     p1: "`user` 已登入系統"
   post:
     - "新的 `board` 建立成功，`board.name` 為指定名稱，`board.created-by` 為建立者"
     - "建立者自動成為該 `board` 的 `board-membership`，角色為 Owner"
+    - "新的 `board` 帶有 1 個 `swimlane`（名稱「預設泳道」）與 3 個 `stage`，依序為「待辦」、「進行中」、「完成」，`stage.role` 皆為 NONE"
     - "該 `board` 產生一筆活動紀錄，操作人為建立者、動作為「建立看板」"
   fail: {}
   emits: []
@@ -340,15 +342,29 @@ Feature: Board 建立與成員邀請
   Background:
     Given 我已登入系統，帳號為 "user1"
 
-  @uc-create-board
+  @CR-009 @uc-create-board
   # Related aggregate:
   #   board: write
+  #   swimlane: write
+  #   stage: write
   #   board-membership: write
   Scenario: 建立 Board 的人自動成為 Owner
     When 我建立一個名為 "產品開發看板" 的 Board
     Then 該 Board 的建立者應該顯示為 "user1"
     And 我對該 Board 的角色應該是 "Owner"
     And 應該產生一筆活動紀錄：操作人 "user1"、動作為「建立看板」
+
+  @added @wip @CR-009 @uc-create-board
+  # Related aggregate:
+  #   board: write
+  #   swimlane: write
+  #   stage: write
+  #   board-membership: write
+  Scenario: 建立 Board 後帶有預設的 Swimlane 與 Stage
+    When 我建立一個名為 "產品開發看板" 的 Board
+    Then 該 Board 應該有 1 個 Swimlane "預設泳道"
+    And 該 Board 的 Stage 應該依序為 "待辦"、"進行中"、"完成"
+    And 該 Board 所有 Stage 的角色應該皆為 NONE
 
   @uc-invite-member
   # Related aggregate:
