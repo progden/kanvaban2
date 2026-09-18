@@ -80,6 +80,7 @@
 | 2026-09-18 |  | 新增 | 新增唯讀角色 `r-board-viewer`（ui-authoring-loop OQ-44 發現：F07 `spec-canvas-layout.md` 的 `r-canvas-viewer` 找不到對應的看板角色），`board-membership.role` enum 新增 Viewer 值；本次僅新增角色定義與欄位值，既有 use case 的 roles 欄位是否要一併加入 `r-board-viewer`（例如各種檢視類 use case）尚未逐一檢視，見「待釐清」；本檔尚未進入開發，可直接補上，不需開 CR |
 | 2026-09-13 |  | 開發完成 | （原票號 F05）「kanban-core」的「Card」新增「addAssignee」（追加單一負責人，重複則靜默忽略、不產生活動紀錄），對應上述兩條 Scenario 的實作 |
 | 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-create-user`…`uc-view-board-activity-log`） |
+| 2026-09-18 | CR-007 | 變更 | `uc-login` post 的「帳號名稱」明訂為顯示名字（`user.display-name`；post 內文用欄位表的名稱「顯示名字」而不寫 Attribute ID，避免 「spec-check」UC-07 把它當成更新欄位）（原文沒有對應到欄位表的任何一個 Attribute）；新增 Scenario「登入後 TopBar 顯示的是顯示名字而不是帳號 ID」。既有 Scenario「使用正確帳號密碼登入」不變——"user1" 未指定顯示名字，依欄位表預設等於 `user.username`（implementation-loop T-10-fe-shell OQ-IMPL-11） |
 | 2026-09-18 | CR-006 | 變更 | `uc-create-user` 新增 pre.p3／fail.p3（`user.username` 非空），新增「帳號 ID（username）不可留空」Scenario；欄位表原本已寫「非空」，這是補齊 usecase 定義與欄位表一致，不是新規則（implementation-loop T-01-be-user OQ-IMPL-10 發現） |
 
 ---
@@ -186,7 +187,7 @@ Feature: 建立使用者帳號
     p1: "使用者輸入的帳號必須是系統中已存在的 `user.username`"
     p2: "使用者輸入的密碼必須與該 `user.username` 對應的 `user.password` 相符"
   post:
-    - "登入成功，TopBar 顯示該 `user` 的帳號名稱"
+    - "登入成功，TopBar 顯示該 `user` 的顯示名字"
   fail:
     p1: "拒絕，顯示錯誤訊息 \"帳號或密碼錯誤\"，`user.username` 與 `user.password` 不變，我仍停留在登入頁面"
     p2: "拒絕，顯示錯誤訊息 \"帳號或密碼錯誤\"，`user.username` 與 `user.password` 不變，我仍停留在登入頁面"
@@ -221,6 +222,15 @@ Feature: 使用者登入與登出
     And 我送出登入表單
     Then 我應該登入成功
     And TopBar 應該顯示我的名稱 "user1"
+
+  @added @wip @CR-007 @uc-login
+  # Related aggregate:
+  #   user: read
+  Scenario: 登入後 TopBar 顯示的是顯示名字而不是帳號 ID
+    Given 系統中存在帳號 "user5"，顯示名字為 "王小明"，密碼為 "correct-password"
+    When 我以帳號 "user5" 與密碼 "correct-password" 登入
+    Then 我應該登入成功
+    And TopBar 應該顯示我的名稱 "王小明"
 
   @uc-login @fail-p2
   # Related aggregate:

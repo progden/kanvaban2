@@ -8,6 +8,7 @@
 | CR-004 | 事件時間改用 Board Clock | 變更 | SA | 2026-09-13 | spec-kanban-basic、spec-user-membership、spec-board-clock | `board`、`card`、`uc-adjust-board-clock`(新增)、`uc-guard-clock-monotonicity`(新增)、`uc-pause-resume-board-clock`(新增) | 處理完成 | 2026-09-13 | |
 | CR-005 | 規格格式遷移至 usecase 區塊 | 變更 | SA | 2026-09-16 | spec-kanban-basic、spec-user-membership、spec-kanban-widgets、spec-board-clock、spec-workload、spec-feature-cr-board | `board`、`board-membership`、`card`、`stage`、`swimlane`、`user`、`uc-add-card`、`uc-add-comment`、`uc-add-stage`、`uc-add-swimlane`、`uc-adjust-board-clock`、`uc-assign-card-owner-by-drag`、`uc-change-member-role`、`uc-create-board`、`uc-create-user`、`uc-delete-board`、`uc-delete-card`、`uc-delete-stage`、`uc-delete-swimlane`、`uc-drag-assign-card-owner`、`uc-edit-card`、`uc-guard-clock-monotonicity`、`uc-invite-member`、`uc-list-card-assignee-candidates`、`uc-list-cards-by-assignee`、`uc-login`、`uc-logout`、`uc-member-add-card`、`uc-move-card-stage`、`uc-move-card-swimlane`、`uc-pause-resume-board-clock`、`uc-reject-board-access-by-nonmember`、`uc-reject-invite-by-member`、`uc-reject-role-change-by-member`、`uc-reject-structure-change-by-member`、`uc-remove-member`、`uc-rename-stage`、`uc-rename-swimlane`、`uc-reorder-stage`、`uc-reorder-swimlane`、`uc-set-card-assignees`、`uc-set-stage-role`、`uc-view-aging-wip`、`uc-view-board-activity-log`、`uc-view-board-list`、`uc-view-card-assignees`、`uc-view-cfd`、`uc-view-cycle-lead-time`、`uc-view-duedate-reminder`、`uc-view-feature-cr-board`、`uc-view-throughput`、`uc-view-wip`、`uc-view-workload` | 修改規格 | | |
 | CR-006 | 建立帳號時 username 不可留空的 pre／fail 補齊 | 變更 | implementation-loop（T-01-be-user，OQ-IMPL-10） | 2026-09-18 | spec-user-membership | `uc-create-user` | 處理完成 | 2026-09-18 | |
+| CR-007 | 登入後 TopBar 顯示 display-name | 變更 | implementation-loop（T-10-fe-shell，OQ-IMPL-11） | 2026-09-18 | spec-user-membership、ui-user-membership | `uc-login`、`s-login` | 修改規格 | | |
 
 ### CR-001：Board/Card 補上操作人記錄
 - 背景：Swimlane／Stage／Card 會改變狀態的情境，原本沒有記錄是誰做的操作，F02 要做活動紀錄需要這份資料。
@@ -38,3 +39,8 @@
 - 背景：`implementation-loop` 實作 T-01-be-user 時發現，「名詞定義」欄位表已明訂 `user.username`「非空、全系統不可重複」，但 `uc-create-user` 的 `pre` 只有「密碼長度不可超過 40 字」「username 不可重複」兩條，沒有「username 非空」對應的 `pre`／`fail`，是覆蓋範圍缺口（不是矛盾——欄位表的「可留白」講的是 `user.password`，不是 `user.username`，已跟人工確認）。
 - 變更內容：`uc-create-user` 新增 `pre.p3`「`user.username` 非空」與對應 `fail.p3`；新增 Scenario「建立帳號時使用者名稱不可留空」，掛 `@CR-006 @uc-create-user @fail-p3`。
 - 驗收標準：`uc-create-user` 的 `pre`／`fail` 各有 3 條；新增的 Scenario 驗證「使用者名稱留空時拒絕，訊息為『使用者名稱不能為空』，且不建立帳號」；`kanban-core`／`kanban-spring` 依此補上驗證邏輯，`./gradlew clean build` 通過。
+
+### CR-007：登入後 TopBar 顯示 display-name
+- 背景：`uc-login` post 原文「TopBar 顯示該 `user` 的帳號名稱」、`ui-user-membership.md` `s-login` 的「帳號名稱」「該使用者名稱」，都沒有對應到欄位表的 `user.username`（帳號 ID）或 `user.display-name`（顯示名字）其中一個；既有 Scenario 的帳號 "user1" 未指定顯示名字，兩個欄位同值，分不出來。`implementation-loop` T-10-fe-shell 先依字面做成 `user.username`（OQ-IMPL-11），2026-09-18 人工決議採 `user.display-name`（欄位表：「顯示名字，看板上顯示用」，與成員清單、查詢對象的顯示一致）。
+- 變更內容：`uc-login` post 改為「TopBar 顯示該 `user` 的顯示名字」；新增 Scenario「登入後 TopBar 顯示的是顯示名字而不是帳號 ID」（`@CR-007 @uc-login`）；`s-login` 操作表與三條驗收條件的用詞改為 `user.display-name`。既有 Scenario 不變。
+- 驗收標準：新增的 Scenario 由 Cucumber 驗證通過；`GET /api/session` 回應帶顯示名字，`kanban-frontend` 的 TopBar 顯示它；`./gradlew clean build`、`pnpm test` 通過（implementation-loop 任務 `T-21-cr007-topbar-display-name`）。
