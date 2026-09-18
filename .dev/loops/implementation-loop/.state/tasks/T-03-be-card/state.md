@@ -1,11 +1,17 @@
 # T-03-be-card state
 
-> 2026-09-19 Review 第 1 輪 收尾，status＝`doing`。每輪由 `loopctl finish` 覆寫。
+> 2026-09-19 Dev 第 2 輪 收尾，status＝`review-pending`。每輪由 `loopctl finish` 覆寫。
 
-T-03-be-card Review 第 1 輪：退回（doing）
-- 重跑 ./gradlew clean build --rerun-tasks：綠燈，71 個測試 0 失敗
-- spec 對應：6 uc／8 Scenario 都有 step，feature 檔與 spec 逐字相同
-- core 純度、任務邊界：通過
-- D-01：removeSwimlane/removeStage 協調流程沒有交易、檢查順序錯，失敗會留下半套卡片異動；目的 Stage 沒驗證
-- D-02：跨 Stage 移動沒斷言 fromStageId；createTestCard 沒檢查 201
-- D-03：空白留言拒絕、卡片放置 swimlane/stage 未驗證，這兩項 spec 沒定義 fail，要開 OQ（高、不阻塞）
+第 2 輪已修完 Review 第 1 輪退回的 D-01／D-02／D-03，等待 Review 第 2 輪。
+
+- D-01：removeSwimlane／removeStage 改成先做 board 端可刪除檢查（含新增
+  `Board.ensureValidDestinationStage`）通過才動卡片，整個標 @Transactional；
+  新增 BoardApplicationServiceTest 覆蓋情境 1、3。
+- D-02：CardSteps 補 fromStageId 斷言，BoardSteps.createTestCard 補 201 檢查。
+- D-03：開了 OQ-T-03-be-card-01（uc-add-comment fail 缺口）、
+  OQ-T-03-be-card-02（uc-add-card 等目的交會格驗證缺口），皆等級高、不阻塞。
+
+Review 請先看：`BoardApplicationService.removeSwimlane`／`removeStage` 的新順序、
+`Board.ensureValidDestinationStage`、兩則新 OQ 的引文是否對得上源頭文件。
+
+Check：./gradlew clean build --no-daemon → BUILD SUCCESSFUL，73 個測試 0 失敗。
