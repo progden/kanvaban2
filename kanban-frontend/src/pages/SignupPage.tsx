@@ -68,11 +68,12 @@ export function SignupPage() {
             <li>密碼可以留空。</li>
           </ul>
         </div>
+        <div className="auth-brand__spacer" aria-hidden="true" />
       </div>
 
       <div className="auth-form">
         <h1>建立帳號</h1>
-        <p className="auth-form__subtitle">建立完成後會回到登入頁。</p>
+        <p className="auth-form__subtitle auth-form__subtitle--signup">建立完成後會回到登入頁。</p>
 
         {error !== null && (
           <p role="alert" className="form-error">
@@ -128,7 +129,7 @@ export function SignupPage() {
           </button>
         </form>
 
-        <div className="auth-form__footer">
+        <div className="auth-form__footer auth-form__footer--signup">
           <Link to="/login">已經有帳號？前往登入</Link>
         </div>
       </div>

@@ -14,8 +14,14 @@
   gap: 10px;
 }
 
-.app-topbar__user {
+.app-topbar__actions {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.app-topbar__user {
   display: flex;
   align-items: center;
   gap: 8px;

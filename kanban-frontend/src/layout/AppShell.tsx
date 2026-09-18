@@ -26,16 +26,18 @@ export function AppShell() {
           </span>
           <span className="app-topbar__product-name">[產品名稱]</span>
         </div>
-        <div className="app-topbar__user">
-          <span className="avatar" aria-hidden="true">
-            {initial}
-          </span>
-          <span>{displayName}</span>
+        <div className="app-topbar__actions">
+          <div className="app-topbar__user">
+            <span className="avatar" aria-hidden="true">
+              {initial}
+            </span>
+            <span>{displayName}</span>
+          </div>
+          <div className="app-topbar__divider" aria-hidden="true" />
+          <button type="button" className="btn-sm" onClick={() => void logout()}>
+            登出
+          </button>
         </div>
-        <div className="app-topbar__divider" aria-hidden="true" />
-        <button type="button" className="btn-sm" onClick={() => void logout()}>
-          登出
-        </button>
       </header>
       <main className="app-main">
         <Outlet />
