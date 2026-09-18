@@ -38,6 +38,15 @@ public class UserSteps {
 
     private MockHttpSession session;
     private MvcResult lastResult;
+
+    /**
+     * 供其他 aggregate 的 step definitions（例如 {@code BoardSteps}）重用「系統應該顯示錯誤訊息」這類
+     * 共用斷言步驟：Cucumber 同一段文字只能對應一個 step definition，不能各自重複宣告，
+     * 呼叫端在自己執行完 MockMvc 動作後呼叫這個方法同步結果，純新增、不影響既有行為（T-02 補上）。
+     */
+    void setLastResult(MvcResult result) {
+        this.lastResult = result;
+    }
     private long countBeforeAction;
     private String pendingLoginUsername;
     private String pendingLoginPassword;

@@ -190,3 +190,59 @@ Review 第三次被觸發，任務仍是 `done`（HEAD `b9c40a4`）。`git diff 
 - (R2) OQ-IMPL-12 待處理：版面還沒對照 `Login.dc.html`／`Signup.dc.html`，之後可能要調整樣式（不影響已驗證的行為）。
 
 判定：**附保留核准**。`tasks.md` 的 T-11-fe-auth 狀態改成 `done`，可以合併回 `loop/implementation`；不新增 D-xx。
+## 2026-09-18 T-02-be-board：退回（第 1 輪）
+
+審查對象：`impl/T-02-be-board` 分支 HEAD `26c6715`（merge-base `35f496d`）。
+
+1. **建置／測試（Review 自己重跑）**
+   - 根目錄 `./gradlew clean build --no-daemon`：`BUILD SUCCESSFUL in 1m 58s`，exit 0。
+   - 依 `build/test-results/test/*.xml` 統計：`kanban-core` 的 `BoardTest` 16、`UserTest` 10、`NoSpringDependencyTest` 1；`kanban-spring` 的「Swimlane 管理」7、「Stage（階段）管理」8、「建立使用者帳號」7、「使用者登入與登出」4、`KanbanApplicationSmokeTest` 1。全部 failures=0、errors=0、skipped=0。
+2. **spec 對應**：**不通過（D-05、D-06、D-07）**。
+   - 兩個 feature 檔是 `spec-kanban-basic.md`「Swimlane 管理」（第 151～236 行）與「Stage（階段）管理」（第 317～417 行）的逐字複製，9 個 uc 都有 Scenario 和 step definition，且都透過 MockMvc 打到實際端點。
+   - 抽查 `@fail-p1`：「Swimlane 名稱不可為空」。`Swimlane.validateName` 丟出 `EMPTY_SWIMLANE_NAME`，訊息是『Swimlane 名稱不可為空』，跟 Scenario 逐字一致。`BoardController` 回 400，符合 ADR-001「輸入格式／內容不合法」。例外在 `swimlanes.add` 和 `recordActivity` 之前丟出，所以 Swimlane 數量不變，也不會多一筆活動紀錄（這點是讀程式碼確認的，測試沒有驗活動紀錄，見 D-07）。「看板至少保留一個 Swimlane／Stage」的訊息也逐字一致，回 409，資料不變。
+   - (a) `uc-delete-swimlane` post 第 2 條（第 141 行）『"若該 `swimlane` 內有 `card`，一併被刪除"』和 `uc-delete-stage` post 第 2 條（第 292 行）『"若該 `stage` 內有 `card`，`card.stage` 更新為使用者選擇的目的 `stage`"』，正式程式碼都沒有實作。刪除端點沒有「已確認」或「目的 Stage」的輸入，有卡片時只會回 409。`ui-kanban-basic.md` 第 183 行『輸入（卡片數大於 0 時必選）』、第 189 行『確認刪除 | `uc-delete-stage` |』都要求目的 Stage 跟確認刪除一起送出，目前的 API 做不到。【我的推論】Card Aggregate（T-03）還沒有，所以本任務做不出卡片的刪除／轉移，這點可以理解，`design-kanban-basic.md` 第 90 行也寫明是由應用層協調 Card 聚合。問題在於這個延後只寫在 `state.md` 的「已知延後」，**沒有寫進 `open-questions.md`**，而 T-03 的任務描述不包含這件事，合併之後就沒有人會接手 → D-05。
+   - (b) 上面兩個 Scenario 之所以是綠燈，是因為測試步驟自己去改 `FakeCardLookupPort`：`whenConfirmDelete` 先刪 fake 裡的卡片，`whenChooseDestinationStage` 自己搬 fake 裡的卡片，`thenCardsMovedTo` 再去讀同一個 fake；`thenSwimlaneAndCardsRemoved` 則完全沒有檢查卡片。這樣的綠燈會讓人以為 post 已經驗證過 → D-06。
+   - (c) `thenActivityRecorded` 只檢查「最新一筆紀錄的操作人是目前使用者」。Background 建立看板時已經產生一筆同一個操作人的紀錄，所以就算被測操作沒寫紀錄，這一步也會過。13 處「該操作應該被記錄為一筆活動紀錄」都沒有驗證效果；`BoardTest` 也只驗了建立看板和新增 Swimlane 的活動紀錄 → D-07。
+3. **kanban-core 純度**：通過。`grep -rn "import org.springframework\|import jakarta\|@Entity\|@Autowired\|import lombok" kanban-core/src/main` 沒有結果（exit 1），`NoSpringDependencyTest` 也有通過。本任務沒有跨 aggregate 的讀取投影；`CardLookupPort` 是 domain 定義的 port，實作 `NoOpCardLookupPort` 放在 `kanban-spring`，符合 `design-kanban-basic.md` 第 9 行的設計。
+4. **任務邊界**：通過。`git diff --name-only 35f496d..HEAD` 除了 `.state/**` 以外，只有 `kanban-core/**` 和 `kanban-spring/**`。碰到 T-01 的檔案只有兩個：`UserController.statusFor` 補了 `default` 分支，`UserSteps` 新增 package-private 的 `setLastResult`。兩者都是 `ErrorCode` 擴充和 Cucumber 共用步驟必須的最小改動，行為不變。沒動 `.dev/conventions/**`、`scripts/**`、spec／ui／design 本體和 `CLAUDE.md`。
+5. **待確認事項／OQ**：**部分不通過（D-05、D-08）**。
+   - OQ-IMPL-14、13、14 都已經寫進 `open-questions.md`。我核對了引文：OQ-IMPL-14 引的 `uc-create-board` post（F02 spec 第 267～269 行）、關係表、Background／Given 都逐字一致，但開頭的檔案路徑寫錯後又用括號更正；OQ-IMPL-15 引的 design 原文不是逐字（寫成「權限檢查」，原文第 115 行是「權限」），而且那句原文是在講 CR-003 的 `setStageRole`，被當成涵蓋 9 個 uc 的依據 → D-08。
+   - 等級判斷（這是我的推論）：OQ-IMPL-14（預設 Swimlane／Stage 名稱）、OQ-IMPL-15（Owner 權限要等 T-04）、OQ-IMPL-16（Owner membership 要等 T-04）都是「高風險」或任務排序造成的延後，不是「覆蓋來源」，所以不標 `blocked`。等 D-xx 處理完再審時，會以附保留核准的方式處理。
+   - 刪除時卡片的連帶處理沒有登記 OQ，見第 2 點 (a)。
+6. **前端**：不適用。
+
+**不擋這次判定的觀察（不另開 D-xx）**：
+- ADR-001 寫『回應內容一律帶錯誤代碼』，但 `ErrorResponse` 只有 `message`，`BoardController` 沿用了這個寫法。這是 T-01 就留下的落差，不是 T-02 新造成的，請 Planning 或人工決定要不要回頭補上。
+- 活動紀錄時間用的是 `Instant.now()`，不是 Board Clock（spec「其他名詞」的「操作時間（occurredAt）」）。T-05 的任務描述已經寫明要改寫這個時間來源，所以不算遺漏。
+- `Stage.resolveName` 會把 `null` 名稱轉成空字串。欄位表的 `stage.name` 沒有「非空」限制，所以不違反 spec。
+
+判定：**退回**。`tasks.md` 的 T-02-be-board 狀態改回 `doing`，追加 D-05～D-08（第 1 輪退回，`MAX_TASK_ROUNDS=6`）。D-05、D-08 只要求登記或更正 OQ；D-06、D-07 要改測試程式碼（step definitions 和 `BoardTest`），正式程式碼不要求修改。
+
+## 2026-09-18 T-02-be-board：附保留核准（第 2 輪）
+
+審查對象：`impl/T-02-be-board` 分支 HEAD `8688533`（merge-base `35f496d`）。第 1 輪審查之後（`473ce53..HEAD`）的改動只有 `BoardTest.java`、`BoardSteps.java` 兩個測試檔，以及 `.state/**` 四個檔；正式程式碼（`src/main`）沒有變。
+
+1. **建置／測試（Review 自己重跑）**
+   - 根目錄 `./gradlew clean build --no-daemon`：`BUILD SUCCESSFUL in 1m 58s`，14 個 task 全部執行，exit 0。
+   - 依 `build/test-results/test/*.xml` 統計：`kanban-core` 的 `BoardTest` 17、`UserTest` 10、`NoSpringDependencyTest` 1；`kanban-spring` 的「Swimlane 管理」7、「Stage（階段）管理」8、「建立使用者帳號」7、「使用者登入與登出」4、`KanbanApplicationSmokeTest` 1。全部 failures=0、errors=0、skipped=0。
+2. **spec 對應**：通過（附保留）。
+   - 兩個 feature 檔這一輪沒動，仍是 spec「Swimlane 管理」「Stage（階段）管理」的逐字複製，9 個 uc、15 個 Scenario 都有 step definition，且透過 MockMvc 打實際端點。
+   - D-07 已處理：我逐一核對每個帶『該操作應該被記錄為一筆活動紀錄』的 Scenario，它的 When 會走到 `doAddSwimlane`／`renameSwimlane`／`deleteSwimlane`／`doAddStage`／`renameStage`／`deleteStage`，或拖曳／設定角色步驟裡的 `captureActivityBaseline`。基準筆數都是在 When 自己的 API 呼叫之前記錄，不是在 Given 記錄，所以 Given 產生的紀錄不會讓斷言誤判通過。`thenActivityRecorded` 檢查三件事：筆數剛好加 1、操作人是目前使用者、動作包含本次操作的關鍵字。「設定 Stage 角色」的兩次 When 也各自重設了基準。`BoardTest` 8 個寫入方法都補了筆數＋操作人斷言。
+   - 抽查 `@fail-p1`：「Swimlane 名稱不可為空」。When `doAddSwimlane("")` 先記錄基準再呼叫 API。Then 用 `UserSteps` 的共用步驟驗證訊息逐字是『Swimlane 名稱不可為空』；`thenNoNewSwimlaneCreated` 驗證 Swimlane 還是 1 個，活動紀錄筆數也跟基準相同。「看板至少保留一個 Swimlane／Stage」的 `thenSwimlaneNotDeleted`／`thenStageNotDeleted` 也補了筆數不變的斷言。「拒絕，訊息為 "..."，且資料不變」這三個 fail Scenario 現在都有測試保護。
+   - D-06 已處理：四個替身 step（`whenConfirmDelete`、`thenSwimlaneAndCardsRemoved`、`whenChooseDestinationStage`、`thenCardsMovedTo`）都有「替身警告」註解，指向 OQ-IMPL-17，Scenario 沒有刪除。**缺漏**：D-06 要求『同一則 OQ 也列出這四個步驟』，OQ-IMPL-17 本文沒有列。我在 OQ-IMPL-17 底下追加了一段「Review 補充」，列出這四個方法與解除 OQ 時要改的地方（Dev 寫的內容沒改）。【我的推論】程式碼註解已經指向 OQ，缺的只是反向連結，不影響行為和測試，比照 T-10 第 2 輪的處理方式，不為了這點再退回一輪。
+3. **kanban-core 純度**：通過。`grep -rn "import org.springframework\|import jakarta\|@Entity\|@Autowired\|import lombok" kanban-core/src/main` 沒有結果（exit 1），`NoSpringDependencyTest` 也通過。
+4. **任務邊界**：通過。`git diff --name-only 35f496d..HEAD` 排除 `kanban-core/`、`kanban-spring/`、`.dev/loops/implementation-loop/.state/` 之後沒有剩下任何檔案（grep exit 1）。沒動 `.dev/conventions/**`、`scripts/**`、spec／ui／design 本體和 `CLAUDE.md`。
+5. **待確認事項／OQ**：D-05、D-08 已處理。
+   - D-05：OQ-IMPL-17 已登記。我到源頭逐字核對：`spec-kanban-basic.md` 第 136、141、287、292 行，`ui-kanban-basic.md` 第 85、183、189、197 行，`design-kanban-basic.md` 第 90 行，都跟 OQ 引文一致。OQ 說「`fail` 只有 p1」，我對照 spec 第 143～144 行、第 294～295 行，兩個 uc 的 `fail` 都只有 `p1: "拒絕，該 `swimlane`／`stage` 不被刪除"`，所以 409 `SWIMLANE_HAS_CARDS`／`STAGE_HAS_CARDS` 確實不是 spec 定義的 fail。
+   - D-08：OQ-IMPL-15 的 design 引文已經跟第 115 行逐字一致，也寫明只涵蓋 CR-003 的 `setStageRole`；OQ-IMPL-14 的路徑改成 `.dev/F02-user-membership/spec-user-membership.md` 第 260～269 行，核對過一致。
+   - 等級判斷（這是我的推論）：OQ-IMPL-14～15 都屬於 `iteration-prompt.md` 第 5 節的「高風險」，或是任務順序造成的延後（依賴 T-03 Card、T-04 BoardMembership）。它們不是 spec 跟既有程式碼結構衝突，不屬於「覆蓋來源」，所以不標 `blocked`，只能附保留核准。
+6. **前端**：不適用。
+
+**保留事項（核准附帶條件）**：
+- (R1) **OQ-IMPL-17 目前沒有任務接手**：`uc-delete-swimlane` post 第 2 條、`uc-delete-stage` post 第 2 條沒有任何正式程式碼路徑能滿足。刪除端點有卡片時只回 409，沒有「已確認」或目的 `stage` 的輸入。對應的兩個 Scenario 是靠替身通過的（見 OQ-IMPL-17 的 Review 補充）。T-03 的任務描述沒有包含這件事，**請 Planning 或人工在 T-03 開工前決定選項 A 或 B**，否則 T-14 前端的刪除對話框會沒有 API 可以呼叫。
+- (R2) OQ-IMPL-15：9 個結構調整端點目前只要求登入，沒有檢查 `r-board-owner`。T-04 完成後要回頭補上。
+- (R3) OQ-IMPL-16：`uc-create-board` 還沒建立 Owner `board-membership`，留給 T-04。
+- (R4) OQ-IMPL-14：`Board.create` 預設的「預設泳道」＋「待辦／進行中／完成」是推論出來的，還沒定案。
+- 不擋核准的觀察：`thenActivityRecorded` 用 `occurredAt` 最大值挑「最新一筆」。如果兩筆時間戳完全相同，`Stream.max` 會回傳先出現的那筆，關鍵字斷言可能偶發失敗。這只會造成誤判失敗，不會讓測試誤判通過；如果日後出現不穩定的測試，可以改成依插入順序取最後一筆。第 1 輪提過的 `ErrorResponse` 沒帶錯誤代碼、活動紀錄時間用 `Instant.now()`（T-05 會改），這兩點維持不變。
+
+判定：**附保留核准**。`tasks.md` 的 T-02-be-board 狀態改成 `done`，可以合併回 `loop/implementation`；不新增 D-xx。

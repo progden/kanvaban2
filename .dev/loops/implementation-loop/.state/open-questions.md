@@ -135,3 +135,50 @@ Review 補充（2026-09-18，T-10-fe-shell Review 第 2 輪追加，上面 Dev �
 狀態：待處理。在本 OQ 有結論前，程式碼維持現狀（帳號重複時仍送出 `POST /api/users`，由後端拒絕），不自行在前端加一個查重機制去符合 ui 檔第 45 行字面。
 
 Review 補充（2026-09-18，T-11-fe-auth Review 第 2 輪追加，上面 Dev 寫的內容未改）：上面五段引文我已到源頭逐字核對，`ui-user-membership.md` 第 45 行、`ui-convention.md` 第 150 行、`spec-user-membership.md` 第 97、104、143～147 行都跟原文一致。有一處需要標清楚：「情況」段最後一句『這個 Scenario 描述 `uc-create-user` 被觸發、系統依 `pre p2` 判斷、依 `fail p2` 拒絕的流程，前提是請求已送達…』是**推論**，不是 spec 原文。Scenario 本身只寫『When 我嘗試建立另一個帳號 "user1"』，沒寫前端是否送出請求。這個推論不影響問題本身，所以只在這裡補註，不再退回。
+
+## OQ-IMPL-14
+
+[Level: F01-basic-kanban/T-02-be-board]
+情況：【推論＋所本原文】
+spec原文：`.dev/F02-user-membership/spec-user-membership.md` 第 260～269 行 `uc-create-board` 的 `post` 逐字只有三條（第 267～269 行）：『"新的 `board` 建立成功，`board.name` 為指定名稱，`board.created-by` 為建立者"』『"建立者自動成為該 `board` 的 `board-membership`，角色為 Owner"』『"該 `board` 產生一筆活動紀錄，操作人為建立者、動作為「建立看板」"』，沒有提到預設 Swimlane／Stage。
+`.dev/F01-basic-kanban/spec-kanban-basic.md`「關係」表逐字：『| board | swimlane | 1 | n | 看板至少保留一個 Swimlane |』『| board | stage | 1 | n | 看板至少保留一個 Stage |』，代表這個不變條件必須隨時成立，含剛建立完成的當下。
+同檔「Feature: Swimlane 管理」Scenario「新增一個 Swimlane」的 Given 逐字：『看板目前有 1 個 Swimlane "預設泳道"』；「Feature: Stage（階段）管理」的 Background 逐字：『看板目前的 Stage 依序為 "待辦"、"進行中"、"完成"』。
+推論（已採用為實作依據）：由於 `uc-create-board` 的 `post` 沒有明講預設值，但關係表的 min=1 不變條件與上述兩處 Background/Given 文字一致指向「剛開啟的看板」帶有 1 個名為「預設泳道」的 Swimlane、3 個依序為「待辦」「進行中」「完成」的 Stage，`Board.create(...)`（`kanban-core`）採用這組具體名稱與數量作為建立時的預設值。
+問題：這組預設 Swimlane／Stage 名稱與數量是否為正式定案？若非，正確定案內容為何？
+選項：A. 維持目前實作（1 個「預設泳道」＋ 3 個「待辦」「進行中」「完成」，皆依 Background/Given 文字逐字採用）；B. `uc-create-board` 的 `post` 應明確補上這條規則（走 CR，因為 `spec-user-membership.md` 狀態為「定稿」）；C. 以上皆非（例如預設值應可由使用者在建立當下自訂，不該寫死在 domain 層）。
+狀態：待處理。在本 OQ 有結論前，`kanban-core` 的 `Board.create` 維持目前實作（選項 A 的內容），`kanban-spring`／Cucumber 驗收測試皆以此為準。
+
+## OQ-IMPL-15
+
+[Level: F01-basic-kanban/T-02-be-board]
+情況：【推論＋所本原文】
+spec原文：`.dev/F01-basic-kanban/spec-kanban-basic.md` 2026-09-18 變更紀錄逐字：『修正 9 個結構調整 usecase 的角色…`uc-add-swimlane`／`uc-rename-swimlane`／`uc-reorder-swimlane`／`uc-delete-swimlane`／`uc-add-stage`／`uc-rename-stage`／`uc-reorder-stage`／`uc-delete-stage`／`uc-set-stage-role` 的 roles 改為 r-board-owner』；`.dev/F02-user-membership/spec-user-membership.md` 角色定義表逐字：『r-board-owner | Board 擁有者 | Board 的管理角色：可邀請／移除／升級成員、可新增／重新命名／刪除 Swimlane 與 Stage…』。
+`design-kanban-basic.md` 第 115 行逐字（出自「CR-003 完成後新增」段落，講的是 `Board.setStageRole` 這一個方法）：『權限（僅 Owner 可設定）由呼叫端先查 `BoardMembership` 後才呼叫，`kanban-core` 本身不驗證。』——這句原文只講 `setStageRole`，不是 9 個結構調整 uc 的共同依據；本 OQ 把它推廣套用到其餘 8 個 uc（`uc-add-swimlane` 等），是【推論】的延伸，不是這句原文本身的範圍。
+推論：`BoardMembership`（F02）是 T-04-be-board-membership 的範圍，尚未實作；T-02 的 `BoardController`／`BoardApplicationService` 目前只要求「已登入」（session 有效）即可呼叫 Swimlane／Stage 的所有結構調整端點，未依 `r-board-owner` 限制「僅 Owner 可操作」。
+問題：T-02 的 web 端點是否應該在 T-04 完成前就先擋掉非 Owner（例如回一個暫時的 403），還是維持目前「已登入即可操作」到 T-04 補上權限檢查？
+選項：A. 維持現狀，T-04 完成後再對這些既有端點補上 `BoardMembership` 查詢與 `r-board-owner` 檢查（本 OQ 解除時機＝T-04 完成）；B. T-02 先加一個「一律要求 Owner」的暫時檢查機制（例如查詢一個尚不存在的 membership 表會導致找不到而全部拒絕），阻擋所有操作直到 T-04 補齊；C. 以上皆非。
+狀態：待處理。在本 OQ 有結論前，採選項 A 的行為（未加權限檢查），因為選項 B 會讓 T-02 自身的 Swimlane／Stage 功能完全無法使用，防禦過度。
+
+## OQ-IMPL-16
+
+[Level: F02-user-membership/T-02-be-board]
+情況：【推論＋所本原文】
+spec原文：`uc-create-board` 屬於 `.dev/F02-user-membership/spec-user-membership.md`「Feature: Board 建立與成員邀請」，`crud` 欄逐字：『{board: C, board-membership: C}』；對應 Scenario「建立 Board 的人自動成為 Owner」逐字斷言：『我對該 Board 的角色應該是 "Owner"』。
+推論：`board-membership` 是 T-04-be-board-membership 的 Aggregate（見 `tasks.md`），T-02 的產出範圍是「F01 board Aggregate（board＋swimlane＋stage）」，不含 `board-membership`。T-02 的 `BoardApplicationService.createBoard` 只實作 `uc-create-board` 的 `board` 部分（`board.name`／`board.created-by`／活動紀錄「建立看板」），未建立對應的 `board-membership`（Owner），因此 `spec-user-membership.md`「Feature: Board 建立與成員邀請」整個 Feature（含此 Scenario 逐字斷言的 Owner 角色部分）未被 T-02 的 Cucumber 驗收測試涵蓋——這個 Feature 的正式驗收覆蓋留給 T-04。
+問題：T-04 開發時，是否要修改 `BoardApplicationService.createBoard`（在同一次呼叫內接著建立 `board-membership`），還是另外新增一個協調兩個 Aggregate 的上層服務？
+選項：A. T-04 直接修改／擴充 `BoardApplicationService.createBoard`（或新增一個依賴它的協調方法），在建立 `board` 成功後接著建立 Owner `board-membership`；B. 新增一個獨立的協調層（例如 application 層的 façade），呼叫 `BoardApplicationService.createBoard` 與 `BoardMembershipApplicationService` 兩者；C. 以上皆非。
+狀態：待處理，不阻塞 T-02（T-02 產出範圍本就不含 `board-membership`），留給 T-04 決定並解除。
+
+## OQ-IMPL-17
+
+[Level: F01-basic-kanban/T-02-be-board]
+情況：【推論＋所本原文】
+spec原文：`.dev/F01-basic-kanban/spec-kanban-basic.md` 第 136 行 `uc-delete-swimlane` 的 `crud` 逐字：『crud: {board: U, swimlane: D, card: D}』，第 141 行 `post` 第 2 條逐字：『"若該 `swimlane` 內有 `card`，一併被刪除"』；第 287 行 `uc-delete-stage` 的 `crud` 逐字：『crud: {board: U, stage: D, card: U}』，第 292 行 `post` 第 2 條逐字：『"若該 `stage` 內有 `card`，`card.stage` 更新為使用者選擇的目的 `stage`"』。
+`.dev/F01-basic-kanban/ui-kanban-basic.md` 第 85 行操作表逐字：『確認刪除 | `uc-delete-swimlane` | 關閉對話框，回列表 | 依 `uc-delete-swimlane` p1：保留對話框，顯示訊息 | 是（本畫面即確認） |』；第 183 行逐字：『目的 Stage | `board`→`stage` 關係（同一 `board` 中的其他 Stage） | 輸入（卡片數大於 0 時必選） | 排除欲刪除的 Stage 本身，清單只列其他 Stage | 依 `uc-delete-stage` post，接收該 Stage 內的卡片 |』；第 189 行逐字：『確認刪除 | `uc-delete-stage` | 關閉對話框，回列表 | 依 `uc-delete-stage` p1：保留對話框，顯示訊息 | 是（本畫面即確認） |』；第 197 行逐字：『資料狀態差異：該 Stage 內有卡片時，需先選擇目的 Stage 才能確認刪除；無卡片時可直接確認刪除，不需選擇目的 Stage』。
+`.dev/F01-basic-kanban/design-kanban-basic.md` 第 90 行逐字：『`removeSwimlane`/`removeStage` 遇到還有卡片時**拋出例外並附上數量**，由應用層攔截後轉為「確認訊息」或「選擇轉移目的 Stage」的流程；卡片實際的轉移/刪除是操作 Card 聚合完成，完成後應用層再重新呼叫一次 Board 的刪除方法（此時 `countCardsIn` 應為 0，可順利完成）。』
+推論：(a) 目前 `BoardController` 的 `DELETE .../swimlanes/{id}`、`DELETE .../stages/{id}` 在有卡片時只回 409（`SWIMLANE_HAS_CARDS`／`STAGE_HAS_CARDS`），這個 409 回應是把 design 原文講的「應用層攔截後轉為確認訊息／選擇轉移目的 Stage」當成觸發點來實作，但這條轉換規則本身不在 spec 的 `fail`（`uc-delete-swimlane`／`uc-delete-stage` 的 `fail` 都只有 `p1`：「`board` 中的 swimlane/stage 數量大於 1」，沒有「有卡片時回 409」這一條），完全是依 design 文件的協調流程描述推論出來的行為，spec 本身沒有定義這個 fail 分支。(b) T-03-be-card 的任務範圍（`tasks.md` 第 22 行）只寫「F01 `card` Aggregate（`card`＋`comment`）」，沒有任何字提到「刪除 Swimlane／Stage 時協調刪除／轉移卡片」或「刪除端點如何帶『已確認』與目的 `stage`」；目前任務清單裡沒有任何一列會接手這個協調流程與 API 設計。
+問題：(a) 目前的 409 回應（附卡片數量的訊息）算不算 spec 定義行為之外的、依 design 推論出的暫時性 fail？(b) 「刪除 Swimlane／Stage 時協調刪除／轉移卡片」的應用層邏輯，以及「刪除端點如何帶『已確認』／目的 `stage` 參數」，由哪個任務負責——T-03（連帶擴充範圍）、新增一個任務、還是回頭修 T-02？(c) 在這件事定案前，對外 API 目前的限制（有卡片時只能回 409、無法真的完成刪除／轉移）要不要另外記錄成已知限制，供前端（T-14）與其他呼叫方知悉？
+選項：A. 由 T-03 的任務範圍追加「協調 Board 刪除 Swimlane／Stage 時的卡片刪除／轉移，並擴充 `BoardController` 刪除端點以接受『已確認』／目的 `stage` 參數」；B. 新增一個獨立任務（例如 `T-0X-be-board-card-coordination`），依賴 T-02 與 T-03，專門處理這個跨 aggregate 協調；C. 以上皆非。
+狀態：待處理，不阻塞 T-02（T-02 本身的 Swimlane／Stage 結構調整、以及「無卡片時可刪除」的行為已完整實作並通過測試），但在此 OQ 有結論並由對應任務接手前，對外 API 只能做到「有卡片時回 409、不完成刪除／轉移」，`uc-delete-swimlane`／`uc-delete-stage` 的 post 第 2 條尚未被任何正式程式碼路徑滿足。
+
+Review 補充（2026-09-18，T-02-be-board Review 第 2 輪追加，上面 Dev 寫的內容未改）：D-06 要求『同一則 OQ 也列出這四個步驟，等協調流程補上後改成打正式端點驗證』，上面的 OQ 本文沒有列出，補上供接手任務對照。目前是替身、只能算「Scenario 綠燈但 post 第 2 條未驗證」的 step definition 共四個，都在 `kanban-spring/src/test/java/io/progden/kanban/spring/cucumber/BoardSteps.java`：`whenConfirmDelete`（「我確認刪除」，直接呼叫 `fakeCardLookupPort.removeAllCardsInSwimlane`）、`thenSwimlaneAndCardsRemoved`（「該 Swimlane 與其所有卡片都應該被移除」，只檢查 Swimlane 不存在、不檢查卡片）、`whenChooseDestinationStage`（「我選擇目的 Stage 為 {string}」，直接呼叫 `fakeCardLookupPort.moveAllCardsToStage`）、`thenCardsMovedTo`（「這 {int} 張卡片應該被移動到 {string}」，讀的是同一個 fake 的狀態）。四個方法內都已有指向本 OQ 的「替身警告」註解。【Review 的推論】本 OQ 解除時，接手任務除了補應用層協調流程與刪除端點參數，還要把這四個步驟改成透過正式端點送出「已確認」／目的 `stage`，並從 Card 的 persistence 驗證卡片被刪除／`card.stage` 已更新；否則 `uc-delete-swimlane`／`uc-delete-stage` post 第 2 條仍然沒有被驗證。
