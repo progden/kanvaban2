@@ -70,6 +70,12 @@ public class UserSteps {
         createUserExpectingSuccess(username, null, password);
     }
 
+    @Given("系統中存在帳號 {string}，顯示名字為 {string}，密碼為 {string}")
+    public void givenAccountExistsWithDisplayNameAndPassword(String username, String displayName, String password)
+            throws Exception {
+        createUserExpectingSuccess(username, displayName, password);
+    }
+
     @Given("系統中已存在帳號 ID {string}，顯示名字為 {string}")
     public void givenAccountExistsWithDisplayName(String username, String displayName) throws Exception {
         createUserExpectingSuccess(username, displayName, DEFAULT_PASSWORD);
@@ -141,6 +147,11 @@ public class UserSteps {
         performLogin(pendingLoginUsername, pendingLoginPassword);
     }
 
+    @When("我以帳號 {string} 與密碼 {string} 登入")
+    public void whenLoginWithCredentials(String username, String password) throws Exception {
+        performLogin(username, password);
+    }
+
     @When("我點擊「登出」")
     public void whenClickLogout() throws Exception {
         lastResult = mockMvc.perform(post("/api/logout").session(session)).andReturn();
@@ -195,7 +206,13 @@ public class UserSteps {
 
     @Then("TopBar 應該顯示我的名稱 {string}")
     public void thenTopBarShowsName(String name) throws Exception {
-        assertEquals(name, readBody(lastResult).get("username"));
+        assertEquals(name, readBody(lastResult).get("displayName"));
+
+        // CR-007 驗收標準：重新整理頁面後 TopBar 仍要顯示名字，
+        // 這裡直接驗證同一個 session 呼叫 GET /api/session 也帶回相同的 displayName。
+        MvcResult sessionResult = mockMvc.perform(get("/api/session").session(session)).andReturn();
+        assertEquals(200, sessionResult.getResponse().getStatus());
+        assertEquals(name, readBody(sessionResult).get("displayName"));
     }
 
     @Then("我應該仍停留在登入頁面")

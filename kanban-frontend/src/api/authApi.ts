@@ -10,6 +10,7 @@ export interface UserResponse {
 
 export interface SessionResponse {
   username: string;
+  displayName: string;
 }
 
 export function fetchSession(): Promise<SessionResponse> {

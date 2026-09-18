@@ -14,6 +14,15 @@ Feature: 使用者登入與登出
     Then 我應該登入成功
     And TopBar 應該顯示我的名稱 "user1"
 
+  @added @CR-007 @uc-login
+  # Related aggregate:
+  #   user: read
+  Scenario: 登入後 TopBar 顯示的是顯示名字而不是帳號 ID
+    Given 系統中存在帳號 "user5"，顯示名字為 "王小明"，密碼為 "correct-password"
+    When 我以帳號 "user5" 與密碼 "correct-password" 登入
+    Then 我應該登入成功
+    And TopBar 應該顯示我的名稱 "王小明"
+
   @uc-login @fail-p2
   # Related aggregate:
   #   user: read
