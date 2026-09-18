@@ -2,8 +2,7 @@
 
 > 每輪覆寫，20 行內；給下一輪／驅動腳本快速回復現況（zero context）。
 
-T-10-fe-shell：Dev 輪完成，狀態改為 `review-pending`，等 Review。
-- 產出：`kanban-frontend/src/api`（`http.ts` fetch 包裝＋`ApiError`、`authApi.ts` 對應 `UserController` 四個端點）、`src/auth`（`AuthContext`／`useAuth`／`ProtectedRoute`／`GuestOnlyRoute`）、`src/layout/AppShell.tsx`（TopBar：帳號名稱＋登出）、`src/pages`（`LoginPage`／`SignupPage`／`BoardListPage`／`BoardCanvasPage` 四個佔位頁面，內容待 T-11／T-12／T-13 實作）、`src/App.tsx` 路由定義、`main.tsx` 包 `BrowserRouter`；新增 `react-router-dom` 依賴、`vite.config.ts` 加 `/api` proxy。
-- 測試：`src/api/http.test.ts`（成功／204／失敗三種情境）、`src/App.test.tsx`（未登入導向登入頁、未登入擋 `/boards`、已登入顯示 TopBar 帳號名稱並可登出、已登入擋 `/login`）共 7 個測試，`pnpm run test` 全過；`pnpm run build`／`pnpm run lint` 皆通過（lint 0 警告）；根目錄 `./gradlew clean build --no-daemon` 也重跑過確認沒有波及後端。
-- 待確認事項／新開 OQ：無。OQ-IMPL-09（HTTP 狀態碼未定案）不影響本任務，`ApiError` 只帶狀態碼與訊息，呼叫端預期依訊息內容判斷，見 `decision-log.md`。
-- 對應 spec／ui：本任務不涵蓋任何 `uc-`／Scenario（純前端骨架），`s-login`／`s-signup`／`s-board-list`／`s-canvas` 四個畫面本體留給 T-11／T-12／T-13，只在此建立路由掛載點與登入態守衛。
+T-10-fe-shell：Review 第 1 輪**退回**，狀態改回 `doing`，等 Dev 處理 D-03、D-04（見 `tasks.md` 底部）。
+- Review 重跑結果：`pnpm run test` 7 個測試全過、`pnpm run build`／`pnpm run lint` 通過、`./gradlew clean build` exit 0；diff 只在 `kanban-frontend/**`＋`.state/**`，範圍乾淨。
+- 退回原因（都不需要改程式碼）：D-03，TopBar 顯示 `user.username`，但 ui 檔只寫『TopBar 顯示帳號名稱』，沒有指定欄位，要登記 OQ；D-04，交接紀錄說 OQ-IMPL-09 待處理，實際上已經由 ADR-001 解除，要追加更正。
+- 下一步：Dev 補 OQ 與更正紀錄，轉 `review-pending` 後由 Review 第 2 輪審查（D-03 的 OQ 如果還沒定案，只能附保留核准）。

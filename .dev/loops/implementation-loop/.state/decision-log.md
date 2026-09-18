@@ -105,3 +105,8 @@
 - 理由：任務定義明講「路由、API client、登入態管理」三件事，且 T-11／T-12／T-13 是各自獨立任務、有自己的畫面群組範圍，本任務不應該搶做它們的畫面內容（顆粒度規則）；但路由需要有東西可以渲染才能測試導向行為，所以用最小佔位頁面撐住骨架，避免之後被誤讀成已定案的畫面設計。API client 用 `credentials: 'include'` 帶 `HttpSession` cookie，並在 `vite.config.ts` 加 `/api` proxy 轉發到 `http://localhost:8080`（開發模式跨 port 也能帶 cookie）；這是技術實作細節、未違反 spec，屬低風險決定。
 - 影響：`kanban-frontend/package.json` 新增 `react-router-dom`；新增 `src/api/**`、`src/auth/**`、`src/layout/**`、`src/pages/**`；`src/main.tsx` 包一層 `BrowserRouter`；`src/App.tsx` 改為路由定義；`src/setupTests.ts` 補上 `afterEach(cleanup)`（`vite.config.ts` 的 `test.globals` 未開啟，`@testing-library/react` 偵測不到全域 `afterEach`，不手動註冊會導致多次 `render` 殘留 DOM，測試互相污染）。T-11～T-13 之後接手對應佔位頁面時，只需要替換 `pages/*.tsx` 內容並視需要調整 `AppShell`／路由參數，不需要改動 `AuthContext`／API client。OQ-IMPL-09（HTTP 狀態碼未定案）目前不影響本任務：`ApiError` 只帶狀態碼與訊息，呼叫端（T-11 等）預期依訊息內容而非狀態碼判斷分流，狀態碼定案後不需要改這層。
 - ADR：無（單一任務內的技術選型，未跨 aggregate／未違反既有 ADR-001）。
+
+### 2026-09-18 T-10-fe-shell（Review）
+- 決策：退回，狀態從 `review-pending` 改回 `doing`，追加 D-03（TopBar 顯示 `username` 還是 `display-name`，要登記 OQ）、D-04（更正 OQ-IMPL-09「仍待處理」這個過期紀錄，跟 ADR-001 對齊）。
+- 理由：第 1 點，Review 自己重跑 `pnpm install --frozen-lockfile`、`pnpm run test`（2 個檔案、7 個測試全過）、`pnpm run build`、`pnpm run lint`（exit 0），以及 `./gradlew clean build --no-daemon`（exit 0）；第 2 點，`uc-logout` 的操作表列（需確認＝否、回到 `s-login`）和驗收條件都有落實並有測試，`authApi.ts` 也跟後端 record 一致；第 3 點不適用（沒動 core），grep 確認 core 是乾淨的；第 4 點，diff 只有 `kanban-frontend/**` 和 `.state/**`；第 5 點不通過，`ui-user-membership.md`『TopBar 顯示帳號名稱』沒有指定是哪個欄位，Dev 自己選了 `username` 卻沒登記 OQ，另外交接紀錄引用了已解除的 OQ-IMPL-09；第 6 點通過，沒有自己發明樣式。
+- 影響：不合併回 `loop/implementation`，T-11／T-12 繼續等待。下一輪 Dev 在同一個 worktree 處理 D-03、D-04，預期不需要改程式碼。D-03 的 OQ 如果到下一輪 Review 都還沒定案，只能附保留核准。

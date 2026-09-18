@@ -31,7 +31,7 @@
 
 | ID | 產出範圍 | 依賴（需已合併） | 狀態 | 備註 |
 |---|---|---|---|---|
-| T-10-fe-shell | 前端 app shell（路由、API client、登入態管理） | T-00-scaffold、T-01-be-user | review-pending | Dev 完成，見 `decision-log.md` 2026-09-18 T-10-fe-shell（Dev）；OQ-IMPL-09（HTTP 狀態碼）仍待處理，API client 未依賴特定狀態碼實作分流 |
+| T-10-fe-shell | 前端 app shell（路由、API client、登入態管理） | T-00-scaffold、T-01-be-user | doing | 2026-09-18 Review 第 1 輪退回（見 `review.md`），待 Dev 處理 D-03、D-04；建置／測試本身全綠，程式碼行為未發現錯誤 |
 | T-11-fe-auth | `s-login`、`s-signup` | T-10-fe-shell | todo | |
 | T-12-fe-board-list | `s-board-list`、`s-board-create-dialog`、`s-board-delete-dialog` | T-10-fe-shell、T-02-be-board、T-04-be-board-membership | todo | 選定 Board 後導向 T-13 的 Canvas，不是導向 T-14 |
 | T-13-fe-canvas-shell | `s-canvas`：F07 item 放置容器（開啟看板時初始化＋移動／調整大小／排層序／錨定 canvas／screen／Viewport 平移縮放記憶／批次操作），提供給其他前端任務掛載自己的 item 內容；`.dev/F07-canvas-layout/ui-canvas-layout.md` 已存在且操作表／資料表完整，直接依它實作 | T-12-fe-board-list、T-09-be-canvas-layout | todo | 基礎設施型任務，T-14～T-20 都依賴它才能把畫面掛上 Canvas；2026-09-18 隨 OQ-IMPL-07／08 定案（見 T-09 備註），`item.component`／canvas 建立時機／角色對應三件事都已寫進 `spec-canvas-layout.md`（草稿，不需 CR）；`ui-canvas-layout.md` 本身仍是「討論中」狀態（待確認事項可能還有殘留，Dev 動工前重讀一次確認），但不再是本任務動工的阻礙 |
@@ -53,4 +53,11 @@
 |---|---|---|---|
 | D-01 | T-01-be-user | done | 已在 `open-questions.md` 新開 OQ-IMPL-09，逐字引用 `uc-create-user`／`uc-login`／`uc-logout` 的 `fail`／`post` 原文，列出目前程式碼採用的 HTTP 狀態碼對應（400／409／401／204／401）與其他選項；`state.md` 已補「待確認事項」。程式碼未變動。 |
 | D-02 | T-01-be-user | done | 已在 `open-questions.md` 新開 OQ-IMPL-10（情況：兩處矛盾並列），逐字並列欄位表『非空、全系統不可重複』與 `uc-create-user` pre p2『`user.username` 在系統中不可重複』（沒有非空）、以及 `ui-user-membership.md` 資料表的對應標註，問「空 username 要怎麼拒絕、訊息是什麼」。未自行編訊息、未加防護，OQ 有結論前程式碼維持原狀，`state.md` 已補「待確認事項」。 |
+
+### T-10-fe-shell（2026-09-18 Review 第 1 輪退回）
+
+| ID | 母任務 | 狀態 | 描述 |
+|---|---|---|---|
+| D-03 | T-10-fe-shell | todo | `kanban-frontend/src/layout/AppShell.tsx` 的 TopBar 顯示 `user.username`，但 `ui-user-membership.md` 第 78 行寫『TopBar 顯示帳號名稱』、第 90 行寫『成功後 TopBar 顯示該使用者名稱』，兩處都沒有指定是 `user.username`（第 26 行資料表標為「帳號 ID」）還是 `user.display-name`（spec 第 29 行『顯示名字，看板上顯示用』）。另外 `GET /api/session` 的 `SessionResponse` 只回 `username`，要顯示 `display-name` 的話得改 T-01 的後端。請在 `open-questions.md` 新開 OQ（情況選【推論＋所本原文】，逐字引用上面三處原文，並列出「目前程式碼選 username」這個推論），交接摘要的「待確認事項」也要寫進去。OQ 定案前程式碼可以維持原狀，不要自行改成 display-name。 |
+| D-04 | T-10-fe-shell | todo | 更正過期的紀錄：`tasks.md` 原本 T-10 備註、`decision-log.md`「2026-09-18 T-10-fe-shell（Dev）」影響段、`state.md` 都寫 OQ-IMPL-09『仍待處理／未定案』，但 OQ-IMPL-09 在本任務 Dev commit 之前（`06c0a14`）就已經解除，並升級成 `adr.md` ADR-001。請在 decision-log 追加一則更正（既有條目不改），寫明 `ApiError` 帶狀態碼的設計跟 ADR-001 的分類表（例如未登入查 session 回 401）一致，並說明後續 T-11 等任務應該依 ADR-001 狀態碼分流，還是依回應訊息分流。 |
 
