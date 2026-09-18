@@ -3,3 +3,12 @@ __pycache__/
 
 # 無人值守 loop 的執行期檔案（核准檔、驗證報告、日誌），只存在執行 loop 的機器
 .dev/loops/*/runtime/
+
+# Gradle（kanban-core／kanban-spring）
+.gradle/
+build/
+
+# pnpm／Node（kanban-frontend）
+node_modules/
+kanban-frontend/dist/
+

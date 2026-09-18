@@ -32,3 +32,24 @@
 - 理由：人工判斷 item.component 該用哪個值時，一開始提議沿用 ui 層的 `s-board`，但 `spec-check` 直接報錯（REF-01：spec 不能引用 ui 的 Screen ID，違反 `docs-convention.md` 第 3 節單向引用規則），改用 F01 已定義的實體 ID `board` 解決；角色對應則是人工直接判斷 Owner/Member＝editor、Viewer＝viewer，且因為 F02 在稍早（2026-09-18 稍早的 commit）已新增 `r-board-viewer` 角色，映射可以是正式的三對三對應，不用再標「暫定」。
 - 影響：`spec-canvas-layout.md` 兩則變更紀錄；T-09、T-13 兩個任務原本備註的缺口全部解除，T-14～T-20 間接受益（依賴的 T-13 不再卡在缺規格）。
 - ADR：無（規格本身的決定記在 `spec-canvas-layout.md` 變更紀錄，這裡只記 loop 如何回應）。
+
+### 2026-09-18 T-00-scaffold（Dev）
+- 決策：`kanban-frontend` 選用 pnpm + Vite + React + TypeScript（`pnpm create vite@latest kanban-frontend --template react-ts`），並加裝 vitest + @testing-library/react 作為測試框架；`kanban-spring` 依賴 Spring Boot 4.1.1 實際發佈到 Maven Central 的模組化 autoconfigure 套件（`spring-boot-jdbc`／`spring-boot-hibernate`，類別套件改為 `org.springframework.boot.jdbc.autoconfigure`／`org.springframework.boot.hibernate.autoconfigure`，不是舊版 `org.springframework.boot.autoconfigure.jdbc`／`orm.jpa`）；kanban-core／kanban-spring 皆用 Java 25 toolchain。
+- 理由：CLAUDE.md／spec／ui-*.md 都沒有指定前端框架，這屬於「技術實作細節、不違反 spec」的低風險決定（iteration-prompt.md 第 5 節），pnpm 是唯一被指定的套件管理工具；Spring Boot 4.1.1 的 autoconfigure 套件路徑用 `unzip -l` 實際核對 Maven Central 下載下來的 jar 內容才發現已模組化搬遷，不是憑記憶假設舊版路徑，避免腦補。
+- 影響：後續所有前端任務（T-10 起）都建立在 Vite + React + TS 之上；後續後端任務若用到 `DataSourceAutoConfiguration`／`HibernateJpaAutoConfiguration` 等 Boot 4.1 autoconfigure 類別，要注意套件已搬到 `org.springframework.boot.<starter>.autoconfigure`，不是舊路徑。`kanban-core` 新增 `NoSpringDependencyTest` 作為架構守門測試，往後任務若不慎在 `kanban-core` 引入 Spring 依賴會被這個測試擋下。
+- ADR：無（純技術選型，未違反 spec，不影響 aggregate 邊界或 port 設計）。
+
+### 2026-09-18 T-00-scaffold（Review）
+- 決策：核准，狀態從 `review-pending` 改成 `done`。
+- 理由：Review 自己重跑 `./gradlew clean build` 和前端的 `pnpm install --frozen-lockfile`／`pnpm run build`／`pnpm run test`，全部通過；任務不涵蓋 uc／Scenario，spec 對應不適用；`kanban-core` main source 沒有 Spring／JPA import；diff 範圍只有骨架檔案和 `.state/**`；沒有未決 OQ。`NoSpringDependencyTest` 沒檢查 JPA、前端還留著 Vite 範本樣式、repo 沒有 CI 設定，這三件事判定不影響「骨架可建置、無業務邏輯」這個驗收範圍，記在 `review.md` 給後續任務參考，沒有開 D-xx。
+- 影響：觸發 `impl/T-00-scaffold` 合併回 `loop/implementation`；T-01-be-user（以及依賴鏈上的其他任務）的依賴解除。沒有留給 Dev 的 D-xx。
+
+### 2026-09-18 T-00-scaffold（Review 重新驗證）
+- 決策：維持核准，狀態不動（仍是 `done`）。
+- 理由：上次核准後程式碼沒有異動；重跑 Gradle 建置和前端的 build／test 都通過，`kanban-core` 也仍然沒有 Spring／JPA import。
+- 影響：跟上次核准相同（等待合併回 `loop/implementation`），沒有新的 D-xx。
+
+### 2026-09-18 T-00-scaffold（Review 第三次重新驗證）
+- 決策：維持核准，狀態不動（仍是 `done`）。
+- 理由：程式碼從核准後沒有異動；重跑 Gradle 建置和前端 build／test 都通過，`kanban-core` main source 仍然沒有 Spring／JPA import，diff 範圍也沒有變。
+- 影響：仍在等合併回 `loop/implementation`，沒有新的 D-xx。已經是 `done` 的任務又被觸發 Review，可能是驅動腳本合併步驟沒有執行，請人工檢查。

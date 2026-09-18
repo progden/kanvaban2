@@ -1,0 +1,4 @@
+spring:
+  application:
+    name: kanban-spring
+# 資料庫連線等設定待對應 Aggregate 任務（例如 T-02-be-board）依 persistence 需求補上。
