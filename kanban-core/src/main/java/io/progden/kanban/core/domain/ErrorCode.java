@@ -35,5 +35,7 @@ public enum ErrorCode {
     /** 找不到指定的 Card。 */
     CARD_NOT_FOUND,
     /** Comment 內容留空。 */
-    EMPTY_COMMENT_CONTENT
+    EMPTY_COMMENT_CONTENT,
+    /** 刪除 Stage 時指定的目的 Stage 與來源相同，或不屬於同一看板。 */
+    INVALID_DESTINATION_STAGE
 }

@@ -10,6 +10,7 @@ import io.progden.kanban.core.domain.ErrorCode;
 import io.progden.kanban.core.domain.StageRole;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * spec-kanban-basic.md「Swimlane 管理」「Stage（階段）管理」對應的 application 層。
@@ -19,11 +20,14 @@ import org.springframework.stereotype.Service;
  * implementation-loop OQ-IMPL-15，待 T-04 補上。
  *
  * <p>{@code removeSwimlane}／{@code removeStage} 協調 {@code uc-delete-swimlane}／
- * {@code uc-delete-stage} post 第 2 條「卡片一併刪除／轉移」：先重新整理 {@code Board} 的卡片快取，
- * 若呼叫端已確認（Swimlane）／指定目的 Stage（Stage），先透過 {@link CardRepository} 完成卡片的
- * 刪除／轉移，重新整理快取後再呼叫一次 {@code Board} 的刪除方法（此時卡片數應為 0，可順利完成）；
- * 未確認／未指定目的 Stage 時沿用既有行為，有卡片就丟出 {@code SWIMLANE_HAS_CARDS}／
- * {@code STAGE_HAS_CARDS}（見 design-kanban-basic.md 第 7 節、implementation-loop OQ-IMPL-17）。
+ * {@code uc-delete-stage} post 第 2 條「卡片一併刪除／轉移」：先呼叫 {@code Board} 的
+ * {@code ensureSwimlaneRemovable}／{@code ensureStageRemovable}（連同目的 Stage 的
+ * {@code ensureValidDestinationStage}）完成「該 swimlane／stage 屬於這個 board、數量下限、
+ * 目的 Stage 合法」的檢查，全部通過才透過 {@link CardRepository} 動卡片（刪除／轉移），最後才呼叫
+ * {@code Board} 的刪除方法；未確認／未指定目的 Stage 時沿用既有行為，有卡片就丟出
+ * {@code SWIMLANE_HAS_CARDS}／{@code STAGE_HAS_CARDS}（見 design-kanban-basic.md 第 7 節、
+ * implementation-loop OQ-IMPL-17）。兩個方法都標 {@code @Transactional}：檢查通過後若卡片異動或
+ * 最終刪除任一步失敗，整個協調流程（含已異動的卡片）一起回滾，不留下半套資料。
  */
 @Service
 public class BoardApplicationService {
@@ -70,9 +74,11 @@ public class BoardApplicationService {
         return board;
     }
 
+    @Transactional
     public Board removeSwimlane(UUID boardId, UUID operatorId, UUID swimlaneId, boolean confirmed) {
         Board board = loadBoard(boardId);
         board.refreshCardSummaries();
+        board.ensureSwimlaneRemovable(swimlaneId);
         if (confirmed) {
             for (Card card : cardRepository.findActiveBySwimlaneId(swimlaneId)) {
                 card.delete(operatorId);
@@ -106,10 +112,13 @@ public class BoardApplicationService {
         return board;
     }
 
+    @Transactional
     public Board removeStage(UUID boardId, UUID operatorId, UUID stageId, UUID destinationStageId) {
         Board board = loadBoard(boardId);
         board.refreshCardSummaries();
+        board.ensureStageRemovable(stageId);
         if (destinationStageId != null) {
+            board.ensureValidDestinationStage(stageId, destinationStageId);
             for (Card card : cardRepository.findActiveByStageId(stageId)) {
                 card.moveToStage(operatorId, destinationStageId);
                 cardRepository.save(card);

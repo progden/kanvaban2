@@ -223,6 +223,17 @@ public final class Board {
         recordActivity(operatorId, "刪除 Stage「" + stage.getName() + "」");
     }
 
+    /**
+     * 驗證 {@code destinationStageId} 是這個 Board 底下真實存在、且不等於來源 {@code sourceStageId}
+     * 的 Stage（{@code uc-delete-stage} 協調卡片轉移用，見 BoardApplicationService）。
+     */
+    public void ensureValidDestinationStage(UUID sourceStageId, UUID destinationStageId) {
+        if (destinationStageId.equals(sourceStageId)) {
+            throw new DomainException(ErrorCode.INVALID_DESTINATION_STAGE, "目的 Stage 不可與來源 Stage 相同");
+        }
+        findStage(destinationStageId);
+    }
+
     public void setStageRole(UUID operatorId, UUID stageId, StageRole role) {
         Stage target = findStage(stageId);
         if (role == StageRole.START || role == StageRole.DONE) {
