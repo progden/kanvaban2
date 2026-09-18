@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 python3 -m unittest discover -s scripts/tests   # 腳本的測試
-./scripts/spec-check                             # 檢查 .dev/F*/spec-*.md（目前既有規格尚未遷移，會報大量 error）
+./scripts/spec-check                             # 檢查 .dev/F*/spec-*.md（F01～F06 已遷移完成，目前 0 error）
 ./scripts/ui-check                               # 檢查 .dev/F*/ui-*.md
 ./scripts/cr-check --base origin/main            # CI 用，比對 .dev/CR.md 影響 ID 與 PR diff
 ./scripts/spec-check --report                    # 印 CRUD／角色／事件／追溯矩陣，不寫檔
@@ -28,7 +28,7 @@ python3 -m unittest discover -s scripts/tests   # 腳本的測試
 `.dev/F<兩位數>-<名稱>/` 一個功能模組一個目錄，編號連續（目前 F01～F07），內含：
 
 - `spec-<模組>.md`：BDD 規格（Gherkin + usecase 區塊），是行為的唯一依據，`spec-check` 解析它
-- `ui-<模組>.md`（選填，目前僅 F01 有）：UI 短規格，依 `ui-convention.md`，`ui-check` 解析它
+- `ui-<模組>.md`（選填，目前 F01～F07 皆有）：UI 短規格，依 `ui-convention.md`，`ui-check` 解析它
 - `legacy-spec-<模組>.md`：遷移前的規格備份（spec 遷移 loop 用來比對行為），不被腳本掃描、不可修改，遷移確認後可刪
 - `design-<模組>.md`（F01～F04 有）：**後端**領域模型設計備忘，不被任何腳本解析；spec 內文仍以舊名 `design.md` 稱呼它，遷移時一併改
 
@@ -68,7 +68,7 @@ python3 -m unittest discover -s scripts/tests   # 腳本的測試
 
 ## 撰寫規範（`.dev/conventions/`）
 
-修改規格前先讀對應規範。2026-09-16 依 `.dev/prompts/improve-convention-prompt.md` 大改過一次，目的是讓腳本能解析 spec／ui 檔；2026-09-17 又依 `docs-convention.md` 訂出的三層邊界，改寫 spec／ui／cr 三份 convention。**既有 F01～F06 的 spec 尚未遷移到新格式**（遷移順序見 `open-questions.md` Q10，已決定一個 PR 遷六個模組；其餘決定已寫回各規範，`open-questions.md` 開頭有已決定表）。
+修改規格前先讀對應規範。2026-09-16 依 `.dev/prompts/improve-convention-prompt.md` 大改過一次，目的是讓腳本能解析 spec／ui 檔；2026-09-17 又依 `docs-convention.md` 訂出的三層邊界，改寫 spec／ui／cr 三份 convention。**F01～F06 的 spec 已於 2026-09-18 遷移完成**（`.dev/loops/spec-migration-loop/spec-migration-state.md`：「F01～F06 全部完成，全檔 0 error」，`runtime/DONE` 已建立），`ui-*.md` 也已由 `ui-authoring-loop` 補齊 F02～F07；遷移過程中的決議見 `spec-migration-open-questions.md`（Q1～Q10）與 `ui-authoring-open-questions.md`。
 
 - **docs-convention.md**（入口）：定義 spec／ui／design／CR 四種文件各自的斷言主詞與邊界（MECE）、引用方向只能單向（`spec ← ui ← design`、`CR → spec/ui`）、誰在什麼時候讀哪份。規則衝突時以各自 convention 為準，邊界該寫在哪份文件的爭議以本文件為準。
 - **spec-convention.md**（規格檔怎麼寫）
