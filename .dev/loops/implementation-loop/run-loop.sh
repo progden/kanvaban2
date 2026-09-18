@@ -73,12 +73,25 @@ tasks_with_status() {
   flock "$LEDGER_LOCK" grep -E "^\| T-[0-9A-Za-z-]+ \|.*\| $1 \|" "$LEDGER" | awk -F'|' '{gsub(/^ +| +$/,"",$2); print $2}'
 }
 
-# 把任務 $1 的狀態改成 $2（簡單字串替換，任務清單格式固定為一行一個 T-xx 列）
+# 把任務 $1 的狀態改成 $2（簡單字串替換，任務清單格式固定為一行一個 T-xx 列）；
+# 只改主 repo 這份檔案，不 commit——單純標記用（doing marker），供 tasks_with_status／
+# deps_satisfied 這些「掃描 todo／依賴是否已合併」的判斷排除掉正在跑的任務。
 set_task_status() {
   local id="$1" new="$2"
   flock "$LEDGER_LOCK" bash -c "
     sed -i -E 's/^(\| $id \|.*\| )[a-z-]+( \|)/\1$new\2/' '$LEDGER'
   "
+}
+
+# 把任務 $1 的狀態改成 $2，並直接在主 repo commit 這個異動，讓主 worktree 的
+# working tree 保持乾淨（其他無人值守流程／下一次啟動的「git status 必須乾淨」
+# 前置檢查才不會被這種標記型異動卡住）。只給「不是靠合併帶進來的狀態變更」用
+# （worktree 建立失敗、撞到 MAX_TASK_ROUNDS 上限）。
+commit_ledger_status() {
+  local id="$1" new="$2" msg="$3"
+  set_task_status "$id" "$new"
+  git add "$LEDGER" > /dev/null 2>&1 || true
+  git commit -q -m "[docs](loops) $msg" > /dev/null 2>&1 || true
 }
 
 # 依賴是否全部 done 且已合併。
@@ -129,7 +142,7 @@ run_pipeline() {
   set_task_status "$id" doing
   if ! git worktree add "$wt" -b "$branch" "$LOOP_BRANCH" >> "$pipe_log" 2>&1; then
     log "[$id] worktree 建立失敗，任務標 blocked，見 $pipe_log"
-    set_task_status "$id" blocked
+    commit_ledger_status "$id" blocked "worktree 建立失敗，$id 標 blocked"
     return
   fi
 
@@ -138,7 +151,7 @@ run_pipeline() {
     round=$((round + 1))
     if [ "$round" -gt "$MAX_TASK_ROUNDS" ]; then
       log "[$id] 已達 MAX_TASK_ROUNDS=$MAX_TASK_ROUNDS 仍未核准，標 blocked，保留 worktree 供人工檢查。"
-      set_task_status "$id" blocked
+      commit_ledger_status "$id" blocked "$id 達 MAX_TASK_ROUNDS=$MAX_TASK_ROUNDS 仍未核准，標 blocked"
       return
     fi
 
@@ -168,21 +181,27 @@ $(cat "$REVIEW_PROMPT")" \
     set -e
     [ "$review_status" -ne 0 ] && log "[$id] Review 輪回傳狀態碼 $review_status（見 $pipe_log）。"
 
+    # 注意：這裡一定要讀 worktree 自己那份 tasks.md，不是主 repo 的 $LEDGER。
+    # Dev／Review 都是在 `cd "$wt" && claude -p ...` 裡跑的，牠們改的是 worktree
+    # 自己 working directory 底下的檔案；在合併回整合分支之前，主 repo 的 $LEDGER
+    # 完全看不到這些改動。之前就是讀錯這份檔案，導致不管跑幾輪都讀到 pipeline 一
+    # 開始寫的 doing，永遠判斷「尚未核准」，白白耗光 MAX_TASK_ROUNDS。
     local status
-    status="$(flock "$LEDGER_LOCK" awk -F'|' -v id="$id" '$0 ~ "^\\| "id" \\|" {gsub(/^ +| +$/,"",$5); print $5}' "$LEDGER")"
+    status="$(awk -F'|' -v id="$id" '$0 ~ "^\\| "id" \\|" {gsub(/^ +| +$/,"",$5); print $5}' "$wt/$LEDGER" 2> /dev/null)"
 
-    if [ "$status" = done ]; then
-      log "[$id] Review 核准，合併回 $LOOP_BRANCH"
+    if [ "$status" = done ] || [ "$status" = blocked ]; then
+      log "[$id] worktree 內狀態為 $status，合併回 $LOOP_BRANCH（保留紀錄與 commit 歷史）"
       flock "$MERGE_LOCK" bash -c "
         git switch '$LOOP_BRANCH' &&
-        git merge --no-ff '$branch' -m '[dev] 合併任務 $id' &&
+        git merge --no-ff '$branch' -m '[dev] 合併任務 $id（狀態：$status）' &&
         git switch - > /dev/null 2>&1 || true
       " >> "$pipe_log" 2>&1
-      git worktree remove "$wt" --force >> "$pipe_log" 2>&1 || true
-      log "[$id] 完成並已移除 worktree。"
-      return
-    elif [ "$status" = blocked ]; then
-      log "[$id] 狀態被標為 blocked，保留 worktree，停止這條管線。"
+      if [ "$status" = done ]; then
+        git worktree remove "$wt" --force >> "$pipe_log" 2>&1 || true
+        log "[$id] 完成並已移除 worktree。"
+      else
+        log "[$id] 狀態為 blocked（agent 自行判斷），已合併紀錄但保留 worktree 供人工檢查。"
+      fi
       return
     fi
     # 其餘情況（review-pending 沒被 Review 處理、或退回成 doing）視為需要再一輪
