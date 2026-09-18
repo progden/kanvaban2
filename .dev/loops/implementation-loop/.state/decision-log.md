@@ -32,3 +32,9 @@
 - 理由：人工判斷 item.component 該用哪個值時，一開始提議沿用 ui 層的 `s-board`，但 `spec-check` 直接報錯（REF-01：spec 不能引用 ui 的 Screen ID，違反 `docs-convention.md` 第 3 節單向引用規則），改用 F01 已定義的實體 ID `board` 解決；角色對應則是人工直接判斷 Owner/Member＝editor、Viewer＝viewer，且因為 F02 在稍早（2026-09-18 稍早的 commit）已新增 `r-board-viewer` 角色，映射可以是正式的三對三對應，不用再標「暫定」。
 - 影響：`spec-canvas-layout.md` 兩則變更紀錄；T-09、T-13 兩個任務原本備註的缺口全部解除，T-14～T-20 間接受益（依賴的 T-13 不再卡在缺規格）。
 - ADR：無（規格本身的決定記在 `spec-canvas-layout.md` 變更紀錄，這裡只記 loop 如何回應）。
+
+### 2026-09-18 T-00-scaffold（Dev）
+- 決策：`kanban-frontend` 選用 pnpm + Vite + React + TypeScript（`pnpm create vite@latest kanban-frontend --template react-ts`），並加裝 vitest + @testing-library/react 作為測試框架；`kanban-spring` 依賴 Spring Boot 4.1.1 實際發佈到 Maven Central 的模組化 autoconfigure 套件（`spring-boot-jdbc`／`spring-boot-hibernate`，類別套件改為 `org.springframework.boot.jdbc.autoconfigure`／`org.springframework.boot.hibernate.autoconfigure`，不是舊版 `org.springframework.boot.autoconfigure.jdbc`／`orm.jpa`）；kanban-core／kanban-spring 皆用 Java 25 toolchain。
+- 理由：CLAUDE.md／spec／ui-*.md 都沒有指定前端框架，這屬於「技術實作細節、不違反 spec」的低風險決定（iteration-prompt.md 第 5 節），pnpm 是唯一被指定的套件管理工具；Spring Boot 4.1.1 的 autoconfigure 套件路徑用 `unzip -l` 實際核對 Maven Central 下載下來的 jar 內容才發現已模組化搬遷，不是憑記憶假設舊版路徑，避免腦補。
+- 影響：後續所有前端任務（T-10 起）都建立在 Vite + React + TS 之上；後續後端任務若用到 `DataSourceAutoConfiguration`／`HibernateJpaAutoConfiguration` 等 Boot 4.1 autoconfigure 類別，要注意套件已搬到 `org.springframework.boot.<starter>.autoconfigure`，不是舊路徑。`kanban-core` 新增 `NoSpringDependencyTest` 作為架構守門測試，往後任務若不慎在 `kanban-core` 引入 Spring 依賴會被這個測試擋下。
+- ADR：無（純技術選型，未違反 spec，不影響 aggregate 邊界或 port 設計）。
