@@ -129,6 +129,13 @@ public class FeatureCrBoardSteps {
         assertEquals(1, warnings.size());
     }
 
+    /**
+     * 這個 Scenario 的 Background 只建立了一張卡片（同時帶 F01／F02 兩個 Feature 標籤），沒有第二張
+     * 「其他卡片」可以在這裡驗證是否受影響；這一步只能驗到「這張卡片自己的 F01／F02 沒有出現在追蹤
+     * 表」。「其他正常卡片的 Feature／CR 統計不受這張錯誤卡片影響」由
+     * {@link io.progden.kanban.query.featurecrboard.FeatureCrBoardCalculatorTest
+     * #cardWithTwoFeatureLabelsDoesNotAffectOtherCards()} 驗證。
+     */
     @Then("其他卡片的 Feature／CR 統計不應該受影響")
     public void thenOtherCardsUnaffected() {
         List<?> features = (List<?>) lastBody.get("features");

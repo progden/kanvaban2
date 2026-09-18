@@ -59,6 +59,33 @@ class FeatureCrBoardCalculatorTest {
     }
 
     @Test
+    void crAffectingMultipleUnknownFeaturesIsOrphanOnlyOnce() {
+        var cards = List.of(card(List.of("CR-099", "affects:F97", "affects:F98"), StageRole.NONE));
+
+        var view = FeatureCrBoardCalculator.calculate(cards);
+
+        assertEquals(List.of("CR-099"), view.orphanCrIds());
+    }
+
+    @Test
+    void cardWithTwoFeatureLabelsDoesNotAffectOtherCards() {
+        var cards = List.of(
+                card(List.of("F01", "F02"), StageRole.NONE),
+                card("F03", StageRole.DONE),
+                card(List.of("CR-004", "affects:F03"), StageRole.START));
+
+        var view = FeatureCrBoardCalculator.calculate(cards);
+
+        assertEquals(1, view.warnings().size());
+        var feature = view.features().stream().filter(f -> f.featureId().equals("F03")).findFirst().orElseThrow();
+        assertEquals("已完成", feature.status());
+        assertEquals(1, feature.crs().size());
+        assertEquals("CR-004", feature.crs().get(0).crId());
+        assertEquals("開發中", feature.crs().get(0).status());
+        assertTrue(view.orphanCrIds().isEmpty());
+    }
+
+    @Test
     void labelMatchingIsCaseInsensitive() {
         var cards = List.of(card("f01", StageRole.NONE));
 
