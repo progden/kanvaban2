@@ -4,6 +4,7 @@
   --color-primary: #1f4bd8;
   --color-primary-hover: #16359b;
   --color-text: #16202c;
+  --color-text-label: #3b4756;
   --color-text-muted: #5c6878;
   --color-text-subtle: #7b8896;
   --color-bg: #ffffff;
@@ -87,7 +88,7 @@ a:hover {
   border: 1px solid var(--color-border-strong);
   border-radius: 6px;
   background: #fff;
-  color: var(--color-text-muted);
+  color: var(--color-text-label);
   font-family: inherit;
   font-size: 14px;
   padding: 0 18px;
@@ -99,7 +100,7 @@ a:hover {
   border: 1px solid var(--color-border-strong);
   border-radius: 5px;
   background: #fff;
-  color: var(--color-text-muted);
+  color: var(--color-text-label);
   font-family: inherit;
   font-size: 12px;
   padding: 0 10px;
@@ -118,7 +119,7 @@ a:hover {
 .field-label {
   font-size: 12px;
   font-weight: 500;
-  color: var(--color-text-muted);
+  color: var(--color-text-label);
 }
 
 .field-hint {
@@ -188,7 +189,9 @@ a:hover {
 .app-topbar__logo span {
   background: var(--color-primary);
 }
-.app-topbar__logo span:nth-child(3n + 2) {
+.app-topbar__logo span:nth-child(3),
+.app-topbar__logo span:nth-child(4),
+.app-topbar__logo span:nth-child(8) {
   background: #a9b6d6;
 }
 

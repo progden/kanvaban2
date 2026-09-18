@@ -45,6 +45,21 @@ export function LoginPage() {
           <span className="app-topbar__product-name">[產品名稱]</span>
         </div>
         <p className="auth-brand__tagline">把看板放到一張畫不完的桌子上。</p>
+        <div className="auth-brand__illustration" aria-hidden="true">
+          <div className="auth-brand__illustration-tabs">
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="auth-brand__illustration-cards">
+            <span className="is-active" />
+            <span />
+            <span />
+            <span />
+            <span className="is-active" />
+            <span />
+          </div>
+        </div>
       </div>
 
       <div className="auth-form">

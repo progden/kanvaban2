@@ -63,7 +63,7 @@ export function SignupPage() {
         <div className="auth-brand__note">
           <p className="auth-brand__note-title">帳號建立後無法刪除</p>
           <ul>
-            <li>帳號 ID 全系統唯一，之後不能改。</li>
+            <li>帳號 ID 全系統不可重複。</li>
             <li>顯示名字留空時，會直接使用帳號 ID。</li>
             <li>密碼可以留空。</li>
           </ul>
