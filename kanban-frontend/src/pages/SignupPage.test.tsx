@@ -55,6 +55,7 @@ describe('s-signup', () => {
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('使用者名稱不能為空'));
     expect(screen.getByLabelText('密碼')).toHaveValue('secret');
     expect(calledPaths.some((path) => path.endsWith('/api/users'))).toBe(false);
+    expect(screen.getByRole('heading', { name: '建立帳號' })).toBeInTheDocument();
   });
 
   it('密碼長度超過 40 字時確認建立帳號，輸入內容保留、顯示訊息，且不觸發 uc-create-user', async () => {

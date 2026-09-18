@@ -67,6 +67,7 @@ describe('s-login', () => {
     expect(screen.getByLabelText('帳號 ID')).toHaveValue('user1');
     expect(screen.getByLabelText('密碼')).toHaveValue('wrong-password');
     expect(screen.getByRole('heading', { name: '登入' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '登出' })).not.toBeInTheDocument();
   });
 
   it('帳號不存在時送出登入表單，顯示訊息 "帳號或密碼錯誤"', async () => {
@@ -88,6 +89,10 @@ describe('s-login', () => {
     fireEvent.click(screen.getByRole('button', { name: '登入' }));
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('帳號或密碼錯誤'));
+    expect(screen.getByLabelText('帳號 ID')).toHaveValue('ghost-user');
+    expect(screen.getByLabelText('密碼')).toHaveValue('anything');
+    expect(screen.getByRole('heading', { name: '登入' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '登出' })).not.toBeInTheDocument();
   });
 
   it('觸發前往建立帳號動作，開啟 s-signup，不觸發任何 Use Case', async () => {
