@@ -74,3 +74,38 @@
 - `kanban-spring`：`board-clock.feature` 8 個 Scenario 全過，既有 4 個 feature 檔（swimlane／
   stage／card-editing／user-login-logout）共 30 個 Scenario、`BoardApplicationServiceTest` 2 個、
   smoke test 1 個，全部維持綠燈。
+
+## 2026-09-19 Dev 第 2 輪：修 D-01／D-02
+
+### 這輪做了什麼
+
+- **D-01**：`CardApplicationService` 原本用私有方法 `newEventTimeFor` 在 card 的 domain 驗證之前
+  就把 board 的 `lastEventAt` 存檔，且整個類別沒有 `@Transactional`。改法：`editCard`／
+  `moveCardSwimlane`／`moveCardStage`／`addComment`／`deleteCard` 都改成先 `loadBoard`、用
+  `board.newEventTime(Instant.now())` 算出事件時間，呼叫 `Card` 的 domain 方法（可能拋
+  `DomainException`）成功之後，才依序 `boardRepository.save(board)`、`cardRepository.save(card)`；
+  每個方法補上 `@Transactional`（比照 `BoardApplicationService` 既有慣例），任何一步失敗整個回滾。
+  `addCard` 原本的順序（`Card.create` 成功後才存 board）本來就對，這次補上 `@Transactional` 讓它
+  在 card 存檔失敗時也能回滾 board。
+- **D-02**：`BoardClockSteps` 的三個活動紀錄 Then 步驟（調整／暫停／恢復）原本只檢查
+  `action` 字串含關鍵字，沒驗到 `uc-adjust-board-clock` post p2『包含操作人與操作時間』。改法：
+  `assertActivityRecorded` 回傳最新一筆 `ActivityRecordJpaEntity`，呼叫端額外斷言
+  `occurredAt`（用 `assertCloseTo` 比對步驟參數指定的時間，容許誤差同既有 `TOLERANCE`）與
+  `operatorId`（比對 `boardSteps.getCurrentUserId()`）。**技術決定**：改用結構化欄位
+  `occurredAt` 比對，不解析 `action` 字串裡的時間文字，因此不需要處理 `Board.adjustClock`
+  目前用 `Instant.toString()`（UTC ISO 格式）跟 Scenario 敘事時間（本地時間）格式不同的問題——
+  這個決定範圍比 D-02 描述的「選一種格式」更小，兩者行為等價但不用改 `Board.adjustClock` 的
+  文字內容，風險更低。
+
+### 涵蓋範圍
+
+- 本輪只處理 D-01、D-02，兩者都屬於既有 Scenario 的驗收強化，沒有新增 entity／uc／Scenario，
+  對應的 `uc-guard-clock-monotonicity`、`uc-adjust-board-clock`、`uc-pause-resume-board-clock`
+  範圍不變。
+- 沒有新發現需要另開 OQ 的事項；上一輪的 OQ-T-05-be-board-clock-02（接手：人工）維持不動。
+
+### Check
+
+- `./gradlew clean build --no-daemon` → BUILD SUCCESSFUL（2m 23s）。
+- 測試結果：kanban-core 47 tests / 0 failures / 0 errors；kanban-spring 47 tests
+  （較上一輪 46 增加新的 `CardApplicationServiceTest`）/ 0 failures / 0 errors。
