@@ -1,9 +1,15 @@
 # T-21-cr007-topbar-display-name state
 
-> 2026-09-19 Review 第 1 輪 收尾，status＝`doing`。每輪由 `loopctl finish` 覆寫。
+> 2026-09-19 Dev 第 2 輪 收尾，status＝`review-pending`。每輪由 `loopctl finish` 覆寫。
 
-Review 第 1 輪：退回（doing）。
-- 建置／測試自行重跑全綠（gradle clean build、pnpm test 16/16、tsc、oxlint）。
-- 邊界乾淨、kanban-core 未動、無 OQ。
-- D-01：後端缺少 `GET /api/session` 回傳 `displayName` 的測試（CR-007 驗收標準明列）。
-下一輪 Dev：只需補 D-01 的測試，不需改動其他程式。
+# T-21-cr007-topbar-display-name state（Dev 第 2 輪）
+
+修好 D-01：`UserSteps.thenTopBarShowsName` 現在同時斷言 `GET /api/session`
+的 `displayName`，涵蓋 user1（預設等於 username）與 user5／王小明兩個既有
+Scenario，未改 Gherkin 文字、未改 kanban-core。
+
+驗證：`./gradlew clean build --no-daemon` 全綠；並以暫時刪掉
+`UserController` 裡設定 session displayName 那行、確認新斷言會失敗的方式，
+證實這條測試真的守住 CR-007 該項驗收標準，之後已還原。
+
+Review 這輪請先看：`UserSteps.java` 的 diff（只有 6 行）與這輪的 Check 紀錄。
