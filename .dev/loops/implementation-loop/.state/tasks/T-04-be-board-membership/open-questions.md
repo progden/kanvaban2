@@ -89,3 +89,21 @@
 引用二說 Viewer「可檢視看板」，引用一卻把 `uc-view-board-list` 的顯示範圍限定在 Owner／Member；引用三本身也承認這件事尚未逐一檢視過。implementation-loop T-04 這一輪修正 D-02，選擇照引用一的字面把 Viewer 排除在看板列表之外（`BoardMembershipApplicationService.listBoardsForUser` 過濾掉 `role == VIEWER`），理由是這是目前唯一逐字定案的 post；但這會讓 Viewer 沒有列表管道找到自己被邀請的看板（除非另有直接網址或其他畫面），與引用二「可檢視看板」的敘述有落差。
 問題：`uc-view-board-list` 是否也應該把 Viewer 的看板列進去？如果不列，Viewer 要怎麼「檢視看板」（引用二）？
 選項：A. 維持現況，照 post 字面排除 Viewer（見 `BoardMembershipApplicationService.listBoardsForUser`），Viewer 找看板的方式留待其他 CR／畫面決定；B. 把 Viewer 併入列表（等於認定 post 字面是 `r-board-viewer` 角色新增前的舊文字、需要補 CR 修正 `uc-view-board-list` 的 post）。
+
+## OQ-T-04-be-board-membership-06
+
+[Level: F01-basic-kanban/uc-edit-card]
+- 等級：高
+- 阻塞：否
+- 接手：人工
+- 原因代碼：spec-ambiguous
+- 開立：Review 第 2 輪（2026-09-19）
+- 狀態：待處理
+
+情況：【推論＋所本原文】
+引用一（`spec-user-membership.md` `uc-view-card-assignees`）：『roles: [r-board-member]』『pre: {}』
+引用二（`spec-user-membership.md` 角色表 `r-board-viewer`）：『被邀請加入 Board 的唯讀角色，可檢視看板與相關統計圖表，不能新增／編輯／移動／刪除任何內容，也不能碰成員管理、看板結構或刪除 Board』
+引用三（`spec-kanban-basic.md` `uc-edit-card`）：『roles: [r-user]』
+推論：T-04 第 2 輪只替 T-04 自己新增的端點（新增卡片、設定／拖曳負責人、候選名單、依負責人查詢、成員名單）補上成員資格／Viewer 檢查。T-03 既有的卡片端點（「CardController」的 getCard／editCard／moveCardSwimlane／moveCardStage／addComment／deleteCard）仍只檢查「已登入」：非成員可以讀任意看板的卡片（`uc-view-card-assignees` 經由 getCard 呈現），Viewer 也還能編輯／移動／刪除卡片、新增留言。F01 這些 uc 的 roles 是 `r-user`，沒有寫 `board-membership` 的 pre，所以 T-04 沒有動它們不算違反定稿原文；但和引用二「不能新增／編輯／移動／刪除任何內容」放在一起看，F01 卡片端點目前沒有落實 Viewer 限制，任務清單裡也沒有任務的產出範圍包含「替 F01 卡片端點補上成員／Viewer 檢查」。
+問題：F01 卡片相關 uc（`uc-edit-card`、移動、留言、刪除、檢視卡片）要不要改成檢查操作者是該 `board` 的成員、並拒絕 Viewer 寫入？由哪個任務（或 CR）處理？
+選項：A. 開 CR 把 F01 卡片 uc 的 roles／pre 改成看板成員（含 Viewer 限制），另開後端任務實作；B. 維持 F01 現況（任何已登入使用者都可以操作），只靠前端不顯示入口；C. 不開 CR，直接視為 `r-board-viewer` 角色定義的必然結果，由人工指派一個後端任務補檢查。
