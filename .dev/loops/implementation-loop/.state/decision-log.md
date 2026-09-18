@@ -82,3 +82,8 @@
 - 理由：D-01 本身已明講「程式碼可以不改，這一項是補登記」；D-02 允許先做暫行防護但非必須，且 review 特別強調「不可以自己編一個錯誤訊息當成定案」——目前兩個候選方向（新增 `pre p3`／或解讀成僅資料庫層 NOT NULL）對「使用者看到什麼訊息」的答案完全不同，任何暫行寫法都等於替 OQ 預設了一個答案，選擇不動code風險更低。OQ-IMPL-09 的情況分類用【推論＋所本原文】（HTTP 狀態碼是程式碼既有推論、spec 沒訂），OQ-IMPL-10 用【兩處矛盾並列】（欄位表『非空』vs. `pre p2` 沒有非空、且 ui 檔的引用本身對不上它引用的 `pre p2` 原文）。
 - 影響：`open-questions.md` 新增 OQ-IMPL-09、OQ-IMPL-10（皆「待處理」）；`tasks.md` D-01／D-02 改為 `done`，母任務 T-01-be-user 轉回 `review-pending`；`state.md` 覆寫本輪摘要。下一輪 Review 依規則只能附保留核准（兩則 OQ 皆待處理），不能核准成不帶保留的 `done`。
 - ADR：無（單一任務內的登記補正，非架構決策）。
+
+### 2026-09-18 T-01-be-user（Review 第 2 輪）
+- 決策：附保留核准，狀態從 `review-pending` 改成 `done`，保留事項是 OQ-IMPL-09、OQ-IMPL-10 兩則都還待處理。
+- 理由：第 1 點，Review 自己重跑 `./gradlew clean build --no-daemon`，exit 0，5 份報告共 20 個測試全部通過；第 2 點，兩份 feature 檔跟 spec 的 Gherkin 程式比對後相同，fail 情境的「資料不變」有斷言；第 3 點，`kanban-core/src/main` 沒有 Spring／JPA import；第 4 點，範圍外只有 `.state/**`；第 5 點，D-01／D-02 已處理，OQ 引文逐字核對跟源頭一致，兩則都判定為高風險（不是覆蓋來源），所以附保留核准，不標 blocked；第 6 點不適用。
+- 影響：`impl/T-01-be-user` 可以合併回 `loop/implementation`，T-02／T-04／T-10 的依賴解除。沒有新的 D-xx。OQ-IMPL-09／10 定案後，如果要改狀態碼或加 username 非空檢查，要回頭修 `user` aggregate（OQ-10 選 A 要先走 CR，因為 F02 spec 已定稿）。

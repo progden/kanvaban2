@@ -2,9 +2,7 @@
 
 > 每輪覆寫，20 行內；給下一輪／驅動腳本快速回復現況（zero context）。
 
-T-01-be-user：Dev 處理完 D-01／D-02，狀態改回 `review-pending`，worktree `../kanban2-impl-T-01-be-user`、分支 `impl/T-01-be-user`。
-- 對應 spec：`.dev/F02-user-membership/spec-user-membership.md` Feature「建立使用者帳號」（`uc-create-user`）、「使用者登入與登出」（`uc-login`／`uc-logout`），共 10 個 Scenario，皆已在上一輪實作＋Cucumber 涵蓋（本輪未改動程式碼）。
-- 本輪只做兩件事：`open-questions.md` 新開 OQ-IMPL-09（`uc-create-user`／`uc-login`／`uc-logout`／`GET /api/session` 的 HTTP 狀態碼選擇，對應 D-01）、OQ-IMPL-10（`user.username` 欄位表『非空』跟 `uc-create-user` pre p2 沒有非空這條的矛盾，對應 D-02）；`tasks.md` D-01／D-02 改 `done`。
-- **待確認事項（兩則 OQ 皆待處理）**：(1) OQ-IMPL-09 未定案前，目前程式碼採用的狀態碼對應（400／409／401／204／401）不是定案，Review 若核准，要附帶「HTTP 狀態碼未定案」的保留；(2) OQ-IMPL-10 未定案前，`user.username` 送空字串仍會建立成功（201），這是已知落差，本輪刻意不加暫行防護（怕預先決定訊息內容），若未來 OQ 定案要求拒絕，需回來補程式碼與測試。
-- 沒有新開其他 OQ，沒有跳過任何 Scenario 或新增/刪除測試；建置／測試沒有重跑（本輪未動程式碼）。
-- 下一步：Review 依規則只能附保留核准（兩則 OQ 未決，不能核准成不帶保留的 `done`）。
+T-01-be-user：Review 第 2 輪**附保留核准**，狀態 `done`，等驅動腳本把 `impl/T-01-be-user`（worktree `../kanban2-impl-T-01-be-user`）用 `--no-ff` 合併回 `loop/implementation`。
+- Review 自己重跑 `./gradlew clean build --no-daemon`：exit 0，20 個測試全部通過（`UserTest` 8、Cucumber 6＋4、純度 1、smoke 1）。
+- 保留：OQ-IMPL-09（HTTP 狀態碼未定案）、OQ-IMPL-10（`user.username` 非空未落實，F02 spec 已定稿，選 A 要先走 CR）都還是「待處理」，定案後可能要回頭修 `user` aggregate。
+- 合併後 T-02-be-board、T-04（還要等 T-02）、T-10-fe-shell 的 T-01 依賴解除。T-02 要把 `uc-logout`「無法存取 board」的 step 改成真的去打 board 端點（見 `review.md`）。
