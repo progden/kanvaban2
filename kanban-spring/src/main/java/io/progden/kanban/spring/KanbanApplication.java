@@ -2,14 +2,14 @@ package io.progden.kanban.spring;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
 
 /**
- * {@code @ComponentScan} 額外納入 {@code io.progden.kanban.query}：跨 aggregate 讀取投影放在該
- * 套件（CLAUDE.md「kanban-spring」說明），不在 {@code io.progden.kanban.spring} 預設掃描範圍下。
+ * {@code scanBasePackages} 用共同父套件 {@code io.progden.kanban}，涵蓋 {@code io.progden.kanban.spring}
+ * 與跨 aggregate 讀取投影所在的 {@code io.progden.kanban.query}（CLAUDE.md「kanban-spring」說明）。
+ * 不直接宣告 {@code @ComponentScan}：那會取代 {@code @SpringBootApplication} 內建的一份，連帶拿掉
+ * Spring Boot 預設的 {@code TypeExcludeFilter}／{@code AutoConfigurationExcludeFilter}。
  */
-@SpringBootApplication
-@ComponentScan(basePackages = {"io.progden.kanban.spring", "io.progden.kanban.query"})
+@SpringBootApplication(scanBasePackages = "io.progden.kanban")
 public class KanbanApplication {
 
     public static void main(String[] args) {

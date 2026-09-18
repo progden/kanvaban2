@@ -27,6 +27,8 @@ import java.util.regex.Pattern;
  * 標籤、或同一張卡片帶兩個 CR 標籤時 spec 未定義，本計算器選擇：沒有 affects 標籤的 CR 卡不出現在
  * 任何清單中（不算 orphan——「orphan」定義明確要求 affects 指到不存在的 Feature 編號）；一張卡片帶
  * 多個 CR 標籤時逐一視為獨立 CR 處理（見 implementation-loop decision-log，此為低風險實作細節）。
+ * p4 只規定忽略「Feature 標籤」，沒有要求連同一張卡片上的 CR 標籤一起忽略，因此該卡片的 CR 標籤仍
+ * 照常統計；警告文字據此明講只忽略 Feature 標籤（見 implementation-loop decision-log D-02）。
  */
 public final class FeatureCrBoardCalculator {
 
@@ -45,7 +47,7 @@ public final class FeatureCrBoardCalculator {
         for (CardLabelProjection card : cards) {
             List<String> featureLabels = matching(card.labels(), FEATURE_LABEL);
             if (featureLabels.size() > 1) {
-                warnings.add("卡片「" + card.title() + "」帶有兩個 Feature 標籤，已忽略其 Feature／CR 統計");
+                warnings.add("卡片「" + card.title() + "」帶有兩個 Feature 標籤，已忽略其 Feature 標籤（該卡片上的 CR 標籤仍照常統計）");
             } else if (featureLabels.size() == 1) {
                 String featureId = normalize(featureLabels.get(0));
                 featuresById.put(featureId, new FeatureEntry(featureId, statusOf(card.stageRole())));
@@ -65,13 +67,17 @@ public final class FeatureCrBoardCalculator {
         Map<String, List<CrView>> crsByFeature = new LinkedHashMap<>();
         List<String> orphanCrIds = new ArrayList<>();
         for (CrEntry cr : crCards) {
+            boolean isOrphan = false;
             for (String target : cr.affectsTargets()) {
                 featuresById.putIfAbsent(target, new FeatureEntry(target, statusOf(StageRole.NONE)));
                 crsByFeature.computeIfAbsent(target, k -> new ArrayList<>())
                         .add(new CrView(cr.crId(), cr.status()));
                 if (!featureIdsWithCard.contains(target)) {
-                    orphanCrIds.add(cr.crId());
+                    isOrphan = true;
                 }
+            }
+            if (isOrphan) {
+                orphanCrIds.add(cr.crId());
             }
         }
 
