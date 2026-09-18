@@ -1,16 +1,18 @@
 # tasks（任務清單）
 
 > 唯一任務來源。安排階段（`planning-prompt.md`）產生／校正；開發／審查階段只能改狀態欄、追加 `D-xx`，不可改任務描述／依賴／驗收條件（那要回安排階段或人工調整）。
+>
+> **2026-09-18 全面校正**：原始種子資料誤判了兩件事——(1) 把 F03／F05／F06「名詞定義」表格是空的當成「spec 尚未遷移」，實際上 `spec-migration-loop` 已於本輪之前完成（`spec-migration-state.md`：「F01～F06 全部完成，全檔 0 error」），這三個模組表格空白是正確的定案狀態（它們本來就不新增 aggregate，只引用 F01／F02／F04 既有實體）；(2) 誤以為只有 F01 有 `ui-*.md`，實際上 F02～F07 皆已由 `ui-authoring-loop` 補齊。更關鍵的是 `ui-authoring-loop` 的 OQ-49（已由人工確認定案）把前端架構定為 **Canvas-centric**：F01 `s-board`、F03 四個儀表板、F04 時鐘控制、F05 工作量儀表板、F06 追蹤表全部改為「F07 `s-canvas` 上的獨立 item」，不再是各自獨立導覽的頁面。下表依此全面重排，校正依據見 `decision-log.md` 對應條目。
 
 ## 規則
 
 - **狀態值**：`todo`（依賴未必滿足）／`doing`（有 worktree 正在跑 Dev 或 Review 輪）／`review-pending`（Dev 交出、等 Review）／`blocked`（缺依據或反覆卡住，等人工）／`done`（Review 核准且已合併回整合分支）。
 - **挑選順序**：驅動腳本每輪巡視，選出「依賴任務全部 `done`（且已合併）」且自身狀態為 `todo` 的任務，依下表 `T-xx` 序號由小到大挑，最多同時維持 5 條 `doing` 管線（`MAX_PARALLEL`，見 `run-loop.sh`）。
 - **`D-xx`**：Review 退回時在該任務下方追加，狀態獨立（`todo`／`done`），母任務要等所有 `D-xx` 都 `done` 且 Review 再次核准才能轉 `done`；`D-xx` 不佔用新的並行名額，由同一條管線的 Dev 輪處理。
-- **`blocked` 解除**：只有人工，或安排階段重跑確認缺的依據已補齊（例如某模組 spec 遷移完成）後，才能把 `blocked` 改回 `todo`。
+- **`blocked` 解除**：只有人工，或安排階段重跑確認缺的依據已補齊後，才能把 `blocked` 改回 `todo`。
 - **顆粒度**：一列 = 一個 Aggregate Root（後端）或一個畫面群組（前端），不可再拆更細的子任務列（子步驟寫在 Dev 的決策紀錄裡）。
 
-## 任務列
+## 後端任務
 
 | ID | 產出範圍 | 依賴（需已合併） | 狀態 | 備註 |
 |---|---|---|---|---|
@@ -19,19 +21,26 @@
 | T-02-be-board | F01 `board` Aggregate（`board`＋`swimlane`＋`stage`，含 `stage.role` START/DONE 唯一性） | T-01-be-user（`board.created-by`） | todo | |
 | T-03-be-card | F01 `card` Aggregate（`card`＋`comment`） | T-02-be-board、T-01-be-user（`card.assignees`／`comment.author`） | todo | |
 | T-04-be-board-membership | F02 `board-membership` ＋ ActivityRecord | T-02-be-board、T-01-be-user | todo | |
-| T-05-be-board-clock | F04 Board Clock（`board.clock-time`／`clock-status`，改寫 board/card 事件的 `occurredAt` 來源，含單調性） | T-02-be-board、T-03-be-card | todo | |
-| T-06-be-kanban-widgets | F03 唯讀 projection（Lead/Cycle Time、WIP、Aging、Throughput/CFD、到期提醒） | T-02-be-board、T-03-be-card、T-05-be-board-clock | blocked | spec 名詞定義三張表尚未遷移，見 OQ-IMPL-01 |
-| T-07-be-workload | F05 唯讀 projection（Active Card／Workload／未指派統計） | T-03-be-card、T-04-be-board-membership | blocked | spec 名詞定義三張表尚未遷移，見 OQ-IMPL-02 |
-| T-08-be-feature-cr-board | F06 唯讀 projection（Feature／CR 卡標籤解讀、orphan CR 判定） | T-03-be-card | blocked | spec 名詞定義三張表尚未遷移，見 OQ-IMPL-03 |
-| T-09-be-canvas-layout | F07 `canvas`＋`item`＋`viewport`（不含「待釐清」的跨模組整合部分） | T-02-be-board、T-04-be-board-membership（`viewport.user`） | todo | |
-| T-10-fe-shell | 前端 app shell（路由、API client、登入態管理） | T-00-scaffold、T-01-be-user | todo | |
-| T-11-fe-auth | `Login`、`Signup` | T-10-fe-shell | todo | |
-| T-12-fe-board-list | `BoardList`、`BoardCreateDialog`、`BoardDeleteDialog`、`StateBoardList*` | T-10-fe-shell、T-02-be-board、T-04-be-board-membership | todo | |
-| T-13-fe-board-detail | `Main`、`PanelStage`、`CardAddDialog`、`CardDeleteDialog`、`CardDetail`、`StageDeleteDialog`、`SwimlaneDeleteDialog`、`AssigneePicker`、`StateBoardLoading`、`StateCardDetailLoading` | T-12-fe-board-list、T-03-be-card | todo | |
-| T-14-fe-member-management | `MemberManagement` | T-13-fe-board-detail、T-04-be-board-membership | todo | |
-| T-15-fe-widgets | F03 對應畫面 | T-13-fe-board-detail、T-06-be-kanban-widgets | blocked | 無 `ui-kanban-widgets.md`、設計稿無對應畫面，見 OQ-IMPL-04 |
-| T-16-fe-workload | F05 對應畫面 | T-12-fe-board-list、T-07-be-workload | blocked | 無 `ui-workload.md`、設計稿無對應畫面，見 OQ-IMPL-05 |
-| T-17-fe-feature-cr-board | F06 對應畫面 | T-13-fe-board-detail、T-08-be-feature-cr-board | blocked | 無 `ui-feature-cr-board.md`、設計稿無對應畫面，見 OQ-IMPL-06 |
-| T-18-fe-canvas | `CanvasPanel` | T-13-fe-board-detail、T-09-be-canvas-layout | todo | 範圍限 Item/Viewport CRUD；與 F03 圖表元件整合部分 spec 本身未定義，不在範圍內 |
+| T-05-be-board-clock | F04 Board Clock（`board.clock-time`／`clock-status`，改寫 board/card 事件的 `occurredAt` 來源，含單調性；含 `uc-guard-clock-monotonicity`，見 spec `D-07` 的建模說明） | T-02-be-board、T-03-be-card | todo | |
+| T-06-be-kanban-widgets | F03 唯讀 projection（Lead/Cycle Time、WIP、Aging、Throughput/CFD、到期提醒；六個 `uc-view-*` 已定案，角色皆 `r-board-member`） | T-02-be-board、T-03-be-card、T-05-be-board-clock | todo | 原標 blocked 已解除，見 OQ-IMPL-01「解除說明」 |
+| T-07-be-workload | F05 唯讀 projection（Active Card／Workload／未指派統計；`uc-view-workload` 已定案） | T-03-be-card、T-04-be-board-membership | todo | 原標 blocked 已解除，見 OQ-IMPL-02「解除說明」 |
+| T-08-be-feature-cr-board | F06 唯讀 projection（Feature／CR 卡標籤解讀、orphan CR 判定） | T-03-be-card | todo | 原標 blocked 已解除，見 OQ-IMPL-03「解除說明」 |
+| T-09-be-canvas-layout | F07 `canvas`＋`item`＋`viewport`（Item 移動／調整大小／排層序／錨定／批次操作、Viewport 記憶，皆已在 spec 定義） | T-02-be-board、T-04-be-board-membership（`viewport.user`） | todo | 不含「`item.component` 對應各元件的實際值」——`spec-canvas-layout.md`「待釐清」明講這待整合 CR 定案，屬 spec 層級的缺口，不是本任務範圍可以決定的 |
 
-（此表由 `planning-prompt.md` 首次執行時的種子資料建立，任何校正請依該提示詞的流程追加決策紀錄說明依據。）
+## 前端任務（Canvas-centric，2026-09-18 依 OQ-49 全面重排）
+
+| ID | 產出範圍 | 依賴（需已合併） | 狀態 | 備註 |
+|---|---|---|---|---|
+| T-10-fe-shell | 前端 app shell（路由、API client、登入態管理） | T-00-scaffold、T-01-be-user | todo | |
+| T-11-fe-auth | `s-login`、`s-signup` | T-10-fe-shell | todo | |
+| T-12-fe-board-list | `s-board-list`、`s-board-create-dialog`、`s-board-delete-dialog` | T-10-fe-shell、T-02-be-board、T-04-be-board-membership | todo | 選定 Board 後導向 T-13 的 Canvas，不是導向 T-14 |
+| T-13-fe-canvas-shell | `s-canvas`：F07 item 放置容器（移動／調整大小／排層序／錨定 canvas／screen／Viewport 平移縮放記憶／批次操作），提供給其他前端任務掛載自己的 item 內容 | T-12-fe-board-list、T-09-be-canvas-layout | todo | 基礎設施型任務，T-14～T-20 都依賴它才能把畫面掛上 Canvas；`item.component` 實際對應值待整合 CR 定案（同 T-09 備註），本任務先做「容器」本身，不含個別元件內容 |
+| T-14-fe-board-item | F01 內容作為 Canvas item：`s-board`、`s-swimlane-list`、`s-swimlane-delete-dialog`、`s-stage-list`、`s-stage-delete-dialog`、`s-card-add-dialog`、`s-card-detail`、`s-card-delete-dialog`、`s-card-assignee-picker`（F02，負責人選取，從 `s-card-detail` 進入） | T-13-fe-canvas-shell、T-03-be-card | todo | |
+| T-15-fe-member-management | `s-member-management`（從 Canvas 上「看板成員」item 進入，機制待 T-13 實作時一併定案，見 OQ-45） | T-13-fe-canvas-shell、T-04-be-board-membership | todo | |
+| T-16-fe-activity-log | `s-activity-log`（合併 `board` 與 `board-membership` 的活動紀錄） | T-13-fe-canvas-shell、T-04-be-board-membership | todo | 原任務清單遺漏，2026-09-18 校正時補上 |
+| T-17-fe-clock-control | `s-board-clock-control`（F04，Canvas item） | T-13-fe-canvas-shell、T-05-be-board-clock | todo | 原任務清單遺漏，2026-09-18 校正時補上 |
+| T-18-fe-widgets | F03 四個儀表板 Canvas item：`s-cycle-lead-time-dashboard`、`s-wip-dashboard`、`s-throughput-cfd-dashboard`、`s-duedate-reminder` | T-13-fe-canvas-shell、T-06-be-kanban-widgets | todo | 原標 blocked（無 ui 檔）已解除，見 OQ-IMPL-04「解除說明」；依賴改為 T-13（原本誤依賴 T-13-fe-board-detail） |
+| T-19-fe-workload | `s-workload-dashboard`（Canvas item）＋ `s-cards-by-assignee`（從前者點擊進入） | T-13-fe-canvas-shell、T-07-be-workload | todo | 原標 blocked 已解除，見 OQ-IMPL-05「解除說明」；依賴改為 T-13 |
+| T-20-fe-feature-cr-board | `s-feature-cr-board`（Canvas item） | T-13-fe-canvas-shell、T-08-be-feature-cr-board | todo | 原標 blocked 已解除，見 OQ-IMPL-06「解除說明」；依賴改為 T-13 |
+
+（原 `T-18-fe-canvas` 已併入 `T-13-fe-canvas-shell`；原任務清單把 Canvas 排在 F01 畫面之後，方向反了——實際上幾乎所有畫面都要先有 Canvas 容器才能掛載，已於 2026-09-18 校正。）

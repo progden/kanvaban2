@@ -30,7 +30,7 @@ check() {
 
 # 1. 任務清單格式：每個 T-xx 列必須有五個 | 分隔欄位
 check "任務清單格式（每列 5 個欄位）" \
-  "! grep -E '^\| T-' '$LEDGER' | awk -F'|' 'NF!=7{print;bad=1} END{exit bad}' > /dev/null"
+  "grep -E '^\| T-' '$LEDGER' | awk -F'|' 'NF!=7{print;bad=1} END{exit bad}' > /dev/null"
 
 # 2. 不可有任務同時處於 doing 且沒有對應 worktree（代表管線異常中斷）
 while read -r id; do
