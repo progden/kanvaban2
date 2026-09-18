@@ -53,3 +53,21 @@
 推論：這條 Scenario 標題同時提到「移除」與「升級」，但 Gherkin 步驟本身只測試了「升級」（角色變更），沒有任何步驟測試「非 Owner 嘗試移除成員」該顯示什麼錯誤訊息。implementation-loop T-04 實作 `BoardMembershipApplicationService.removeMember` 時，讓非 Owner 呼叫移除成員也回同一句「只有 Owner 可以變更成員角色」（重用 `uc-reject-role-change-by-member` 的訊息），理由是 Scenario 標題把「移除」也算在同一個情境裡；但規格沒有逐字驗收過這個假設，也可能是規格漏寫了移除專屬的錯誤訊息與 Scenario。
 問題：非 Owner 嘗試移除成員時，錯誤訊息是否也應該是「只有 Owner 可以變更成員角色」？還是應該有獨立的訊息（例如「只有 Owner 可以移除成員」）？
 選項：A. 維持現況，移除與角色變更共用同一句錯誤訊息（見 `BoardMembershipApplicationService.removeMember` 呼叫 `ensureOwner` 時傳入的訊息）；B. 另訂移除專屬的錯誤訊息，並補上對應的 fail Scenario（需要開 CR 補齊 `spec-user-membership.md`）。
+
+## OQ-T-04-be-board-membership-04
+
+[Level: F02-user-membership/uc-member-add-card]
+- 等級：高
+- 阻塞：否
+- 接手：無
+- 原因代碼：spec-ambiguous
+- 開立：Dev 第 2 輪（2026-09-19）
+- 狀態：待處理
+
+情況：【推論＋所本原文】
+引用一（`spec-user-membership.md` `uc-member-add-card`）：『pre: p1: "操作者是該 `board` 的 `board-membership` 成員"』『fail: {}』
+引用二（`spec-user-membership.md` `uc-set-card-assignees`／`uc-assign-card-owner-by-drag`／`uc-list-card-assignee-candidates`／`uc-list-cards-by-assignee`）：『roles: [r-board-member]』
+引用三（角色表 `r-board-viewer`）：『被邀請加入 Board 的唯讀角色，可檢視看板與相關統計圖表，不能新增／編輯／移動／刪除任何內容，也不能碰成員管理、看板結構或刪除 Board』
+推論：這幾個 uc 的 `fail` 都是空的，沒有定義非成員／Viewer 呼叫時要回什麼訊息與 HTTP 狀態碼。implementation-loop T-04 這一輪修正 D-01 時，在 `BoardMembershipApplicationService` 新增 `ensureCanEdit`／沿用既有 `ensureMember`：新增卡片、設定／拖曳負責人（寫入類）拒絕非成員與 Viewer，訊息分別為「你沒有權限存取這個看板」（非成員）與「唯讀成員不能新增或編輯卡片」（Viewer），對應 HTTP 403；候選名單、依負責人查詢、成員名單（讀取類）只拒絕非成員（Viewer 可讀），訊息「你沒有權限存取這個看板」、HTTP 403。這個「讀取類允許 Viewer、寫入類排除 Viewer」的切分，以及訊息文字本身，規格都沒有逐字定義，是本輪依角色表字面意思做的推論。
+問題：上述「讀取類 uc 允許 Viewer、寫入類 uc（新增卡片／設定負責人）拒絕 Viewer」的切分是否為規格真正意圖？非成員／Viewer 被拒絕時的訊息文字與 HTTP 狀態碼是否需要另外在 spec 定義？
+選項：A. 維持現況（讀取類含 Viewer、寫入類排除 Viewer，訊息見 `BoardMembershipApplicationService.ensureMember`／`ensureCanEdit`）；B. 這幾個 uc 一律只檢查「是否為成員」，不細分 Viewer 能否寫入（等於恢復角色表對 Viewer 的限制只適用於看板結構／成員管理，不含卡片負責人）；C. 修 `spec-user-membership.md` 明確補上這幾個 uc 的 `fail` 定義（需要開 CR）。
