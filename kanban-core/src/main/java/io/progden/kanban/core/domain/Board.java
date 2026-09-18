@@ -30,10 +30,11 @@ public final class Board {
     private final List<Stage> stages;
     private final List<ActivityRecord> activityLog;
     private final CardLookupPort cardLookupPort;
+    private final BoardClock clock;
     private List<CardSummary> cardSummaries;
 
     private Board(UUID id, String name, UUID createdBy, List<Swimlane> swimlanes, List<Stage> stages,
-            List<ActivityRecord> activityLog, CardLookupPort cardLookupPort) {
+            List<ActivityRecord> activityLog, CardLookupPort cardLookupPort, BoardClock clock) {
         this.id = id;
         this.name = name;
         this.createdBy = createdBy;
@@ -41,10 +42,11 @@ public final class Board {
         this.stages = stages;
         this.activityLog = activityLog;
         this.cardLookupPort = cardLookupPort;
+        this.clock = clock;
         this.cardSummaries = List.of();
     }
 
-    public static Board create(UUID operatorId, String name, CardLookupPort cardLookupPort) {
+    public static Board create(UUID operatorId, String name, CardLookupPort cardLookupPort, Instant systemNow) {
         if (name == null || name.isBlank()) {
             throw new DomainException(ErrorCode.BOARD_NAME_BLANK, "看板名稱不可為空");
         }
@@ -57,14 +59,14 @@ public final class Board {
             order++;
         }
         Board board = new Board(UUID.randomUUID(), name, operatorId, initialSwimlanes, initialStages,
-                new ArrayList<>(), cardLookupPort);
-        board.recordActivity(operatorId, "建立看板");
+                new ArrayList<>(), cardLookupPort, BoardClock.initial());
+        board.recordActivity(operatorId, "建立看板", systemNow);
         return board;
     }
 
     public static Board reconstruct(UUID id, String name, UUID createdBy, List<SwimlaneSnapshot> swimlaneSnapshots,
             List<StageSnapshot> stageSnapshots, List<ActivityRecordSnapshot> activitySnapshots,
-            CardLookupPort cardLookupPort) {
+            CardLookupPort cardLookupPort, BoardClockSnapshot clockSnapshot) {
         List<Swimlane> swimlanes = new ArrayList<>();
         for (SwimlaneSnapshot snapshot : swimlaneSnapshots) {
             swimlanes.add(Swimlane.reconstruct(snapshot.id(), snapshot.name(), snapshot.order()));
@@ -83,7 +85,8 @@ public final class Board {
                     snapshot.id(), snapshot.operatorId(), snapshot.action(), snapshot.occurredAt()));
         }
 
-        return new Board(id, name, createdBy, swimlanes, stages, activityLog, cardLookupPort);
+        return new Board(id, name, createdBy, swimlanes, stages, activityLog, cardLookupPort,
+                BoardClock.reconstruct(clockSnapshot));
     }
 
     // ---- 讀取 ----
@@ -112,6 +115,31 @@ public final class Board {
         return List.copyOf(activityLog);
     }
 
+    public ClockStatus getClockStatus() {
+        return clock.getStatus();
+    }
+
+    public Instant getClockTime(Instant systemNow) {
+        return clock.now(systemNow);
+    }
+
+    public boolean isClockPaused() {
+        return clock.isPaused();
+    }
+
+    public BoardClockSnapshot getClockSnapshot() {
+        return clock.snapshot();
+    }
+
+    /**
+     * 供其他 Aggregate（例如 {@code Card}）的寫入操作取得這個 board 的「新事件時間」：套用
+     * {@code uc-guard-clock-monotonicity} 的單調性檢查，通過才更新看板的 {@code lastEventAt} 基準並
+     * 回傳可用的時間戳記；呼叫端（application 層）拿到之後要連同 board 一併存回去，否則基準不會生效。
+     */
+    public Instant newEventTime(Instant systemNow) {
+        return clock.recordEventTime(systemNow);
+    }
+
     public void refreshCardSummaries() {
         this.cardSummaries = cardLookupPort == null ? List.of() : List.copyOf(cardLookupPort.findByBoardId(id));
     }
@@ -126,20 +154,20 @@ public final class Board {
 
     // ---- Swimlane ----
 
-    public Swimlane addSwimlane(UUID operatorId, String name) {
+    public Swimlane addSwimlane(UUID operatorId, String name, Instant systemNow) {
         Swimlane swimlane = Swimlane.create(name, swimlanes.size() + 1);
         swimlanes.add(swimlane);
-        recordActivity(operatorId, "新增 Swimlane「" + name + "」");
+        recordActivity(operatorId, "新增 Swimlane「" + name + "」", systemNow);
         return swimlane;
     }
 
-    public void renameSwimlane(UUID operatorId, UUID swimlaneId, String newName) {
+    public void renameSwimlane(UUID operatorId, UUID swimlaneId, String newName, Instant systemNow) {
         Swimlane swimlane = findSwimlane(swimlaneId);
         swimlane.rename(newName);
-        recordActivity(operatorId, "重新命名 Swimlane 為「" + newName + "」");
+        recordActivity(operatorId, "重新命名 Swimlane 為「" + newName + "」", systemNow);
     }
 
-    public void moveSwimlaneBefore(UUID operatorId, UUID swimlaneId, UUID beforeSwimlaneId) {
+    public void moveSwimlaneBefore(UUID operatorId, UUID swimlaneId, UUID beforeSwimlaneId, Instant systemNow) {
         Swimlane swimlane = findSwimlane(swimlaneId);
         swimlanes.remove(swimlane);
         int insertIndex = swimlanes.size();
@@ -148,7 +176,7 @@ public final class Board {
         }
         swimlanes.add(insertIndex, swimlane);
         renumberSwimlanes();
-        recordActivity(operatorId, "調整 Swimlane 順序");
+        recordActivity(operatorId, "調整 Swimlane 順序", systemNow);
     }
 
     public Swimlane ensureSwimlaneRemovable(UUID swimlaneId) {
@@ -159,7 +187,7 @@ public final class Board {
         return swimlane;
     }
 
-    public void removeSwimlane(UUID operatorId, UUID swimlaneId) {
+    public void removeSwimlane(UUID operatorId, UUID swimlaneId, Instant systemNow) {
         Swimlane swimlane = ensureSwimlaneRemovable(swimlaneId);
         int cardCount = countCardsInSwimlane(swimlaneId);
         if (cardCount > 0) {
@@ -168,12 +196,12 @@ public final class Board {
         }
         swimlanes.remove(swimlane);
         renumberSwimlanes();
-        recordActivity(operatorId, "刪除 Swimlane「" + swimlane.getName() + "」");
+        recordActivity(operatorId, "刪除 Swimlane「" + swimlane.getName() + "」", systemNow);
     }
 
     // ---- Stage ----
 
-    public Stage addStage(UUID operatorId, String name, UUID beforeStageId) {
+    public Stage addStage(UUID operatorId, String name, UUID beforeStageId, Instant systemNow) {
         int insertIndex = stages.size();
         if (beforeStageId != null) {
             insertIndex = indexOfStage(beforeStageId);
@@ -181,17 +209,17 @@ public final class Board {
         Stage stage = Stage.create(name, insertIndex + 1);
         stages.add(insertIndex, stage);
         renumberStages();
-        recordActivity(operatorId, "新增 Stage「" + name + "」");
+        recordActivity(operatorId, "新增 Stage「" + name + "」", systemNow);
         return stage;
     }
 
-    public void renameStage(UUID operatorId, UUID stageId, String newName) {
+    public void renameStage(UUID operatorId, UUID stageId, String newName, Instant systemNow) {
         Stage stage = findStage(stageId);
         stage.rename(newName);
-        recordActivity(operatorId, "重新命名 Stage 為「" + newName + "」");
+        recordActivity(operatorId, "重新命名 Stage 為「" + newName + "」", systemNow);
     }
 
-    public void moveStageBefore(UUID operatorId, UUID stageId, UUID beforeStageId) {
+    public void moveStageBefore(UUID operatorId, UUID stageId, UUID beforeStageId, Instant systemNow) {
         Stage stage = findStage(stageId);
         stages.remove(stage);
         int insertIndex = stages.size();
@@ -200,7 +228,7 @@ public final class Board {
         }
         stages.add(insertIndex, stage);
         renumberStages();
-        recordActivity(operatorId, "調整 Stage 順序");
+        recordActivity(operatorId, "調整 Stage 順序", systemNow);
     }
 
     public Stage ensureStageRemovable(UUID stageId) {
@@ -211,7 +239,7 @@ public final class Board {
         return stage;
     }
 
-    public void removeStage(UUID operatorId, UUID stageId) {
+    public void removeStage(UUID operatorId, UUID stageId, Instant systemNow) {
         Stage stage = ensureStageRemovable(stageId);
         int cardCount = countCardsInStage(stageId);
         if (cardCount > 0) {
@@ -220,7 +248,7 @@ public final class Board {
         }
         stages.remove(stage);
         renumberStages();
-        recordActivity(operatorId, "刪除 Stage「" + stage.getName() + "」");
+        recordActivity(operatorId, "刪除 Stage「" + stage.getName() + "」", systemNow);
     }
 
     /**
@@ -234,7 +262,7 @@ public final class Board {
         findStage(destinationStageId);
     }
 
-    public void setStageRole(UUID operatorId, UUID stageId, StageRole role) {
+    public void setStageRole(UUID operatorId, UUID stageId, StageRole role, Instant systemNow) {
         Stage target = findStage(stageId);
         if (role == StageRole.START || role == StageRole.DONE) {
             for (Stage stage : stages) {
@@ -244,13 +272,54 @@ public final class Board {
             }
         }
         target.changeRole(role);
-        recordActivity(operatorId, "設定 Stage「" + target.getName() + "」角色為 " + role);
+        recordActivity(operatorId, "設定 Stage「" + target.getName() + "」角色為 " + role, systemNow);
+    }
+
+    // ---- Board Clock（CR-004，spec-board-clock.md） ----
+
+    /**
+     * {@code uc-adjust-board-clock}：{@code r-board-owner} 權限檢查由呼叫端負責（依既有慣例，見
+     * {@code BoardApplicationService} 類別註解）。調整動作本身不受單調性限制（可以調回過去），
+     * 但這個動作被記錄的活動紀錄要用調整後的看板時間，且不更新 {@code lastEventAt} 基準——否則後續
+     * {@code uc-guard-clock-monotonicity} 的判斷基準會被這次調整污染。
+     */
+    public void adjustClock(UUID operatorId, Instant newTime, Instant systemNow) {
+        clock.adjustTo(newTime, systemNow);
+        recordClockActivity(operatorId, "調整看板時間為 " + newTime, systemNow);
+    }
+
+    /** {@code uc-pause-resume-board-clock}：暫停看板時鐘。 */
+    public void pauseClock(UUID operatorId, Instant systemNow) {
+        clock.pause(systemNow);
+        recordClockActivity(operatorId, "暫停看板時間", systemNow);
+    }
+
+    /**
+     * {@code uc-pause-resume-board-clock}：恢復看板時鐘。時鐘不是 PAUSED 狀態時不動作、不記錄活動
+     * 紀錄（design-board-clock.md 第 6 節：spec 只定義「時鐘目前為暫停狀態」時的恢復）。
+     */
+    public void resumeClock(UUID operatorId, Instant systemNow) {
+        if (!clock.isPaused()) {
+            return;
+        }
+        clock.resume(systemNow);
+        recordClockActivity(operatorId, "恢復看板時間", systemNow);
     }
 
     // ---- 私有輔助 ----
 
-    private void recordActivity(UUID operatorId, String action) {
-        activityLog.add(new ActivityRecord(operatorId, action, Instant.now()));
+    private void recordActivity(UUID operatorId, String action, Instant systemNow) {
+        Instant eventTime = clock.recordEventTime(systemNow);
+        activityLog.add(new ActivityRecord(operatorId, action, eventTime));
+    }
+
+    /**
+     * 看板時鐘控制動作（調整／暫停／恢復）自己的活動紀錄：時間戳記用調整後的看板時間（唯讀，不guard），
+     * 不透過 {@link #recordActivity} 是因為那條路徑會更新 {@code lastEventAt}，讓調回過去這個動作
+     * 本身被誤判為「早於最後一筆事件」（見類別註解與 {@link #adjustClock}）。
+     */
+    private void recordClockActivity(UUID operatorId, String action, Instant systemNow) {
+        activityLog.add(new ActivityRecord(operatorId, action, clock.now(systemNow)));
     }
 
     private Swimlane findSwimlane(UUID swimlaneId) {

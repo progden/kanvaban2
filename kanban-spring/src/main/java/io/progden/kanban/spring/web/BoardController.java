@@ -140,6 +140,31 @@ public class BoardController {
         });
     }
 
+    @PatchMapping("/{boardId}/clock")
+    public ResponseEntity<?> adjustClock(
+            @PathVariable UUID boardId, @RequestBody AdjustClockRequest request, HttpSession session) {
+        return withOperator(session, operatorId -> {
+            Board board = boardApplicationService.adjustClock(boardId, operatorId, request.newTime());
+            return ResponseEntity.ok(BoardResponse.from(board));
+        });
+    }
+
+    @PostMapping("/{boardId}/clock/pause")
+    public ResponseEntity<?> pauseClock(@PathVariable UUID boardId, HttpSession session) {
+        return withOperator(session, operatorId -> {
+            Board board = boardApplicationService.pauseClock(boardId, operatorId);
+            return ResponseEntity.ok(BoardResponse.from(board));
+        });
+    }
+
+    @PostMapping("/{boardId}/clock/resume")
+    public ResponseEntity<?> resumeClock(@PathVariable UUID boardId, HttpSession session) {
+        return withOperator(session, operatorId -> {
+            Board board = boardApplicationService.resumeClock(boardId, operatorId);
+            return ResponseEntity.ok(BoardResponse.from(board));
+        });
+    }
+
     private ResponseEntity<?> withOperator(HttpSession session, java.util.function.Function<UUID, ResponseEntity<?>> action) {
         Object username = session.getAttribute(UserController.SESSION_USERNAME_ATTRIBUTE);
         if (username == null) {
@@ -160,7 +185,9 @@ public class BoardController {
         return switch (code) {
             case BOARD_NAME_BLANK, EMPTY_SWIMLANE_NAME, INVALID_DESTINATION_STAGE -> HttpStatus.BAD_REQUEST;
             case BOARD_NOT_FOUND, SWIMLANE_NOT_FOUND, STAGE_NOT_FOUND -> HttpStatus.NOT_FOUND;
-            case MINIMUM_SWIMLANE, MINIMUM_STAGE, SWIMLANE_HAS_CARDS, STAGE_HAS_CARDS -> HttpStatus.CONFLICT;
+            case MINIMUM_SWIMLANE, MINIMUM_STAGE, SWIMLANE_HAS_CARDS, STAGE_HAS_CARDS,
+                    BOARD_CLOCK_BEHIND_LAST_EVENT -> HttpStatus.CONFLICT;
+            case NOT_BOARD_OWNER -> HttpStatus.FORBIDDEN;
             default -> HttpStatus.BAD_REQUEST;
         };
     }

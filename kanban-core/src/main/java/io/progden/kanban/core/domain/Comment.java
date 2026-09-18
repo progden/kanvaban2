@@ -21,11 +21,11 @@ public final class Comment {
         this.createdAt = createdAt;
     }
 
-    static Comment create(UUID authorId, String content) {
+    static Comment create(UUID authorId, String content, Instant now) {
         if (content == null || content.isBlank()) {
             throw new DomainException(ErrorCode.EMPTY_COMMENT_CONTENT, "留言內容不可為空");
         }
-        return new Comment(UUID.randomUUID(), authorId, content, Instant.now());
+        return new Comment(UUID.randomUUID(), authorId, content, now);
     }
 
     static Comment reconstruct(UUID id, UUID authorId, String content, Instant createdAt) {

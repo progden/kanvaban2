@@ -34,6 +34,7 @@ class BoardRepositoryAdapter implements BoardRepository {
         entity.replaceSwimlanes(board.getSwimlanes());
         entity.replaceStages(board.getStages());
         entity.replaceActivityLog(board.getActivityLog());
+        entity.updateClock(board.getClockSnapshot());
         jpaRepository.save(entity);
     }
 
@@ -53,6 +54,6 @@ class BoardRepositoryAdapter implements BoardRepository {
                 .map(a -> new ActivityRecordSnapshot(a.getId(), a.getOperatorId(), a.getAction(), a.getOccurredAt()))
                 .toList();
         return Board.reconstruct(entity.getId(), entity.getName(), entity.getCreatedBy(),
-                swimlanes, stages, activityLog, cardLookupPort);
+                swimlanes, stages, activityLog, cardLookupPort, entity.toClockSnapshot());
     }
 }
