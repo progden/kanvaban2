@@ -10,6 +10,7 @@ import io.progden.kanban.core.domain.CardPlacement;
 import io.progden.kanban.core.domain.CardRepository;
 import io.progden.kanban.core.domain.DomainException;
 import io.progden.kanban.core.domain.ErrorCode;
+import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ class BoardApplicationServiceTest {
         UUID swimlaneId = board.getSwimlanes().get(0).getId();
         UUID stageId = board.getStages().get(0).getId();
 
-        Card card = Card.create(operatorId, board.getId(), "卡片 A", new CardPlacement(swimlaneId, stageId));
+        Card card = Card.create(operatorId, board.getId(), "卡片 A", new CardPlacement(swimlaneId, stageId), Instant.now());
         cardRepository.save(card);
 
         assertThatThrownBy(() -> boardApplicationService.removeSwimlane(board.getId(), operatorId, swimlaneId, true))
@@ -60,7 +61,7 @@ class BoardApplicationServiceTest {
         UUID sourceStageId = boardA.getStages().get(0).getId();
         UUID foreignStageId = boardB.getStages().get(0).getId();
 
-        Card card = Card.create(operatorId, boardA.getId(), "卡片 A", new CardPlacement(swimlaneId, sourceStageId));
+        Card card = Card.create(operatorId, boardA.getId(), "卡片 A", new CardPlacement(swimlaneId, sourceStageId), Instant.now());
         cardRepository.save(card);
 
         assertThatThrownBy(() -> boardApplicationService.removeStage(

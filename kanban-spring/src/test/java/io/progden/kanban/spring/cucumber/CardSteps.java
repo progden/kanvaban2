@@ -378,6 +378,19 @@ public class CardSteps {
                 .andReturn();
     }
 
+    /**
+     * 供 {@link BoardClockSteps} 重用「不應該建立新的卡片」這段共用步驟文字：
+     * 在它自己的「嘗試建立卡片」動作前先記錄基準值，比照 {@link UserSteps#setLastResult} 的重用模式。
+     */
+    void captureCardCountBaseline() {
+        cardCountBeforeAttempt = activeCardCount();
+    }
+
+    /** 供 {@link BoardClockSteps} 依 id 查卡片（board-clock Scenario 不追蹤 {@code currentCardId}）。 */
+    CardJpaEntity loadCardById(UUID id) {
+        return cardJpaRepository.findById(id).orElseThrow();
+    }
+
     private long activeCardCount() {
         return cardJpaRepository.findByBoardIdAndDeletedFalse(boardSteps.getCurrentBoardId()).size();
     }
