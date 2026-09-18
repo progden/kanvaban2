@@ -36,3 +36,20 @@
 推論：`crud` 只把 `board-membership` 標成 R（讀取），沒有標 D（刪除），implementation-loop T-04 據此推論：刪除 Board 時規格不要求真的把該 Board 底下的 `board-membership` 資料列實體刪除。實作上保留這些孤兒 `board-membership` 列，只在 `uc-view-board-list`（`BoardMembershipApplicationService.listBoardsForUser`）查詢時，用「對應的 Board 是否還存在」過濾掉，不在刪除 Board 當下清掉這些資料列本身。這條推論有風險：`crud` 沒標 D 也可能只是規格撰寫時的遺漏，而非刻意排除。
 問題：刪除 Board 後，是否應該一併刪除該 Board 底下所有 `board-membership` 資料列（即使 `uc-delete-board` 的 `crud` 只標了 R）？
 選項：A. 維持現況（保留孤兒列，查詢時過濾，見 `BoardMembershipApplicationService.listBoardsForUser`）；B. 改為刪除 Board 時一併實體刪除對應的 `board-membership` 資料列（等於認定目前 `crud` 標記是遺漏，需視情況補 CR 修正 `crud` 欄位）。
+
+## OQ-T-04-be-board-membership-03
+
+[Level: F02-user-membership/uc-remove-member]
+- 等級：高
+- 阻塞：否
+- 接手：無
+- 原因代碼：spec-ambiguous
+- 開立：Dev 第 1 輪（2026-09-19）
+- 狀態：待處理
+
+情況：【推論＋所本原文】
+引用一（Scenario 標題，`spec-user-membership.md`「Board 權限管理」Feature）：『Scenario: Member 無法移除或升級成員』
+引用二（該 Scenario 唯一的 When/Then）：『When "雅婷" 嘗試將自己升級為 "Owner" / Then 系統應該顯示錯誤訊息 "只有 Owner 可以變更成員角色"』
+推論：這條 Scenario 標題同時提到「移除」與「升級」，但 Gherkin 步驟本身只測試了「升級」（角色變更），沒有任何步驟測試「非 Owner 嘗試移除成員」該顯示什麼錯誤訊息。implementation-loop T-04 實作 `BoardMembershipApplicationService.removeMember` 時，讓非 Owner 呼叫移除成員也回同一句「只有 Owner 可以變更成員角色」（重用 `uc-reject-role-change-by-member` 的訊息），理由是 Scenario 標題把「移除」也算在同一個情境裡；但規格沒有逐字驗收過這個假設，也可能是規格漏寫了移除專屬的錯誤訊息與 Scenario。
+問題：非 Owner 嘗試移除成員時，錯誤訊息是否也應該是「只有 Owner 可以變更成員角色」？還是應該有獨立的訊息（例如「只有 Owner 可以移除成員」）？
+選項：A. 維持現況，移除與角色變更共用同一句錯誤訊息（見 `BoardMembershipApplicationService.removeMember` 呼叫 `ensureOwner` 時傳入的訊息）；B. 另訂移除專屬的錯誤訊息，並補上對應的 fail Scenario（需要開 CR 補齊 `spec-user-membership.md`）。
