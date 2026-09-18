@@ -34,3 +34,26 @@
 
 - 三則 OQ（見上）是否需要調整實作，或等人工／後續 CR 裁決。
 - `BoardController`／`CardController` 的端點擴充範圍是否符合任務預期（決策記在「低風險技術決定」最後一點）。
+
+## 2026-09-19 Dev 第 2 輪：修正 D-01／D-02：成員資格檢查與看板列表 Viewer 排除
+
+### 本輪判斷與理由
+
+- D-01（成員資格檢查缺漏）：在 `BoardMembershipApplicationService` 新增 `ensureCanEdit`（既有 `ensureMember` 沿用不變）。讀取類（`uc-list-card-assignee-candidates`／`uc-list-cards-by-assignee`／看板成員名單）改用 `ensureMember`，只要求是成員、不排除 Viewer；寫入類（`uc-member-add-card`／`uc-set-card-assignees`／`uc-assign-card-owner-by-drag`）改用 `ensureCanEdit`，額外拒絕 Viewer，依據是角色表 `r-board-viewer`『不能新增／編輯／移動／刪除任何內容』。這幾個 uc 的 `fail` 都是空的，訊息與 HTTP 狀態碼（403）是本輪決定的，已開 OQ-T-04-be-board-membership-04（等級高、不阻塞）交代這個切分與訊息文字沒有逐字依據。
+- D-02（`uc-view-board-list` 是否列出 Viewer 的看板）：改成照 post 字面排除 Viewer（`listBoardsForUser` 過濾 `role == VIEWER`）。理由：post 是目前唯一逐字定案的文字，角色表「Viewer 可檢視看板」與這句話的落差是規格本身的既有矛盾（變更紀錄也承認尚未逐一檢視），已開 OQ-T-04-be-board-membership-05（等級高、不阻塞，兩處矛盾並列）交代兩種做法的取捨。
+- 兩則 OQ 都不阻塞：都不需要違反任何已定稿的原文就能把任務做完，改動範圍限於 T-04 自己新增的端點與 `listBoardsForUser`。
+
+### 涵蓋範圍
+
+- 本輪只處理 D-01、D-02 兩項退回項目，不重新檢視其他 uc／Scenario。
+
+### 待確認事項
+
+- OQ-T-04-be-board-membership-01～03：延續自第 1 輪，尚未解除。
+- OQ-T-04-be-board-membership-04：讀取／寫入類 uc 的成員資格檢查切分與失敗訊息／狀態碼是否符合規格意圖。
+- OQ-T-04-be-board-membership-05：`uc-view-board-list` 是否該把 Viewer 的看板一併列出。
+
+### Check（實際跑的指令與結果）
+
+- `./gradlew clean build --no-daemon --rerun-tasks`：BUILD SUCCESSFUL（2m 18s）。
+- 彙整 `kanban-core` ＋ `kanban-spring` 的 `build/test-results`：共 113 個測試（108 + 本輪新增 5 個：`CardApplicationServiceTest` 3 個、`BoardMembershipApplicationServiceTest` 2 個），skipped 0、failures 0、errors 0。
