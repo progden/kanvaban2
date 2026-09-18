@@ -1,10 +1,15 @@
 # T-04-be-board-membership state
 
-> 2026-09-19 Review 第 1 輪 收尾，status＝`doing`。每輪由 `loopctl finish` 覆寫。
+> 2026-09-19 Dev 第 2 輪 收尾，status＝`review-pending`。每輪由 `loopctl finish` 覆寫。
 
-T-04-be-board-membership Review 第 1 輪：退回（doing）。
-- 自己重跑 `./gradlew clean build --no-daemon --rerun-tasks`：綠燈，108 個測試全過；F02 Scenario 和 spec 逐字一致。
-- kanban-core 純度、任務邊界都沒問題；OQ-01～03 的引文、等級、阻塞標記都正確。
-- 待 Dev 處理：
-  - D-01：T-04 新增的卡片負責人、候選名單、依負責人查詢、成員列表端點，以及 `uc-member-add-card` 的 pre，都沒有檢查操作者成員資格。要補上檢查、補測試，並開 OQ。
-  - D-02：`uc-view-board-list` 會把 Viewer 的看板列出來，和 post 字面不一致，要開 OQ（兩處矛盾並列）並決定做法。
+現在狀態：D-01、D-02 已修好並補測試，build 全綠（113 個測試）。
+
+這輪做了什麼：
+- 新增卡片、設定／拖曳負責人（寫入類）拒絕非成員與 Viewer；候選名單、依負責人查詢、成員名單（讀取類）只拒絕非成員（Viewer 可讀）。
+- `uc-view-board-list` 依 post 字面排除 Viewer 的看板。
+- 新增 OQ-04（成員資格檢查切分／訊息）、OQ-05（Viewer 是否該出現在看板列表，兩處矛盾並列）。
+
+Review 要先看什麼：
+- `BoardMembershipApplicationService.ensureCanEdit`／`ensureMember`／`listBoardsForUser` 的改動是否合理。
+- `CardApplicationServiceTest`、`BoardMembershipApplicationServiceTest` 兩個新測試檔。
+- OQ-04、OQ-05 的推論是否成立。
