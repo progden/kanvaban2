@@ -111,3 +111,36 @@ spec原文：`.dev/F02-user-membership/ui-user-membership.md` 第 78 行操作�
 選項：A. 維持目前對應（`user.username`），因為 ui 檔用詞是「帳號名稱」而非「顯示名字」；B. 改為 `user.display-name`，因為欄位表明講 `user.display-name` 才是「看板上顯示用」，TopBar 屬於全域顯示情境，且需同步修改 `SessionResponse`／`UserResponse`；C. 以上皆非。
 狀態：待處理。在本 OQ 有結論前，TopBar 維持顯示 `user.username`，不自行改成 `user.display-name`。
 Review 補充（2026-09-18，T-10-fe-shell Review 第 2 輪追加，上面 Dev 寫的內容未改）：上面的引文只有 ui 檔與欄位表，漏了 spec 本身對 TopBar 的兩處描述，補上供人工判斷。`.dev/F02-user-membership/spec-user-membership.md` 第 189 行 `uc-login` post 逐字：『"登入成功，TopBar 顯示該 `user` 的帳號名稱"』；同檔第 219～223 行 Scenario「使用正確帳號密碼登入」逐字：『Given 系統中存在帳號 "user1"，密碼為 "correct-password"』…『And TopBar 應該顯示我的名稱 "user1"』。【Review 的推論】這個 Scenario 沒有指定 `user.display-name`，依欄位表『未指定時預設等於 `user.username`』，兩個欄位的值都是 "user1"，所以這個 Scenario 無法區分選項 A 和 B；spec 的「帳號名稱」跟 ui 檔第 78 行用詞一樣，問題本身不變。
+
+## OQ-IMPL-12
+
+[Level: F01-basic-kanban/T-02-be-board]
+情況：【推論＋所本原文】
+spec原文：`.dev/F01-basic-kanban/spec-user-membership.md`（實際檔案為 `.dev/F02-user-membership/spec-user-membership.md`）`uc-create-board` 的 `post` 逐字只有三條：『"新的 `board` 建立成功，`board.name` 為指定名稱，`board.created-by` 為建立者"』『"建立者自動成為該 `board` 的 `board-membership`，角色為 Owner"』『"該 `board` 產生一筆活動紀錄，操作人為建立者、動作為「建立看板」"』，沒有提到預設 Swimlane／Stage。
+`.dev/F01-basic-kanban/spec-kanban-basic.md`「關係」表逐字：『| board | swimlane | 1 | n | 看板至少保留一個 Swimlane |』『| board | stage | 1 | n | 看板至少保留一個 Stage |』，代表這個不變條件必須隨時成立，含剛建立完成的當下。
+同檔「Feature: Swimlane 管理」Scenario「新增一個 Swimlane」的 Given 逐字：『看板目前有 1 個 Swimlane "預設泳道"』；「Feature: Stage（階段）管理」的 Background 逐字：『看板目前的 Stage 依序為 "待辦"、"進行中"、"完成"』。
+推論（已採用為實作依據）：由於 `uc-create-board` 的 `post` 沒有明講預設值，但關係表的 min=1 不變條件與上述兩處 Background/Given 文字一致指向「剛開啟的看板」帶有 1 個名為「預設泳道」的 Swimlane、3 個依序為「待辦」「進行中」「完成」的 Stage，`Board.create(...)`（`kanban-core`）採用這組具體名稱與數量作為建立時的預設值。
+問題：這組預設 Swimlane／Stage 名稱與數量是否為正式定案？若非，正確定案內容為何？
+選項：A. 維持目前實作（1 個「預設泳道」＋ 3 個「待辦」「進行中」「完成」，皆依 Background/Given 文字逐字採用）；B. `uc-create-board` 的 `post` 應明確補上這條規則（走 CR，因為 `spec-user-membership.md` 狀態為「定稿」）；C. 以上皆非（例如預設值應可由使用者在建立當下自訂，不該寫死在 domain 層）。
+狀態：待處理。在本 OQ 有結論前，`kanban-core` 的 `Board.create` 維持目前實作（選項 A 的內容），`kanban-spring`／Cucumber 驗收測試皆以此為準。
+
+## OQ-IMPL-13
+
+[Level: F01-basic-kanban/T-02-be-board]
+情況：【推論＋所本原文】
+spec原文：`.dev/F01-basic-kanban/spec-kanban-basic.md` 2026-09-18 變更紀錄逐字：『修正 9 個結構調整 usecase 的角色…`uc-add-swimlane`／`uc-rename-swimlane`／`uc-reorder-swimlane`／`uc-delete-swimlane`／`uc-add-stage`／`uc-rename-stage`／`uc-reorder-stage`／`uc-delete-stage`／`uc-set-stage-role` 的 roles 改為 r-board-owner』；`.dev/F02-user-membership/spec-user-membership.md` 角色定義表逐字：『r-board-owner | Board 擁有者 | Board 的管理角色：可邀請／移除／升級成員、可新增／重新命名／刪除 Swimlane 與 Stage…』。
+`design-kanban-basic.md` 逐字：『權限檢查（僅 Owner 可設定）由呼叫端先查 `BoardMembership` 後才呼叫，`kanban-core` 本身不驗證』。
+推論：`BoardMembership`（F02）是 T-04-be-board-membership 的範圍，尚未實作；T-02 的 `BoardController`／`BoardApplicationService` 目前只要求「已登入」（session 有效）即可呼叫 Swimlane／Stage 的所有結構調整端點，未依 `r-board-owner` 限制「僅 Owner 可操作」。
+問題：T-02 的 web 端點是否應該在 T-04 完成前就先擋掉非 Owner（例如回一個暫時的 403），還是維持目前「已登入即可操作」到 T-04 補上權限檢查？
+選項：A. 維持現狀，T-04 完成後再對這些既有端點補上 `BoardMembership` 查詢與 `r-board-owner` 檢查（本 OQ 解除時機＝T-04 完成）；B. T-02 先加一個「一律要求 Owner」的暫時檢查機制（例如查詢一個尚不存在的 membership 表會導致找不到而全部拒絕），阻擋所有操作直到 T-04 補齊；C. 以上皆非。
+狀態：待處理。在本 OQ 有結論前，採選項 A 的行為（未加權限檢查），因為選項 B 會讓 T-02 自身的 Swimlane／Stage 功能完全無法使用，防禦過度。
+
+## OQ-IMPL-14
+
+[Level: F02-user-membership/T-02-be-board]
+情況：【推論＋所本原文】
+spec原文：`uc-create-board` 屬於 `.dev/F02-user-membership/spec-user-membership.md`「Feature: Board 建立與成員邀請」，`crud` 欄逐字：『{board: C, board-membership: C}』；對應 Scenario「建立 Board 的人自動成為 Owner」逐字斷言：『我對該 Board 的角色應該是 "Owner"』。
+推論：`board-membership` 是 T-04-be-board-membership 的 Aggregate（見 `tasks.md`），T-02 的產出範圍是「F01 board Aggregate（board＋swimlane＋stage）」，不含 `board-membership`。T-02 的 `BoardApplicationService.createBoard` 只實作 `uc-create-board` 的 `board` 部分（`board.name`／`board.created-by`／活動紀錄「建立看板」），未建立對應的 `board-membership`（Owner），因此 `spec-user-membership.md`「Feature: Board 建立與成員邀請」整個 Feature（含此 Scenario 逐字斷言的 Owner 角色部分）未被 T-02 的 Cucumber 驗收測試涵蓋——這個 Feature 的正式驗收覆蓋留給 T-04。
+問題：T-04 開發時，是否要修改 `BoardApplicationService.createBoard`（在同一次呼叫內接著建立 `board-membership`），還是另外新增一個協調兩個 Aggregate 的上層服務？
+選項：A. T-04 直接修改／擴充 `BoardApplicationService.createBoard`（或新增一個依賴它的協調方法），在建立 `board` 成功後接著建立 Owner `board-membership`；B. 新增一個獨立的協調層（例如 application 層的 façade），呼叫 `BoardApplicationService.createBoard` 與 `BoardMembershipApplicationService` 兩者；C. 以上皆非。
+狀態：待處理，不阻塞 T-02（T-02 產出範圍本就不含 `board-membership`），留給 T-04 決定並解除。
