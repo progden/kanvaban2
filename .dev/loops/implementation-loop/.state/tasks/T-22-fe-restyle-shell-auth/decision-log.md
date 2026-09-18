@@ -33,3 +33,32 @@
 - `pnpm test`（`vitest run`）：4 個測試檔、16 個測試全數通過。
 - `pnpm lint`（`oxlint`）：無錯誤。
 - `pnpm build`（`tsc -b && vite build`）：型別檢查與打包成功。
+
+## 2026-09-19 Dev 第 2 輪：修正 D-01~D-04
+
+### 這輪處理的 D-xx
+
+- D-01：`kanban-frontend/src/index.css` 的 `.app-topbar__logo span:nth-child(3n + 2)` 選錯格位（2、5、8）。改成明確列出 `:nth-child(3)`／`:nth-child(4)`／`:nth-child(8)`，對齊 `BoardList.dc.html`／`Login.dc.html`／`Signup.dc.html` 逐格顏色（三份設計稿的 3x3 網格配色一致）。TopBar、s-login、s-signup 共用同一個 class，一次修好三處。
+- D-02：`:root` 新增 `--color-text-label: #3b4756`，把 `.field-label`、`.btn-secondary`、`.btn-sm`、`.auth-brand__note-title` 由誤用的 `--color-text-muted`（`#5c6878`，設計稿裡是副標／說明文字色）改成這個新色票。逐項核對設計稿三份 `<style>` 後，其餘顏色變數（`--color-primary`、`--color-text`、`--color-text-muted`、`--color-text-subtle`、`--color-bg*`、`--color-border*`、`--color-error-*`）數值都與設計稿一致，沒有再發現誤用。
+- D-03：
+  - `.auth-brand` 寬度 `380px→540px`、`padding: 40px 36px→56px 48px`，對齊 `Login.dc.html`／`Signup.dc.html`。
+  - `.auth-form` `padding: 0 64px→0 88px`，移除 `max-width: 420px`（設計稿沒有這個限制）。
+  - 新增 `.auth-brand__logo .app-topbar__logo`（26px 網格）、`.auth-brand__logo .app-topbar__product-name`（15px、letter-spacing 0.01em）這兩個限定在 auth 品牌欄內的尺寸覆寫；TopBar 本身的 20px／13px 不變（Review 已確認 TopBar 版面正確，只有 auth 頁的品牌欄用大一號的 Logo／字級）。
+  - `.auth-brand__tagline` 字級 `24px→30px`、補上 `margin: 0 0 28px`。
+  - `s-login` 補回看板示意插圖（3 個標題條＋2x3 卡片格，其中第 1、5 格為選取態），對應元件放在 `LoginPage.tsx`，樣式為新增的 `.auth-brand__illustration*` 系列 class，數值（寬 360px、圓角、陰影、卡片顏色 `#dfe9fb`／`#f1f3f7`）逐項取自 `Login.dc.html`。這塊插圖跟品牌標語、產品名稱一樣落在設計稿標「規格未定義」的範圍內，是否保留交給 OQ-T-22-fe-restyle-shell-auth-01 決定，本輪先照設計稿做出來，不阻塞任務。
+
+### 沒有偏離設計稿的部分
+除上述四項外，逐項核對過的顏色、字級、間距、Logo／頭像／按鈕尺寸都跟三份 `.dc.html` 一致，沒有其他有意偏離。
+
+### D-04：開 OQ，並先修正一句沒有依據的宣稱
+- `s-signup` 說明卡「帳號 ID 全系統唯一，之後不能改。」這句，`spec-user-membership.md` 欄位表 `user.username` 只寫『非空、全系統不可重複』，沒有任何 use case 定義帳號 ID 更新／不可更新；照 Review 指示，先把這句改成貼近欄位表原文的『帳號 ID 全系統不可重複。』，移除「之後不能改」這個沒依據的宣稱。
+- 其餘落在設計稿 `.warn` 範圍內、`ui-user-membership.md` 沒有依據的文案（產品名稱占位字『[產品名稱]』、s-login 品牌標語與插圖、s-signup 說明卡標題與清單其餘兩項）維持顯示，開立 OQ-T-22-fe-restyle-shell-auth-01（等級：高，不阻塞，owner：人工），逐字引用兩份設計稿 `.warn` 註記與 `ui-user-membership.md` 對應段落，列出三個選項（維持現狀／先拿掉待補正式文案／現在請人工訂出正式文案並走 CR）。
+
+### Check（本輪實跑）
+- `cd kanban-frontend && pnpm test`：4 個測試檔、16 個測試全部通過。
+- `pnpm lint`（oxlint）：無錯誤。
+- `pnpm build`（tsc -b && vite build）：成功。
+- `git status`：只有這輪要 commit 的 4 個檔案異動，已用 `git add` 指名檔案 commit，範圍內乾淨。
+
+### 待確認事項
+- OQ-T-22-fe-restyle-shell-auth-01（高，不阻塞，owner：人工）：品牌名稱占位字、s-login 標語與插圖、s-signup 說明卡文案要保留哪一版。
