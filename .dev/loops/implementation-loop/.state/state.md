@@ -2,13 +2,11 @@
 
 > 每輪覆寫，20 行內；給下一輪／驅動腳本快速回復現況（zero context）。
 
-T-02-be-board：Dev 第 1 輪交出，狀態 `review-pending`。
-- 範圍：`kanban-core` 新增 `Board`（含 `Swimlane`／`Stage`／`ActivityRecord`／`StageRole`／`CardLookupPort`／`CardSummary`）＋ `BoardRepository`；`kanban-spring` 新增對應 persistence／application／web，端點在 `BoardController`（`/api/boards/**`）。
-- 測試：`./gradlew clean build` 全綠。`kanban-core` 27 測試（新增 `BoardTest` 16 個）；`kanban-spring` 新增 `swimlane-management.feature`（7 Scenario）、`stage-management.feature`（8 Scenario）全過。
-- 待確認事項（已開 OQ，不阻塞本輪交出）：
-  - OQ-IMPL-12：建立看板的預設 Swimlane「預設泳道」／Stage「待辦、進行中、完成」是推論值（依 Background/Given 文字），非 usecase post 逐字定案。
-  - OQ-IMPL-13：`r-board-owner` 權限檢查未實作（依賴 T-04 的 `BoardMembership`），目前任何已登入使用者皆可呼叫 Swimlane/Stage 結構調整端點。
-  - OQ-IMPL-14：`uc-create-board`（F02）只實作 `board` 部分，不含 `board-membership`（Owner 自動加入），該 Feature 的正式驗收留給 T-04。
-- 已知延後：Card Aggregate（T-03）未實作，正式環境 `CardLookupPort` 用 `NoOpCardLookupPort`（一律回傳空清單），Cucumber 測試改用 `FakeCardLookupPort` 測試替身模擬卡片資料；Swimlane/Stage 的 `SWIMLANE_HAS_CARDS`／`STAGE_HAS_CARDS` 保護機制對真實卡片要等 T-03 換上真正的 `CardLookupPort` 實作才會生效。Board Clock（T-05）未接上，活動紀錄時間暫用 `Instant.now()`。
-- 唯一觸碰的既有 T-01 檔案：`UserController.java`（switch 補 default 分支，行為不變）、`UserSteps.java`（新增 package-private `setLastResult` 方法供 `BoardSteps` 重用「系統應該顯示錯誤訊息」共用步驟，純新增）。
-- 下一步：Review 需自行跑 `./gradlew clean build` 驗證，核對 3 則 OQ 是否需要附保留核准；核准後 T-03／T-04 的依賴解除。
+T-02-be-board：Review 第 1 輪**退回**，狀態 `doing`，等 Dev 處理 D-05～D-08（見 `tasks.md` 底部、`review.md` 同日條目）。
+- 建置：Review 自己重跑 `./gradlew clean build --no-daemon`，exit 0，54 個測試全部通過；core 是乾淨的，改動範圍沒有越界。
+- D-05：刪除 Swimlane／Stage 時要連帶刪除卡片、或把卡片轉移到目的 Stage（spec 第 141、292 行的 post），正式程式碼沒有實作，API 也沒有目的 Stage 的輸入。要新開 OQ（逐字引用 spec、ui、design），寫清楚由誰接手、API 契約怎麼定。
+- D-06：`BoardSteps` 的 `whenConfirmDelete`／`thenSwimlaneAndCardsRemoved`／`whenChooseDestinationStage`／`thenCardsMovedTo` 是靠測試自己改 fake 來通過的，要加註解標明它們只是替身，並指向 D-05 開的 OQ。
+- D-07：`thenActivityRecorded` 沒有驗證效果（Background 已經有「建立看板」那筆紀錄）。改成比對筆數加 1 和動作內容，`@fail-p1` 的 Scenario 要驗筆數沒變；`BoardTest` 補上其餘寫入方法的活動紀錄斷言。
+- D-08：OQ-IMPL-13 的 design 引文改成逐字（第 115 行，並註明是 CR-003 段落），OQ-IMPL-12 的路徑改正並補上行號。
+- 未決 OQ（不擋核准，再審時以附保留核准處理）：OQ-IMPL-12（預設 Swimlane／Stage）、OQ-IMPL-13（Owner 權限要等 T-04）、OQ-IMPL-14（Owner membership 要等 T-04）。
+- 下一步：Dev 第 2 輪只處理 D-05～D-08，正式程式碼不要求修改；處理完改成 `review-pending`。
