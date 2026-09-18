@@ -25,3 +25,36 @@
 
 問題：這個衝突是 T-05／T-08 兩個已合併任務遺留的既有缺陷，跟 F03（T-06）規格本身無關；T-06 的任務範圍規則明確禁止修改 `BoardClockSteps.java`／`FeatureCrBoardSteps.java`（不屬於本任務範圍的檔案）。是否要在後續某個任務（或人工介入）修掉這個重複步驟定義，讓 `./gradlew build`／`RunCucumberTest` 能夠整體跑綠？
 選項：A. 人工直接修（刪除其中一份重複定義，例如把 `FeatureCrBoardSteps` 的該步驟改成呼叫 `BoardClockSteps` 現有方法，或反過來）；B. 指定下一個會動到這兩個檔案其中之一的任務（例如 T-07-be-workload 若也需要新增類似 Background 步驟）順手一併修掉；C. 維持現狀，等到有任務明確需要修改這兩個檔案時再處理。
+
+## OQ-T-06-be-kanban-widgets-02
+
+[Level: F03-kanban-widgets/整合分支 RunCucumberTest（取代 OQ-T-06-be-kanban-widgets-01）]
+- 等級：環境
+- 阻塞：是
+- 接手：人工
+- 原因代碼：env-broken
+- 開立：Review 第 1 輪（2026-09-19）
+- 狀態：待處理
+
+情況：【推論＋所本原文】
+本則取代 OQ-T-06-be-kanban-widgets-01（Dev 標為「高／不阻塞」，等級與阻塞標錯；問題本身與證據相同）。
+
+所本原文一（review-prompt.md「你要做什麼」第 1 點）：『任何一個測試沒過、建置失敗，直接判定退回，不用往下看程式碼細節。』
+所本原文二（review-prompt.md「判斷要不要擋」）：『缺工具／環境壞掉、自己修不了 → 等級「環境」、阻塞』
+所本原文三（review-prompt.md「你要做什麼」第 4 點）：『動到別的 aggregate、別的模組、`.dev/conventions/**`、`scripts/**`、spec／ui 文件本體，一律判定退回。』
+
+Review 第 1 輪實際在本 worktree 執行 `./gradlew clean build --no-daemon` 的輸出（逐字）：
+『85 tests completed, 58 failed』
+『RunCucumberTest > 使用者登入與登出 > 使用正確帳號密碼登入 FAILED
+    io.cucumber.core.runner.DuplicateStepDefinitionException at CachingGlue.java:278』
+測試報告 `TEST-feature_classpath_features-board-clock.feature.xml` 逐字：
+『Duplicate step definitions in io.progden.kanban.spring.cucumber.BoardClockSteps.givenLoggedInAndBoardOpened(java.lang.String) and io.progden.kanban.spring.cucumber.FeatureCrBoardSteps.givenLoggedInAndBoardOpened(java.lang.String)』
+`git grep` 整合分支 `loop/implementation`（d95b95d）與本分支的分岔點 f645776 都已同時存在：
+『BoardClockSteps.java:92:    @Given("我已登入系統，並開啟 Board {string}")』
+『FeatureCrBoardSteps.java:49:    @Given("我已登入系統，並開啟 Board {string}")』
+
+推論：這是 T-05-be-board-clock 與 T-08-be-feature-cr-board 平行開發、先後合併後在整合分支上留下的既有缺陷，不是 T-06 造成的；整合分支本身的 `./gradlew build` 目前就是紅燈。T-06 的 Dev 要讓建置轉綠，只能修改 `BoardClockSteps.java` 或 `FeatureCrBoardSteps.java`，這兩個檔屬於 T-05／T-08 已合併的範圍，依所本原文三不能在 T-06 裡改；所以再跑一輪 Dev 也修不好，退回只會空轉。
+推論：Review 另外把 HEAD 用 `git archive` 匯出到 /tmp，只把 `FeatureCrBoardSteps.java` 第 49 行的 `@Given` 註解掉（worktree 本身沒動），`./gradlew clean build --no-daemon` → BUILD SUCCESSFUL，85 個測試全過，其中 F03 四份 feature 共 10 個 Scenario 全過。也就是說，這個衝突修好之後，T-06 本身的程式碼看起來可以核准。
+
+問題：整合分支上 `BoardClockSteps`／`FeatureCrBoardSteps` 重複宣告「我已登入系統，並開啟 Board {string}」，導致 `./gradlew build` 紅燈。這要由誰、在哪裡修？修好之前 T-06 無法取得綠燈建置，不能核准。
+選項：A. 人工直接在 `loop/implementation` 修（例如刪掉 `FeatureCrBoardSteps` 的重複 `@Given`，改呼叫 `BoardClockSteps` 的既有方法），再把整合分支合併進本 worktree，重跑 T-06 Review；B. 在 `.state/tasks.md` 新增一個修正任務（允許改 T-05／T-08 的 step 檔），完成後 T-06 再 rebase／merge 並重跑 Review；C. 人工明確授權 T-06 的 Dev 在本任務範圍內一併修掉這個重複定義（等於放寬第 4 點的邊界），再跑一輪 Dev。
