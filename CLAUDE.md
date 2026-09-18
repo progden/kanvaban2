@@ -57,6 +57,15 @@ python3 -m unittest discover -s scripts/tests   # 腳本的測試
 
 描述情境時用 ontology 的方式：先講清楚情境中出現的實體（entity，對應名詞表的 ID）與它們的欄位（`entity.attr`），再講實體之間的關係（`r-`，含來源／目標／min-max），最後才是事件（`ev-`）與角色（Role）如何透過 usecase（`uc-`）改變這些實體與關係的狀態。避免只用敘述性文字帶過，讓實體、關係、事件的對應在回答中是清楚可追溯的。
 
+## 修復 OQ／open question 時
+
+不管是哪一份 open-questions／open questions 清單（`.dev/open-questions.md`、各 loop 的 `open-questions.md` 等），修一則 OQ 或新增一則 OQ 時：
+
+- 一定要去源頭文件把具體文字拿出來，逐字引用用『』包住；**不要自己縮寫、改寫、摘要成一句話**——縮寫過的版本我看不出來你到底讀到了什麼，等於沒有依據。
+- 如果兩處文字互相矛盾或衝突，兩段原文都要逐字列出來並列呈現（不是只列一段、口頭帶過另一段說「另外還有一種說法」），讓我可以直接比對。
+- 每一句斷言都要清楚標示這是「規格裡面寫的內容」（逐字引用）還是「你的推論」（由引用推導出來、規格沒有直接寫的結論），兩者不可以混在一起講、也不可以把推論寫得像是規格原文。
+- 詳細格式規則（情況欄四選一、Level 標記、查重）見 [`與專家協作的提問規則-本體論分析.md`](.dev/lesson-learned/與專家協作的提問規則-本體論分析.md)，這節是它的白話版重點提醒。
+
 ## 撰寫規範（`.dev/conventions/`）
 
 修改規格前先讀對應規範。2026-09-16 依 `.dev/prompts/improve-convention-prompt.md` 大改過一次，目的是讓腳本能解析 spec／ui 檔；2026-09-17 又依 `docs-convention.md` 訂出的三層邊界，改寫 spec／ui／cr 三份 convention。**既有 F01～F06 的 spec 尚未遷移到新格式**（遷移順序見 `open-questions.md` Q10，已決定一個 PR 遷六個模組；其餘決定已寫回各規範，`open-questions.md` 開頭有已決定表）。
