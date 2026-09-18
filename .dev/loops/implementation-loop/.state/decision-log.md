@@ -128,3 +128,8 @@
 - 理由：驗收條件文字對三個 `uc-create-user` 失敗情境都寫「不觸發 `uc-create-user`」，但「帳號重複」在技術上只有伺服器知道（前端沒有全體帳號清單），判斷為 ui 檔對三個情境沿用同一句話造成的措辭疊加、不是真的要求前端做不到的事，屬於「技術實作細節不違反 spec」的低風險決定，不另開 OQ；「留空」「密碼過長」兩者前端資料本來就有，直接擋下可以避免不必要的來回並仍完整符合驗收條件字面（不觸發 API）。錯誤訊息optional 全部沿用 spec／後端已定案的逐字文案，不自創新文案。
 - 影響：新增／修改 `kanban-frontend/src/pages/LoginPage.tsx`、`SignupPage.tsx`、`LoginPage.test.tsx`（新增）、`SignupPage.test.tsx`（新增）；因為 `App.test.tsx`（T-10 範圍）用文字比對舊佔位內容『登入畫面』，這輪內容替換後改用 `getByRole('heading', { name: '登入' })` 比對，行為斷言（登入態、TopBar、導向）未變動，只改選取器。`pnpm run test`（16 個測試全過）、`pnpm run lint`、`pnpm run build` 皆通過。新增 OQ-IMPL-12（設計稿無法存取）。
 - ADR：無（沿用既有 `ApiError`／`ADR-001` 的錯誤處理慣例，未新增跨任務決策）。
+
+### 2026-09-18 T-11-fe-auth（Review 第 1 輪）
+- 決策：退回，狀態從 `review-pending` 改回 `doing`，追加 D-05～D-07。
+- 理由：第 1 點，Review 自己重跑 `pnpm test`（4 個檔案、16 個測試全過）、`pnpm build`、`pnpm lint`，以及 `./gradlew build -q`，全部 exit 0；第 3、4、6 點都通過。第 2、5 點沒過：(a) `ui-user-membership.md` 第 45 行寫「帳號重複時…不觸發 `uc-create-user`」，Dev 自己把它解讀為措辭疊加並歸為低風險，沒有開 OQ，依 `iteration-prompt.md` 第 5 節這屬於高風險（D-05）；(b) s-login 第 91、92 行驗收條件的「TopBar 不顯示帳號名稱」，以及 fail-p1 的欄位保留／停留本畫面，都沒有測試斷言（D-06）；(c) s-signup 第 43 行的「畫面維持顯示」沒有斷言（D-07）。
+- 影響：`impl/T-11-fe-auth` 這輪不合併；下一輪 Dev 處理 D-05～D-07。產品程式碼預期不用改，只要登記 OQ、補測試斷言。
