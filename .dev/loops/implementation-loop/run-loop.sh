@@ -81,12 +81,19 @@ set_task_status() {
   "
 }
 
-# 依賴是否全部 done 且已合併（用 git branch --merged 檢查 impl/<dep> 是否已進整合分支）
+# 依賴是否全部 done 且已合併。
+# 注意：不能只看 git merge-base --is-ancestor——worktree 剛建立、分支還沒有新 commit 時，
+# impl/<dep> 跟整合分支指向同一個 commit，--is-ancestor 會直接回傳 true（同一個 commit
+# 互為祖先），造成「分支存在」就被誤判成「已合併完成」。必須先看任務清單狀態是否真的是
+# done（Review 核准才會寫入），再用 git 確認那個 commit 真的已經進了整合分支歷史，兩者都
+# 成立才算依賴滿足。
 deps_satisfied() {
   local id="$1"
-  local deps
-  deps="$(flock "$LEDGER_LOCK" awk -F'|' -v id="$id" '$0 ~ "\\| "id" \\|" {print $3}' "$LEDGER" | grep -oE 'T-[0-9A-Za-z-]+')"
+  local deps dep dep_status
+  deps="$(flock "$LEDGER_LOCK" awk -F'|' -v id="$id" '$0 ~ "^\\| "id" \\|" {print $4}' "$LEDGER" | grep -oE 'T-[0-9A-Za-z-]+')"
   for dep in $deps; do
+    dep_status="$(flock "$LEDGER_LOCK" awk -F'|' -v d="$dep" '$0 ~ "^\\| "d" \\|" {gsub(/^ +| +$/,"",$5); print $5}' "$LEDGER")"
+    [ "$dep_status" = done ] || return 1
     git merge-base --is-ancestor "impl/$dep" "$LOOP_BRANCH" 2> /dev/null || return 1
   done
   return 0
@@ -162,7 +169,7 @@ $(cat "$REVIEW_PROMPT")" \
     [ "$review_status" -ne 0 ] && log "[$id] Review 輪回傳狀態碼 $review_status（見 $pipe_log）。"
 
     local status
-    status="$(flock "$LEDGER_LOCK" awk -F'|' -v id="$id" '$0 ~ "\\| "id" \\|" {gsub(/^ +| +$/,"",$4); print $4}' "$LEDGER")"
+    status="$(flock "$LEDGER_LOCK" awk -F'|' -v id="$id" '$0 ~ "^\\| "id" \\|" {gsub(/^ +| +$/,"",$5); print $5}' "$LEDGER")"
 
     if [ "$status" = done ]; then
       log "[$id] Review 核准，合併回 $LOOP_BRANCH"
