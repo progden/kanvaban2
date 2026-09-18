@@ -68,3 +68,62 @@
 ./gradlew :kanban-spring:test --no-daemon      → BUILD SUCCESSFUL，35 個 Cucumber Scenario 全綠（含新增 8 個 Card Scenario）
 ./gradlew build --no-daemon                    → BUILD SUCCESSFUL（kanban-core + kanban-spring 全部 check 通過）
 ```
+
+## 2026-09-19 Dev 第 2 輪：修正 D-01/D-02/D-03
+
+### 第 2 輪（Dev）決策紀錄：修正 Review 第 1 輪退回的 D-01／D-02／D-03
+
+#### D-01：Swimlane/Stage 刪除協調流程非原子、目的 Stage 未驗證
+
+- `BoardApplicationService.removeSwimlane`／`removeStage` 改成先呼叫
+  `Board.ensureSwimlaneRemovable`／`ensureStageRemovable`（既有方法，驗證
+  swimlaneId／stageId 屬於這個 board、且未低於數量下限）通過才動卡片；`removeStage`
+  另外新增 `Board.ensureValidDestinationStage(sourceStageId, destinationStageId)`，
+  驗證目的 Stage 不等於來源、且真的屬於這個 board（沿用 `findStage` 的
+  `STAGE_NOT_FOUND`），不合法時新增 `ErrorCode.INVALID_DESTINATION_STAGE`（400，
+  依 ADR-001「輸入內容不合法」分類）。
+- 兩個方法整個標 `@Transactional`（`kanban-spring` 已有 `spring-boot-starter-data-jpa`
+  帶入 `spring-tx`，`DomainException` 是 `RuntimeException`，符合 Spring 預設回滾規則），
+  檢查通過後若卡片異動或最終刪除任一步失敗，整段（含已異動的卡片）一起回滾。
+- 補測試：新增 `BoardApplicationServiceTest`（Spring 整合測試，不動 feature 檔），覆蓋
+  D-01 描述的情境 1（只剩 1 個 Swimlane 時確認刪除仍拒絕，卡片不被刪除）與情境 3
+  （目的 Stage 屬於別的 board 時拒絕，卡片的 `stage`／`deleted`／StageTransition 都不變）。
+
+#### D-02：Cucumber 斷言補強
+
+- `CardSteps.whenDragCardToStage` 移動前先記下 `stageIdBeforeMove`，
+  `thenStageTransitionRecorded` 新增斷言 `transition.getFromStageId()` 等於移動前的
+  Stage，不再只驗 `toStageId`。
+- `BoardSteps.createTestCard` 補上 201 狀態斷言（失敗時帶出回應內容），避免前置卡片
+  建立失敗時後續刪除情境在「0 張卡片」下假綠燈。
+
+#### D-03：規格未定義失敗路徑補開 OQ
+
+- 依 fixes.md 指示，把交接摘要原本列為「低風險技術決定」但實際屬於高風險（規格沒有
+  fail 定義，Dev 自行決定行為）的兩點，逐字引用 spec／ui 原文後開成 OQ：
+  - `OQ-T-03-be-card-01`：`comment.content` 欄位表寫「非空」但 `uc-add-comment` 的
+    `fail: {}`、ui 「新增留言」操作表寫「不適用（`uc-add-comment` 無 fail 定義）」，
+    問是否要正式補 fail 分支；程式碼目前依欄位限制拒絕空白留言（`EMPTY_COMMENT_CONTENT`）
+    的做法先維持不變。
+  - `OQ-T-03-be-card-02`：`card.swimlane`／`card.stage` 欄位表寫「ref swimlane」
+    「ref stage」「建立時必填」，但 `uc-add-card`／`uc-move-card-swimlane`／
+    `uc-move-card-stage` 都沒有把「目的 swimlane/stage 不存在或不屬於該 board」定義成
+    fail，問是否要補；程式碼目前維持不驗證（沿用第 1 輪的決定，未新增檢查），OQ 內已
+    註明現況。
+  - 兩則都是等級「高」、`--blocking no`，owner 填「人工」（要走 CR 決定 spec／ui 是否
+    補 fail，不是某個既有任務可以接手的範圍）。
+
+#### Check（實際跑的指令與結果）
+
+```
+./gradlew compileJava compileTestJava --no-daemon   → BUILD SUCCESSFUL（先確認新增程式碼可編譯）
+./gradlew clean build --no-daemon                    → BUILD SUCCESSFUL（2m21s）
+test-results 彙總：73 個測試，0 失敗、0 錯誤、0 略過（比第 1 輪多 2 個，
+  即本輪新增的 BoardApplicationServiceTest 兩個情境）
+```
+
+#### 待確認事項
+
+- `OQ-T-03-be-card-01`（`uc-add-comment` 空白留言的 fail 定義缺口）
+- `OQ-T-03-be-card-02`（`uc-add-card`／`uc-move-card-swimlane`／`uc-move-card-stage`
+  目的 swimlane/stage 合法性驗證的 fail 定義缺口）
