@@ -111,3 +111,13 @@ spec原文：`.dev/F02-user-membership/ui-user-membership.md` 第 78 行操作�
 選項：A. 維持目前對應（`user.username`），因為 ui 檔用詞是「帳號名稱」而非「顯示名字」；B. 改為 `user.display-name`，因為欄位表明講 `user.display-name` 才是「看板上顯示用」，TopBar 屬於全域顯示情境，且需同步修改 `SessionResponse`／`UserResponse`；C. 以上皆非。
 狀態：待處理。在本 OQ 有結論前，TopBar 維持顯示 `user.username`，不自行改成 `user.display-name`。
 Review 補充（2026-09-18，T-10-fe-shell Review 第 2 輪追加，上面 Dev 寫的內容未改）：上面的引文只有 ui 檔與欄位表，漏了 spec 本身對 TopBar 的兩處描述，補上供人工判斷。`.dev/F02-user-membership/spec-user-membership.md` 第 189 行 `uc-login` post 逐字：『"登入成功，TopBar 顯示該 `user` 的帳號名稱"』；同檔第 219～223 行 Scenario「使用正確帳號密碼登入」逐字：『Given 系統中存在帳號 "user1"，密碼為 "correct-password"』…『And TopBar 應該顯示我的名稱 "user1"』。【Review 的推論】這個 Scenario 沒有指定 `user.display-name`，依欄位表『未指定時預設等於 `user.username`』，兩個欄位的值都是 "user1"，所以這個 Scenario 無法區分選項 A 和 B；spec 的「帳號名稱」跟 ui 檔第 78 行用詞一樣，問題本身不變。
+
+## OQ-IMPL-12
+
+[Level: F02-user-membership/T-11-fe-auth]
+情況：【引用原文】
+`dev-prompt.md`「你要做什麼」第 2 點逐字：『前端任務：依 `ui-*.md` 操作表（觸發的 `uc-xxx`、需確認？、失敗時呈現方式）與驗收條件實作互動；版面依 `planning-prompt.md` 附的設計稿畫面清單，若手上看不到實際設計稿內容，先讀 `.state/tasks.md` 該任務列有沒有附更細的版面摘要，沒有就記 OQ、用最簡潔可用的版面先做，標記「待對照設計稿」，不可以自己發明視覺風格當作定案。』
+`planning-prompt.md`「前端設計稿畫面清單」逐字列出『`Login.dc.html` | F02：登入』『`Signup.dc.html` | F02：註冊』，來源標注『來源：claude.ai Design Artifact，35 個檔案，擷取自 `project/*.dc.html`』。
+`.state/tasks.md` T-11-fe-auth 該列「備註」欄逐字為空（僅 `| T-11-fe-auth | \`s-login\`、\`s-signup\` | T-10-fe-shell | doing | |`），沒有附加版面摘要。
+問題：Dev sub agent（`-p` 一次性行程，無法開啟 claude.ai Design 類型 Artifact）看不到 `Login.dc.html`／`Signup.dc.html` 實際版面，依規則已用 `ui-user-membership.md` s-login／s-signup 的操作表、資料表、驗收條件實作純語意版面（標準 HTML 表單元素：帳號 ID／密碼／顯示名字輸入框、送出按鈕、連結、錯誤訊息 `role="alert"`），未對照設計稿視覺風格（配色、間距、元件庫）。
+狀態：待處理。本任務程式碼（`LoginPage.tsx`／`SignupPage.tsx`）標記「待對照設計稿」，之後若有人工或有設計稿存取權的 agent 對照 `Login.dc.html`／`Signup.dc.html`，可能需要回頭調整版面與樣式（不影響已驗證的操作／驗收條件行為）。
