@@ -42,6 +42,7 @@ public class BoardMembershipController {
     @GetMapping
     public ResponseEntity<?> listMembers(@PathVariable UUID boardId, HttpSession session) {
         return withOperator(session, operatorId -> {
+            boardMembershipApplicationService.ensureMember(boardId, operatorId);
             List<MemberResponse> members = boardMembershipApplicationService.listMembers(boardId).stream()
                     .map(this::toMemberResponse)
                     .toList();

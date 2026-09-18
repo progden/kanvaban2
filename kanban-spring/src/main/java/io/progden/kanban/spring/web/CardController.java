@@ -29,9 +29,10 @@ import org.springframework.web.bind.annotation.RestController;
  * （低風險技術決定，見 decision-log.md）。負責人候選名單／依負責人查詢掛在
  * {@code /api/boards/{boardId}/...}（需要 boardId 才能查看板成員／卡片）。
  *
- * <p>操作人身分沿用 {@link UserController} 的登入慣例，{@code r-user}（一般看板使用者）不額外驗證
- * 是否為看板成員——{@code uc-member-add-card} 沒有對應的 fail Scenario（implementation-loop T-04
- * 範圍判斷，見 decision-log.md）。
+ * <p>操作人身分沿用 {@link UserController} 的登入慣例；新增卡片與設定／拖曳負責人這些寫入動作
+ * 會檢查操作者是否為該看板的成員、且不是唯讀的 Viewer（{@link CardApplicationService} 呼叫
+ * {@code BoardMembershipApplicationService.ensureCanEdit}），{@code uc-member-add-card} 等 uc
+ * 的 {@code fail} 未定義訊息與狀態碼，沿用該方法統一產生的文字（D-01 交接事項，見 OQ）。
  */
 @RestController
 public class CardController {
@@ -130,7 +131,8 @@ public class CardController {
     @GetMapping("/api/boards/{boardId}/assignee-candidates")
     public ResponseEntity<?> listAssigneeCandidates(@PathVariable UUID boardId, HttpSession session) {
         return withOperator(session, operatorId -> {
-            List<AssigneeCandidateResponse> candidates = cardApplicationService.listAssigneeCandidates(boardId)
+            List<AssigneeCandidateResponse> candidates = cardApplicationService
+                    .listAssigneeCandidates(boardId, operatorId)
                     .stream()
                     .map(AssigneeCandidateResponse::from)
                     .toList();
@@ -142,7 +144,9 @@ public class CardController {
     public ResponseEntity<?> listCardsByAssignee(
             @PathVariable UUID boardId, @PathVariable UUID assigneeUserId, HttpSession session) {
         return withOperator(session, operatorId -> {
-            List<CardResponse> cards = cardApplicationService.listCardsByAssignee(boardId, assigneeUserId).stream()
+            List<CardResponse> cards = cardApplicationService
+                    .listCardsByAssignee(boardId, assigneeUserId, operatorId)
+                    .stream()
                     .map(CardResponse::from)
                     .toList();
             return ResponseEntity.ok(cards);
@@ -169,6 +173,7 @@ public class CardController {
         return switch (code) {
             case EMPTY_CARD_TITLE, EMPTY_COMMENT_CONTENT, ASSIGNEE_NOT_BOARD_MEMBER -> HttpStatus.BAD_REQUEST;
             case CARD_NOT_FOUND, BOARD_NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case FORBIDDEN -> HttpStatus.FORBIDDEN;
             default -> HttpStatus.BAD_REQUEST;
         };
     }

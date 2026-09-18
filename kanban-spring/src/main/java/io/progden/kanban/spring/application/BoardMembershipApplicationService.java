@@ -112,19 +112,41 @@ public class BoardMembershipApplicationService {
         return boardMembershipRepository.findByBoardId(boardId);
     }
 
+    /**
+     * {@code uc-view-board-list} post 逐字寫「列表只顯示我是 Owner 或 Member 的 board」，
+     * 不含 Viewer；照字面排除 Viewer 的 membership（D-02 交接事項，見 OQ）。
+     */
     public List<Board> listBoardsForUser(UUID userId) {
         return boardMembershipRepository.findByUserId(userId).stream()
+                .filter(membership -> membership.getRole() != BoardRole.VIEWER)
                 .map(membership -> boardRepository.findById(membership.getBoardId()))
                 .flatMap(java.util.Optional::stream)
                 .toList();
     }
 
     /**
-     * {@code uc-reject-board-access-by-nonmember}／各結構調整 uc 共用的成員資格檢查。
+     * {@code uc-reject-board-access-by-nonmember}／各結構調整 uc、以及卡片負責人相關檢視類 uc
+     * （{@code uc-list-card-assignee-candidates}／{@code uc-list-cards-by-assignee} 等）共用的
+     * 成員資格檢查：只要求操作者是該 {@code board} 的 {@code board-membership} 成員，不限角色
+     * （Viewer 依角色表可以檢視看板，見 D-01 交接事項）。
      */
     public void ensureMember(UUID boardId, UUID userId) {
         boardMembershipRepository.findByBoardIdAndUserId(boardId, userId)
                 .orElseThrow(() -> new DomainException(ErrorCode.FORBIDDEN, "你沒有權限存取這個看板"));
+    }
+
+    /**
+     * {@code uc-member-add-card}／{@code uc-set-card-assignees}／{@code uc-assign-card-owner-by-drag}
+     * 共用的寫入類權限檢查：操作者必須是該 {@code board} 的成員，且不能是 Viewer（角色表
+     * {@code r-board-viewer}：『不能新增／編輯／移動／刪除任何內容』）。這三個 uc 的 {@code fail}
+     * 都是空的，訊息沿用本方法統一產生的文字（D-01 交接事項，見 OQ）。
+     */
+    public void ensureCanEdit(UUID boardId, UUID userId) {
+        BoardMembership membership = boardMembershipRepository.findByBoardIdAndUserId(boardId, userId)
+                .orElseThrow(() -> new DomainException(ErrorCode.FORBIDDEN, "你沒有權限存取這個看板"));
+        if (membership.getRole() == BoardRole.VIEWER) {
+            throw new DomainException(ErrorCode.FORBIDDEN, "唯讀成員不能新增或編輯卡片");
+        }
     }
 
     /**

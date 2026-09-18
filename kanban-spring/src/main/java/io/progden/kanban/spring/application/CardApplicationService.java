@@ -51,6 +51,7 @@ public class CardApplicationService {
     public Card addCard(UUID boardId, UUID operatorId, String title, UUID swimlaneId, UUID stageId) {
         boardRepository.findById(boardId)
                 .orElseThrow(() -> new DomainException(ErrorCode.BOARD_NOT_FOUND, "找不到指定的看板"));
+        boardMembershipApplicationService.ensureCanEdit(boardId, operatorId);
         Card card = Card.create(operatorId, boardId, title, new CardPlacement(swimlaneId, stageId));
         cardRepository.save(card);
         return card;
@@ -99,6 +100,7 @@ public class CardApplicationService {
      */
     public Card setAssignees(UUID cardId, UUID operatorId, List<UUID> assigneeIds) {
         Card card = loadCard(cardId);
+        boardMembershipApplicationService.ensureCanEdit(card.getBoardId(), operatorId);
         ensureAllBoardMembers(card.getBoardId(), assigneeIds);
         applyAssignment(card, operatorId, assigneeIds);
         return card;
@@ -109,6 +111,7 @@ public class CardApplicationService {
      */
     public Card dragAssign(UUID cardId, UUID operatorId, UUID memberUserId) {
         Card card = loadCard(cardId);
+        boardMembershipApplicationService.ensureCanEdit(card.getBoardId(), operatorId);
         ensureAllBoardMembers(card.getBoardId(), List.of(memberUserId));
         List<UUID> newAssigneeIds = new java.util.ArrayList<>(card.getAssigneeIds());
         if (!newAssigneeIds.contains(memberUserId)) {
@@ -121,7 +124,8 @@ public class CardApplicationService {
     /**
      * {@code uc-list-card-assignee-candidates}：負責人選單只顯示該看板的成員。
      */
-    public List<User> listAssigneeCandidates(UUID boardId) {
+    public List<User> listAssigneeCandidates(UUID boardId, UUID operatorId) {
+        boardMembershipApplicationService.ensureMember(boardId, operatorId);
         return boardMembershipApplicationService.listMembers(boardId).stream()
                 .map(BoardMembership::getUserId)
                 .map(this::loadUser)
@@ -131,7 +135,8 @@ public class CardApplicationService {
     /**
      * {@code uc-list-cards-by-assignee}：依負責人查詢卡片清單。
      */
-    public List<Card> listCardsByAssignee(UUID boardId, UUID assigneeUserId) {
+    public List<Card> listCardsByAssignee(UUID boardId, UUID assigneeUserId, UUID operatorId) {
+        boardMembershipApplicationService.ensureMember(boardId, operatorId);
         return cardRepository.findActiveByBoardId(boardId).stream()
                 .filter(card -> card.getAssigneeIds().contains(assigneeUserId))
                 .toList();
