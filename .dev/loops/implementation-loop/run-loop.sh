@@ -58,7 +58,7 @@ export CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1
 log() { echo "[$(date '+%F %T')] $*"; }
 
 # ---------- 事前檢查 ----------
-for cmd in claude git flock timeout; do
+for cmd in claude git flock timeout python3; do
   command -v "$cmd" > /dev/null || { echo "缺少指令：$cmd" >&2; exit 1; }
 done
 if [ -n "$(git status --porcelain)" ]; then
@@ -170,7 +170,10 @@ run_agent() {
   [ -n "$note" ] && header="$header
 驅動腳本附註：$note"
   set +e
-  (cd "$wt" && timeout --foreground "$ROUND_TIMEOUT" claude -p \
+  # loopctl（agent 改 .state 的唯一入口）靠這幾個環境變數知道現在是誰、第幾輪
+  (cd "$wt" && export LOOP_TASK_ID="$id" LOOP_ROLE="$role" LOOP_ROUND="$round" \
+    LOOP_MAX_ROUNDS="$MAX_TASK_ROUNDS" PATH="$wt/$LOOP/scripts:$PATH" \
+    && timeout --foreground "$ROUND_TIMEOUT" claude -p \
     "$header
 
 $(cat "$prompt_file")" \
@@ -181,6 +184,49 @@ $(cat "$prompt_file")" \
   rc=$?
   set -e
   return "$rc"
+}
+
+# ---------- 回合結束後的檢查（不讀 agent 的最後回覆，只看 git 與 loopctl 的收尾紀錄）----------
+# 這一輪有沒有正常收尾。正常＝(1) rounds.log 最後一筆是這個角色、這個回合（agent 呼叫過
+# `loopctl finish`）；(2) 這一輪動到 .state 的 commit 全部帶 `Loopctl:` trailer（沒有繞過
+# loopctl 直接改檔）；(3) worktree 沒有未 commit 的異動。以提問結尾、被中斷、逾時、被 OOM
+# 砍掉、整輪沒 commit，結果都一樣是「沒有收尾紀錄」，不用分辨原因。
+# 有問題時把原因印到 stdout 並回傳 1。
+round_problem() {
+  local id="$1" wt="$2" role="$3" round="$4" head_before="$5" last bypass
+  last="$(tail -n 1 "$wt/$TASKS_DIR/$id/rounds.log" 2> /dev/null | awk -F'\t' '{print $2" "$3}')"
+  if [ "$last" != "$role $round" ]; then
+    if [ "$(git -C "$wt" rev-parse HEAD)" = "$head_before" ]; then
+      echo "沒有呼叫 loopctl finish，整輪也沒有任何新 commit"
+    else
+      echo "沒有呼叫 loopctl finish（有 commit 但沒有收尾，status 不可信）"
+    fi
+    return 1
+  fi
+  bypass="$(git -C "$wt" log --format='%h' --invert-grep --grep='^Loopctl: ' "$head_before..HEAD" -- "$TASKS_DIR" | tr '\n' ' ')"
+  if [ -n "$bypass" ]; then
+    echo "有 commit 繞過 loopctl 直接改 .state（$bypass）；.state 只能用 loopctl 寫"
+    return 1
+  fi
+  if [ -n "$(git -C "$wt" status --porcelain)" ]; then
+    echo "worktree 還有未 commit 的異動"
+    return 1
+  fi
+  return 0
+}
+
+# agent 把檔案改到主 repo（整合分支的 checkout）去了：實際發生過三次，未 commit 的異動會讓
+# 別條管線的合併被「local changes would be overwritten」擋掉。主 repo 在 loop 執行期間只有
+# 驅動腳本會動，而且每次都在 MERGE_LOCK 內 commit 完才放鎖——所以拿到鎖時主 repo 一定是
+# 乾淨的，不乾淨就是 agent 寫錯地方。用 stash 收走（可復原，不直接丟棄）。
+check_main_repo_clean() {
+  local id="$1"
+  flock "$MERGE_LOCK" bash -c '
+    [ -z "$(git status --porcelain)" ] && exit 0
+    git stash push -u -q -m "implementation-loop 自動收走：$0 回合結束時主 repo 有未 commit 的異動" && exit 1
+    exit 2
+  ' "$id" && return 0
+  log "[$id] 警告：主 repo 出現未 commit 的異動（agent 寫錯地方），已用 git stash 收走（是哪條並行管線寫的無法從這裡判斷），見 git stash list。"
 }
 
 # ---------- 單一任務的 Dev→Review 管線 ----------
@@ -208,12 +254,19 @@ run_pipeline() {
     return
   fi
 
-  local round=0 note="" status head_before head_after
+  local round=0 note="" status head_before fails=0 why
   while true; do
     round=$((round + 1))
     if [ "$round" -gt "$MAX_TASK_ROUNDS" ]; then
       log "[$id] 已達 MAX_TASK_ROUNDS=$MAX_TASK_ROUNDS 仍未核准，標 blocked，保留 worktree 供人工檢查。"
       commit_task_status "$id" blocked "$id 達 MAX_TASK_ROUNDS=$MAX_TASK_ROUNDS 仍未核准，標 blocked"
+      return
+    fi
+    # 連續兩輪都沒有正常收尾（逾時、被砍、以提問結尾、沒 commit…）：再跑也只是燒錢，
+    # 多半是環境問題，交人工。
+    if [ "$fails" -ge 2 ]; then
+      log "[$id] 連續 $fails 輪沒有正常收尾，標 blocked 交人工（最後原因：$why）。"
+      commit_task_status "$id" blocked "$id 連續 $fails 輪沒有正常收尾（$why），需人工檢查環境與 $pipe_log"
       return
     fi
 
@@ -223,31 +276,41 @@ run_pipeline() {
     run_agent "$id" "$wt" Dev "$round" "$note" "$DEV_PROMPT" "$MODEL" "$EFFORT" "$pipe_log" \
       || log "[$id] Dev 輪回傳非 0（見 $pipe_log）。"
     note=""
-    head_after="$(git -C "$wt" rev-parse HEAD)"
+    check_main_repo_clean "$id"
 
-    # Dev 這一輪完全沒有新 commit（實際發生過：整輪都在等背景任務通知）——沒有東西
-    # 可審，不要花一輪 Review（較貴的模型）去確認「Dev 什麼都沒交」，直接算一輪重跑 Dev。
-    if [ "$head_before" = "$head_after" ]; then
-      log "[$id] Dev 輪 #$round 沒有任何新 commit，跳過 Review，直接進下一輪 Dev。"
-      note="上一輪（第 $round 輪）Dev 結束時沒有任何新 commit，等於沒有交出東西。這一輪務必依「收尾」逐項做完並 commit；worktree 內若有上一輪留下未 commit 的改動，先檢查能不能沿用。"
+    # 便宜的檢查放在貴的回合前面：Dev 沒有正常收尾就不送 Review（較貴的模型）
+    if ! why="$(round_problem "$id" "$wt" Dev "$round" "$head_before")"; then
+      fails=$((fails + 1))
+      log "[$id] Dev 輪 #$round 沒有正常收尾：$why。跳過 Review，直接進下一輪 Dev。"
+      note="上一輪（第 $round 輪）Dev 沒有正常收尾：$why。沒有人會讀你的最後回覆、也沒有人會回答問題；這一輪先檢查 worktree 內上一輪留下的改動能不能沿用，做完後一定要用 loopctl finish 收尾。"
       continue
     fi
-    status="$(task_status "$wt" "$id")"
-    [ "$status" = review-pending ] || log "[$id] 警告：Dev 輪結束但 status=$status（應為 review-pending），仍送 Review。"
-
-    log "[$id] 本輪任務：$(summarize_round "$id" review "$round" "$wt")"
-    log "[$id] Review 輪 #$round"
-    run_agent "$id" "$wt" Review "$round" "" "$REVIEW_PROMPT" "$REVIEW_MODEL" "$REVIEW_EFFORT" "$pipe_log" \
-      || log "[$id] Review 輪回傳非 0（見 $pipe_log）。"
+    fails=0
     status="$(task_status "$wt" "$id")"
 
-    # Review 漏改 status（仍是 review-pending）：不要因此多跑一輪 Dev，只補跑一次 Review。
     if [ "$status" = review-pending ]; then
-      log "[$id] Review 輪 #$round 結束但 status 仍是 review-pending（沒有寫下判定），補跑一次 Review。"
-      run_agent "$id" "$wt" Review "$round" \
-        "上一次第 $round 輪 Review 結束時，.state/tasks/$id/status 仍是 review-pending——沒有寫下判定。先讀 .state/tasks/$id/review.md 看上一次是否已留下紀錄，沿用已驗證的結果，把判定確實寫進 status（done／doing／blocked 三選一）並 commit。" \
-        "$REVIEW_PROMPT" "$REVIEW_MODEL" "$REVIEW_EFFORT" "$pipe_log" \
-        || log "[$id] 補跑的 Review 回傳非 0（見 $pipe_log）。"
+      log "[$id] 本輪任務：$(summarize_round "$id" review "$round" "$wt")"
+      log "[$id] Review 輪 #$round"
+      head_before="$(git -C "$wt" rev-parse HEAD)"
+      run_agent "$id" "$wt" Review "$round" "" "$REVIEW_PROMPT" "$REVIEW_MODEL" "$REVIEW_EFFORT" "$pipe_log" \
+        || log "[$id] Review 輪回傳非 0（見 $pipe_log）。"
+      check_main_repo_clean "$id"
+
+      # Review 沒有正常收尾：不要因此多跑一輪 Dev，只補跑一次 Review
+      if ! why="$(round_problem "$id" "$wt" Review "$round" "$head_before")"; then
+        log "[$id] Review 輪 #$round 沒有正常收尾：$why。補跑一次 Review。"
+        head_before="$(git -C "$wt" rev-parse HEAD)"
+        run_agent "$id" "$wt" Review "$round" \
+          "上一次第 $round 輪 Review 沒有正常收尾：$why。沒有人會讀你的最後回覆、也沒有人會回答問題。先讀 .state/tasks/$id/review.md 看上一次是否已留下紀錄，沿用已驗證的結果，最後一定要用 loopctl finish 寫下判定。" \
+          "$REVIEW_PROMPT" "$REVIEW_MODEL" "$REVIEW_EFFORT" "$pipe_log" \
+          || log "[$id] 補跑的 Review 回傳非 0（見 $pipe_log）。"
+        check_main_repo_clean "$id"
+        if ! why="$(round_problem "$id" "$wt" Review "$round" "$head_before")"; then
+          log "[$id] Review 連續兩次沒有正常收尾，標 blocked 交人工（$why）。"
+          commit_task_status "$id" blocked "$id 第 $round 輪 Review 連續兩次沒有正常收尾（$why），需人工檢查 $pipe_log"
+          return
+        fi
+      fi
       status="$(task_status "$wt" "$id")"
     fi
 
@@ -282,7 +345,7 @@ run_pipeline() {
       fi
       return
     fi
-    # 其餘情況（Review 退回成 doing）進下一輪 Dev
+    # 其餘情況（Review 退回成 doing）進下一輪 Dev；D-xx 在 fixes.md，Dev 自己會讀
     log "[$id] 尚未核准，狀態=$status，進入下一輪。"
   done
 }

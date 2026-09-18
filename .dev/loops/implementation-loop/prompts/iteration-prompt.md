@@ -26,7 +26,7 @@
 |---|---|---|
 | 不變規則 | `prompts/*.md` | 人工 |
 | 任務清單（靜態） | `.state/tasks.md`（ID／產出範圍／依賴／備註，**沒有狀態欄**） | 人工或安排階段；Dev／Review **不可改** |
-| 任務目錄 | `.state/tasks/<task-id>/`：`status`／`fixes.md`／`decision-log.md`／`review.md`／`open-questions.md`／`state.md` | **只有這個任務自己的 Dev／Review**（依各自權限，見第 1 節）；別的任務只讀。安排階段自己的紀錄寫 `.state/tasks/_planning/` |
+| 任務目錄 | `.state/tasks/<task-id>/`：`status`／`fixes.md`／`decision-log.md`／`review.md`／`open-questions.md`／`state.md`／`rounds.log`（收尾紀錄）／`driver-note.md`（驅動腳本標 blocked 的原因） | **只有這個任務自己的 Dev／Review，而且只能透過 `scripts/loopctl`**（依各自權限，見第 1 節）；別的任務只讀。安排階段自己的紀錄寫 `.state/tasks/_planning/` |
 | ADR | `.state/adr/ADR-<task-id>-<兩位數>-<slug>.md`，一則一檔 | Dev 只能**新增**檔；既有 ADR 只能由人工改狀態欄 |
 | 舊紀錄 | `.state/archive/**`（2026-09-18 前的共用 `decision-log.md`／`review.md`／`open-questions.md`／`state.md`／`adr.md`，`OQ-IMPL-01～17`、`ADR-001` 在這裡） | 只讀（人工可在既有 OQ 底下補解除說明） |
 | 輔助腳本 | `scripts/verify.sh` 等 | 人工；loop 只能執行 |
@@ -42,6 +42,7 @@ Dev／Review 跟驅動腳本、跟下一輪的自己，都是透過 `.state/` �
 
 - **一個 worktree 只寫自己的 `.state/tasks/<task-id>/`**（外加在 `.state/adr/` 新增檔案）。不同分支永遠不會改到同一個檔，合併不可能在 `.state/` 衝突。
 - **ID 以任務為命名空間**：`OQ-<task-id>-<兩位數>`、`ADR-<task-id>-<兩位數>`、`D-xx` 在該任務 `fixes.md` 內遞增。不可以用跨任務的全域流水號——並行的 worktree 互相看不到對方剛編的號。
+- **`.state/tasks/<task-id>/` 只能用 `scripts/loopctl` 寫**（`oq add`／`fix add`／`fix done`／`log`／`finish`，用法見 dev／review 提示詞）：格式、編號、commit 都由它負責，agent 不直接編輯。每一輪一定要以 `loopctl finish` 收尾——驅動腳本不讀 agent 的最後回覆，只看收尾紀錄（`rounds.log`）；沒有收尾（以提問結尾、逾時、被中斷、沒 commit 都一樣）＝這一輪失敗，連續兩輪失敗就標 `blocked`。**想問人類問題的唯一方式是 `loopctl oq add`**。
 - **狀態是 `status` 單行檔**（`todo`／`doing`／`review-pending`／`done`／`blocked`，不存在＝`todo`），驅動腳本只認這個檔。
 - 要一次看全部：`scripts/collect.sh status|oq|review|decision|fixes|state`（只印不寫）。
 
@@ -60,7 +61,7 @@ Dev／Review 跟驅動腳本、跟下一輪的自己，都是透過 `.state/` �
 - 驅動腳本 `run-loop.sh` 每次巡視任務清單，挑出所有依賴皆 `done` 且狀態為 `todo` 的任務，最多同時啟動 5 條「Dev→Review」管線（`MAX_PARALLEL=5`）。
 - 每條管線一個獨立 git worktree：`git worktree add ../kanban2-impl-<task-id> -b impl/<task-id> <integration-branch>`，Dev／Review 都在這個 worktree 裡工作，彼此的檔案異動不會互相干擾，也不會互相看到對方任務的未合併改動（依賴任務必須先 `done` 並合併回整合分支，下游任務的 worktree 才會分支自帶依賴的程式碼）。
 - 一條管線內部：Dev 輪 → Review 輪 → 若 Review 核准（狀態轉 `done`）→ 合併 `impl/<task-id>` 回整合分支 `loop/implementation`（合併需序列化：驅動腳本用檔案鎖；合併失敗會 `git merge --abort` 並把任務標 `blocked`，不會把主 repo 留在合併中）→ 移除該 worktree；若 Review 退回（留有未處理 `D-xx`）→ 回到 Dev 輪處理 `D-xx`，同一個 worktree 繼續用，循環直到核准或達 `MAX_TASK_ROUNDS`（達上限視為 `blocked`，記 OQ 等人工介入，worktree 保留供人工檢查）。
-- 驅動腳本每次呼叫 Dev／Review 都會在提示詞最前面傳入 `任務 ID`／`回合：第 N 輪（上限 M）`／`角色`，必要時加 `驅動腳本附註`；回合數以傳入的為準。Dev 整輪沒有任何新 commit → 不送 Review，直接算一輪重跑 Dev；Review 結束 `status` 仍是 `review-pending` → 只補跑一次 Review。
+- 驅動腳本每次呼叫 Dev／Review 都會在提示詞最前面傳入 `任務 ID`／`回合：第 N 輪（上限 M）`／`角色`，必要時加 `驅動腳本附註`；回合數以傳入的為準。Dev 沒有用 `loopctl finish` 正常收尾 → 不送 Review，直接算一輪重跑 Dev（連續兩輪就 `blocked`）；Review 沒有正常收尾 → 只補跑一次 Review，再失敗就 `blocked`。
 - 一個任務的 worktree／分支只服務這一個任務，不可以在裡面同時動另一個任務的範圍；任務完成合併後才刪除 worktree。
 - 下游任務要等上游任務**合併回整合分支**（不是只到 `review-pending`）才能開始，因為它的程式碼要建立在上游已核准的實作上。
 

@@ -1,0 +1,370 @@
+#!/usr/bin/env python3
+"""loopctl：implementation-loop 的 Dev／Review agent 改 .state/ 的唯一入口。
+
+為什麼要有這支：agent 直接編輯 .state/ 會寫錯格式、漏改 status、編號撞號，
+驅動腳本也只能去猜 agent 最後回覆的文字。改成「所有 .state 異動都經過這支」之後：
+  - 格式只存在於這支腳本裡，agent 不用記、也寫不錯；
+  - 每輪一定要以 `loopctl finish` 收尾，驅動腳本只看「有沒有收尾紀錄」，
+    以提問結尾、被中斷、逾時、沒 commit，全部都是同一種結果（沒有收尾＝這輪失敗）；
+  - 想問人類問題只有一條路：`loopctl oq add`。
+
+任務 ID／回合／角色由驅動腳本用環境變數傳入（LOOP_TASK_ID／LOOP_ROUND／LOOP_ROLE／
+LOOP_MAX_ROUNDS），agent 不用自己填。每個會寫檔的子指令都會自己 commit，
+commit 訊息帶 `Loopctl:` trailer，驅動腳本靠它分辨「經過 loopctl」與「繞過 loopctl」。
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+STATE_REL = Path(".dev/loops/implementation-loop/.state")
+ROLES = ("Dev", "Review")
+OQ_LEVELS = ("高", "覆蓋", "環境")
+OQ_KINDS = ("引用原文", "兩處矛盾並列", "推論＋所本原文", "覆蓋")
+# 同一個問題（用 --continues 串起來）第幾次被退回就不准再退回、必須 blocked
+MAX_FIX_CHAIN = 3
+STATE_MAX_LINES = 20
+
+
+class LoopctlError(Exception):
+    """規則不符；訊息直接印給 agent 看，要寫清楚該怎麼修正。"""
+
+
+# ---------- 環境 ----------
+class Ctx:
+    def __init__(self) -> None:
+        self.task = os.environ.get("LOOP_TASK_ID", "").strip()
+        self.role = os.environ.get("LOOP_ROLE", "").strip()
+        try:
+            self.round = int(os.environ.get("LOOP_ROUND", ""))
+            self.max_rounds = int(os.environ.get("LOOP_MAX_ROUNDS", ""))
+        except ValueError:
+            raise LoopctlError(
+                "缺少 LOOP_ROUND／LOOP_MAX_ROUNDS：loopctl 只能在驅動腳本開的回合裡執行。"
+            )
+        if not self.task or self.role not in ROLES:
+            raise LoopctlError(
+                "缺少 LOOP_TASK_ID 或 LOOP_ROLE（Dev｜Review）：loopctl 只能在驅動腳本開的回合裡執行。"
+            )
+        self.root = Path(git(["rev-parse", "--show-toplevel"], cwd=Path.cwd()).strip())
+        branch = git(["rev-parse", "--abbrev-ref", "HEAD"], cwd=self.root).strip()
+        # 擋掉「跑到主 repo 或別的 worktree 去寫」：實際發生過三次，agent 把 .state 改在
+        # 整合分支的 checkout 上，害別條管線的合併被未 commit 的異動擋掉。
+        if branch != f"impl/{self.task}":
+            raise LoopctlError(
+                f"目前目錄 {self.root} 的分支是 {branch}，不是 impl/{self.task}。"
+                f"先 cd 回你自己的 worktree（目錄名稱結尾是 -impl-{self.task}）再執行。"
+            )
+        self.state = self.root / STATE_REL
+        self.dir = self.state / "tasks" / self.task
+        self.dir.mkdir(parents=True, exist_ok=True)
+        self.today = dt.date.today().isoformat()
+
+    @property
+    def tag(self) -> str:
+        return f"{self.role} 第 {self.round} 輪"
+
+
+def git(args: list[str], cwd: Path) -> str:
+    res = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True)
+    if res.returncode != 0:
+        raise LoopctlError(f"git {' '.join(args)} 失敗：{res.stderr.strip()}")
+    return res.stdout
+
+
+def commit(ctx: Ctx, what: str) -> None:
+    git(["add", "--", str(ctx.dir.relative_to(ctx.root))], cwd=ctx.root)
+    if not git(["diff", "--cached", "--name-only"], cwd=ctx.root).strip():
+        return
+    msg = f"[docs](loops) {ctx.task} {ctx.tag}：{what}\n\nLoopctl: {ctx.role} r{ctx.round}"
+    git(["commit", "-q", "-m", msg, "--", str(ctx.dir.relative_to(ctx.root))], cwd=ctx.root)
+
+
+def read_body(path: str) -> str:
+    p = Path(path)
+    if not p.is_file():
+        raise LoopctlError(f"找不到內文檔 {path}（先用 Write 把內文寫到 /tmp 底下的檔案，再把路徑傳進來）。")
+    text = p.read_text(encoding="utf-8").strip()
+    if not text:
+        raise LoopctlError(f"內文檔 {path} 是空的。")
+    return text
+
+
+def task_ids(ctx: Ctx) -> list[str]:
+    ledger = ctx.state / "tasks.md"
+    return re.findall(r"^\| (T-[0-9A-Za-z-]+) \|", ledger.read_text(encoding="utf-8"), flags=re.M)
+
+
+def append(path: Path, header: str, block: str) -> None:
+    old = path.read_text(encoding="utf-8") if path.exists() else header
+    path.write_text(old.rstrip("\n") + "\n\n" + block.rstrip("\n") + "\n", encoding="utf-8")
+
+
+# ---------- OQ ----------
+def parse_oqs(ctx: Ctx) -> list[dict]:
+    path = ctx.dir / "open-questions.md"
+    if not path.exists():
+        return []
+    out = []
+    for chunk in re.split(r"(?m)^## (?=OQ-)", path.read_text(encoding="utf-8"))[1:]:
+        field = lambda k: (re.search(rf"(?m)^- {k}：(.*)$", chunk) or [None, ""])[1].strip()
+        out.append(
+            {
+                "id": chunk.split("\n", 1)[0].strip(),
+                "blocking": field("阻塞") == "是",
+                "open": field("狀態").startswith("待處理"),
+            }
+        )
+    return out
+
+
+def cmd_oq_add(ctx: Ctx, a: argparse.Namespace) -> None:
+    body = read_body(a.file)
+    if a.level in ("覆蓋", "環境") and a.blocking != "yes":
+        raise LoopctlError(f"等級「{a.level}」一律阻塞任務（規則書第 5 節），--blocking 必須是 yes。")
+    if a.owner not in ("人工", "無") and a.owner not in task_ids(ctx):
+        raise LoopctlError(f"--owner {a.owner} 不是任務清單上的任務 ID，也不是「人工」「無」。")
+    if "『" not in body or "』" not in body:
+        raise LoopctlError("內文沒有『』逐字引用：OQ 一定要到源頭文件把原文逐字引出來，不可以縮寫或摘要。")
+    m = re.search(r"(?m)^情況：【(.+?)】", body)
+    if not m or m.group(1) not in OQ_KINDS:
+        raise LoopctlError("內文要有一行「情況：【…】」，種類四選一：" + "／".join(OQ_KINDS))
+    for key in ("問題：", "選項："):
+        if not re.search(rf"(?m)^{key}", body):
+            raise LoopctlError(f"內文缺少以「{key}」開頭的一行。")
+    if m.group(1) == "推論＋所本原文" and not re.search(r"(?m)^推論", body):
+        raise LoopctlError("情況是【推論＋所本原文】時，內文要有以「推論」開頭的一行，跟引用原文分開寫。")
+    if re.search(r"(?m)^(## |- (等級|阻塞|接手|原因代碼|開立|狀態)：|\[Level:)", body):
+        raise LoopctlError("內文不要自己寫標題、[Level: …] 或 等級／阻塞／接手／狀態 這些欄位——那些由 loopctl 依參數產生。")
+
+    n = len(parse_oqs(ctx)) + 1
+    oid = f"OQ-{ctx.task}-{n:02d}"
+    block = "\n".join(
+        [
+            f"## {oid}",
+            "",
+            f"[Level: {a.scope}]",
+            f"- 等級：{a.level}",
+            f"- 阻塞：{'是' if a.blocking == 'yes' else '否'}",
+            f"- 接手：{a.owner}",
+            f"- 原因代碼：{a.reason_code}",
+            f"- 開立：{ctx.tag}（{ctx.today}）",
+            "- 狀態：待處理",
+            "",
+            body,
+        ]
+    )
+    header = f"# {ctx.task} open questions\n\n> 由 `loopctl oq add` 產生，不要直接編輯；解除說明由人工補在各則底下。"
+    append(ctx.dir / "open-questions.md", header, block)
+    commit(ctx, f"開立 {oid}")
+    print(oid)
+
+
+# ---------- D-xx ----------
+FIX_HEADER = "| ID | 回合 | 狀態 | 延續 | 描述 |\n|---|---|---|---|---|"
+
+
+def parse_fixes(ctx: Ctx) -> list[dict]:
+    path = ctx.dir / "fixes.md"
+    if not path.exists():
+        return []
+    out = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        cells = [c.strip() for c in line.split("|")]
+        if len(cells) < 5 or not re.fullmatch(r"D-\d+", cells[1]):
+            continue
+        new_fmt = len(cells) >= 7 and cells[2].isdigit()
+        out.append(
+            {
+                "id": cells[1],
+                "round": int(cells[2]) if new_fmt else 0,
+                "status": cells[3],
+                "continues": cells[4] if new_fmt and cells[4] != "—" else "",
+            }
+        )
+    return out
+
+
+def chain_len(fixes: list[dict], fid: str) -> int:
+    by_id = {f["id"]: f for f in fixes}
+    n, seen = 1, {fid}
+    while by_id.get(fid, {}).get("continues"):
+        fid = by_id[fid]["continues"]
+        if fid in seen:
+            break
+        seen.add(fid)
+        n += 1
+    return n
+
+
+def cmd_fix_add(ctx: Ctx, a: argparse.Namespace) -> None:
+    if ctx.role != "Review":
+        raise LoopctlError("只有 Review 可以追加 D-xx。")
+    desc = " ".join(read_body(a.file).split()).replace("|", "｜")
+    fixes = parse_fixes(ctx)
+    if a.continues and a.continues not in {f["id"] for f in fixes}:
+        raise LoopctlError(f"--continues {a.continues} 不在本任務的 fixes.md 裡。")
+    n = max([int(f["id"][2:]) for f in fixes], default=0) + 1
+    fid = f"D-{n:02d}"
+    path = ctx.dir / "fixes.md"
+    text = path.read_text(encoding="utf-8") if path.exists() else f"# {ctx.task} 修正任務（D-xx）\n\n> 由 `loopctl fix add`／`fix done` 維護，不要直接編輯。\n"
+    section = f"## 第 {ctx.round} 輪 Review 退回"
+    if section not in text:
+        text = text.rstrip("\n") + f"\n\n{section}\n\n{FIX_HEADER}\n"
+    text = text.rstrip("\n") + f"\n| {fid} | {ctx.round} | todo | {a.continues or '—'} | {desc} |\n"
+    path.write_text(text, encoding="utf-8")
+    commit(ctx, f"追加 {fid}")
+    print(fid)
+
+
+def cmd_fix_done(ctx: Ctx, a: argparse.Namespace) -> None:
+    if ctx.role != "Dev":
+        raise LoopctlError("只有 Dev 可以把 D-xx 標成 done（Review 不同意就再開一條 --continues 的 D-xx）。")
+    path = ctx.dir / "fixes.md"
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
+    lines, hit = text.splitlines(), False
+    for i, line in enumerate(lines):
+        if line.startswith(f"| {a.id} |") and "| todo |" in line:
+            lines[i], hit = line.replace("| todo |", "| done |", 1), True
+            break
+    if not hit:
+        raise LoopctlError(f"fixes.md 裡找不到狀態為 todo 的 {a.id}。")
+    new = "\n".join(lines) + "\n"
+    path.write_text(new, encoding="utf-8")
+    commit(ctx, f"{a.id} 標為 done")
+
+
+# ---------- 紀錄 ----------
+def log_target(ctx: Ctx) -> tuple[Path, str]:
+    name = "decision-log.md" if ctx.role == "Dev" else "review.md"
+    return ctx.dir / name, f"## {ctx.today} {ctx.tag}"
+
+
+def cmd_log(ctx: Ctx, a: argparse.Namespace) -> None:
+    body = read_body(a.file)
+    if re.search(r"(?m)^#{1,2} ", body):
+        raise LoopctlError("內文不要用 # 或 ## 標題（標題由 loopctl 依回合與角色產生），小節請用 ### 以下。")
+    path, heading = log_target(ctx)
+    if a.title:
+        heading += f"：{a.title}"
+    what = "決策紀錄與交接摘要" if ctx.role == "Dev" else "審查紀錄"
+    append(path, f"# {ctx.task} {what}\n\n> 由 `loopctl log` 追加，不要直接編輯。", f"{heading}\n\n{body}")
+    commit(ctx, f"追加{what}")
+
+
+# ---------- 收尾 ----------
+def cmd_finish(ctx: Ctx, a: argparse.Namespace) -> None:
+    v = a.verdict
+    allowed = ("review-pending", "blocked") if ctx.role == "Dev" else ("done", "doing", "blocked")
+    if v not in allowed:
+        raise LoopctlError(f"{ctx.role} 的 --verdict 只能是 {'｜'.join(allowed)}。")
+
+    state = read_body(a.state)
+    if len(state.splitlines()) > STATE_MAX_LINES:
+        raise LoopctlError(f"state 內文超過 {STATE_MAX_LINES} 行，請精簡。")
+
+    path, heading = log_target(ctx)
+    if not path.exists() or heading not in path.read_text(encoding="utf-8"):
+        raise LoopctlError(f"這一輪還沒有紀錄：先執行 `loopctl log --file <內文>`（會寫進 {path.name}）再收尾。")
+
+    dirty = git(["status", "--porcelain"], cwd=ctx.root).strip()
+    if dirty:
+        raise LoopctlError("工作區還有沒 commit 的異動，先 commit（或還原不該動的檔）再收尾：\n" + dirty)
+
+    fixes, oqs = parse_fixes(ctx), parse_oqs(ctx)
+    todo = [f["id"] for f in fixes if f["status"] == "todo"]
+    blocking = [o["id"] for o in oqs if o["open"] and o["blocking"]]
+    new_fixes = [f for f in fixes if f["round"] == ctx.round and f["status"] == "todo"]
+
+    if v == "review-pending" and todo:
+        raise LoopctlError(f"還有 D-xx 沒處理：{'、'.join(todo)}。修好後 `loopctl fix done <ID>`；真的修不了就開阻塞的 OQ 並用 --verdict blocked。")
+    if v == "done" and todo:
+        raise LoopctlError(f"還有 todo 的 D-xx（{'、'.join(todo)}），不可以核准。")
+    if v in ("review-pending", "done") and blocking:
+        raise LoopctlError(f"有阻塞的待處理 OQ（{'、'.join(blocking)}），這個任務只能 --verdict blocked。")
+    if v == "doing":
+        if not new_fixes:
+            raise LoopctlError("退回（doing）一定要先用 `loopctl fix add` 追加這一輪的 D-xx，講清楚要 Dev 修什麼。")
+        if ctx.round >= ctx.max_rounds:
+            raise LoopctlError(f"這已經是最後一輪（第 {ctx.round} 輪，上限 {ctx.max_rounds}），不會再有下一輪 Dev；不能核准就開阻塞的 OQ 並用 --verdict blocked。")
+        stuck = [f["id"] for f in new_fixes if chain_len(fixes, f["id"]) >= MAX_FIX_CHAIN]
+        if stuck:
+            raise LoopctlError(f"{'、'.join(stuck)} 是同一個問題第 {MAX_FIX_CHAIN} 次被退回，再一輪 Dev 也修不好；開阻塞的 OQ 說明卡在哪，用 --verdict blocked。")
+    if v == "blocked" and not blocking:
+        raise LoopctlError("blocked 一定要有一則 `loopctl oq add --blocking yes` 的待處理 OQ，講清楚需要人工決定什麼。")
+
+    (ctx.dir / "status").write_text(v + "\n", encoding="utf-8")
+    (ctx.dir / "state.md").write_text(
+        f"# {ctx.task} state\n\n> {ctx.today} {ctx.tag} 收尾，status＝`{v}`。每輪由 `loopctl finish` 覆寫。\n\n{state}\n",
+        encoding="utf-8",
+    )
+    with (ctx.dir / "rounds.log").open("a", encoding="utf-8") as fh:
+        fh.write(f"{dt.datetime.now().isoformat(timespec='seconds')}\t{ctx.role}\t{ctx.round}\t{v}\n")
+    commit(ctx, f"收尾，status={v}")
+    print(f"已收尾：{ctx.task} {ctx.tag} → {v}。這一輪到此結束，不需要再做任何事。")
+
+
+def cmd_show(ctx: Ctx, a: argparse.Namespace) -> None:
+    status = ctx.dir / "status"
+    print(f"任務 {ctx.task}｜{ctx.tag}（上限 {ctx.max_rounds}）｜status＝{status.read_text().strip() if status.exists() else 'todo'}")
+    for f in parse_fixes(ctx):
+        print(f"  {f['id']} {f['status']}" + (f"（延續 {f['continues']}）" if f["continues"] else ""))
+    for o in parse_oqs(ctx):
+        print(f"  {o['id']} {'待處理' if o['open'] else '已解除'}{'｜阻塞' if o['blocking'] else ''}")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(prog="loopctl", description="implementation-loop 的 .state 寫入工具")
+    sub = p.add_subparsers(dest="cmd", required=True)
+
+    oq = sub.add_parser("oq", help="open question").add_subparsers(dest="sub", required=True)
+    add = oq.add_parser("add", help="開立一則 OQ（想問人類問題的唯一方式）")
+    add.add_argument("--level", required=True, choices=OQ_LEVELS)
+    add.add_argument("--blocking", required=True, choices=("yes", "no"))
+    add.add_argument("--owner", required=True, help="之後誰要接手：任務 ID｜人工｜無")
+    add.add_argument("--reason-code", required=True, help="小寫連字號的原因代碼，同一種原因用同一個，例如 design-unreachable、spec-ambiguous")
+    add.add_argument("--scope", required=True, help="[Level: …] 的內容，例如 F02-user-membership/uc-login")
+    add.add_argument("--file", required=True, help="內文檔（情況／引用／推論／問題／選項）")
+    add.set_defaults(func=cmd_oq_add)
+
+    fix = sub.add_parser("fix", help="D-xx 修正任務").add_subparsers(dest="sub", required=True)
+    fadd = fix.add_parser("add", help="Review 追加一條 D-xx")
+    fadd.add_argument("--file", required=True, help="描述檔：哪個測試／檔案／Scenario 沒對上、要怎樣才算修好")
+    fadd.add_argument("--continues", default="", help="這條是哪一條舊 D-xx 沒修好的延續")
+    fadd.set_defaults(func=cmd_fix_add)
+    fdone = fix.add_parser("done", help="Dev 把一條 D-xx 標成 done")
+    fdone.add_argument("id")
+    fdone.set_defaults(func=cmd_fix_done)
+
+    lg = sub.add_parser("log", help="追加本輪紀錄（Dev→decision-log.md，Review→review.md）")
+    lg.add_argument("--file", required=True)
+    lg.add_argument("--title", default="", help="接在標題後面的短語，例如 核准／附保留核准／退回")
+    lg.set_defaults(func=cmd_log)
+
+    fin = sub.add_parser("finish", help="收尾：寫 status／state.md 並 commit；每輪最後一定要呼叫一次")
+    fin.add_argument("--verdict", required=True, choices=("review-pending", "done", "doing", "blocked"))
+    fin.add_argument("--state", required=True, help=f"state 內文檔（{STATE_MAX_LINES} 行內：現況、這輪做了什麼、下一輪先看什麼）")
+    fin.set_defaults(func=cmd_finish)
+
+    sub.add_parser("show", help="印出本任務目前的 status／D-xx／OQ").set_defaults(func=cmd_show)
+    return p
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+    try:
+        args.func(Ctx(), args)
+    except LoopctlError as e:
+        print(f"loopctl 拒絕：{e}", file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
