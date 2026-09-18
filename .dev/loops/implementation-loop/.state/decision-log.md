@@ -117,3 +117,8 @@
 - 理由：D-04 要求把「呼叫端依訊息內容判斷」這個說法跟 ADR-001 對齊；`ApiError` 目前的欄位（`status`＋訊息）本來就同時支援「狀態碼分流、訊息內容決定文案」兩層，不需要改程式碼，只需要更正文件敘述與釐清後續任務的用法。
 - 影響：本檔（新增更正條目）、`tasks.md`（T-10 備註更正）、`state.md`（更正）。不涉及程式碼改動。
 - ADR：無（沿用既有 ADR-001，本則是對齊既有分類表的用法說明，不是新的結構性決策）。
+
+### 2026-09-18 T-10-fe-shell（Review，第 2 輪）
+- 決策：附保留核准，狀態從 `review-pending` 改成 `done`，不新增 D-xx。
+- 理由：第 1 點，Review 自己重跑 `pnpm install --frozen-lockfile`、`pnpm run test`（2 個檔案、7 個測試全過）、`pnpm run build`、`pnpm run lint`（exit 0），以及 `./gradlew clean build --no-daemon -q`（exit 0）；第 2、6 點，程式碼跟第 1 輪相同，結論不變；第 3 點，grep 確認 core 是乾淨的；第 4 點，diff 只有 `kanban-frontend/**` 和 `.state/**`；第 5 點，D-03（OQ-IMPL-11）、D-04（OQ-IMPL-09 紀錄更正）都已處理，引文逐字核對一致，OQ-IMPL-11 漏引 spec `uc-login` post 與 Scenario，由 Review 追加補充段落，問題本身不變。OQ-IMPL-11 是高風險、不是覆蓋來源，所以附保留，不標 `blocked`。
+- 影響：`impl/T-10-fe-shell` 可以合併回 `loop/implementation`，T-11-fe-auth 的依賴滿足；T-12 仍要等 T-02、T-04。OQ-IMPL-11 定案前 TopBar 維持顯示 `user.username`，選 `display-name` 時要回頭改前端和 T-01 的 `SessionResponse`。

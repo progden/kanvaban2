@@ -31,7 +31,7 @@
 
 | ID | 產出範圍 | 依賴（需已合併） | 狀態 | 備註 |
 |---|---|---|---|---|
-| T-10-fe-shell | 前端 app shell（路由、API client、登入態管理） | T-00-scaffold、T-01-be-user | review-pending | 2026-09-18 D-03、D-04 已處理（見下方 D-xx 表）：D-03 已在 `open-questions.md` 新開 OQ-IMPL-11（TopBar 顯示 `username` 還是 `display-name`），OQ 定案前 TopBar 維持顯示 `user.username`；D-04 已更正過期的 OQ-IMPL-09 紀錄，本列備註原本沿用的過期字樣一併更正——OQ-IMPL-09 已於 `06c0a14` 解除並升級為 `adr.md` ADR-001，不再是「仍待處理／未定案」。程式碼未變動，待 Review 第 2 輪。 |
+| T-10-fe-shell | 前端 app shell（路由、API client、登入態管理） | T-00-scaffold、T-01-be-user | done | 2026-09-18 Review 第 2 輪**附保留核准**（見 `review.md`）：D-03、D-04 已處理；OQ-IMPL-11（TopBar 顯示 `user.username` 還是 `user.display-name`）仍待處理，定案為 `display-name` 時要回頭改 `AppShell.tsx` 與 T-01 的 `SessionResponse`。 |
 | T-11-fe-auth | `s-login`、`s-signup` | T-10-fe-shell | todo | |
 | T-12-fe-board-list | `s-board-list`、`s-board-create-dialog`、`s-board-delete-dialog` | T-10-fe-shell、T-02-be-board、T-04-be-board-membership | todo | 選定 Board 後導向 T-13 的 Canvas，不是導向 T-14 |
 | T-13-fe-canvas-shell | `s-canvas`：F07 item 放置容器（開啟看板時初始化＋移動／調整大小／排層序／錨定 canvas／screen／Viewport 平移縮放記憶／批次操作），提供給其他前端任務掛載自己的 item 內容；`.dev/F07-canvas-layout/ui-canvas-layout.md` 已存在且操作表／資料表完整，直接依它實作 | T-12-fe-board-list、T-09-be-canvas-layout | todo | 基礎設施型任務，T-14～T-20 都依賴它才能把畫面掛上 Canvas；2026-09-18 隨 OQ-IMPL-07／08 定案（見 T-09 備註），`item.component`／canvas 建立時機／角色對應三件事都已寫進 `spec-canvas-layout.md`（草稿，不需 CR）；`ui-canvas-layout.md` 本身仍是「討論中」狀態（待確認事項可能還有殘留，Dev 動工前重讀一次確認），但不再是本任務動工的阻礙 |
