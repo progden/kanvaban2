@@ -1,0 +1,5 @@
+# implementation-loop：每個任務只寫自己的 .state/tasks/<id>/，正常不會兩邊改同一檔；
+# 萬一人工同時改了同一份追加型紀錄，用 union 合併（兩邊都留）而不是卡在衝突。
+# status 是單行檔，不可 union（會變成兩行），所以只列 *.md。
+.dev/loops/implementation-loop/.state/tasks/*/*.md merge=union
+.dev/loops/implementation-loop/.state/archive/*.md merge=union

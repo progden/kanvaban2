@@ -9,8 +9,8 @@
 2. 讀 `.dev/F01-basic-kanban/ui-basic-kanban.md`（目前唯一存在的 `ui-*.md`）的 Screen 清單與各畫面操作表引用的 `uc-xxx`。
 3. 讀下方「前端設計稿畫面清單」（已固定列出，來自 claude.ai Design 類型 Artifact，你不需要也不應該重新去解析該 Artifact 的內部機制，只需要把清單當作既有畫面依據）。
 4. 依 `iteration-prompt.md` 第 3 節五條規則，把每個 Aggregate Root／畫面群組整理成一列任務，`T-xx` 由你排定依賴後的建議執行序（依賴要先於被依賴者，但驅動腳本實際會依「依賴是否 done」平行選取，排列順序只是給人看的參考序，不是唯一合法序）。
-5. 校對／更新 `.state/tasks.md`：若既有任務列的描述、依賴、範圍已經涵蓋規格內容，不要無理由重寫；若規格自上次安排後有變（例如某模組剛完成遷移），更新該列，並在 `.state/decision-log.md` 記一則決策紀錄說明改了什麼、依據哪裡。
-6. 任何找不到依據的地方（規格未遷移、ui 檔不存在、設計稿沒有對應畫面）：任務標 `blocked`，在 `.state/open-questions.md` 用 lesson-learned 的 OQ 格式追加一列，**不可以自己編一個「合理的」範圍去填補**。
+5. 校對／更新 `.state/tasks.md`：若既有任務列的描述、依賴、範圍已經涵蓋規格內容，不要無理由重寫；若規格自上次安排後有變（例如某模組剛完成遷移），更新該列，並在 `.state/tasks/_planning/decision-log.md` 記一則決策紀錄說明改了什麼、依據哪裡。
+6. 任何找不到依據的地方（規格未遷移、ui 檔不存在、設計稿沒有對應畫面）：任務標 `blocked`（寫 `.state/tasks/<task-id>/status`），在 `.state/tasks/_planning/open-questions.md` 用 lesson-learned 的 OQ 格式追加一則（ID 格式 `OQ-PLAN-<兩位數>`），**不可以自己編一個「合理的」範圍去填補**。
 
 ## 前端設計稿畫面清單（固定資料，來源：claude.ai Design Artifact，35 個檔案，擷取自 `project/*.dc.html`）
 
@@ -35,7 +35,9 @@
 
 ## 任務清單格式（`.state/tasks.md`）
 
-沿用既有兩個 loop 的任務清單慣例（狀態值：`todo`／`doing`／`review-pending`／`blocked`／`done`；`G*` 關卡、`D-xx` 修正任務），每列另外要有「產出範圍」「依賴（已合併才算滿足）」兩欄。下方是目前依規格導出的種子資料，供你校對，不是要你從零重排：
+沿用既有兩個 loop 的任務清單慣例（狀態值：`todo`／`doing`／`review-pending`／`blocked`／`done`；`G*` 關卡、`D-xx` 修正任務），每列另外要有「產出範圍」「依賴（已合併才算滿足）」兩欄。
+
+**2026-09-18 起 `.state/tasks.md` 沒有狀態欄**：表格欄位固定為 `| ID | 產出範圍 | 依賴（需已合併） | 備註 |`，任務狀態寫在 `.state/tasks/<task-id>/status`（單行檔，不存在＝`todo`；只有要標 `blocked` 時才需要你建立）；`D-xx` 在各任務的 `fixes.md`。原因見 `iteration-prompt.md` 第 2.1 節（並行 worktree 合併衝突）。下方種子資料裡的「狀態：…」是初始狀態的意思，不是要你在 `tasks.md` 加欄位。**不可以改已經存在的 `status` 檔**（那是驅動腳本／Dev／Review 的執行進度），除非是把已補齊依據的 `blocked` 改回 `todo`。下方是目前依規格導出的種子資料，供你校對，不是要你從零重排：
 
 ```
 T-00-scaffold   | 建立 kanban-core / kanban-spring / kanban-frontend 專案骨架（Gradle 多模組、pnpm 前端專案、CI 可跑但無業務邏輯） | 依賴：無 | 狀態：todo
@@ -59,8 +61,8 @@ T-17-fe-feature-cr-board | F06 對應畫面 | 依賴：T-13-fe-board-detail、T-
 T-18-fe-canvas  | CanvasPanel | 依賴：T-13-fe-board-detail、T-09-be-canvas-layout | 狀態：todo（範圍限 spec「待釐清」以外的 Item/Viewport CRUD；與 F03 圖表元件整合部分不在範圍內，spec 本身尚未定義）
 ```
 
-把以上種子資料寫入 `.state/tasks.md` 時，補上任務清單慣例要求的規則段（狀態值定義、挑選順序：依賴全 `done`（已合併）且 `doing` 中任務數 < 5 才能選、`G*` 關卡怎麼核准）；`blocked` 的四列要各自在 `.state/open-questions.md` 開一則 OQ，指向對應模組的 spec-migration 進度／缺失的 ui 檔。
+把以上種子資料寫入 `.state/tasks.md` 時，補上任務清單慣例要求的規則段（狀態值定義、挑選順序：依賴全 `done`（已合併）且 `doing` 中任務數 < 5 才能選、`G*` 關卡怎麼核准）；`blocked` 的四列要各自在 `.state/tasks/_planning/open-questions.md` 開一則 OQ，指向對應模組的 spec-migration 進度／缺失的 ui 檔。
 
 ## 收尾
 
-完成後在 `.state/decision-log.md` 記一則決策紀錄，`.state/state.md` 覆寫 20 行內摘要（目前有幾個 `todo`／`blocked`、下一輪驅動腳本可以平行跑哪幾個任務）。commit 訊息 `[docs](loops) <摘要>`。
+完成後在 `.state/tasks/_planning/decision-log.md` 記一則決策紀錄，`.state/tasks/_planning/state.md` 覆寫 20 行內摘要（目前有幾個 `todo`／`blocked`、下一輪驅動腳本可以平行跑哪幾個任務）。commit 訊息 `[docs](loops) <摘要>`。所有輸出（含最後回覆）一律繁體中文 zh-TW。

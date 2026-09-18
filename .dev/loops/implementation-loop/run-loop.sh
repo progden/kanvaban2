@@ -4,8 +4,11 @@
 # 的 todo 任務各自丟進一個 worktree，最多同時跑 MAX_PARALLEL 條 Dev→Review 管線。
 #
 # 規則詳見 prompts/iteration-prompt.md 第 4 節「平行執行模型」。
-# 任務清單的讀寫用 flock 序列化，避免多條管線同時寫 .state/tasks.md
-# 或同時 merge 回整合分支造成衝突。
+# 任務狀態放在 .state/tasks/<id>/status（一個任務一個單行檔），各種紀錄也都在
+# .state/tasks/<id>/ 底下：一個 worktree 只寫自己任務的目錄，合併回整合分支就
+# 不會跟別條管線衝突（2026-09-18 之前共用 tasks.md／decision-log.md 等檔，並行
+# 合併必衝突、流水號撞號）。.state/tasks.md 只剩靜態欄位，執行階段沒有人寫它。
+# 主 repo 的 git 操作（狀態 commit、merge）一律用 MERGE_LOCK 序列化。
 
 set -euo pipefail
 
@@ -20,14 +23,12 @@ RUNTIME="$LOOP/runtime"
 GATES="$RUNTIME/gates"
 LOGS="$RUNTIME/logs"
 LEDGER="$STATE/tasks.md"
-DECISION_LOG="$STATE/decision-log.md"
-REVIEW_LOG="$STATE/review.md"
+TASKS_DIR="$STATE/tasks"
 PLANNING_PROMPT="$PROMPTS/planning-prompt.md"
 DEV_PROMPT="$PROMPTS/dev-prompt.md"
 REVIEW_PROMPT="$PROMPTS/review-prompt.md"
 VERIFY="$LOOP/scripts/verify.sh"
 DONE_FILE="$RUNTIME/DONE"
-LEDGER_LOCK="$RUNTIME/tmp/tasks.lock"
 MERGE_LOCK="$RUNTIME/tmp/merge.lock"
 
 MAX_ITERATIONS="${MAX_ITERATIONS:-200}"
@@ -45,6 +46,14 @@ LOOP_BRANCH="${LOOP_BRANCH:-loop/implementation}"
 WORKTREE_ROOT="${WORKTREE_ROOT:-$(cd .. && pwd)}"
 
 mkdir -p "$GATES" "$LOGS" "$RUNTIME/tmp"
+
+# 驅動腳本自己的輸出也落檔（之前只印在終端機，事後沒辦法 review 巡視過程）
+exec > >(tee -a "$LOGS/driver-$(date +%Y%m%d-%H%M%S).log") 2>&1
+
+# 硬性關掉背景任務：Dev／Review 都是一次性 `claude -p` 行程，背景工作等於直接遺棄。
+# 提示詞早就禁止了，但實際跑過仍有 Dev 輪用 Monitor／run_in_background 等通知，
+# 105 個 turn 零 commit 就結束（見 lesson-learned），所以改用工具層級擋掉。
+export CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1
 
 log() { echo "[$(date '+%F %T')] $*"; }
 
@@ -67,53 +76,62 @@ if [[ "$branch" =~ ^(main|master)$ ]] && [ "${ALLOW_MAIN:-0}" != 1 ]; then
   fi
 fi
 
-# ---------- 任務清單存取（flock 序列化）----------
-# 讀出目前狀態為 $1 的任務 ID 清單（一行一個），只依賴 grep，不假設有 python 工具腳本
+# ---------- 任務清單／狀態存取 ----------
+# 任務清單上所有任務 ID（一行一個，依清單順序）
+task_ids() {
+  grep -E '^\| T-[0-9A-Za-z-]+ \|' "$LEDGER" | awk -F'|' '{gsub(/^ +| +$/,"",$2); print $2}'
+}
+
+# 讀任務 $2 的狀態；$1 是 repo 根目錄（主 repo 傳 "."，worktree 傳 "$wt"）。
+# 合併回整合分支之前，Dev／Review 改的是 worktree 自己那份，主 repo 看不到，
+# 所以管線內判斷核准與否一定要傳 "$wt"。狀態檔不存在＝todo。
+task_status() {
+  local root="$1" id="$2" f
+  f="$root/$TASKS_DIR/$id/status"
+  if [ -s "$f" ]; then tr -d ' \r\n' < "$f"; else echo todo; fi
+}
+
+# 主 repo 裡狀態為 $1 的任務 ID 清單
 tasks_with_status() {
-  flock "$LEDGER_LOCK" grep -E "^\| T-[0-9A-Za-z-]+ \|.*\| $1 \|" "$LEDGER" | awk -F'|' '{gsub(/^ +| +$/,"",$2); print $2}'
+  local id
+  for id in $(task_ids); do
+    [ "$(task_status . "$id")" = "$1" ] && echo "$id"
+  done
+  return 0
 }
 
-# 把任務 $1 的狀態改成 $2（簡單字串替換，任務清單格式固定為一行一個 T-xx 列）；
-# 只改主 repo 這份檔案，不 commit——單純標記用（doing marker），供 tasks_with_status／
-# deps_satisfied 這些「掃描 todo／依賴是否已合併」的判斷排除掉正在跑的任務。
-set_task_status() {
-  local id="$1" new="$2"
-  flock "$LEDGER_LOCK" bash -c "
-    sed -i -E 's/^(\| $id \|.*\| )[a-z-]+( \|)/\1$new\2/' '$LEDGER'
-  "
-}
-
-# 把任務 $1 的狀態改成 $2，並直接在主 repo commit 這個異動，讓主 worktree 的
-# working tree 保持乾淨（其他無人值守流程／下一次啟動的「git status 必須乾淨」
-# 前置檢查才不會被這種標記型異動卡住）。只給「不是靠合併帶進來的狀態變更」用
-# （worktree 建立失敗、撞到 MAX_TASK_ROUNDS 上限）。
-#
-# 用 MERGE_LOCK（不是 LEDGER_LOCK）序列化，因為這裡的 git add／commit 動的是主
-# repo 的 git 狀態，要跟合併步驟（也用 MERGE_LOCK）用同一把鎖，兩條並行管線才
-# 不會同時對主 repo 的 git index／working tree 下手，避免 index.lock 衝突或半個
-# commit 的狀態。
-commit_ledger_status() {
+# 把任務 $1 的狀態改成 $2，並直接在主 repo commit，讓主 worktree 保持乾淨（之前
+# 只改檔不 commit，別條管線合併時被「local changes would be overwritten」擋掉）。
+# 只給「不是靠合併帶進來的狀態變更」用（開始執行、worktree 建立失敗、達回合上限、
+# 合併失敗、啟動時清孤兒）。標 blocked 時順便把原因記在 tasks/<id>/driver-note.md
+# （只有驅動腳本寫這個檔，worktree 不碰，不會衝突），人工與 verify.sh 才看得到為什麼。
+# 用 MERGE_LOCK 跟合併步驟共用同一把鎖，兩條並行管線
+# 才不會同時對主 repo 的 git index 下手。
+commit_task_status() {
   local id="$1" new="$2" msg="$3"
   flock "$MERGE_LOCK" bash -c "
-    sed -i -E 's/^(\| $id \|.*\| )[a-z-]+( \|)/\1$new\2/' '$LEDGER' &&
-    git add '$LEDGER' &&
+    mkdir -p '$TASKS_DIR/$id' &&
+    echo '$new' > '$TASKS_DIR/$id/status' &&
+    { [ '$new' != blocked ] || echo '- $(date '+%F %T') 驅動腳本標 blocked：$msg' >> '$TASKS_DIR/$id/driver-note.md'; } &&
+    git add '$TASKS_DIR/$id' &&
     git commit -q -m '[docs](loops) $msg'
   " > /dev/null 2>&1 || true
 }
 
+# 任務 $1 的依賴 ID 清單（任務清單第 3 欄）
+task_deps() {
+  awk -F'|' -v id="$1" '$0 ~ "^\\| "id" \\|" {print $4}' "$LEDGER" | grep -oE 'T-[0-9A-Za-z-]+' || true
+}
+
 # 依賴是否全部 done 且已合併。
 # 注意：不能只看 git merge-base --is-ancestor——worktree 剛建立、分支還沒有新 commit 時，
-# impl/<dep> 跟整合分支指向同一個 commit，--is-ancestor 會直接回傳 true（同一個 commit
-# 互為祖先），造成「分支存在」就被誤判成「已合併完成」。必須先看任務清單狀態是否真的是
-# done（Review 核准才會寫入），再用 git 確認那個 commit 真的已經進了整合分支歷史，兩者都
-# 成立才算依賴滿足。
+# impl/<dep> 跟整合分支指向同一個 commit，--is-ancestor 會直接回傳 true。必須先看狀態
+# 是否真的是 done（Review 核准才會寫入），再用 git 確認那個 commit 真的已經進了整合
+# 分支歷史，兩者都成立才算依賴滿足。
 deps_satisfied() {
-  local id="$1"
-  local deps dep dep_status
-  deps="$(flock "$LEDGER_LOCK" awk -F'|' -v id="$id" '$0 ~ "^\\| "id" \\|" {print $4}' "$LEDGER" | grep -oE 'T-[0-9A-Za-z-]+')"
-  for dep in $deps; do
-    dep_status="$(flock "$LEDGER_LOCK" awk -F'|' -v d="$dep" '$0 ~ "^\\| "d" \\|" {gsub(/^ +| +$/,"",$5); print $5}' "$LEDGER")"
-    [ "$dep_status" = done ] || return 1
+  local dep
+  for dep in $(task_deps "$1"); do
+    [ "$(task_status . "$dep")" = done ] || return 1
     git merge-base --is-ancestor "impl/$dep" "$LOOP_BRANCH" 2> /dev/null || return 1
   done
   return 0
@@ -121,11 +139,11 @@ deps_satisfied() {
 
 # 以 Haiku 產生本輪主要任務的一句話說明；失敗時退回簡短的任務/輪次描述，不影響 loop
 summarize_round() {
-  local id="$1" mode="$2" round="$3" data summary
+  local id="$1" mode="$2" round="$3" wt="$4" data summary
   data="$(
-    echo "## 任務"; flock "$LEDGER_LOCK" grep -E "^\| $id \|" "$LEDGER"
+    echo "## 任務"; grep -E "^\| $id \|" "$LEDGER"
     echo "## 模式"; echo "$mode 輪 #$round"
-    echo "## 最近的決策紀錄"; tail -20 "$DECISION_LOG" 2> /dev/null || echo "（尚無）"
+    echo "## 最近的決策紀錄"; tail -20 "$wt/$TASKS_DIR/$id/decision-log.md" 2> /dev/null || echo "（尚無）"
   )"
   summary="$(timeout 2m claude -p "你是 loop 監控員。根據以下資料，用固定格式的一句繁體中文（60 字以內）說明這一輪 iteration 的主要任務：
 「把 [對象] 從 [現狀] 變成 [目標狀態]。」
@@ -136,6 +154,33 @@ $data" --model "$SUMMARY_MODEL" --effort "$SUMMARY_EFFORT" --tools "" --output-f
     summary="把 $id 從（摘要產生失敗，見任務清單）變成本輪目標狀態。"
   fi
   echo "$summary"
+}
+
+# ---------- 跑一輪 Dev 或 Review ----------
+# 參數：id wt 角色(Dev|Review) 回合數 附註 提示詞檔 模型 effort log檔
+# prompt 開頭把「任務 ID／回合／角色」明講：agent 是 zero-context 的一次性行程，
+# 不可能自己知道現在第幾輪（以前 Review 只能從紀錄裡猜）。第一行固定是
+# 「任務 ID：<id>」後面直接換行——啟動時的孤兒偵測（pgrep）靠這個樣式，不要改。
+run_agent() {
+  local id="$1" wt="$2" role="$3" round="$4" note="$5" prompt_file="$6" model="$7" effort="$8" out="$9"
+  local header rc
+  header="任務 ID：$id
+回合：第 $round 輪（上限 MAX_TASK_ROUNDS=$MAX_TASK_ROUNDS）
+角色：$role"
+  [ -n "$note" ] && header="$header
+驅動腳本附註：$note"
+  set +e
+  (cd "$wt" && timeout --foreground "$ROUND_TIMEOUT" claude -p \
+    "$header
+
+$(cat "$prompt_file")" \
+    --model "$model" --effort "$effort" \
+    --output-format stream-json --verbose \
+    --dangerously-skip-permissions \
+    --disallowedTools Monitor) >> "$out" 2>&1
+  rc=$?
+  set -e
+  return "$rc"
 }
 
 # ---------- 單一任務的 Dev→Review 管線 ----------
@@ -156,74 +201,76 @@ run_pipeline() {
   fi
 
   log "[$id] 建立 worktree $wt（分支 $branch）"
-  commit_ledger_status "$id" doing "$id 開始執行，狀態改為 doing"
+  commit_task_status "$id" doing "$id 開始執行，狀態改為 doing"
   if ! git worktree add "$wt" -b "$branch" "$LOOP_BRANCH" >> "$pipe_log" 2>&1; then
     log "[$id] worktree 建立失敗，任務標 blocked，見 $pipe_log"
-    commit_ledger_status "$id" blocked "worktree 建立失敗，$id 標 blocked"
+    commit_task_status "$id" blocked "worktree 建立失敗，$id 標 blocked"
     return
   fi
 
-  local round=0
+  local round=0 note="" status head_before head_after
   while true; do
     round=$((round + 1))
     if [ "$round" -gt "$MAX_TASK_ROUNDS" ]; then
       log "[$id] 已達 MAX_TASK_ROUNDS=$MAX_TASK_ROUNDS 仍未核准，標 blocked，保留 worktree 供人工檢查。"
-      commit_ledger_status "$id" blocked "$id 達 MAX_TASK_ROUNDS=$MAX_TASK_ROUNDS 仍未核准，標 blocked"
+      commit_task_status "$id" blocked "$id 達 MAX_TASK_ROUNDS=$MAX_TASK_ROUNDS 仍未核准，標 blocked"
       return
     fi
 
-    log "[$id] 本輪任務：$(summarize_round "$id" dev "$round")"
+    log "[$id] 本輪任務：$(summarize_round "$id" dev "$round" "$wt")"
     log "[$id] Dev 輪 #$round"
-    set +e
-    (cd "$wt" && timeout --foreground "$ROUND_TIMEOUT" claude -p \
-      "任務 ID：$id
-$(cat "$DEV_PROMPT")" \
-      --model "$MODEL" --effort "$EFFORT" \
-      --output-format stream-json --verbose \
-      --dangerously-skip-permissions) >> "$pipe_log" 2>&1
-    dev_status=$?
-    set -e
-    [ "$dev_status" -ne 0 ] && log "[$id] Dev 輪回傳狀態碼 $dev_status（見 $pipe_log），仍進入 Review。"
+    head_before="$(git -C "$wt" rev-parse HEAD)"
+    run_agent "$id" "$wt" Dev "$round" "$note" "$DEV_PROMPT" "$MODEL" "$EFFORT" "$pipe_log" \
+      || log "[$id] Dev 輪回傳非 0（見 $pipe_log）。"
+    note=""
+    head_after="$(git -C "$wt" rev-parse HEAD)"
 
-    log "[$id] 本輪任務：$(summarize_round "$id" review "$round")"
+    # Dev 這一輪完全沒有新 commit（實際發生過：整輪都在等背景任務通知）——沒有東西
+    # 可審，不要花一輪 Review（較貴的模型）去確認「Dev 什麼都沒交」，直接算一輪重跑 Dev。
+    if [ "$head_before" = "$head_after" ]; then
+      log "[$id] Dev 輪 #$round 沒有任何新 commit，跳過 Review，直接進下一輪 Dev。"
+      note="上一輪（第 $round 輪）Dev 結束時沒有任何新 commit，等於沒有交出東西。這一輪務必依「收尾」逐項做完並 commit；worktree 內若有上一輪留下未 commit 的改動，先檢查能不能沿用。"
+      continue
+    fi
+    status="$(task_status "$wt" "$id")"
+    [ "$status" = review-pending ] || log "[$id] 警告：Dev 輪結束但 status=$status（應為 review-pending），仍送 Review。"
+
+    log "[$id] 本輪任務：$(summarize_round "$id" review "$round" "$wt")"
     log "[$id] Review 輪 #$round"
-    set +e
-    (cd "$wt" && timeout --foreground "$ROUND_TIMEOUT" claude -p \
-      "任務 ID：$id
-$(cat "$REVIEW_PROMPT")" \
-      --model "$REVIEW_MODEL" --effort "$REVIEW_EFFORT" \
-      --output-format stream-json --verbose \
-      --dangerously-skip-permissions) >> "$pipe_log" 2>&1
-    review_status=$?
-    set -e
-    [ "$review_status" -ne 0 ] && log "[$id] Review 輪回傳狀態碼 $review_status（見 $pipe_log）。"
+    run_agent "$id" "$wt" Review "$round" "" "$REVIEW_PROMPT" "$REVIEW_MODEL" "$REVIEW_EFFORT" "$pipe_log" \
+      || log "[$id] Review 輪回傳非 0（見 $pipe_log）。"
+    status="$(task_status "$wt" "$id")"
 
-    # 注意：這裡一定要讀 worktree 自己那份 tasks.md，不是主 repo 的 $LEDGER。
-    # Dev／Review 都是在 `cd "$wt" && claude -p ...` 裡跑的，牠們改的是 worktree
-    # 自己 working directory 底下的檔案；在合併回整合分支之前，主 repo 的 $LEDGER
-    # 完全看不到這些改動。之前就是讀錯這份檔案，導致不管跑幾輪都讀到 pipeline 一
-    # 開始寫的 doing，永遠判斷「尚未核准」，白白耗光 MAX_TASK_ROUNDS。
-    local status
-    status="$(awk -F'|' -v id="$id" '$0 ~ "^\\| "id" \\|" {gsub(/^ +| +$/,"",$5); print $5}' "$wt/$LEDGER" 2> /dev/null)"
+    # Review 漏改 status（仍是 review-pending）：不要因此多跑一輪 Dev，只補跑一次 Review。
+    if [ "$status" = review-pending ]; then
+      log "[$id] Review 輪 #$round 結束但 status 仍是 review-pending（沒有寫下判定），補跑一次 Review。"
+      run_agent "$id" "$wt" Review "$round" \
+        "上一次第 $round 輪 Review 結束時，.state/tasks/$id/status 仍是 review-pending——沒有寫下判定。先讀 .state/tasks/$id/review.md 看上一次是否已留下紀錄，沿用已驗證的結果，把判定確實寫進 status（done／doing／blocked 三選一）並 commit。" \
+        "$REVIEW_PROMPT" "$REVIEW_MODEL" "$REVIEW_EFFORT" "$pipe_log" \
+        || log "[$id] 補跑的 Review 回傳非 0（見 $pipe_log）。"
+      status="$(task_status "$wt" "$id")"
+    fi
 
     if [ "$status" = done ] || [ "$status" = blocked ]; then
       log "[$id] worktree 內狀態為 $status，嘗試合併回 $LOOP_BRANCH（保留紀錄與 commit 歷史）"
-      # 注意：一定要真的檢查合併是否成功，不能用 "... || true" 這種吞掉整串失敗的寫法
-      # ——之前就是這樣，合併失敗（例如主 repo working tree 不乾淨）被靜默吞掉，腳本
-      # 還是照樣把 worktree 刪掉，做完的成果只留在 impl/<id> 分支上，沒進整合分支，
-      # 任務清單卻沒人知道要修正。
+      # 一定要真的檢查合併是否成功（以前用 "... || true" 吞掉失敗，成果沒進整合分支卻
+      # 照樣刪 worktree）。合併失敗一定要 `git merge --abort`：以前沒有 abort，主 repo 被
+      # 留在「合併到一半」，之後所有管線的 commit／merge 全部跟著壞。主 worktree 固定停在
+      # 整合分支上，不在的話代表有人動過，直接當失敗、不替它切分支。
       set +e
       flock "$MERGE_LOCK" bash -c "
-        git switch '$LOOP_BRANCH' &&
-        git merge --no-ff '$branch' -m '[dev] 合併任務 $id（狀態：$status）'
+        [ \"\$(git rev-parse --abbrev-ref HEAD)\" = '$LOOP_BRANCH' ] || { echo '主 worktree 不在 $LOOP_BRANCH 上，不合併'; exit 1; }
+        git merge --no-ff '$branch' -m '[dev] 合併任務 $id（狀態：$status）' && exit 0
+        echo '合併失敗，執行 git merge --abort 還原主 repo'
+        git merge --abort
+        exit 1
       " >> "$pipe_log" 2>&1
       merge_status=$?
-      flock "$MERGE_LOCK" git switch - >> "$pipe_log" 2>&1
       set -e
 
       if [ "$merge_status" -ne 0 ]; then
-        log "[$id] 合併失敗（見 $pipe_log），worktree 與分支都保留，標 blocked 交人工處理，不視為完成。"
-        commit_ledger_status "$id" blocked "$id worktree 內已判定 $status，但合併回 $LOOP_BRANCH 失敗，需人工介入（見 $pipe_log）"
+        log "[$id] 合併失敗（見 $pipe_log；已 merge --abort，主 repo 維持乾淨），worktree 與分支都保留，標 blocked 交人工處理。"
+        commit_task_status "$id" blocked "$id worktree 內已判定 $status，但合併回 $LOOP_BRANCH 失敗，需人工介入"
         return
       fi
 
@@ -235,7 +282,7 @@ $(cat "$REVIEW_PROMPT")" \
       fi
       return
     fi
-    # 其餘情況（review-pending 沒被 Review 處理、或退回成 doing）視為需要再一輪
+    # 其餘情況（Review 退回成 doing）進下一輪 Dev
     log "[$id] 尚未核准，狀態=$status，進入下一輪。"
   done
 }
@@ -261,7 +308,7 @@ for id in $(tasks_with_status doing); do
   branch="impl/$id"
   git worktree remove "$wt" --force > /dev/null 2>&1 || true
   flock "$MERGE_LOCK" git branch -D "$branch" > /dev/null 2>&1 || true
-  commit_ledger_status "$id" todo "$id 啟動時偵測到孤兒（doing 但無對應行程），清掉殘留並改回 todo"
+  commit_task_status "$id" todo "$id 啟動時偵測到孤兒（doing 但無對應行程），清掉殘留並改回 todo"
 done
 
 # ---------- 安排階段（只跑一次；任務清單已存在種子資料則略過，除非 FORCE_PLANNING=1）----------
@@ -273,7 +320,10 @@ if [ "${FORCE_PLANNING:-0}" = 1 ] || [ ! -s "$LEDGER" ]; then
     --dangerously-skip-permissions > "$LOGS/planning-$(date +%Y%m%d-%H%M%S).log" 2>&1 || true
 fi
 
-# ---------- 主迴圈：每輪巡視、補滿並行名額 ----------
+# ---------- 主迴圈：有管線啟動／結束才巡視一次、補滿並行名額 ----------
+# 不用 sleep 輪詢：`wait -n` 會睡到任一條管線結束才醒，所以「本輪並行管線數」這類
+# 訊息只會在狀態真的有變化（管線啟動或結束）之後出現一次，不會每 60 秒洗版。
+# i 計的是「巡視次數」＝管線結束事件數＋1。
 i=0
 declare -A PIDS=()
 while true; do
@@ -293,45 +343,43 @@ while true; do
     if ! kill -0 "${PIDS[$id]}" 2> /dev/null; then
       wait "${PIDS[$id]}" 2> /dev/null || true
       unset 'PIDS[$id]'
+      log "管線結束：$id（狀態：$(task_status . "$id")）"
     fi
   done
 
-  active="${#PIDS[@]}"
-  slots=$((MAX_PARALLEL - active))
-  if [ "$slots" -gt 0 ]; then
-    for id in $(tasks_with_status todo); do
-      [ "$slots" -le 0 ] && break
-      # 防護：這個任務理論上不該還在 PIDS 裡（它一被派出去就會同步 commit 成
-      # doing，不會再出現在 tasks_with_status todo 的結果裡），但如果背景 job
-      # 還沒來得及 commit、下一輪掃描就先跑到這裡，避免同一個任務被派兩條管線、
-      # 舊的 PID 被覆蓋變成沒人追蹤的孤兒行程。
-      if [ -n "${PIDS[$id]+x}" ]; then
-        log "[$id] 已在 PIDS 追蹤中，跳過（避免重複派工）"
-        continue
-      fi
-      if deps_satisfied "$id"; then
-        log "啟動管線：$id（目前並行數 $((active + 1))）"
-        run_pipeline "$id" &
-        PIDS["$id"]=$!
-        active=$((active + 1))
-        slots=$((slots - 1))
-      fi
-    done
-  fi
+  slots=$((MAX_PARALLEL - ${#PIDS[@]}))
+  for id in $(tasks_with_status todo); do
+    [ "$slots" -le 0 ] && break
+    # 防護：背景 job 還沒來得及把狀態 commit 成 doing 時，避免同一個任務被派兩條管線
+    [ -n "${PIDS[$id]+x}" ] && continue
+    if deps_satisfied "$id"; then
+      log "啟動管線：$id"
+      run_pipeline "$id" &
+      PIDS["$id"]=$!
+      slots=$((slots - 1))
+    fi
+  done
 
   if [ "${#PIDS[@]}" -eq 0 ]; then
-    remaining_todo="$(tasks_with_status todo | wc -l | tr -d ' ')"
-    if [ "$remaining_todo" -eq 0 ]; then
-      log "沒有可執行或進行中的任務，停止迴圈。請查看 $LEDGER 的 blocked 任務與 $STATE/open-questions.md。"
-      break
+    remaining="$(tasks_with_status todo)"
+    if [ -z "$remaining" ]; then
+      log "沒有可執行或進行中的任務，停止迴圈。請用 scripts/collect.sh status 看 blocked 任務，scripts/collect.sh oq 看待決事項。"
+    else
+      # 沒有任何管線在跑、剩下的 todo 依賴又都沒滿足＝死結：不會再有任何事件改變狀態，
+      # 等下去沒有意義（以前每 30 秒重印一次同一句話，直到 MAX_ITERATIONS）。
+      log "有 todo 任務但依賴尚未滿足，且沒有進行中的管線（死結），停止迴圈。卡住的依賴："
+      for id in $remaining; do
+        for dep in $(task_deps "$id"); do
+          st="$(task_status . "$dep")"
+          [ "$st" = done ] || log "  $id ← $dep（$st）"
+        done
+      done
     fi
-    log "有 todo 任務但依賴尚未滿足，等待 30 秒後重新巡視。"
-    sleep 30
-    continue
+    break
   fi
 
-  log "本輪並行管線數：${#PIDS[@]}，等待任一管線結束後重新巡視（最多等 60 秒）"
-  sleep 60
+  log "並行管線數：${#PIDS[@]}（$(echo "${!PIDS[@]}" | sed 's/ /、/g')），等任一管線結束後再巡視"
+  wait -n "${PIDS[@]}" 2> /dev/null || true
 done
 
 log "等待所有背景管線結束"
