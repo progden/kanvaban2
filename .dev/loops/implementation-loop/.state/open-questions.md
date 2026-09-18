@@ -61,3 +61,13 @@ spec原文：`.dev/F07-canvas-layout/spec-canvas-layout.md`「待釐清」段落
 選項：A. T-09／T-13 先做「容器」本身（`item` 的移動／調整大小／排層序／錨定／Viewport CRUD，這些在 spec 名詞定義已有完整定義，不受影響），`item.component` 的實際對應值與 `canvas` 建立時機留白／用暫定字串，等整合 CR 定案後再補一輪；B. 等 CR 先定案這兩件事，T-09／T-13 全部延後；C. 以上皆非。
 事實：影響任務 T-09、T-13、以及依賴 T-13 的 T-14～T-20（共 9 個任務）；這是 spec 本身標記的待釐清事項，不是實作可以腦補的範圍。
 狀態：待解除。
+
+## OQ-IMPL-08
+
+[Level: F07-canvas-layout/T-09-be-canvas-layout、T-13-fe-canvas-shell]
+情況：【引用原文】
+spec原文（逐字）：`.dev/loops/ui-authoring-loop/.state/ui-authoring-open-questions.md` OQ-44：『`spec-canvas-layout.md`「角色定義」表定義 `r-canvas-editor`（說明『可放置與排列畫布元素，並平移與縮放自己的檢視區』）與 `r-canvas-viewer`（說明『只能平移與縮放自己的檢視區，不可改動元素』），但本文件（含「待釐清」）未描述這兩個角色如何對應到另一模組「使用者與看板成員」規格「角色定義」表定義的 `r-system-user`／`r-board-owner`／`r-board-member`』；`ui-canvas-layout.md`「待確認事項」逐字：『`r-canvas-editor`／`r-canvas-viewer`／`r-board-owner`（F02）三者的對應關係 spec 未定義，見 OQ-44』。OQ-44 目前採用的處理方式（ui-authoring-loop 已自動決議，但問題本身未解）：『不預設對應關係，`r-canvas-editor`／`r-canvas-viewer`／`r-user` 視為各模組獨立角色，暫不建立跨模組對應』。
+問題：T-09（後端 item CRUD 的權限檢查）與 T-13（前端依角色顯示／隱藏操作）要用哪個角色判斷使用者能不能編輯 Canvas？`r-canvas-editor`／`r-canvas-viewer` 目前沒有對應的資料來源（`board-membership.role` 是 Owner／Member／Viewer，不是 `r-canvas-editor`／`r-canvas-viewer`）。
+選項：A. T-09／T-13 先用 `board-membership.role`（Owner／Member＝可編輯、Viewer＝唯讀）直接對應 `r-canvas-editor`／`r-canvas-viewer` 的行為邊界，並標記「暫定對應，待 CR 正式定義後修正」；B. 暫不做權限區分，Canvas 內全部操作對所有看板成員開放，等 CR 定案再收斂；C. 以上皆非。
+事實：影響 T-09、T-13（權限檢查邏輯），間接影響 T-14～T-20（凡是「編輯 vs 唯讀」要區分操作可見性的畫面）。
+狀態：待解除。
