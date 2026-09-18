@@ -42,6 +42,23 @@ class UserTest {
     }
 
     @Test
+    void should_rejectCreate_when_usernameIsBlank() {
+        DomainException exception = assertThrows(DomainException.class,
+                () -> User.create("", null, "password", false));
+
+        assertEquals(ErrorCode.USERNAME_BLANK, exception.getCode());
+        assertEquals("使用者名稱不能為空", exception.getMessage());
+    }
+
+    @Test
+    void should_rejectCreate_when_usernameIsNull() {
+        DomainException exception = assertThrows(DomainException.class,
+                () -> User.create(null, null, "password", false));
+
+        assertEquals(ErrorCode.USERNAME_BLANK, exception.getCode());
+    }
+
+    @Test
     void should_rejectCreate_when_usernameAlreadyTaken() {
         DomainException exception = assertThrows(DomainException.class,
                 () -> User.create("user1", null, "password", true));

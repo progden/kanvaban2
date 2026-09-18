@@ -100,6 +100,11 @@ public class UserSteps {
         attemptCreate(username, null, DEFAULT_PASSWORD);
     }
 
+    @When("我建立一個帳號，帳號 ID 留空")
+    public void whenCreateAccountWithBlankUsername() throws Exception {
+        attemptCreate("", null, DEFAULT_PASSWORD);
+    }
+
     @When("我建立一個帳號，帳號 ID 為 {string}，顯示名字為 {string}")
     public void whenCreateAccountWithUsernameAndDisplayName(String username, String displayName) throws Exception {
         attemptCreate(username, displayName, DEFAULT_PASSWORD);

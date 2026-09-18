@@ -28,6 +28,9 @@ public final class User {
      * 建立新帳號；{@code usernameTaken} 由呼叫端查詢後傳入。
      */
     public static User create(String username, String displayName, String password, boolean usernameTaken) {
+        if (username == null || username.isBlank()) {
+            throw new DomainException(ErrorCode.USERNAME_BLANK, "使用者名稱不能為空");
+        }
         String resolvedPassword = password == null ? "" : password;
         if (resolvedPassword.length() > MAX_PASSWORD_LENGTH) {
             throw new DomainException(ErrorCode.PASSWORD_TOO_LONG, "密碼長度不可超過 40 個字");

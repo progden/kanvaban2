@@ -36,6 +36,14 @@ Feature: 建立使用者帳號
     Then 系統應該顯示錯誤訊息 "此帳號已被使用"
     And 不應該建立新的帳號
 
+  @CR-006 @uc-create-user @fail-p3
+  # Related aggregate:
+  #   user: read
+  Scenario: 帳號 ID（username）不可留空
+    When 我建立一個帳號，帳號 ID 留空
+    Then 系統應該顯示錯誤訊息 "使用者名稱不能為空"
+    And 不應該建立新的帳號
+
   @uc-create-user
   # Related aggregate:
   #   user: write

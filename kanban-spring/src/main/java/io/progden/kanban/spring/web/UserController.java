@@ -68,7 +68,7 @@ public class UserController {
     private HttpStatus statusFor(ErrorCode code) {
         return switch (code) {
             case USERNAME_ALREADY_EXISTS -> HttpStatus.CONFLICT;
-            case PASSWORD_TOO_LONG -> HttpStatus.BAD_REQUEST;
+            case USERNAME_BLANK, PASSWORD_TOO_LONG -> HttpStatus.BAD_REQUEST;
             case INVALID_CREDENTIALS -> HttpStatus.UNAUTHORIZED;
         };
     }
