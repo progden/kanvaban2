@@ -240,6 +240,30 @@ $(cat "$REVIEW_PROMPT")" \
   done
 }
 
+# ---------- 啟動時自我修復：清掉上次執行中斷留下的孤兒任務 ----------
+# 這個腳本執行個體剛啟動，PIDS 還是空的，不可能是「這次執行」自己派出去的
+# doing——一定是上次執行中斷（人工中止、機器重開等）留下的孤兒。保險起見，
+# 不能只憑任務清單狀態就認定是孤兒：用 ps 核對這個任務是否真的還有對應的
+# `claude -p` 行程在跑（每次呼叫都會在指令列帶上「任務 ID：<id>」這個字串，
+# 見 run_pipeline），真的還在跑就跳過，不誤殺別的執行個體或還沒收尾的工作。
+for id in $(tasks_with_status doing); do
+  # run_pipeline 組 prompt 時 "任務 ID：$id" 後面接的其實是換行字元，但 ps／pgrep
+  # 讀 /proc/<pid>/cmdline 顯示與比對時，會把 argv 裡的換行等控制字元換成空白
+  # （用 `ps -o args` 或 `pgrep -fa` 實測確認過），所以這裡要配「空白」結尾，
+  # 不是換行；有結尾符號才能避免「T-01-be-user」誤配到未來若新增了
+  # 「T-01-be-user-xxx」這種前綴重疊的 ID。
+  if pgrep -f "任務 ID：${id} " > /dev/null 2>&1; then
+    log "[$id] 狀態為 doing，且偵測到對應行程仍在執行，不動它（可能是另一個 loop 執行個體）"
+    continue
+  fi
+  log "[$id] 狀態為 doing 但找不到對應行程，判定是上次執行中斷留下的孤兒，清掉殘留並改回 todo"
+  wt="$WORKTREE_ROOT/kanban2-impl-$id"
+  branch="impl/$id"
+  git worktree remove "$wt" --force > /dev/null 2>&1 || true
+  flock "$MERGE_LOCK" git branch -D "$branch" > /dev/null 2>&1 || true
+  commit_ledger_status "$id" todo "$id 啟動時偵測到孤兒（doing 但無對應行程），清掉殘留並改回 todo"
+done
+
 # ---------- 安排階段（只跑一次；任務清單已存在種子資料則略過，除非 FORCE_PLANNING=1）----------
 if [ "${FORCE_PLANNING:-0}" = 1 ] || [ ! -s "$LEDGER" ]; then
   log "執行安排階段（planning）"
