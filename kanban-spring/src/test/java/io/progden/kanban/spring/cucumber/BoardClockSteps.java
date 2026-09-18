@@ -13,6 +13,7 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.progden.kanban.core.domain.BoardClockSnapshot;
 import io.progden.kanban.core.domain.ClockStatus;
+import io.progden.kanban.spring.persistence.ActivityRecordJpaEntity;
 import io.progden.kanban.spring.persistence.BoardJpaEntity;
 import io.progden.kanban.spring.persistence.BoardJpaRepository;
 import java.time.Duration;
@@ -237,22 +238,27 @@ public class BoardClockSteps {
 
     @Then("應該新增一筆活動紀錄，說明看板時間被調整為 {word} {word}")
     public void thenActivityRecordedForAdjust(String date, String time) {
-        assertActivityRecorded("調整看板時間");
+        Instant expected = parseNarrative(date, time);
+        var latest = assertActivityRecorded("調整看板時間");
+        assertCloseTo(expected, latest.getOccurredAt());
+        assertEquals(boardSteps.getCurrentUserId(), latest.getOperatorId());
     }
 
     @Then("應該新增一筆活動紀錄，說明看板時間已暫停")
     public void thenActivityRecordedForPause() {
-        assertActivityRecorded("暫停看板時間");
+        var latest = assertActivityRecorded("暫停看板時間");
+        assertEquals(boardSteps.getCurrentUserId(), latest.getOperatorId());
     }
 
     @Then("應該新增一筆活動紀錄，說明看板時間已恢復")
     public void thenActivityRecordedForResume() {
-        assertActivityRecorded("恢復看板時間");
+        var latest = assertActivityRecorded("恢復看板時間");
+        assertEquals(boardSteps.getCurrentUserId(), latest.getOperatorId());
     }
 
     // ---- helpers ----
 
-    private void assertActivityRecorded(String expectedKeyword) {
+    private ActivityRecordJpaEntity assertActivityRecorded(String expectedKeyword) {
         var activityLog = boardSteps.loadBoardEntity().getActivityLog();
         assertEquals(activityCountBeforeAction + 1, activityLog.size());
         // 用插入順序取「最新一筆」而非 max(occurredAt)：看板時鐘可能被調到比真實建立時間更早的
@@ -260,6 +266,7 @@ public class BoardClockSteps {
         var latest = activityLog.get(activityLog.size() - 1);
         assertTrue(latest.getAction().contains(expectedKeyword),
                 "活動紀錄內容應包含「" + expectedKeyword + "」，實際為：" + latest.getAction());
+        return latest;
     }
 
     private void captureActivityBaseline() {

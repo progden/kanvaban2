@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * spec-kanban-basic.md「Card（卡片）編輯」對應的 application 層。
@@ -24,8 +25,10 @@ import org.springframework.stereotype.Service;
  *
  * <p>CR-004（Board Clock）：{@code Card} 沒有自己的時鐘，每個會寫入事件的方法都先載入所屬
  * {@code Board}，透過 {@link Board#newEventTime} 取得看板時間並套用 {@code uc-guard-clock-monotonicity}
- * 的單調性檢查，通過才把這個時間戳記傳進 {@code Card} 的方法，並把 {@code Board}（{@code lastEventAt}
- * 基準已更新）一併存回去。
+ * 的單調性檢查，通過才把這個時間戳記傳進 {@code Card} 的方法。{@code boardRepository.save} 一律排在
+ * {@code Card} 的 domain 方法成功之後才呼叫（並整個方法標 {@code @Transactional}），避免 card 因驗證
+ * 失敗被拒絕時，board 的 {@code lastEventAt} 基準卻已經前進並存檔，造成後續單調性檢查引用一個不存在的
+ * 「最後一筆事件」（D-01）。
  */
 @Service
 public class CardApplicationService {
@@ -38,6 +41,7 @@ public class CardApplicationService {
         this.boardRepository = boardRepository;
     }
 
+    @Transactional
     public Card addCard(UUID boardId, UUID operatorId, String title, UUID swimlaneId, UUID stageId) {
         Board board = loadBoard(boardId);
         Instant now = board.newEventTime(Instant.now());
@@ -51,50 +55,58 @@ public class CardApplicationService {
         return loadCard(cardId);
     }
 
+    @Transactional
     public Card editCard(UUID cardId, UUID operatorId, String description, LocalDate dueDate, List<String> labels) {
         Card card = loadCard(cardId);
-        Instant now = newEventTimeFor(card.getBoardId());
+        Board board = loadBoard(card.getBoardId());
+        Instant now = board.newEventTime(Instant.now());
         card.edit(operatorId, new CardDetails(description, dueDate, labels), now);
+        boardRepository.save(board);
         cardRepository.save(card);
         return card;
     }
 
+    @Transactional
     public Card moveCardSwimlane(UUID cardId, UUID operatorId, UUID swimlaneId) {
         Card card = loadCard(cardId);
-        Instant now = newEventTimeFor(card.getBoardId());
+        Board board = loadBoard(card.getBoardId());
+        Instant now = board.newEventTime(Instant.now());
         card.moveToSwimlane(operatorId, swimlaneId, now);
+        boardRepository.save(board);
         cardRepository.save(card);
         return card;
     }
 
+    @Transactional
     public Card moveCardStage(UUID cardId, UUID operatorId, UUID stageId) {
         Card card = loadCard(cardId);
-        Instant now = newEventTimeFor(card.getBoardId());
+        Board board = loadBoard(card.getBoardId());
+        Instant now = board.newEventTime(Instant.now());
         card.moveToStage(operatorId, stageId, now);
+        boardRepository.save(board);
         cardRepository.save(card);
         return card;
     }
 
+    @Transactional
     public Comment addComment(UUID cardId, UUID operatorId, String content) {
         Card card = loadCard(cardId);
-        Instant now = newEventTimeFor(card.getBoardId());
+        Board board = loadBoard(card.getBoardId());
+        Instant now = board.newEventTime(Instant.now());
         Comment comment = card.addComment(operatorId, content, now);
+        boardRepository.save(board);
         cardRepository.save(card);
         return comment;
     }
 
+    @Transactional
     public void deleteCard(UUID cardId, UUID operatorId) {
         Card card = loadCard(cardId);
-        Instant now = newEventTimeFor(card.getBoardId());
-        card.delete(operatorId, now);
-        cardRepository.save(card);
-    }
-
-    private Instant newEventTimeFor(UUID boardId) {
-        Board board = loadBoard(boardId);
+        Board board = loadBoard(card.getBoardId());
         Instant now = board.newEventTime(Instant.now());
+        card.delete(operatorId, now);
         boardRepository.save(board);
-        return now;
+        cardRepository.save(card);
     }
 
     private Board loadBoard(UUID boardId) {
