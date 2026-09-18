@@ -48,3 +48,8 @@
 - 決策：維持核准，狀態不動（仍是 `done`）。
 - 理由：上次核准後程式碼沒有異動；重跑 Gradle 建置和前端的 build／test 都通過，`kanban-core` 也仍然沒有 Spring／JPA import。
 - 影響：跟上次核准相同（等待合併回 `loop/implementation`），沒有新的 D-xx。
+
+### 2026-09-18 T-00-scaffold（Review 第三次重新驗證）
+- 決策：維持核准，狀態不動（仍是 `done`）。
+- 理由：程式碼從核准後沒有異動；重跑 Gradle 建置和前端 build／test 都通過，`kanban-core` main source 仍然沒有 Spring／JPA import，diff 範圍也沒有變。
+- 影響：仍在等合併回 `loop/implementation`，沒有新的 D-xx。已經是 `done` 的任務又被觸發 Review，可能是驅動腳本合併步驟沒有執行，請人工檢查。

@@ -30,3 +30,13 @@ Review 被再次觸發時，任務已經是 `done`（核准 commit `ae66801`）�
 - `grep -rn "import org.springframework\|import jakarta" kanban-core/src/main`：沒有結果。
 
 判定：維持核准，狀態仍是 `done`，不新增 D-xx。
+
+## 2026-09-18 T-00-scaffold：第三次重新驗證（維持核准）
+
+Review 第三次被觸發，任務仍是 `done`（HEAD `b9c40a4`）。`git diff --stat 4e4c48a..HEAD` 只有 `.state/**` 四個檔案，程式碼跟第一次核准時一樣，只重跑建置和測試：
+- `./gradlew clean build --no-daemon -q`：exit 0；`kanban-core`、`kanban-spring` 的測試報告都是 tests="1" skipped="0" failures="0" errors="0"。
+- `kanban-frontend`：`pnpm install --frozen-lockfile` 顯示 `Already up to date`，`pnpm run build` 顯示 `✓ built in 646ms`，`pnpm run test` 結果為 `Test Files 1 passed (1)`、`Tests 1 passed (1)`。
+- `grep -rn "import org.springframework\|import jakarta" kanban-core/src/main`：沒有結果（exit 1）。
+- `git diff --stat 294dfc3..HEAD -- .dev scripts CLAUDE.md .github`：只有 `.state/**`，沒有範圍外的改動。
+
+判定：維持核准，狀態仍是 `done`，不新增 D-xx。這個任務已經重複觸發 Review 兩次，看起來驅動腳本沒有把 `done` 任務合併回 `loop/implementation`，或合併後沒有停止排程 Review，建議人工確認 `run-loop.sh` 的合併步驟。
