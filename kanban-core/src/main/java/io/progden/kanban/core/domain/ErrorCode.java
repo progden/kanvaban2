@@ -37,5 +37,17 @@ public enum ErrorCode {
     /** Comment 內容留空。 */
     EMPTY_COMMENT_CONTENT,
     /** 刪除 Stage 時指定的目的 Stage 與來源相同，或不屬於同一看板。 */
-    INVALID_DESTINATION_STAGE
+    INVALID_DESTINATION_STAGE,
+    /** 該使用者已經是這個看板的成員（uc-invite-member）。 */
+    ALREADY_BOARD_MEMBER,
+    /** 看板已經只剩最後一位 Owner，不可再移除或降級（uc-remove-member）。 */
+    MINIMUM_BOARD_OWNER,
+    /** 找不到指定的 BoardMembership。 */
+    MEMBERSHIP_NOT_FOUND,
+    /** 操作者不是該看板的成員，或角色不足以執行此操作（權限管理／存取權限相關 uc）。 */
+    FORBIDDEN,
+    /** 移除的成員仍是部分卡片的負責人，需要使用者先確認（uc-remove-member）。 */
+    CARD_ASSIGNEE_CONFIRMATION_NEEDED,
+    /** 指定的負責人不是該看板的成員（uc-set-card-assignees）。 */
+    ASSIGNEE_NOT_BOARD_MEMBER
 }

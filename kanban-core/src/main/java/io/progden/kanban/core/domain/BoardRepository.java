@@ -11,4 +11,6 @@ public interface BoardRepository {
     void save(Board board);
 
     Optional<Board> findById(UUID boardId);
+
+    void deleteById(UUID boardId);
 }

@@ -42,6 +42,11 @@ class BoardRepositoryAdapter implements BoardRepository {
         return jpaRepository.findById(boardId).map(this::toDomain);
     }
 
+    @Override
+    public void deleteById(UUID boardId) {
+        jpaRepository.deleteById(boardId);
+    }
+
     private Board toDomain(BoardJpaEntity entity) {
         List<SwimlaneSnapshot> swimlanes = entity.getSwimlanes().stream()
                 .map(s -> new SwimlaneSnapshot(s.getId(), s.getName(), s.getSortOrder()))

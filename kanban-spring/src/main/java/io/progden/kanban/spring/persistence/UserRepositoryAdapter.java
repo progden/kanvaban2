@@ -3,6 +3,7 @@ package io.progden.kanban.spring.persistence;
 import io.progden.kanban.core.domain.User;
 import io.progden.kanban.core.domain.UserRepository;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -32,6 +33,11 @@ class UserRepositoryAdapter implements UserRepository {
     @Override
     public Optional<User> findByUsername(String username) {
         return jpaRepository.findByUsername(username).map(this::toDomain);
+    }
+
+    @Override
+    public Optional<User> findById(UUID userId) {
+        return jpaRepository.findById(userId).map(this::toDomain);
     }
 
     private User toDomain(UserJpaEntity entity) {

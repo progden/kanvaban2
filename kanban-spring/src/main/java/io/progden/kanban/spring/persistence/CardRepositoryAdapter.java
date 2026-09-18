@@ -28,7 +28,7 @@ class CardRepositoryAdapter implements CardRepository {
         CardJpaEntity entity = jpaRepository.findById(card.getId())
                 .orElseGet(() -> new CardJpaEntity(card.getId(), card.getBoardId()));
         entity.update(card.getTitle(), card.getDescription(), card.getDueDate(), card.getLabels(),
-                card.getSwimlaneId(), card.getStageId(), card.isDeleted());
+                card.getSwimlaneId(), card.getStageId(), card.isDeleted(), card.getAssigneeIds());
         entity.replaceComments(card.getComments());
         entity.replaceStageTransitions(card.getStageTransitions());
         entity.replaceActivityLog(card.getActivityLog());
@@ -50,6 +50,11 @@ class CardRepositoryAdapter implements CardRepository {
         return jpaRepository.findByStageIdAndDeletedFalse(stageId).stream().map(this::toDomain).toList();
     }
 
+    @Override
+    public List<Card> findActiveByBoardId(UUID boardId) {
+        return jpaRepository.findByBoardIdAndDeletedFalse(boardId).stream().map(this::toDomain).toList();
+    }
+
     private Card toDomain(CardJpaEntity entity) {
         List<CommentSnapshot> comments = entity.getComments().stream()
                 .map(c -> new CommentSnapshot(c.getId(), c.getAuthorId(), c.getContent(), c.getCreatedAt()))
@@ -63,6 +68,6 @@ class CardRepositoryAdapter implements CardRepository {
                 .toList();
         return Card.reconstruct(entity.getId(), entity.getBoardId(), entity.getTitle(), entity.getDescription(),
                 entity.getDueDate(), entity.getLabels(), entity.getSwimlaneId(), entity.getStageId(),
-                entity.isDeleted(), comments, transitions, activityLog);
+                entity.isDeleted(), entity.getAssigneeIds(), comments, transitions, activityLog);
     }
 }

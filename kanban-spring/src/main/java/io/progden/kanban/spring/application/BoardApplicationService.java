@@ -8,16 +8,23 @@ import io.progden.kanban.core.domain.CardRepository;
 import io.progden.kanban.core.domain.DomainException;
 import io.progden.kanban.core.domain.ErrorCode;
 import io.progden.kanban.core.domain.StageRole;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * spec-kanban-basic.md「Swimlane 管理」「Stage（階段）管理」對應的 application 層。
+ * spec-kanban-basic.md「Swimlane 管理」「Stage（階段）管理」＋
+ * spec-user-membership.md「Board 建立與成員邀請」post 第 2 條、「Board 權限管理」「Board 存取權限」
+ * 對應的 application 層。
  *
- * <p>{@code r-board-owner} 權限檢查（僅 Owner 可調整看板結構）依賴 F02 的 {@code BoardMembership}
- * （T-04 尚未實作），本服務目前只要求呼叫端已登入即可操作，尚未強制「僅 Owner」——見
- * implementation-loop OQ-IMPL-15，待 T-04 補上。
+ * <p>{@code r-board-owner} 權限檢查（僅 Owner 可調整看板結構／刪除看板）由
+ * {@link BoardMembershipApplicationService#ensureOwner} 提供，implementation-loop T-04 交接事項 1：
+ * 九個結構調整端點（{@code addSwimlane}…{@code setStageRole}）與 {@code deleteBoard} 都先檢查
+ * Owner 身分才動作，非 Owner 一律回 {@code FORBIDDEN}（見 uc-reject-structure-change-by-member）。
+ *
+ * <p>{@code createBoard} 在同一次交易內建立 Owner 的 {@code board-membership}
+ * （implementation-loop T-04 交接事項 2：uc-create-board post 第 2 條，不可以只成功一半）。
  *
  * <p>{@code removeSwimlane}／{@code removeStage} 協調 {@code uc-delete-swimlane}／
  * {@code uc-delete-stage} post 第 2 條「卡片一併刪除／轉移」：先呼叫 {@code Board} 的
@@ -32,29 +39,53 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class BoardApplicationService {
 
+    private static final String STRUCTURE_FORBIDDEN_MESSAGE = "只有 Owner 可以調整看板結構";
+
     private final BoardRepository boardRepository;
     private final CardLookupPort cardLookupPort;
     private final CardRepository cardRepository;
+    private final BoardMembershipApplicationService boardMembershipApplicationService;
 
-    public BoardApplicationService(
-            BoardRepository boardRepository, CardLookupPort cardLookupPort, CardRepository cardRepository) {
+    public BoardApplicationService(BoardRepository boardRepository, CardLookupPort cardLookupPort,
+            CardRepository cardRepository, BoardMembershipApplicationService boardMembershipApplicationService) {
         this.boardRepository = boardRepository;
         this.cardLookupPort = cardLookupPort;
         this.cardRepository = cardRepository;
+        this.boardMembershipApplicationService = boardMembershipApplicationService;
     }
 
+    @Transactional
     public Board createBoard(UUID operatorId, String name) {
         Board board = Board.create(operatorId, name, cardLookupPort);
         boardRepository.save(board);
+        boardMembershipApplicationService.createOwnerMembership(board.getId(), operatorId);
         return board;
     }
 
-    public Board getBoard(UUID boardId) {
-        return loadBoard(boardId);
+    public Board getBoard(UUID boardId, UUID operatorId) {
+        Board board = loadBoard(boardId);
+        boardMembershipApplicationService.ensureMember(boardId, operatorId);
+        return board;
+    }
+
+    public List<Board> listBoards(UUID operatorId) {
+        return boardMembershipApplicationService.listBoardsForUser(operatorId);
+    }
+
+    @Transactional
+    public void deleteBoard(UUID boardId, UUID operatorId) {
+        loadBoard(boardId);
+        boardMembershipApplicationService.ensureOwner(boardId, operatorId, "只有 Owner 可以刪除看板");
+        for (Card card : cardRepository.findActiveByBoardId(boardId)) {
+            card.delete(operatorId);
+            cardRepository.save(card);
+        }
+        boardRepository.deleteById(boardId);
     }
 
     public Board addSwimlane(UUID boardId, UUID operatorId, String name) {
         Board board = loadBoard(boardId);
+        boardMembershipApplicationService.ensureOwner(boardId, operatorId, STRUCTURE_FORBIDDEN_MESSAGE);
         board.addSwimlane(operatorId, name);
         boardRepository.save(board);
         return board;
@@ -62,6 +93,7 @@ public class BoardApplicationService {
 
     public Board renameSwimlane(UUID boardId, UUID operatorId, UUID swimlaneId, String newName) {
         Board board = loadBoard(boardId);
+        boardMembershipApplicationService.ensureOwner(boardId, operatorId, STRUCTURE_FORBIDDEN_MESSAGE);
         board.renameSwimlane(operatorId, swimlaneId, newName);
         boardRepository.save(board);
         return board;
@@ -69,6 +101,7 @@ public class BoardApplicationService {
 
     public Board moveSwimlane(UUID boardId, UUID operatorId, UUID swimlaneId, UUID beforeSwimlaneId) {
         Board board = loadBoard(boardId);
+        boardMembershipApplicationService.ensureOwner(boardId, operatorId, STRUCTURE_FORBIDDEN_MESSAGE);
         board.moveSwimlaneBefore(operatorId, swimlaneId, beforeSwimlaneId);
         boardRepository.save(board);
         return board;
@@ -77,6 +110,7 @@ public class BoardApplicationService {
     @Transactional
     public Board removeSwimlane(UUID boardId, UUID operatorId, UUID swimlaneId, boolean confirmed) {
         Board board = loadBoard(boardId);
+        boardMembershipApplicationService.ensureOwner(boardId, operatorId, STRUCTURE_FORBIDDEN_MESSAGE);
         board.refreshCardSummaries();
         board.ensureSwimlaneRemovable(swimlaneId);
         if (confirmed) {
@@ -93,6 +127,7 @@ public class BoardApplicationService {
 
     public Board addStage(UUID boardId, UUID operatorId, String name, UUID beforeStageId) {
         Board board = loadBoard(boardId);
+        boardMembershipApplicationService.ensureOwner(boardId, operatorId, STRUCTURE_FORBIDDEN_MESSAGE);
         board.addStage(operatorId, name, beforeStageId);
         boardRepository.save(board);
         return board;
@@ -100,6 +135,7 @@ public class BoardApplicationService {
 
     public Board renameStage(UUID boardId, UUID operatorId, UUID stageId, String newName) {
         Board board = loadBoard(boardId);
+        boardMembershipApplicationService.ensureOwner(boardId, operatorId, STRUCTURE_FORBIDDEN_MESSAGE);
         board.renameStage(operatorId, stageId, newName);
         boardRepository.save(board);
         return board;
@@ -107,6 +143,7 @@ public class BoardApplicationService {
 
     public Board moveStage(UUID boardId, UUID operatorId, UUID stageId, UUID beforeStageId) {
         Board board = loadBoard(boardId);
+        boardMembershipApplicationService.ensureOwner(boardId, operatorId, STRUCTURE_FORBIDDEN_MESSAGE);
         board.moveStageBefore(operatorId, stageId, beforeStageId);
         boardRepository.save(board);
         return board;
@@ -115,6 +152,7 @@ public class BoardApplicationService {
     @Transactional
     public Board removeStage(UUID boardId, UUID operatorId, UUID stageId, UUID destinationStageId) {
         Board board = loadBoard(boardId);
+        boardMembershipApplicationService.ensureOwner(boardId, operatorId, STRUCTURE_FORBIDDEN_MESSAGE);
         board.refreshCardSummaries();
         board.ensureStageRemovable(stageId);
         if (destinationStageId != null) {
@@ -132,6 +170,7 @@ public class BoardApplicationService {
 
     public Board setStageRole(UUID boardId, UUID operatorId, UUID stageId, StageRole role) {
         Board board = loadBoard(boardId);
+        boardMembershipApplicationService.ensureOwner(boardId, operatorId, STRUCTURE_FORBIDDEN_MESSAGE);
         board.setStageRole(operatorId, stageId, role);
         boardRepository.save(board);
         return board;

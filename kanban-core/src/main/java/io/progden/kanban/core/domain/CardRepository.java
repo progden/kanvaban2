@@ -20,4 +20,6 @@ public interface CardRepository {
     List<Card> findActiveBySwimlaneId(UUID swimlaneId);
 
     List<Card> findActiveByStageId(UUID stageId);
+
+    List<Card> findActiveByBoardId(UUID boardId);
 }
