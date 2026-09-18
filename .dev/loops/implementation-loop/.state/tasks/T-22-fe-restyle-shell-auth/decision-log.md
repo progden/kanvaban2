@@ -62,3 +62,38 @@
 
 ### 待確認事項
 - OQ-T-22-fe-restyle-shell-auth-01（高，不阻塞，owner：人工）：品牌名稱占位字、s-login 標語與插圖、s-signup 說明卡文案要保留哪一版。
+
+## 2026-09-19 Dev 第 3 輪：修正 D-05、D-06
+
+### 這輪處理的 D-xx
+
+- D-05：`s-login`／`s-signup` 品牌欄垂直結構跟設計稿不一致的問題。
+  - `LoginPage.tsx`：把標語 `<p className="auth-brand__tagline">` 和插圖 `<div className="auth-brand__illustration">` 包進新增的 `<div className="auth-brand__mid">`，對齊 `Login.dc.html` 品牌欄第二個子元素（把標語與插圖包成一組，間距維持 28px 不變，因為 28px 是 `.auth-brand__tagline` 的 `margin-bottom`，本來就在這組容器內部）。
+  - `LoginPage.tsx`／`SignupPage.tsx`：拿掉 `.warn` 之後，`.auth-brand` 只剩兩個 `space-between` 子元素（logo、中段內容），會被推到頂／底兩端。補一個空的 `<div className="auth-brand__spacer" aria-hidden="true" />` 當第三個子元素取代原本 `.warn` 佔的位置，讓 `space-between` 照設計稿的三段式分佈（logo 頂端、標語＋插圖或說明卡在中段、佔位元素在底部），不需要另外設定固定高度或絕對位置。
+  - `AuthPage.css` 新增 `.auth-brand__mid`（`display:flex;flex-direction:column`）與 `.auth-brand__spacer`（`flex-shrink:0`，無內容無高度）。
+- D-06：數值跟設計稿不一致的部分，逐項照 `Signup.dc.html`／`Login.dc.html`／`BoardList.dc.html` 改：
+  - `.auth-brand__note`：`padding: 18px 20px→20px 22px`，邊框色 `var(--color-border-strong)`（`#C9D0DC`）→ 直接寫 `#CBD2DF`（設計稿這個框是專用色票，不是共用邊框色），補上 `width: 400px`。
+  - `.auth-brand__note-title`：`margin: 0 0 12px→0 0 14px`。
+  - `.auth-form__footer`：預設值改成登入頁的 `34px`（原本兩頁共用 `26px`），新增 `.auth-form__footer--signup`（`margin-top: 30px`）給 `SignupPage.tsx` 疊加使用，兩頁數值分開對齊各自設計稿。
+  - `.auth-form__subtitle`：登入頁維持 `26px`（原本就對，不動），新增 `.auth-form__subtitle--signup`（`margin-bottom: 24px`）給 `SignupPage.tsx` 疊加。
+  - TopBar：`AppShell.tsx` 新增 `.app-topbar__actions` 包住「頭像＋名字」「分隔線」「登出鍵」三者，`margin-left:auto` 從原本的 `.app-topbar__user` 移到這個新容器；`.app-topbar__actions` 的 `gap` 設 `14px`，對齊 `BoardList.dc.html` 那個 `margin-left:auto;display:flex;gap:14px` 的群組。`.app-topbar` 本身的 `gap:12px`維持不變（品牌區到右側群組之間的間距，設計稿本來就是同一個 12px 的外層 flex row）。
+
+### 沒有偏離設計稿的部分
+
+以上兩則 D-xx 涵蓋的數值與結構，改完後逐項跟 `Login.dc.html`／`Signup.dc.html`／`BoardList.dc.html` 的 inline style 核對過，其餘部分（D-01～D-03 修好的項目）維持不變，沒有再發現新的落差。
+
+### 涵蓋範圍
+
+- 對應 `s-login`／`s-signup`（`ui-user-membership.md`）與「全域導覽列」TopBar：本輪只調整版面結構（DOM 巢狀）與 CSS 數值，沒有新增／刪除任何欄位、按鈕、連結或行為分支，也沒有改變任何可及名稱（accessible name）。
+- 沒有新增測試：這兩則 D-xx 都是純樣式／DOM 巢狀調整，不影響任何既有行為或可及性斷言。
+
+### 待確認事項
+
+- OQ-T-22-fe-restyle-shell-auth-01（高，不阻塞，owner：人工）維持現狀，本輪沒有新發現需要開的 OQ。
+
+### Check（本輪實跑）
+
+- `cd kanban-frontend && pnpm test`（vitest run）：4 個測試檔、16 個測試全部通過。
+- `pnpm lint`（oxlint）：exit=0，無錯誤。
+- `pnpm build`（tsc -b && vite build）：成功，built in 785ms。
+- `git status`：只有這輪要 commit 的 5 個檔案異動（`AppShell.css`／`AppShell.tsx`／`AuthPage.css`／`LoginPage.tsx`／`SignupPage.tsx`），已用 `git add` 指名檔案 commit（`7272c5b`），範圍內乾淨。
