@@ -16,6 +16,7 @@ import io.cucumber.java.en.When;
 import io.progden.kanban.spring.persistence.ActivityRecordJpaEntity;
 import io.progden.kanban.spring.persistence.BoardJpaEntity;
 import io.progden.kanban.spring.persistence.BoardJpaRepository;
+import io.progden.kanban.spring.persistence.CardJpaRepository;
 import io.progden.kanban.spring.persistence.StageJpaEntity;
 import io.progden.kanban.spring.persistence.SwimlaneJpaEntity;
 import io.progden.kanban.spring.persistence.UserJpaRepository;
@@ -34,9 +35,11 @@ import org.springframework.test.web.servlet.MvcResult;
  * spec-kanban-basic.md「Swimlane 管理」「Stage（階段）管理」對應的 Cucumber step definitions，
  * 透過 MockMvc 打 {@code BoardController} 的實際端點，驗證 web／application／persistence 整條路徑。
  *
- * <p>Card Aggregate（T-03）尚未實作，「刪除包含卡片的 Swimlane/Stage」相關情境改用
- * {@link FakeCardLookupPort} 模擬卡片資料與「卡片已被移除／轉移」的效果，驗證 Board 端的
- * 刪除保護機制；真正的卡片刪除／搬移由 T-03/T-04 接上（見 implementation-loop 交接摘要）。
+ * <p>「刪除包含卡片的 Swimlane/Stage」相關情境改用真正的 Card persistence（{@link CardJpaRepository}）
+ * 建立卡片、打正式的刪除端點（{@code confirmed}／{@code destinationStageId} 參數），驗證 Board 端的
+ * 刪除保護機制與 {@code uc-delete-swimlane}／{@code uc-delete-stage} post 第 2 條（implementation-loop
+ * OQ-IMPL-17）。「我確認新增」「我確認刪除」「該操作應該被記錄為一筆活動紀錄」三段步驟文字與
+ * {@link CardSteps} 共用，透過 {@link CrossAggregateState} 分流（見該類別註解）。
  */
 public class BoardSteps {
 
@@ -55,7 +58,14 @@ public class BoardSteps {
     private BoardJpaRepository boardJpaRepository;
 
     @Autowired
-    private FakeCardLookupPort fakeCardLookupPort;
+    private CardJpaRepository cardJpaRepository;
+
+    @Autowired
+    private CrossAggregateState crossState;
+
+    @Autowired
+    @org.springframework.context.annotation.Lazy
+    private CardSteps cardSteps;
 
     @Autowired
     private UserSteps userSteps;
@@ -68,6 +78,7 @@ public class BoardSteps {
     private UUID pendingBeforeStageId;
     private String currentSwimlaneName;
     private String currentStageName;
+    private UUID lastDeletedSwimlaneId;
     private int lastCardCount;
     private int activityCountBeforeAction;
     private String expectedActivityKeyword;
@@ -75,13 +86,26 @@ public class BoardSteps {
     @Before
     public void resetBoardState() {
         boardJpaRepository.deleteAll();
-        fakeCardLookupPort.reset();
+        cardJpaRepository.deleteAll();
+        crossState.reset();
         session = new MockHttpSession();
         lastResult = null;
         pendingName = null;
         pendingBeforeStageId = null;
         activityCountBeforeAction = 0;
         expectedActivityKeyword = null;
+    }
+
+    MockHttpSession getSession() {
+        return session;
+    }
+
+    UUID getCurrentBoardId() {
+        return currentBoardId;
+    }
+
+    UUID getCurrentUserId() {
+        return currentUserId;
     }
 
     // ---- Given：登入與開板 ----
@@ -161,7 +185,7 @@ public class BoardSteps {
         UUID swimlaneId = resolveSwimlaneId(name);
         UUID anyStageId = loadBoardEntity().getStages().get(0).getId();
         for (int i = 0; i < cardCount; i++) {
-            fakeCardLookupPort.addCard(currentBoardId, swimlaneId, anyStageId);
+            createTestCard(swimlaneId, anyStageId);
         }
     }
 
@@ -196,7 +220,7 @@ public class BoardSteps {
         UUID stageId = resolveStageId(name);
         UUID anySwimlaneId = loadBoardEntity().getSwimlanes().get(0).getId();
         for (int i = 0; i < cardCount; i++) {
-            fakeCardLookupPort.addCard(currentBoardId, anySwimlaneId, stageId);
+            createTestCard(anySwimlaneId, stageId);
         }
     }
 
@@ -234,6 +258,10 @@ public class BoardSteps {
 
     @When("我確認新增")
     public void whenConfirmAddSwimlane() throws Exception {
+        if (crossState.isAddingCard()) {
+            cardSteps.submitPendingAddCard();
+            return;
+        }
         doAddSwimlane(pendingName == null ? "" : pendingName);
     }
 
@@ -277,13 +305,20 @@ public class BoardSteps {
 
     @When("我確認刪除")
     public void whenConfirmDelete() throws Exception {
-        // 替身警告（見 OQ-IMPL-17）：正式 BoardController 的刪除端點沒有「已確認」輸入，
-        // 有卡片時只會回 409；這裡直接操作 fakeCardLookupPort 模擬「應用層協調完成後卡片已清空」
-        // 的結果，不是打正式端點驗證 uc-delete-swimlane post 第 2 條，等 OQ-IMPL-17 定案由對應任務
-        // 補上協調流程後，要改成透過正式端點傳「已確認」再驗證。
+        UUID pendingCardId = crossState.pendingDeleteCardId();
+        if (pendingCardId != null) {
+            cardSteps.confirmDeleteCard(pendingCardId);
+            crossState.clearPendingDeleteCard();
+            return;
+        }
         UUID swimlaneId = resolveSwimlaneId(currentSwimlaneName);
-        fakeCardLookupPort.removeAllCardsInSwimlane(swimlaneId);
-        deleteSwimlane(swimlaneId);
+        lastDeletedSwimlaneId = swimlaneId;
+        captureActivityBaseline("刪除 Swimlane");
+        lastResult = mockMvc.perform(delete(
+                        "/api/boards/" + currentBoardId + "/swimlanes/" + swimlaneId + "?confirmed=true")
+                        .session(session))
+                .andReturn();
+        syncLastResult();
     }
 
     // ---- When：Stage ----
@@ -340,14 +375,14 @@ public class BoardSteps {
 
     @When("我選擇目的 Stage 為 {string}")
     public void whenChooseDestinationStage(String destinationName) throws Exception {
-        // 替身警告（見 OQ-IMPL-17）：正式 BoardController 的刪除端點沒有「目的 Stage」輸入，
-        // 有卡片時只會回 409；這裡直接操作 fakeCardLookupPort 模擬「應用層協調完成後卡片已轉移」
-        // 的結果，不是打正式端點驗證 uc-delete-stage post 第 2 條，等 OQ-IMPL-17 定案由對應任務
-        // 補上協調流程後，要改成透過正式端點傳目的 Stage 再驗證。
         UUID sourceId = resolveStageId(currentStageName);
         UUID destinationId = resolveStageId(destinationName);
-        fakeCardLookupPort.moveAllCardsToStage(sourceId, destinationId);
-        deleteStage(sourceId);
+        captureActivityBaseline("刪除 Stage");
+        lastResult = mockMvc.perform(delete("/api/boards/" + currentBoardId + "/stages/" + sourceId
+                        + "?destinationStageId=" + destinationId)
+                        .session(session))
+                .andReturn();
+        syncLastResult();
     }
 
     @When("我嘗試刪除該 Stage")
@@ -414,12 +449,11 @@ public class BoardSteps {
 
     @Then("該 Swimlane 與其所有卡片都應該被移除")
     public void thenSwimlaneAndCardsRemoved() {
-        // 替身警告（見 OQ-IMPL-17）：這裡只驗證 Swimlane 本身不存在，沒有驗證卡片是否真的被刪除
-        // ——Card Aggregate（T-03）尚未實作，卡片刪除是 whenConfirmDelete 直接操作
-        // fakeCardLookupPort 模擬出來的，不是正式程式碼路徑的行為，「一併被刪除」這條 post 尚未被驗證。
         assertEquals(204, lastResult.getResponse().getStatus());
         assertFalse(loadBoardEntity().getSwimlanes().stream()
                 .anyMatch(s -> s.getName().equals(currentSwimlaneName)));
+        assertTrue(cardJpaRepository.findBySwimlaneIdAndDeletedFalse(lastDeletedSwimlaneId).isEmpty(),
+                "該 Swimlane 內的卡片應該一併被刪除（uc-delete-swimlane post 第 2 條）");
     }
 
     @Then("該 Swimlane 不應該被刪除")
@@ -467,14 +501,8 @@ public class BoardSteps {
 
     @Then("這 {int} 張卡片應該被移動到 {string}")
     public void thenCardsMovedTo(int cardCount, String destinationName) {
-        // 替身警告（見 OQ-IMPL-17）：這裡讀的是 whenChooseDestinationStage 自己寫入
-        // fakeCardLookupPort 的結果，驗證的是測試替身自己做的事，不是正式端點／應用層的行為
-        // ——「card.stage 更新為使用者選擇的目的 stage」這條 post 尚未被正式程式碼路徑驗證。
         UUID destinationId = resolveStageId(destinationName);
-        long moved = fakeCardLookupPort.findByBoardId(currentBoardId).stream()
-                .filter(c -> c.stageId().equals(destinationId))
-                .count();
-        assertEquals(cardCount, moved);
+        assertEquals(cardCount, cardJpaRepository.findByStageIdAndDeletedFalse(destinationId).size());
     }
 
     @Then("Stage {string} 應該被刪除")
@@ -501,6 +529,10 @@ public class BoardSteps {
 
     @Then("該操作應該被記錄為一筆活動紀錄，包含操作人與操作時間")
     public void thenActivityRecorded() {
+        if (crossState.lastCardActivityId() != null) {
+            cardSteps.assertCardActivityRecorded();
+            return;
+        }
         BoardJpaEntity board = loadBoardEntity();
         List<ActivityRecordJpaEntity> activityLog = board.getActivityLog();
         assertEquals(activityCountBeforeAction + 1, activityLog.size());
@@ -556,10 +588,24 @@ public class BoardSteps {
         syncLastResult();
     }
 
-    private void ensureSwimlaneExists(String name) throws Exception {
+    void ensureSwimlaneExists(String name) throws Exception {
         if (resolveSwimlaneIdOptional(name) == null) {
             doAddSwimlane(name);
         }
+    }
+
+    private void createTestCard(UUID swimlaneId, UUID stageId) throws Exception {
+        Map<String, String> body = new HashMap<>();
+        body.put("title", "測試卡片");
+        body.put("swimlaneId", swimlaneId.toString());
+        body.put("stageId", stageId.toString());
+        MvcResult result = mockMvc.perform(post("/api/boards/" + currentBoardId + "/cards")
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andReturn();
+        assertEquals(201, result.getResponse().getStatus(),
+                "測試前置資料建立失敗：" + result.getResponse().getContentAsString());
     }
 
     private void doAddStage(String name, UUID beforeStageId) throws Exception {
@@ -604,11 +650,11 @@ public class BoardSteps {
         }
     }
 
-    private BoardJpaEntity loadBoardEntity() {
+    BoardJpaEntity loadBoardEntity() {
         return boardJpaRepository.findById(currentBoardId).orElseThrow();
     }
 
-    private UUID resolveSwimlaneId(String name) {
+    UUID resolveSwimlaneId(String name) {
         UUID id = resolveSwimlaneIdOptional(name);
         if (id == null) {
             throw new IllegalStateException("找不到 Swimlane：" + name);
@@ -623,7 +669,7 @@ public class BoardSteps {
                 .findFirst().orElse(null);
     }
 
-    private UUID resolveStageId(String name) {
+    UUID resolveStageId(String name) {
         UUID id = resolveStageIdOptional(name);
         if (id == null) {
             throw new IllegalStateException("找不到 Stage：" + name);

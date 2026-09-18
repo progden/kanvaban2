@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -84,10 +85,10 @@ public class BoardController {
     }
 
     @DeleteMapping("/{boardId}/swimlanes/{swimlaneId}")
-    public ResponseEntity<?> removeSwimlane(
-            @PathVariable UUID boardId, @PathVariable UUID swimlaneId, HttpSession session) {
+    public ResponseEntity<?> removeSwimlane(@PathVariable UUID boardId, @PathVariable UUID swimlaneId,
+            @RequestParam(name = "confirmed", defaultValue = "false") boolean confirmed, HttpSession session) {
         return withOperator(session, operatorId -> {
-            boardApplicationService.removeSwimlane(boardId, operatorId, swimlaneId);
+            boardApplicationService.removeSwimlane(boardId, operatorId, swimlaneId, confirmed);
             return ResponseEntity.noContent().build();
         });
     }
@@ -121,9 +122,11 @@ public class BoardController {
     }
 
     @DeleteMapping("/{boardId}/stages/{stageId}")
-    public ResponseEntity<?> removeStage(@PathVariable UUID boardId, @PathVariable UUID stageId, HttpSession session) {
+    public ResponseEntity<?> removeStage(@PathVariable UUID boardId, @PathVariable UUID stageId,
+            @RequestParam(name = "destinationStageId", required = false) UUID destinationStageId,
+            HttpSession session) {
         return withOperator(session, operatorId -> {
-            boardApplicationService.removeStage(boardId, operatorId, stageId);
+            boardApplicationService.removeStage(boardId, operatorId, stageId, destinationStageId);
             return ResponseEntity.noContent().build();
         });
     }
@@ -155,7 +158,7 @@ public class BoardController {
 
     private HttpStatus statusFor(ErrorCode code) {
         return switch (code) {
-            case BOARD_NAME_BLANK, EMPTY_SWIMLANE_NAME -> HttpStatus.BAD_REQUEST;
+            case BOARD_NAME_BLANK, EMPTY_SWIMLANE_NAME, INVALID_DESTINATION_STAGE -> HttpStatus.BAD_REQUEST;
             case BOARD_NOT_FOUND, SWIMLANE_NOT_FOUND, STAGE_NOT_FOUND -> HttpStatus.NOT_FOUND;
             case MINIMUM_SWIMLANE, MINIMUM_STAGE, SWIMLANE_HAS_CARDS, STAGE_HAS_CARDS -> HttpStatus.CONFLICT;
             default -> HttpStatus.BAD_REQUEST;
