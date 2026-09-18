@@ -110,3 +110,10 @@
 - 決策：退回，狀態從 `review-pending` 改回 `doing`，追加 D-03（TopBar 顯示 `username` 還是 `display-name`，要登記 OQ）、D-04（更正 OQ-IMPL-09「仍待處理」這個過期紀錄，跟 ADR-001 對齊）。
 - 理由：第 1 點，Review 自己重跑 `pnpm install --frozen-lockfile`、`pnpm run test`（2 個檔案、7 個測試全過）、`pnpm run build`、`pnpm run lint`（exit 0），以及 `./gradlew clean build --no-daemon`（exit 0）；第 2 點，`uc-logout` 的操作表列（需確認＝否、回到 `s-login`）和驗收條件都有落實並有測試，`authApi.ts` 也跟後端 record 一致；第 3 點不適用（沒動 core），grep 確認 core 是乾淨的；第 4 點，diff 只有 `kanban-frontend/**` 和 `.state/**`；第 5 點不通過，`ui-user-membership.md`『TopBar 顯示帳號名稱』沒有指定是哪個欄位，Dev 自己選了 `username` 卻沒登記 OQ，另外交接紀錄引用了已解除的 OQ-IMPL-09；第 6 點通過，沒有自己發明樣式。
 - 影響：不合併回 `loop/implementation`，T-11／T-12 繼續等待。下一輪 Dev 在同一個 worktree 處理 D-03、D-04，預期不需要改程式碼。D-03 的 OQ 如果到下一輪 Review 都還沒定案，只能附保留核准。
+
+### 2026-09-18 T-10-fe-shell（Dev，第 2 輪，D-03／D-04 更正紀錄）
+- 更正（不改動上面既有條目，本則為新增）：上面「2026-09-18 T-10-fe-shell（Dev）」一則寫『OQ-IMPL-09（HTTP 狀態碼未定案）目前不影響本任務』，`tasks.md` 對應備註與 `state.md` 也沿用「OQ-IMPL-09 仍待處理／未定案」這個說法——這跟事實不符。OQ-IMPL-09 已經在本任務 Dev commit（`4614e17`）之前的 `06c0a14`（[docs](loops) 解除 OQ-IMPL-09，升級為 ADR-001）解除，並升級記錄為 [`ADR-001`](adr.md#adr-001usecase-fail-對應-http-狀態碼的慣例)。`tasks.md`、`state.md` 的過期字樣已依此次更正同步修改（見兩檔本輪異動）。
+- 決策：`kanban-frontend/src/api/http.ts` 的 `ApiError` 帶 `status`（HTTP 狀態碼）欄位這個設計，跟 ADR-001 的分類表方向一致——例如未登入查 `GET /api/session` 回 401（ADR-001「身分驗證失敗或未登入」那一列），`ApiError.status` 能原封不動承接這個分類，不需要另外解析回應內容才能知道是不是未登入。後續 T-11（登入／註冊畫面）等任務要依 ADR-001 的狀態碼分類做基本分流（例如 401 統一導向 `s-login`、409／400 停留原表單顯示訊息），至於同一狀態碼內要顯示的精確文字訊息，依 ADR-001「回應內容一律帶錯誤代碼…狀態碼判斷語意分類，錯誤代碼判斷精確情境」這句，仍要讀回應內容的錯誤代碼／訊息决定顯示哪一句，不是單靠狀態碼決定文案。
+- 理由：D-04 要求把「呼叫端依訊息內容判斷」這個說法跟 ADR-001 對齊；`ApiError` 目前的欄位（`status`＋訊息）本來就同時支援「狀態碼分流、訊息內容決定文案」兩層，不需要改程式碼，只需要更正文件敘述與釐清後續任務的用法。
+- 影響：本檔（新增更正條目）、`tasks.md`（T-10 備註更正）、`state.md`（更正）。不涉及程式碼改動。
+- ADR：無（沿用既有 ADR-001，本則是對齊既有分類表的用法說明，不是新的結構性決策）。

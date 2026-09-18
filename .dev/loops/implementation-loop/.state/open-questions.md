@@ -98,3 +98,15 @@ spec原文：`.dev/F02-user-membership/spec-user-membership.md`「名詞定義�
 狀態：**已解除（2026-09-18，人工決策，採選項 A）**。
 解除說明：人工確認 `user.username` 本來就是「非空、不可重複」兩條規則都要——欄位表的「非空」跟 `pre` 沒有列出來是**覆蓋範圍缺口**，不是真的互相矛盾（原本情況欄標「兩處矛盾並列」是我判斷過重了：spec 裡「可留白」講的是 `user.password`，`user.username` 沒有任何一處講允許留空，兩處說法方向一致，只是 `pre`／`fail` 沒有把欄位表已經定的規則操作化，訂正這則分類）。因為 F02 已「定稿」，依 `cr-convention.md` 走了 **CR-006**：`uc-create-user` 新增 `pre.p3`「`user.username` 非空」與對應 `fail.p3`，新增 Scenario「帳號 ID（username）不可留空」（掛 `@CR-006 @uc-create-user @fail-p3`）；`kanban-core` 的 `User.create` 新增檢查（`ErrorCode.USERNAME_BLANK`，訊息「使用者名稱不能為空」，依 ADR-001 對到 400）；新增 2 個 `UserTest` 單元測試與 1 個 Cucumber Scenario（`create-user-account.feature` 現在 7 個 Scenario 全過）。`./scripts/spec-check`／`cr-check --cr CR-006`／`./gradlew clean build` 皆通過。
 狀態：待處理。在本 OQ 有結論前，`kanban-core`／`kanban-spring` 未新增任何防護或錯誤訊息，避免自行編一個訊息當成定案。
+
+## OQ-IMPL-11
+
+[Level: F02-user-membership/T-10-fe-shell]
+情況：【推論＋所本原文】
+spec原文：`.dev/F02-user-membership/ui-user-membership.md` 第 78 行操作表逐字：『送出登入表單 | `uc-login` | 依「完成後去哪裡」導向下一畫面，TopBar 顯示帳號名稱 | 依 `uc-login` p1／p2：帳號 ID 與密碼欄位不變，顯示訊息，停留本畫面 | 否（帳號密碼錯誤可重新輸入再次嘗試，非不可逆操作） |』；同檔第 90 行驗收條件逐字：『帳號密碼正確時送出登入表單，觸發 `uc-login`，成功後 TopBar 顯示該使用者名稱』。
+同檔第 26～27 行資料表逐字：『| 帳號 ID | `user.username` | 輸入 | 非空、全系統不可重複，依 `uc-create-user` pre p2 | 登入用 |』『| 顯示名字 | `user.display-name` | 輸入（選填） | 未指定時預設等於 `user.username` | — |』。
+`.dev/F02-user-membership/spec-user-membership.md` 第 28～29 行欄位表逐字：『| user.username | string | 非空、全系統不可重複 | 帳號 ID，登入用 |』『| user.display-name | string | 未指定時預設等於 `user.username` | 顯示名字，看板上顯示用，可以與其他帳號重複 |』。
+推論（目前程式碼已採用，非定案）：`ui-user-membership.md` 第 78、90 行的「帳號名稱」「該使用者名稱」都沒有明確指到 `user.username`（欄位表標為「帳號 ID」）或 `user.display-name`（欄位表標為「顯示名字，看板上顯示用」）其中一個。`kanban-frontend/src/layout/AppShell.tsx` 的 TopBar 目前顯示 `useAuth()` 回傳的 `username`（來自 `kanban-spring` 的 `GET /api/session`，其 `SessionResponse` 只有 `username` 一個欄位，見 `kanban-spring/src/main/java/io/progden/kanban/spring/web/SessionResponse.java`），這是 Dev 依「帳號名稱」字面較接近「帳號 ID／username」做的選擇，不是 spec 逐字規定。
+問題：TopBar 顯示的「帳號名稱」／「該使用者名稱」應該是 `user.username` 還是 `user.display-name`？若是後者，`GET /api/session` 的 `SessionResponse` 需要一併補上 `displayName` 欄位（屬於 T-01-be-user 範圍的後端修改）。
+選項：A. 維持目前對應（`user.username`），因為 ui 檔用詞是「帳號名稱」而非「顯示名字」；B. 改為 `user.display-name`，因為欄位表明講 `user.display-name` 才是「看板上顯示用」，TopBar 屬於全域顯示情境，且需同步修改 `SessionResponse`／`UserResponse`；C. 以上皆非。
+狀態：待處理。在本 OQ 有結論前，TopBar 維持顯示 `user.username`，不自行改成 `user.display-name`。
