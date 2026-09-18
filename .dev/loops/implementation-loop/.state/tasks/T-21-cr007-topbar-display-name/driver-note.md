@@ -1,0 +1,1 @@
+- 2026-09-19 00:59:41 驅動腳本標 blocked：T-21-cr007-topbar-display-name 連續 2 輪沒有正常收尾（沒有呼叫 loopctl finish，整輪也沒有任何新 commit），需人工檢查環境與 .dev/loops/implementation-loop/runtime/logs/pipeline-T-21-cr007-topbar-display-name-20260919-003053.log
