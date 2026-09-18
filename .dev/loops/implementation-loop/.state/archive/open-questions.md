@@ -166,6 +166,8 @@ spec原文：`.dev/F01-basic-kanban/spec-kanban-basic.md` 2026-09-18 變更紀�
 問題：T-02 的 web 端點是否應該在 T-04 完成前就先擋掉非 Owner（例如回一個暫時的 403），還是維持目前「已登入即可操作」到 T-04 補上權限檢查？
 選項：A. 維持現狀，T-04 完成後再對這些既有端點補上 `BoardMembership` 查詢與 `r-board-owner` 檢查（本 OQ 解除時機＝T-04 完成）；B. T-02 先加一個「一律要求 Owner」的暫時檢查機制（例如查詢一個尚不存在的 membership 表會導致找不到而全部拒絕），阻擋所有操作直到 T-04 補齊；C. 以上皆非。
 狀態：待處理。在本 OQ 有結論前，採選項 A 的行為（未加權限檢查），因為選項 B 會讓 T-02 自身的 Swimlane／Stage 功能完全無法使用，防禦過度。
+狀態：**已解除（2026-09-19，人工決策，採選項 A），轉為 T-04-be-board-membership 的工作項目**。
+解除說明：行為規格沒有缺口——九個結構調整 uc 的 `roles` 都是 `r-board-owner`，非 Owner 的結果由 `spec-user-membership.md` `uc-reject-structure-change-by-member` 定義（pre p1 逐字『"操作者不是該 `board` 的 Owner"』；post 逐字『"系統顯示錯誤訊息「只有 Owner 可以調整看板結構」，`board` 的 Swimlane 數量不變"』）。本 OQ 問的只是 T-04 完成前的過渡期；過渡期只存在於整合分支、尚未上線，選項 B 會讓 T-02 自己的功能全部不能用。T-04 補上 Owner 檢查與 `uc-reject-structure-change-by-member` 的 Scenario（已寫進 `tasks.md` T-04 備註）。
 
 ## OQ-IMPL-16
 
@@ -176,6 +178,8 @@ spec原文：`uc-create-board` 屬於 `.dev/F02-user-membership/spec-user-member
 問題：T-04 開發時，是否要修改 `BoardApplicationService.createBoard`（在同一次呼叫內接著建立 `board-membership`），還是另外新增一個協調兩個 Aggregate 的上層服務？
 選項：A. T-04 直接修改／擴充 `BoardApplicationService.createBoard`（或新增一個依賴它的協調方法），在建立 `board` 成功後接著建立 Owner `board-membership`；B. 新增一個獨立的協調層（例如 application 層的 façade），呼叫 `BoardApplicationService.createBoard` 與 `BoardMembershipApplicationService` 兩者；C. 以上皆非。
 狀態：待處理，不阻塞 T-02（T-02 產出範圍本就不含 `board-membership`），留給 T-04 決定並解除。
+狀態：**已解除（2026-09-19，人工確認），轉為 T-04-be-board-membership 的工作項目**。
+解除說明：行為規格是清楚的（`uc-create-board` post 逐字『"建立者自動成為該 `board` 的 `board-membership`，角色為 Owner"』），缺的只是 T-04 把它做完。選項 A／B 是純實作結構的選擇，屬於 `iteration-prompt.md` 第 5 節的「技術實作細節」，由 T-04 的 Dev 決定，會約束後續任務時開 ADR，不需要人工定案。【人工補充的限制，非 spec 原文】建立 `board` 與建立 Owner 的 `board-membership` 要在同一次交易內完成，不可以只成功一半（已寫進 `tasks.md` T-04 備註）。
 
 ## OQ-IMPL-17
 
