@@ -162,3 +162,31 @@ Review 第三次被觸發，任務仍是 `done`（HEAD `b9c40a4`）。`git diff 
 6. **前端設計稿**：`planning-prompt.md` 第 19～20 行列出 `Login.dc.html`／`Signup.dc.html`，Dev 看不到實際設計稿，也沒有自己發明樣式：用的是純語意 HTML，在檔頭註明「待對照設計稿」，並登記了 OQ-IMPL-12，符合 `dev-prompt.md` 的規則。「需確認？」欄：s-signup 的「確認建立帳號」寫『是（本畫面即確認…）』，按鈕文字就是「確認建立帳號」，符合；s-login 兩個操作都是「否」，符合。「失敗時」欄：用 `role="alert"` 顯示訊息、輸入內容保留，符合。
 
 判定：**退回**。`tasks.md` 的 T-11-fe-auth 狀態改回 `doing`，追加 D-05～D-07（第 1 輪退回，`MAX_TASK_ROUNDS=6`）。D-05 只要求登記 OQ，程式碼不改；D-06、D-07 只要求補測試斷言，產品程式碼預期不用改。
+
+## 2026-09-18 T-11-fe-auth：附保留核准（第 2 輪）
+
+審查對象：`impl/T-11-fe-auth` 分支 HEAD `4b42e68`（merge-base `f057f94`；程式碼 commit `e8eb7dd`，本輪測試補強 commit `224ce6d`）。
+
+1. **建置／測試（Review 自己重跑）**
+   - `cd kanban-frontend && pnpm install --frozen-lockfile`：`Already up to date`。
+   - `pnpm test`（`vitest run`）：`Test Files 4 passed (4)`、`Tests 16 passed (16)`，exit 0。
+   - `pnpm build`（`tsc -b && vite build`）：`✓ built in 772ms`，exit 0。
+   - `pnpm lint`（`oxlint`）：exit 0。
+   - 根目錄 `./gradlew build -q --no-daemon`：exit 0。
+2. **spec 對應**：`git diff 3dcb103..HEAD -- kanban-frontend` 只改了兩個測試檔，`LoginPage.tsx`／`SignupPage.tsx` 沒動，第 1 輪對產品行為的結論仍然成立。
+   - D-06：`LoginPage.test.tsx` 的 fail-p2（密碼錯誤）測試加上 `queryByRole('button', { name: '登出' })` 不存在；fail-p1（帳號不存在）測試加上兩個欄位值保留、「登入」標題還在、「登出」按鈕不存在。我核對過這個斷言有效：測試是用 `MemoryRouter` 掛整個 `App`，`AppShell.tsx` 第 12～14 行同時顯示 `username` 和「登出」按鈕，而且只掛在 `ProtectedRoute` 底下（`App.tsx` 第 32～33 行）。所以「登出」按鈕不存在，等於 TopBar 沒有渲染，也就不會顯示帳號名稱。這對應 `ui-user-membership.md` 第 91、92 行『帳號 ID 與密碼欄位保留、顯示訊息、停留本畫面，且 TopBar 不顯示帳號名稱』。
+   - 抽查 @fail-p1（`uc-login`，帳號不存在）：mock 後端回 401、訊息『帳號或密碼錯誤』。測試斷言 alert 文字、欄位保留、停留登入頁、沒有進入登入態，都成立。
+   - D-07：`SignupPage.test.tsx` 的空帳號測試加上「建立帳號」標題還在，對應第 43 行『畫面維持顯示』。這個測試原本就有斷言『不觸發 `uc-create-user`』（沒有呼叫 `/api/users`）。
+3. **kanban-core 純度**：本任務沒動 `kanban-core`；`grep -rn "import org.springframework\|import jakarta\|@Entity\|@Autowired" kanban-core/src/main` 沒有結果（exit 1）。
+4. **任務邊界**：`git diff --stat f057f94..HEAD` 共 10 個檔案，5 個在 `.state/**`，5 個在 `kanban-frontend/src/**`（`pages/LoginPage*`、`pages/SignupPage*`、`App.test.tsx`；`App.test.tsx` 第 1 輪已經接受）。沒動 `.dev/conventions/**`、`scripts/**`、spec／ui／design 本體、`CLAUDE.md`、後端。
+5. **待確認事項／OQ**：
+   - D-05：OQ-IMPL-13 已登記。五段引文我到源頭逐字核對過，都一致。「情況」段裡有一句推論沒有標成推論，我已在 OQ 底下追加「Review 補充」標明（Dev 寫的內容沒改）。
+   - 等級判斷（這是我的推論）：OQ-IMPL-13 是 ui 檔跟 spec 之間的文字矛盾，屬於 `iteration-prompt.md` 第 5 節的「高風險」（『spec 的 `pre`／`post`／Scenario 沒講清楚該怎麼實作』），不屬於「覆蓋來源」（『spec 定案內容跟現有程式碼結構衝突』）。目前程式碼照 spec 的 `pre p2`／`fail p2`／Scenario 實作，跟其他已合併程式碼沒有結構衝突。定案為 B 的話程式碼不用改；定案為 A 的話要先走 CR 新增查重 usecase，屬於未來的追加工作，不會推翻本任務。所以不標 `blocked`，只能附保留核准。
+   - OQ-IMPL-12（設計稿無法存取）屬於環境限制，第 1 輪已經核對過。
+6. **前端設計稿**：同第 1 輪，沒有自己發明樣式（純語意 HTML，已標「待對照設計稿」）；「需確認？」「失敗時」欄都有落實。
+
+**保留事項（核准附帶條件）**：
+- (R1) OQ-IMPL-13 待處理：帳號重複時目前仍送出 `POST /api/users`，由後端拒絕。定案為 A 的話，要另開 CR，並回頭改 `SignupPage.tsx` 與 `SignupPage.test.tsx`。
+- (R2) OQ-IMPL-12 待處理：版面還沒對照 `Login.dc.html`／`Signup.dc.html`，之後可能要調整樣式（不影響已驗證的行為）。
+
+判定：**附保留核准**。`tasks.md` 的 T-11-fe-auth 狀態改成 `done`，可以合併回 `loop/implementation`；不新增 D-xx。

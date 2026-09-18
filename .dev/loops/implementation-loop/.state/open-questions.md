@@ -133,3 +133,5 @@ Review 補充（2026-09-18，T-10-fe-shell Review 第 2 輪追加，上面 Dev �
 選項：A. 保留 A（依 ui 檔第 45 行字面）——前端必須在送出前自行判斷重複並擋下，代表要新增一個查重用的 API／usecase（spec 目前未定義），屬於新增行為，需要 CR；B. 保留 B（依 spec 的 `pre p2`／`fail p2`／Scenario）——ui 檔第 45 行「不觸發 `uc-create-user`」是措辭疊加或誤寫，實際行為應是「送出後由後端依 `pre p2` 拒絕，前端顯示 `fail p2` 對應訊息、保留輸入」，ui 檔這行文字要修正（需經 `ui-authoring-loop` 或人工改 ui 檔）；C. 缺區分條件（以上皆非，需要人工另外定義判斷方式）。
 事實（程式碼現狀，非定案）：目前 `SignupPage.tsx` 在帳號重複時仍會呼叫 `POST /api/users`（也就是觸發 `uc-create-user`），由後端依 `fail p2` 拒絕（409，訊息「此帳號已被使用」），前端收到後保留輸入、顯示訊息；`SignupPage.test.tsx`「帳號 ID 與系統中既有帳號重複」的測試沒有斷言「不觸發 `uc-create-user`」，跟目前實際行為（會觸發）一致，但跟 ui 檔第 45 行字面矛盾。
 狀態：待處理。在本 OQ 有結論前，程式碼維持現狀（帳號重複時仍送出 `POST /api/users`，由後端拒絕），不自行在前端加一個查重機制去符合 ui 檔第 45 行字面。
+
+Review 補充（2026-09-18，T-11-fe-auth Review 第 2 輪追加，上面 Dev 寫的內容未改）：上面五段引文我已到源頭逐字核對，`ui-user-membership.md` 第 45 行、`ui-convention.md` 第 150 行、`spec-user-membership.md` 第 97、104、143～147 行都跟原文一致。有一處需要標清楚：「情況」段最後一句『這個 Scenario 描述 `uc-create-user` 被觸發、系統依 `pre p2` 判斷、依 `fail p2` 拒絕的流程，前提是請求已送達…』是**推論**，不是 spec 原文。Scenario 本身只寫『When 我嘗試建立另一個帳號 "user1"』，沒寫前端是否送出請求。這個推論不影響問題本身，所以只在這裡補註，不再退回。

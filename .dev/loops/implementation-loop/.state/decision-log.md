@@ -139,3 +139,8 @@
 - 理由：D-05 依 `iteration-prompt.md` 第 5 節，spec 的驗收條件字面與 `pre`／`fail`／Scenario 衝突屬於高風險，不可以自行判定「措辭疊加」就略過，要開 OQ 讓人工選擇 A（前端加查重、需 CR）或 B（修正 ui 檔第 45 行）；D-06／D-07 都是 Review 指出既有測試沒有覆蓋到已定案的驗收條件字面，補斷言即可，不涉及產品行為判斷，不需要另開 OQ。
 - 影響：`kanban-frontend/src/pages/LoginPage.test.tsx`（2 個測試新增共 5 個斷言）、`SignupPage.test.tsx`（1 個測試新增 1 個斷言）；`open-questions.md` 新增 OQ-IMPL-13。`kanban-frontend/src/pages/LoginPage.tsx`、`SignupPage.tsx` 產品程式碼未變動。`pnpm test` 4 個檔案、16 個測試全過（新增斷言未改變測試數量，只加斷言）。
 - ADR：無（沿用既有結構，未新增跨任務決策）。
+
+### 2026-09-18 T-11-fe-auth（Review，第 2 輪）
+- 決策：附保留核准，狀態從 `review-pending` 改成 `done`，不新增 D-xx。
+- 理由：第 1 點，Review 自己重跑 `pnpm test`（4 個檔案、16 個測試全過）、`pnpm build`、`pnpm lint`，以及 `./gradlew build -q --no-daemon`，全部 exit 0。第 2 點，D-06／D-07 補的斷言對應 `ui-user-membership.md` 第 43、91、92 行；「登出」按鈕不存在的斷言，因為測試掛整個 `App`、`AppShell` 只在 `ProtectedRoute` 底下，確實等於 TopBar 沒有渲染。第 3、4、6 點通過。第 5 點，D-05 的 OQ-IMPL-13 已登記，引文逐字相符。我判斷它是高風險，不是覆蓋來源（ui 檔跟 spec 的文字矛盾，程式碼照 spec 實作，沒有結構衝突），所以附保留核准，不標 `blocked`。
+- 影響：`impl/T-11-fe-auth` 可以合併回 `loop/implementation`。保留事項 R1（OQ-IMPL-13，定案為 A 時要走 CR，並回頭改 `SignupPage.tsx`／測試）、R2（OQ-IMPL-12，版面待對照設計稿）。`open-questions.md` 的 OQ-IMPL-13 底下追加了一段 Review 補充，標明其中一句是推論。
