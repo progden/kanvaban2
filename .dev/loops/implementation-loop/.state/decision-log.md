@@ -38,3 +38,8 @@
 - 理由：CLAUDE.md／spec／ui-*.md 都沒有指定前端框架，這屬於「技術實作細節、不違反 spec」的低風險決定（iteration-prompt.md 第 5 節），pnpm 是唯一被指定的套件管理工具；Spring Boot 4.1.1 的 autoconfigure 套件路徑用 `unzip -l` 實際核對 Maven Central 下載下來的 jar 內容才發現已模組化搬遷，不是憑記憶假設舊版路徑，避免腦補。
 - 影響：後續所有前端任務（T-10 起）都建立在 Vite + React + TS 之上；後續後端任務若用到 `DataSourceAutoConfiguration`／`HibernateJpaAutoConfiguration` 等 Boot 4.1 autoconfigure 類別，要注意套件已搬到 `org.springframework.boot.<starter>.autoconfigure`，不是舊路徑。`kanban-core` 新增 `NoSpringDependencyTest` 作為架構守門測試，往後任務若不慎在 `kanban-core` 引入 Spring 依賴會被這個測試擋下。
 - ADR：無（純技術選型，未違反 spec，不影響 aggregate 邊界或 port 設計）。
+
+### 2026-09-18 T-00-scaffold（Review）
+- 決策：核准，狀態從 `review-pending` 改成 `done`。
+- 理由：Review 自己重跑 `./gradlew clean build` 和前端的 `pnpm install --frozen-lockfile`／`pnpm run build`／`pnpm run test`，全部通過；任務不涵蓋 uc／Scenario，spec 對應不適用；`kanban-core` main source 沒有 Spring／JPA import；diff 範圍只有骨架檔案和 `.state/**`；沒有未決 OQ。`NoSpringDependencyTest` 沒檢查 JPA、前端還留著 Vite 範本樣式、repo 沒有 CI 設定，這三件事判定不影響「骨架可建置、無業務邏輯」這個驗收範圍，記在 `review.md` 給後續任務參考，沒有開 D-xx。
+- 影響：觸發 `impl/T-00-scaffold` 合併回 `loop/implementation`；T-01-be-user（以及依賴鏈上的其他任務）的依賴解除。沒有留給 Dev 的 D-xx。
