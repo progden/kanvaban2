@@ -70,6 +70,7 @@ public class UserController {
             case USERNAME_ALREADY_EXISTS -> HttpStatus.CONFLICT;
             case USERNAME_BLANK, PASSWORD_TOO_LONG -> HttpStatus.BAD_REQUEST;
             case INVALID_CREDENTIALS -> HttpStatus.UNAUTHORIZED;
+            default -> throw new IllegalStateException("非使用者相關的錯誤碼：" + code);
         };
     }
 }
