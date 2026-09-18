@@ -62,6 +62,7 @@ public class CardSteps {
     private String pendingDescription;
     private LocalDate pendingDueDate;
     private List<String> pendingLabels;
+    private UUID stageIdBeforeMove;
 
     // ---- Given：Background ----
 
@@ -191,6 +192,7 @@ public class CardSteps {
     @When("我將該卡片拖曳到 Stage {string}")
     public void whenDragCardToStage(String stageName) throws Exception {
         UUID stageId = boardSteps.resolveStageId(stageName);
+        stageIdBeforeMove = loadCurrentCard().getStageId();
         Map<String, String> body = Map.of("stageId", stageId.toString());
         lastResult = mockMvc.perform(post("/api/cards/" + currentCardId + "/move-stage")
                         .session(boardSteps.getSession())
@@ -293,6 +295,7 @@ public class CardSteps {
         assertFalse(card.getStageTransitions().isEmpty());
         var transition = card.getStageTransitions().get(card.getStageTransitions().size() - 1);
         assertEquals(boardSteps.getCurrentUserId(), transition.getOperatorId());
+        assertEquals(stageIdBeforeMove, transition.getFromStageId());
         assertEquals(card.getStageId(), transition.getToStageId());
         assertTrue(transition.getOccurredAt().isBefore(Instant.now().plusSeconds(1)));
     }

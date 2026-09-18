@@ -599,11 +599,13 @@ public class BoardSteps {
         body.put("title", "測試卡片");
         body.put("swimlaneId", swimlaneId.toString());
         body.put("stageId", stageId.toString());
-        mockMvc.perform(post("/api/boards/" + currentBoardId + "/cards")
+        MvcResult result = mockMvc.perform(post("/api/boards/" + currentBoardId + "/cards")
                         .session(session)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
                 .andReturn();
+        assertEquals(201, result.getResponse().getStatus(),
+                "測試前置資料建立失敗：" + result.getResponse().getContentAsString());
     }
 
     private void doAddStage(String name, UUID beforeStageId) throws Exception {
