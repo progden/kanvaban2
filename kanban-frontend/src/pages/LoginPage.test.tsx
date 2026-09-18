@@ -23,10 +23,11 @@ afterEach(() => {
 });
 
 describe('s-login', () => {
-  it('帳號密碼正確時送出登入表單，觸發 uc-login，成功後 TopBar 顯示我的名稱', async () => {
+  it('帳號密碼正確時送出登入表單，觸發 uc-login，成功後 TopBar 顯示我的顯示名字（而非帳號 ID）', async () => {
     mockFetchByPath({
       '/api/session': () => new Response(JSON.stringify({ message: '尚未登入' }), { status: 401 }),
-      '/api/login': () => new Response(JSON.stringify({ username: 'user1', displayName: 'user1' }), { status: 200 }),
+      '/api/login': () =>
+        new Response(JSON.stringify({ username: 'user5', displayName: '王小明' }), { status: 200 }),
     });
 
     render(
@@ -37,11 +38,12 @@ describe('s-login', () => {
 
     await waitFor(() => expect(screen.getByRole('heading', { name: '登入' })).toBeInTheDocument());
 
-    fireEvent.change(screen.getByLabelText('帳號 ID'), { target: { value: 'user1' } });
+    fireEvent.change(screen.getByLabelText('帳號 ID'), { target: { value: 'user5' } });
     fireEvent.change(screen.getByLabelText('密碼'), { target: { value: 'correct-password' } });
     fireEvent.click(screen.getByRole('button', { name: '登入' }));
 
-    await waitFor(() => expect(screen.getByText('user1')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('王小明')).toBeInTheDocument());
+    expect(screen.queryByText('user5')).not.toBeInTheDocument();
     expect(screen.getByText(/Board 列表/)).toBeInTheDocument();
   });
 

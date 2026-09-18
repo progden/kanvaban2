@@ -47,9 +47,10 @@ describe('App', () => {
     await waitFor(() => expect(screen.getByRole('heading', { name: '登入' })).toBeInTheDocument());
   });
 
-  it('已登入時，Board 列表顯示 TopBar 帳號名稱；登出後回到登入畫面', async () => {
+  it('已登入時，Board 列表顯示 TopBar 顯示名字（而非帳號 ID）；登出後回到登入畫面', async () => {
     mockFetchByPath({
-      '/api/session': () => new Response(JSON.stringify({ username: 'alice' }), { status: 200 }),
+      '/api/session': () =>
+        new Response(JSON.stringify({ username: 'alice', displayName: '小美' }), { status: 200 }),
       '/api/logout': () => new Response(null, { status: 204 }),
     });
 
@@ -59,7 +60,8 @@ describe('App', () => {
       </MemoryRouter>,
     );
 
-    await waitFor(() => expect(screen.getByText('alice')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('小美')).toBeInTheDocument());
+    expect(screen.queryByText('alice')).not.toBeInTheDocument();
     expect(screen.getByText(/Board 列表/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: '登出' }));
@@ -69,7 +71,8 @@ describe('App', () => {
 
   it('已登入時造訪登入畫面，會被導向 Board 列表', async () => {
     mockFetchByPath({
-      '/api/session': () => new Response(JSON.stringify({ username: 'alice' }), { status: 200 }),
+      '/api/session': () =>
+        new Response(JSON.stringify({ username: 'alice', displayName: '小美' }), { status: 200 }),
     });
 
     render(
