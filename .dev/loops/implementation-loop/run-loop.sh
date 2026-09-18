@@ -277,6 +277,14 @@ while true; do
   if [ "$slots" -gt 0 ]; then
     for id in $(tasks_with_status todo); do
       [ "$slots" -le 0 ] && break
+      # 防護：這個任務理論上不該還在 PIDS 裡（它一被派出去就會同步 commit 成
+      # doing，不會再出現在 tasks_with_status todo 的結果裡），但如果背景 job
+      # 還沒來得及 commit、下一輪掃描就先跑到這裡，避免同一個任務被派兩條管線、
+      # 舊的 PID 被覆蓋變成沒人追蹤的孤兒行程。
+      if [ -n "${PIDS[$id]+x}" ]; then
+        log "[$id] 已在 PIDS 追蹤中，跳過（避免重複派工）"
+        continue
+      fi
       if deps_satisfied "$id"; then
         log "啟動管線：$id（目前並行數 $((active + 1))）"
         run_pipeline "$id" &
