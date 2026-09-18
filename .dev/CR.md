@@ -7,6 +7,7 @@
 | CR-003 | Stage 新增角色標記（Start／Done） | 新增 | SA | 2026-09-13 | spec-kanban-basic | `stage`、`uc-set-stage-role`(新增) | 處理完成 | 2026-09-13 | |
 | CR-004 | 事件時間改用 Board Clock | 變更 | SA | 2026-09-13 | spec-kanban-basic、spec-user-membership、spec-board-clock | `board`、`card`、`uc-adjust-board-clock`(新增)、`uc-guard-clock-monotonicity`(新增)、`uc-pause-resume-board-clock`(新增) | 處理完成 | 2026-09-13 | |
 | CR-005 | 規格格式遷移至 usecase 區塊 | 變更 | SA | 2026-09-16 | spec-kanban-basic、spec-user-membership、spec-kanban-widgets、spec-board-clock、spec-workload、spec-feature-cr-board | `board`、`board-membership`、`card`、`stage`、`swimlane`、`user`、`uc-add-card`、`uc-add-comment`、`uc-add-stage`、`uc-add-swimlane`、`uc-adjust-board-clock`、`uc-assign-card-owner-by-drag`、`uc-change-member-role`、`uc-create-board`、`uc-create-user`、`uc-delete-board`、`uc-delete-card`、`uc-delete-stage`、`uc-delete-swimlane`、`uc-drag-assign-card-owner`、`uc-edit-card`、`uc-guard-clock-monotonicity`、`uc-invite-member`、`uc-list-card-assignee-candidates`、`uc-list-cards-by-assignee`、`uc-login`、`uc-logout`、`uc-member-add-card`、`uc-move-card-stage`、`uc-move-card-swimlane`、`uc-pause-resume-board-clock`、`uc-reject-board-access-by-nonmember`、`uc-reject-invite-by-member`、`uc-reject-role-change-by-member`、`uc-reject-structure-change-by-member`、`uc-remove-member`、`uc-rename-stage`、`uc-rename-swimlane`、`uc-reorder-stage`、`uc-reorder-swimlane`、`uc-set-card-assignees`、`uc-set-stage-role`、`uc-view-aging-wip`、`uc-view-board-activity-log`、`uc-view-board-list`、`uc-view-card-assignees`、`uc-view-cfd`、`uc-view-cycle-lead-time`、`uc-view-duedate-reminder`、`uc-view-feature-cr-board`、`uc-view-throughput`、`uc-view-wip`、`uc-view-workload` | 修改規格 | | |
+| CR-006 | 建立帳號時 username 不可留空的 pre／fail 補齊 | 變更 | implementation-loop（T-01-be-user，OQ-IMPL-10） | 2026-09-18 | spec-user-membership | `uc-create-user` | 處理完成 | 2026-09-18 | |
 
 ### CR-001：Board/Card 補上操作人記錄
 - 背景：Swimlane／Stage／Card 會改變狀態的情境，原本沒有記錄是誰做的操作，F02 要做活動紀錄需要這份資料。
@@ -32,3 +33,8 @@
 - 背景：`.dev/conventions/` 已依 `spec-migration-prompt.md` 改為腳本可解析格式，但 F01～F06 六份既有規格尚未遷移，`spec-check` 目前報大量 error。
 - 變更內容：六份 spec 依新格式補上狀態行、實體／欄位／關係表、角色表、每個 Feature 的 usecase 區塊、tag（`@uc-`／`@fail-`）、Aggregate 註解與變更紀錄格式；不改變既有 Scenario 的行為。
 - 驗收標準：F01～F06 六份 `spec-*.md` 全部通過 `./scripts/spec-check`（0 error）；`cr-check --base <baseline> --cr CR-005` 通過。
+
+### CR-006：建立帳號時 username 不可留空的 pre／fail 補齊
+- 背景：`implementation-loop` 實作 T-01-be-user 時發現，「名詞定義」欄位表已明訂 `user.username`「非空、全系統不可重複」，但 `uc-create-user` 的 `pre` 只有「密碼長度不可超過 40 字」「username 不可重複」兩條，沒有「username 非空」對應的 `pre`／`fail`，是覆蓋範圍缺口（不是矛盾——欄位表的「可留白」講的是 `user.password`，不是 `user.username`，已跟人工確認）。
+- 變更內容：`uc-create-user` 新增 `pre.p3`「`user.username` 非空」與對應 `fail.p3`；新增 Scenario「建立帳號時使用者名稱不可留空」，掛 `@CR-006 @uc-create-user @fail-p3`。
+- 驗收標準：`uc-create-user` 的 `pre`／`fail` 各有 3 條；新增的 Scenario 驗證「使用者名稱留空時拒絕，訊息為『使用者名稱不能為空』，且不建立帳號」；`kanban-core`／`kanban-spring` 依此補上驗證邏輯，`./gradlew clean build` 通過。

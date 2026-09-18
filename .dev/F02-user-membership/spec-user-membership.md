@@ -80,6 +80,7 @@
 | 2026-09-18 |  | 新增 | 新增唯讀角色 `r-board-viewer`（ui-authoring-loop OQ-44 發現：F07 `spec-canvas-layout.md` 的 `r-canvas-viewer` 找不到對應的看板角色），`board-membership.role` enum 新增 Viewer 值；本次僅新增角色定義與欄位值，既有 use case 的 roles 欄位是否要一併加入 `r-board-viewer`（例如各種檢視類 use case）尚未逐一檢視，見「待釐清」；本檔尚未進入開發，可直接補上，不需開 CR |
 | 2026-09-13 |  | 開發完成 | （原票號 F05）「kanban-core」的「Card」新增「addAssignee」（追加單一負責人，重複則靜默忽略、不產生活動紀錄），對應上述兩條 Scenario 的實作 |
 | 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-create-user`…`uc-view-board-activity-log`） |
+| 2026-09-18 | CR-006 | 變更 | `uc-create-user` 新增 pre.p3／fail.p3（`user.username` 非空），新增「帳號 ID（username）不可留空」Scenario；欄位表原本已寫「非空」，這是補齊 usecase 定義與欄位表一致，不是新規則（implementation-loop T-01-be-user OQ-IMPL-10 發現） |
 
 ---
 
@@ -94,12 +95,14 @@
   pre:
     p1: "`user.password` 長度不可超過 40 字"
     p2: "`user.username` 在系統中不可重複"
+    p3: "`user.username` 非空"
   post:
     - "新的 `user` 建立成功，`user.username`、`user.display-name`、`user.password` 依輸入值設定；`user.display-name` 未指定時預設為 `user.username`"
     - "`user.display-name` 可以與其他 `user` 的顯示名字重複"
   fail:
     p1: "拒絕，不建立新的 `user`"
     p2: "拒絕，不建立新的 `user`"
+    p3: "拒絕，不建立新的 `user`"
   emits: []
   requires: []
   calls-sync: []
@@ -141,6 +144,14 @@ Feature: 建立使用者帳號
     Given 系統中已存在帳號 "user1"
     When 我嘗試建立另一個帳號 "user1"
     Then 系統應該顯示錯誤訊息 "此帳號已被使用"
+    And 不應該建立新的帳號
+
+  @CR-006 @uc-create-user @fail-p3
+  # Related aggregate:
+  #   user: read
+  Scenario: 帳號 ID（username）不可留空
+    When 我建立一個帳號，帳號 ID 留空
+    Then 系統應該顯示錯誤訊息 "使用者名稱不能為空"
     And 不應該建立新的帳號
 
   @uc-create-user
