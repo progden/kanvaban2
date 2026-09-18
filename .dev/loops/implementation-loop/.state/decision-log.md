@@ -133,3 +133,9 @@
 - 決策：退回，狀態從 `review-pending` 改回 `doing`，追加 D-05～D-07。
 - 理由：第 1 點，Review 自己重跑 `pnpm test`（4 個檔案、16 個測試全過）、`pnpm build`、`pnpm lint`，以及 `./gradlew build -q`，全部 exit 0；第 3、4、6 點都通過。第 2、5 點沒過：(a) `ui-user-membership.md` 第 45 行寫「帳號重複時…不觸發 `uc-create-user`」，Dev 自己把它解讀為措辭疊加並歸為低風險，沒有開 OQ，依 `iteration-prompt.md` 第 5 節這屬於高風險（D-05）；(b) s-login 第 91、92 行驗收條件的「TopBar 不顯示帳號名稱」，以及 fail-p1 的欄位保留／停留本畫面，都沒有測試斷言（D-06）；(c) s-signup 第 43 行的「畫面維持顯示」沒有斷言（D-07）。
 - 影響：`impl/T-11-fe-auth` 這輪不合併；下一輪 Dev 處理 D-05～D-07。產品程式碼預期不用改，只要登記 OQ、補測試斷言。
+
+### 2026-09-18 T-11-fe-auth（Dev，第 2 輪，D-05～D-07）
+- 決策：D-05 登記 OQ-IMPL-13（情況：兩處矛盾並列），逐字並列 `ui-user-membership.md` 第 45 行『…且不觸發 `uc-create-user`』與 `spec-user-membership.md` 第 97、104、143～147 行 `uc-create-user` 的 `pre p2`／`fail p2`／對應 Scenario，並引 `ui-convention.md` 第 150 行說明第 45 行的斷言主詞是合法的、要當真；OQ 定案前程式碼維持現狀（帳號重複時仍送出 `POST /api/users`，由後端依 `fail p2` 拒絕），不自行在前端加查重機制。D-06 在 `LoginPage.test.tsx` 補上：wrong-password（`fail-p2`）測試新增『TopBar 不顯示帳號名稱』斷言（`queryByRole('button', { name: '登出' })` 為 `null`，因為 `AppShell` 只掛在 `ProtectedRoute` 之下，登入失敗不會進入該路由，這個查詢本身就等於「TopBar 沒有渲染」）；帳號不存在（`fail-p1`）測試補上欄位保留（帳號 ID／密碼值不變）、停留本畫面（`登入` 標題仍在）、TopBar 不顯示帳號名稱三個斷言。D-07 在 `SignupPage.test.tsx`「帳號 ID 為空」測試補上『建立帳號』標題仍在的斷言，對應 `ui-user-membership.md` 第 43 行「畫面維持顯示」。
+- 理由：D-05 依 `iteration-prompt.md` 第 5 節，spec 的驗收條件字面與 `pre`／`fail`／Scenario 衝突屬於高風險，不可以自行判定「措辭疊加」就略過，要開 OQ 讓人工選擇 A（前端加查重、需 CR）或 B（修正 ui 檔第 45 行）；D-06／D-07 都是 Review 指出既有測試沒有覆蓋到已定案的驗收條件字面，補斷言即可，不涉及產品行為判斷，不需要另開 OQ。
+- 影響：`kanban-frontend/src/pages/LoginPage.test.tsx`（2 個測試新增共 5 個斷言）、`SignupPage.test.tsx`（1 個測試新增 1 個斷言）；`open-questions.md` 新增 OQ-IMPL-13。`kanban-frontend/src/pages/LoginPage.tsx`、`SignupPage.tsx` 產品程式碼未變動。`pnpm test` 4 個檔案、16 個測試全過（新增斷言未改變測試數量，只加斷言）。
+- ADR：無（沿用既有結構，未新增跨任務決策）。
