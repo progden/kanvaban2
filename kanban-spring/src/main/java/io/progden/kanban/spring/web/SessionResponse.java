@@ -1,4 +1,4 @@
 package io.progden.kanban.spring.web;
 
-record SessionResponse(String username) {
+record SessionResponse(String username, String displayName) {
 }

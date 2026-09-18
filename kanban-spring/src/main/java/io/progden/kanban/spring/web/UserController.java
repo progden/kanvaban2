@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     static final String SESSION_USERNAME_ATTRIBUTE = "username";
+    static final String SESSION_DISPLAY_NAME_ATTRIBUTE = "displayName";
 
     private final UserApplicationService userApplicationService;
 
@@ -44,6 +45,7 @@ public class UserController {
         try {
             User user = userApplicationService.login(request.username(), request.password());
             session.setAttribute(SESSION_USERNAME_ATTRIBUTE, user.getUsername());
+            session.setAttribute(SESSION_DISPLAY_NAME_ATTRIBUTE, user.getDisplayName());
             return ResponseEntity.ok(UserResponse.from(user));
         } catch (DomainException e) {
             return ResponseEntity.status(statusFor(e.getCode())).body(new ErrorResponse(e.getMessage()));
@@ -62,7 +64,8 @@ public class UserController {
         if (username == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("尚未登入"));
         }
-        return ResponseEntity.ok(new SessionResponse((String) username));
+        Object displayName = session.getAttribute(SESSION_DISPLAY_NAME_ATTRIBUTE);
+        return ResponseEntity.ok(new SessionResponse((String) username, (String) displayName));
     }
 
     private HttpStatus statusFor(ErrorCode code) {

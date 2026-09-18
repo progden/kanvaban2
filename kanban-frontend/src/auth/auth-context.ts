@@ -5,6 +5,7 @@ export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 export interface AuthState {
   status: AuthStatus;
   username: string | null;
+  displayName: string | null;
 }
 
 export interface AuthContextValue extends AuthState {
