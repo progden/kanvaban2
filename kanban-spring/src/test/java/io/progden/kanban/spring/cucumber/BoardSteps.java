@@ -108,6 +108,17 @@ public class BoardSteps {
         return currentUserId;
     }
 
+    /**
+     * 供 {@link BoardMembershipSteps} 同步「目前作用中的 Board／登入身分」，讓
+     * spec-user-membership.md 與 spec-kanban-basic.md 共用的步驟文字（例如「看板目前有 N 個
+     * Swimlane X」）在跨兩個 step definition 類別時也能對到同一個 Board（implementation-loop T-04）。
+     */
+    void adoptBoard(UUID boardId, MockHttpSession session, UUID userId) {
+        this.currentBoardId = boardId;
+        this.session = session;
+        this.currentUserId = userId;
+    }
+
     // ---- Given：登入與開板 ----
 
     @Given("我已登入系統")
@@ -130,6 +141,7 @@ public class BoardSteps {
 
     @Given("我已開啟一個名為 {string} 的看板")
     public void givenBoardOpened(String name) throws Exception {
+        adoptUserStepsSessionIfNotLoggedIn();
         Map<String, String> body = Map.of("name", name);
         MvcResult result = mockMvc.perform(post("/api/boards")
                         .session(session)
@@ -686,6 +698,27 @@ public class BoardSteps {
 
     private void syncLastResult() {
         userSteps.setLastResult(lastResult);
+    }
+
+    /**
+     * spec-user-membership.md 的 Feature Background 混用了 {@link UserSteps} 的「我已登入系統，
+     * 帳號為 X」（依指定帳號登入）與本類別的「我已開啟一個名為 X 的看板」（用本類別的
+     * {@code session}／{@code currentUserId} 發送請求）。兩者原本各自獨立管理登入狀態，這裡在還沒有
+     * 呼叫過本類別「我已登入系統」時，改採用 {@link UserSteps} 已建立的 session／使用者身分，讓兩段
+     * Background 步驟可以銜接（implementation-loop T-04 發現，session 屬性名稱沿用
+     * {@code UserController.SESSION_USERNAME_ATTRIBUTE} 的實際值 "username"）。
+     */
+    private void adoptUserStepsSessionIfNotLoggedIn() {
+        if (currentUserId != null) {
+            return;
+        }
+        MockHttpSession userSession = userSteps.getSession();
+        Object username = userSession == null ? null : userSession.getAttribute("username");
+        if (username == null) {
+            throw new IllegalStateException("尚未登入，無法開啟看板");
+        }
+        this.session = userSession;
+        this.currentUserId = userJpaRepository.findByUsername((String) username).orElseThrow().getId();
     }
 
     private Map<?, ?> readBody(MvcResult result) throws Exception {

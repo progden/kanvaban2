@@ -114,4 +114,53 @@ class CardTest {
         assertTrue(card.isDeleted());
         assertEquals(countBefore + 1, card.getActivityLog().size());
     }
+
+    @Test
+    void should_updateAssigneesAndRecordActivity_when_assignToChangesAssignees() {
+        Card card = Card.create(operatorId, boardId, "設計登入頁面", new CardPlacement(swimlaneId, stageId));
+        UUID assigneeId = UUID.randomUUID();
+        int countBefore = card.getActivityLog().size();
+
+        boolean changed = card.assignTo(operatorId, List.of(assigneeId), "將卡片負責人設定為 雅婷");
+
+        assertTrue(changed);
+        assertEquals(List.of(assigneeId), card.getAssigneeIds());
+        assertEquals(countBefore + 1, card.getActivityLog().size());
+    }
+
+    @Test
+    void should_notRecordActivity_when_assignToWithSameAssignees() {
+        Card card = Card.create(operatorId, boardId, "設計登入頁面", new CardPlacement(swimlaneId, stageId));
+        UUID assigneeId = UUID.randomUUID();
+        card.assignTo(operatorId, List.of(assigneeId), "將卡片負責人設定為 雅婷");
+        int countBefore = card.getActivityLog().size();
+
+        boolean changed = card.assignTo(operatorId, List.of(assigneeId), "將卡片負責人設定為 雅婷");
+
+        assertFalse(changed);
+        assertEquals(countBefore, card.getActivityLog().size());
+    }
+
+    @Test
+    void should_dedupeAssignees_when_assignToHasDuplicateIds() {
+        Card card = Card.create(operatorId, boardId, "設計登入頁面", new CardPlacement(swimlaneId, stageId));
+        UUID assigneeId = UUID.randomUUID();
+
+        card.assignTo(operatorId, List.of(assigneeId, assigneeId), "將卡片負責人設定為 雅婷");
+
+        assertEquals(List.of(assigneeId), card.getAssigneeIds());
+    }
+
+    @Test
+    void should_removeAssigneeWithoutActivity_when_unassignMember() {
+        Card card = Card.create(operatorId, boardId, "設計登入頁面", new CardPlacement(swimlaneId, stageId));
+        UUID assigneeId = UUID.randomUUID();
+        card.assignTo(operatorId, List.of(assigneeId), "將卡片負責人設定為 雅婷");
+        int countBefore = card.getActivityLog().size();
+
+        card.unassignMember(assigneeId);
+
+        assertTrue(card.getAssigneeIds().isEmpty());
+        assertEquals(countBefore, card.getActivityLog().size());
+    }
 }

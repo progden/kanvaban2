@@ -54,6 +54,10 @@ public class CardSteps {
     @Autowired
     private UserSteps userSteps;
 
+    @Autowired
+    @org.springframework.context.annotation.Lazy
+    private CardAssignmentSteps cardAssignmentSteps;
+
     private MvcResult lastResult;
     private UUID currentCardId;
     private String currentCardTitle;
@@ -161,6 +165,11 @@ public class CardSteps {
 
     @When("我儲存變更")
     public void whenSaveCardChanges() throws Exception {
+        if (crossState.isSavingAssignees()) {
+            cardAssignmentSteps.submitPendingAssignees();
+            crossState.clearSavingAssignees();
+            return;
+        }
         captureCardActivityBaseline(currentCardId);
         Map<String, Object> body = new HashMap<>();
         body.put("description", pendingDescription);
