@@ -9,7 +9,7 @@
 - 畫布元素的錨定（隨畫布移動，或固定在畫面上）
 - 檢視區的平移與縮放（每位使用者各自記住上次的位置與縮放比例）
 
-每個 Board（見 `.dev/F01-basic-kanban/spec-kanban-basic.md`）對應一個 Canvas：使用者開啟某個 Board 時，看到的就是該 Board 的 Canvas，Canvas 不由使用者建立或刪除（隨 Board 的生命週期，實際建立時機見「待釐清」）；同一個 Canvas 上的元素由該 Board 的所有使用者共用；檢視區（平移偏移、縮放比例）則是每位使用者在每個 Canvas 各自一份，互不影響（同一位使用者在不同 Board 的檢視區各自獨立）。元件本身的內容與行為（例如圖表的資料、設定、互動）不屬於本模組，由元件所屬模組定義；本模組只記錄元件在畫布上的**相對資訊**：座標、大小、層序、錨定方式、可否移動、可否調整大小、可否移除。旋轉角度、群組不納入；對齊格線的吸附屬 UI 行為，座標不要求為格線倍數。檢視區要在重新開啟後恢復，因此屬本模組；縮圖是由全部元素與檢視區推導出來的畫面，與選取、對齊格線一樣由 `ui-canvas-layout.md` 承接。
+每個 Board（見 `.dev/F01-basic-kanban/spec-kanban-basic.md`）對應一個 Canvas：使用者開啟某個 Board 時，看到的就是該 Board 的 Canvas，Canvas 不由使用者建立或刪除（使用者第一次開啟該 Board 時，由系統自動建立，見「看板畫布初始化」Feature）；同一個 Canvas 上的元素由該 Board 的所有使用者共用；檢視區（平移偏移、縮放比例）則是每位使用者在每個 Canvas 各自一份，互不影響（同一位使用者在不同 Board 的檢視區各自獨立）。元件本身的內容與行為（例如圖表的資料、設定、互動）不屬於本模組，由元件所屬模組定義；本模組只記錄元件在畫布上的**相對資訊**：座標、大小、層序、錨定方式、可否移動、可否調整大小、可否移除。旋轉角度、群組不納入；對齊格線的吸附屬 UI 行為，座標不要求為格線倍數。檢視區要在重新開啟後恢復，因此屬本模組；縮圖是由全部元素與檢視區推導出來的畫面，與選取、對齊格線一樣由 `ui-canvas-layout.md` 承接。
 
 狀態：草稿
 
@@ -18,7 +18,7 @@
 ### 實體
 | ID | 名詞 | 所屬 Aggregate | 說明 |
 |---|---|---|---|
-| canvas | Canvas（畫布） | canvas（root） | 某個 Board 的版面配置，可放置元件的二維工作區；每個 `board` 對應一個 Canvas，由系統建立（非使用者操作），使用者不建立、不刪除 |
+| canvas | Canvas（畫布） | canvas（root） | 某個 Board 的版面配置，可放置元件的二維工作區；每個 `board` 對應一個 Canvas，使用者第一次開啟該 Board 時由系統自動建立，使用者不建立、不刪除 |
 | item | Item（畫布元素） | item（root） | 某個元件在畫布上的一次放置，持有該元件的位置、大小、層序、錨定方式與能力設定；元件本體由其他模組定義 |
 | viewport | Viewport（檢視區） | viewport（root） | 某位使用者目前看到的畫布範圍：平移偏移與縮放比例，會被記住；每位使用者各一個 |
 
@@ -28,7 +28,7 @@
 | canvas.board | ref board | 必填、同一個 `board` 至多一個 `canvas` | 所屬看板，`board` 定義於 `.dev/F01-basic-kanban/spec-kanban-basic.md` |
 | canvas.zoom-min | number | > 0、< `canvas.zoom-max`、預設 0.1 | 縮放比例下限；由系統設定，設定方式不在本模組 |
 | canvas.zoom-max | number | > `canvas.zoom-min`、預設 4 | 縮放比例上限；由系統設定，設定方式不在本模組 |
-| item.component | string(100) | 必填 | 元件本體的識別碼，由元件所屬模組定義；本模組不解讀其內容。元件模組定案後改為 ref，元件與元素的生命週期連動（誰刪誰）屆時一併補 |
+| item.component | string(100) | 必填 | 元件本體的識別碼，由元件所屬模組定義；本模組不解讀其內容。看板本體固定為實體 ID `board`（見「看板畫布初始化」Feature；不用 UI 層的 Screen ID，spec 不引用 ui，見 `docs-convention.md` 第 3 節）；其餘元件的值待各自所屬模組實作對應 Item 時決定。元件模組定案後改為 ref，元件與元素的生命週期連動（誰刪誰）屆時一併補 |
 | item.anchor | enum(canvas, screen) | 預設 canvas | 錨定方式：canvas 表示隨畫布平移縮放；screen 表示固定在畫面上，不隨畫布平移、縮放或視窗大小改變而移動或縮放 |
 | item.x | number | 必填 | 元素左上角的 X 座標；依 `item.anchor` 以畫布座標系或畫面座標系解讀 |
 | item.y | number | 必填 | 元素左上角的 Y 座標；依 `item.anchor` 以畫布座標系或畫面座標系解讀 |
@@ -46,7 +46,7 @@
 ### 關係
 | 來源 | 目標 | min | max | 說明 |
 |---|---|---|---|---|
-| board | canvas | 0 | 1 | 每個 Board 至多一個 Canvas；建立時機（隨 Board 建立自動產生，或使用者第一次開啟該 Board 時建立）待釐清 |
+| board | canvas | 0 | 1 | 每個 Board 至多一個 Canvas；使用者第一次開啟該 Board 時，由系統自動建立（見「看板畫布初始化」Feature，`uc-init-canvas`） |
 | canvas | item | 0 | n | 畫布可以沒有任何元素 |
 | canvas | viewport | 0 | n | 同一 Canvas 內每位使用者至多一個檢視區，第一次設定時建立 |
 
@@ -80,6 +80,71 @@
 
 | 日期 | 票號 | 類型 | 摘要 |
 |------|------|------|------|
+| 2026-09-18 |  | 新增 | 依人工決策定案「待釐清」原第 1、3 項：`canvas` 建立時機（使用者第一次開啟 Board 時由系統自動建立）、看板本體如何成為 `item`（固定使用 `item.component` = `board`，即 F01 的實體 ID，不引用 ui 層 Screen ID）；新增「看板畫布初始化」Feature（`uc-init-canvas`）；本檔仍為草稿，不需開 CR |
+
+---
+
+## Feature: 看板畫布初始化
+
+### Use Case 定義
+```usecase
+- id: uc-init-canvas
+  name: 開啟看板時初始化畫布
+  roles: [r-canvas-editor, r-canvas-viewer]
+  crud: {canvas: CR, item: CR}
+  pre:
+    p1: "`board` 存在"
+  post:
+    - "`canvas` 存在，`canvas.board` 為所開啟的 `board`（原本不存在時建立，`canvas.zoom-min` 為 0.1、`canvas.zoom-max` 為 4）"
+    - "若該 `canvas` 原本沒有任何 `item`，建立一個 `item`：`item.component` 為 `board`、`item.x` 為 0、`item.y` 為 0、`item.width` 為 900、`item.height` 為 600、`item.anchor` 為 canvas、`item.z` 為 1、`item.movable`／`item.resizable`／`item.removable` 皆為 true"
+    - "若該 `canvas` 原本已存在，或已存在任何 `item`，不重複建立，資料不變"
+  fail:
+    p1: "拒絕，不建立 `canvas`"
+  emits: [ev-canvas-initialized]
+  requires: []
+  calls-sync: []
+```
+
+```gherkin
+Feature: 看板畫布初始化
+  身為 畫布編輯者
+  我想要 開啟看板時自動看到畫布與看板本體
+  以便 不用自己手動建立畫布或放置看板本體
+
+  @uc-init-canvas
+  # Related aggregate:
+  #   canvas: read, write
+  #   item: read, write
+  Scenario: 開啟尚未建立畫布的看板時自動初始化
+    Given 看板 "產品開發看板" 尚無 canvas
+    When 我開啟看板 "產品開發看板"
+    Then 該看板存在一個 canvas，縮放範圍為 0.1 ～ 4
+    And 該 canvas 存在一個元素，元件識別碼為 "board"
+    And 該元素的左上角位於 (0, 0)，大小為 900 × 600
+    And 該元素錨定於畫布，層序為 1
+    And 該元素可移動、可調整大小且可移除
+
+  @uc-init-canvas
+  # Related aggregate:
+  #   canvas: read, write
+  #   item: read, write
+  Scenario: 開啟已有畫布的看板不重複初始化
+    Given 看板 "產品開發看板" 已有 canvas
+    And 該 canvas 存在元素 "看板本體"，元件識別碼為 "board"，層序為 1
+    And 該 canvas 另存在元素 "銷售圖表"，層序為 2
+    When 我再次開啟看板 "產品開發看板"
+    Then 該看板仍只有一個 canvas
+    And 元素 "看板本體" 的層序仍為 1
+    And 元素 "銷售圖表" 的層序仍為 2
+
+  @uc-init-canvas @fail-p1
+  # Related aggregate:
+  #   canvas: read
+  Scenario: 不可為不存在的看板初始化畫布
+    Given 看板 "已刪除的看板" 不存在
+    When 我開啟看板 "已刪除的看板"
+    Then 拒絕，訊息為 "看板不存在"，且資料不變
+```
 
 ---
 
@@ -681,6 +746,5 @@ Feature: 檢視區
 
 ## 待釐清
 
-- `canvas` 的建立時機：是隨 `uc-create-board`（F02）建立 Board 時自動產生，還是使用者第一次開啟該 Board 時才建立；本版尚未定義建立 Canvas 的 Use Case，待整合時另開 CR。
 - `item.component`、`viewport.user` 兩個外部識別碼待元件模組與帳號模組定案後改為 ref，已註記於欄位表。
-- 看板本體（F01 的看板主畫面）如何成為某個 Canvas 上的 `item`（`item.component` 填什麼值代表「看板本體」、預設的位置與大小為何），待整合時另開 CR。
+- `r-canvas-editor`／`r-canvas-viewer` 與帳號模組（`.dev/F02-user-membership/spec-user-membership.md`）定義的 `r-system-user`／`r-board-owner`／`r-board-member` 三者的對應關係尚未定義，待整合時另開 CR 或於本檔草稿階段直接補上。
