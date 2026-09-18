@@ -7,7 +7,7 @@
 
 | 實體 | 定義 | 關鍵屬性 |
 |---|---|---|
-| 規則書 Prompt（`<name>-prompt.md`） | 不隨進度改變的鐵則來源，執行輪／審查輪／`/loop` 手動模式共用 | 角色、目標、檔案地圖、鐵則、自主決策分級 |
+| 規則書 Prompt（`<name>-prompt.md`） | 不隨進度改變的鐵則來源，執行輪／審查輪共用 | 角色、目標、檔案地圖、鐵則、自主決策分級 |
 | 執行輪 Kickoff（`<name>-kickoff-prompt.md`） | 一輪流程：讀什麼、做什麼、怎麼收尾 | 讀取清單、收尾檢查清單 |
 | 審查輪 Review（`<name>-review-prompt.md`） | 唯讀審查流程，只能追加 `D-xx` 或審查紀錄 | 審查對象、可追加的產出 |
 | 任務清單 Ledger（`<name>-tasks.md`） | 唯一任務來源 | 狀態（`todo`／`doing`／`done`／`blocked`／`proposed`／`rejected`）、依賴、驗收條件 |
@@ -32,14 +32,11 @@
 | `escalates` | 高風險判斷 → OQ | 1 對 1，同時在對應文件標 `⚠️` 並指向該 OQ |
 | `records` | 執行輪 → PDCA | 每輪至少一則，只能追加 |
 
-## 3. 兩種跑法（兩個 loop 都採這個雙模式）
+## 3. 跑法：`run-<name>-loop.sh` 驅動的自動模式
 
-| 模式 | 驅動方式 | 特徵 | 適用場景 |
-|---|---|---|---|
-| 手動模式 | Claude Code 內建 `/loop`，直接重用 `<name>-prompt.md`／`<name>-kickoff-prompt.md` | 一輪一任務，agent 自己跑檢查腳本、自己誠實記錄，沒有外部驗證 | 人在旁邊看著跑，適合前幾輪熟悉狀況 |
-| 自動模式 | `run-<name>-loop.sh` | 每輪全新 `claude -p` process（zero context），執行輪與審查輪交替（`REVIEW_EVERY` 或遇關卡），每輪結束外部驗證腳本判定通過與否，`--dangerously-skip-permissions` 才能無人值守 commit | 跑完整批次工作量（例如六個模組），無人值守 |
+兩個 loop 的規則書都寫了「手動模式（`/loop`）／自動模式」兩種跑法，但實際只跑過自動模式——`run-<name>-loop.sh` 驅動：每輪全新 `claude -p` process（zero context），執行輪與審查輪交替（`REVIEW_EVERY` 或遇關卡），每輪結束外部驗證腳本判定通過與否，`--dangerously-skip-permissions` 才能無人值守 commit，適合跑完整批次工作量（例如六個模組）且無人值守。手動模式只是規則書裡的備案寫法，未實際使用過，本檔不收錄。
 
-兩種模式共用同一套任務清單、PDCA、鐵則、自主決策分級；差別只在有沒有外部驗證與獨立審查輪。**必須先在專用分支（`loop/<name>`）執行**，main 不受影響，壞了可整支丟棄；啟動前腳本會檢查工作區乾淨、`scripts/tests` 先過。
+**必須先在專用分支（`loop/<name>`）執行**，main 不受影響，壞了可整支丟棄；啟動前腳本會檢查工作區乾淨、`scripts/tests` 先過。
 
 ## 4. 執行模型：輪次與關卡
 
@@ -114,8 +111,8 @@ OQ 記錄格式的不變量（沿用 `.dev/lesson-learned/與專家協作的提�
 ## 10. 新開一個 loop 時的檢查清單
 
 1. 依第 6 節建三個子目錄（`prompts/`／`.state/`／`scripts/`）＋ loop 根目錄的驅動腳本＋ `runtime/`（加進 `.gitignore`）。
-2. 規則書（`*-prompt.md`）至少要有：角色、目標、檔案地圖（含「誰可以改」）、鐵則（對應該領域的 MECE 邊界）、第 5 節的自主決策分級表、commit 規範、禁止事項、收尾條件、操作手冊（手動／自動兩種模式）。
+2. 規則書（`*-prompt.md`）至少要有：角色、目標、檔案地圖（含「誰可以改」）、鐵則（對應該領域的 MECE 邊界）、第 5 節的自主決策分級表、commit 規範、禁止事項、收尾條件、自動模式操作手冊。
 3. 任務清單第一則規則段要講清楚：狀態值定義、挑選順序、`G*` 關卡怎麼核准、驗收條件裡機械條件怎麼被 `tools accept-check` 判定。
 4. 外部驗證腳本至少要查：檢查腳本 error／warn 數（起點 vs 現在）、diff 範圍是否只動了允許的檔案、任務清單格式是否合法、（若有）逐字引用是否與來源相符。
-5. 驅動腳本沿用 `run-spec-migration-loop.sh`／`run-ui-authoring-loop.sh` 同構：事前檢查（工具、工作區乾淨、測試先過）→ 切分支 → 記 baseline／起點 error 數 → 主迴圈（選任務→判斷 exec/review/gate→組 prompt→`timeout claude -p`→外部驗證→更新跨輪狀態→判斷停止條件）。
+5. 驅動腳本沿用 `run-spec-migration-loop.sh`／`run-ui-authoring-loop.sh` 同構：事前檢查（工具、工作區乾淨、測試先過）→ 切分支 → 記 baseline／起點 error 數 → 主迴圈（選任務→判斷 exec/review/gate→組 prompt→`timeout claude -p`→外部驗證→更新跨輪狀態→判斷停止條件）。直接以自動模式為主要跑法即可，不必額外準備手動模式的操作手冊。
 6. 別忘了把 `runtime/`、`__pycache__/` 加進 `.gitignore`，並在規則書「檔案地圖」明講「不進版控」。
