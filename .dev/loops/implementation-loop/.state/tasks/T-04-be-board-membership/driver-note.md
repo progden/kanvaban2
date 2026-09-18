@@ -1,0 +1,1 @@
+- 2026-09-19 03:36:52 驅動腳本標 blocked：T-04-be-board-membership worktree 內已判定 done，但合併回 loop/implementation 失敗，需人工介入
