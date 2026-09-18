@@ -71,3 +71,21 @@
 推論：這幾個 uc 的 `fail` 都是空的，沒有定義非成員／Viewer 呼叫時要回什麼訊息與 HTTP 狀態碼。implementation-loop T-04 這一輪修正 D-01 時，在 `BoardMembershipApplicationService` 新增 `ensureCanEdit`／沿用既有 `ensureMember`：新增卡片、設定／拖曳負責人（寫入類）拒絕非成員與 Viewer，訊息分別為「你沒有權限存取這個看板」（非成員）與「唯讀成員不能新增或編輯卡片」（Viewer），對應 HTTP 403；候選名單、依負責人查詢、成員名單（讀取類）只拒絕非成員（Viewer 可讀），訊息「你沒有權限存取這個看板」、HTTP 403。這個「讀取類允許 Viewer、寫入類排除 Viewer」的切分，以及訊息文字本身，規格都沒有逐字定義，是本輪依角色表字面意思做的推論。
 問題：上述「讀取類 uc 允許 Viewer、寫入類 uc（新增卡片／設定負責人）拒絕 Viewer」的切分是否為規格真正意圖？非成員／Viewer 被拒絕時的訊息文字與 HTTP 狀態碼是否需要另外在 spec 定義？
 選項：A. 維持現況（讀取類含 Viewer、寫入類排除 Viewer，訊息見 `BoardMembershipApplicationService.ensureMember`／`ensureCanEdit`）；B. 這幾個 uc 一律只檢查「是否為成員」，不細分 Viewer 能否寫入（等於恢復角色表對 Viewer 的限制只適用於看板結構／成員管理，不含卡片負責人）；C. 修 `spec-user-membership.md` 明確補上這幾個 uc 的 `fail` 定義（需要開 CR）。
+
+## OQ-T-04-be-board-membership-05
+
+[Level: F02-user-membership/uc-view-board-list]
+- 等級：高
+- 阻塞：否
+- 接手：無
+- 原因代碼：spec-ambiguous
+- 開立：Dev 第 2 輪（2026-09-19）
+- 狀態：待處理
+
+情況：【兩處矛盾並列】
+引用一（`spec-user-membership.md` `uc-view-board-list` post）：『列表只顯示我是 Owner 或 Member 的 `board`，不顯示我沒有權限的 `board`』
+引用二（角色表 `r-board-viewer`）：『被邀請加入 Board 的唯讀角色，可檢視看板與相關統計圖表，不能新增／編輯／移動／刪除任何內容，也不能碰成員管理、看板結構或刪除 Board』
+引用三（變更紀錄，2026-09-18）：『新增唯讀角色 `r-board-viewer`（ui-authoring-loop OQ-44 發現…）…既有 use case 的 roles 欄位是否要一併加入 `r-board-viewer`（例如各種檢視類 use case）尚未逐一檢視，見「待釐清」』
+引用二說 Viewer「可檢視看板」，引用一卻把 `uc-view-board-list` 的顯示範圍限定在 Owner／Member；引用三本身也承認這件事尚未逐一檢視過。implementation-loop T-04 這一輪修正 D-02，選擇照引用一的字面把 Viewer 排除在看板列表之外（`BoardMembershipApplicationService.listBoardsForUser` 過濾掉 `role == VIEWER`），理由是這是目前唯一逐字定案的 post；但這會讓 Viewer 沒有列表管道找到自己被邀請的看板（除非另有直接網址或其他畫面），與引用二「可檢視看板」的敘述有落差。
+問題：`uc-view-board-list` 是否也應該把 Viewer 的看板列進去？如果不列，Viewer 要怎麼「檢視看板」（引用二）？
+選項：A. 維持現況，照 post 字面排除 Viewer（見 `BoardMembershipApplicationService.listBoardsForUser`），Viewer 找看板的方式留待其他 CR／畫面決定；B. 把 Viewer 併入列表（等於認定 post 字面是 `r-board-viewer` 角色新增前的舊文字、需要補 CR 修正 `uc-view-board-list` 的 post）。
