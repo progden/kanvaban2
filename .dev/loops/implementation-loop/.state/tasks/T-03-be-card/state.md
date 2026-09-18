@@ -1,17 +1,9 @@
 # T-03-be-card state
 
-> 2026-09-19 Dev 第 2 輪 收尾，status＝`review-pending`。每輪由 `loopctl finish` 覆寫。
+> 2026-09-19 Review 第 2 輪 收尾，status＝`done`。每輪由 `loopctl finish` 覆寫。
 
-第 2 輪已修完 Review 第 1 輪退回的 D-01／D-02／D-03，等待 Review 第 2 輪。
-
-- D-01：removeSwimlane／removeStage 改成先做 board 端可刪除檢查（含新增
-  `Board.ensureValidDestinationStage`）通過才動卡片，整個標 @Transactional；
-  新增 BoardApplicationServiceTest 覆蓋情境 1、3。
-- D-02：CardSteps 補 fromStageId 斷言，BoardSteps.createTestCard 補 201 檢查。
-- D-03：開了 OQ-T-03-be-card-01（uc-add-comment fail 缺口）、
-  OQ-T-03-be-card-02（uc-add-card 等目的交會格驗證缺口），皆等級高、不阻塞。
-
-Review 請先看：`BoardApplicationService.removeSwimlane`／`removeStage` 的新順序、
-`Board.ensureValidDestinationStage`、兩則新 OQ 的引文是否對得上源頭文件。
-
-Check：./gradlew clean build --no-daemon → BUILD SUCCESSFUL，73 個測試 0 失敗。
+T-03-be-card Review 第 2 輪：附保留核准（done）。
+- 自己重跑 `./gradlew clean build --no-daemon --rerun-tasks`：BUILD SUCCESSFUL，73 測試 0 失敗。
+- D-01（刪除協調流程先檢查後動卡片＋@Transactional）、D-02（Cucumber from/to Stage 斷言與建卡 201 斷言）、D-03（兩則 OQ）皆已修好。
+- kanban-core 無 Spring/JPA import；邊界只含 card 範圍與 tasks.md 允許的 Board 刪除協調部分。
+- 保留：OQ-T-03-be-card-01、02（等級高、不阻塞，接手人工，需決定是否走 CR 補 fail）。
