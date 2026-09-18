@@ -20,7 +20,36 @@
 | 驅動腳本（`run-<name>-loop.sh`） | 自動模式的外層迴圈，全新 `claude -p` process | 環境變數、停止條件、gate 自動核准 |
 | 執行期檔案 Runtime（`runtime/`，不進版控） | `baseline`／`errors.json`／`gates/`／`logs/`／`DONE`／`state` | 只有腳本能寫；agent 只能建立 `DONE` |
 
-## 2. 關係
+## 2. 目錄結構
+
+```
+.dev/loops/{module}-loop/
+├── run-{module}-loop.sh      # 唯一留在根目錄的執行入口（自動模式驅動腳本）
+├── prompts/                      # 不變的提示詞
+│   ├── {module}-prompt.md
+│   ├── {module}-kickoff-prompt.md
+│   └── {module}-review-prompt.md
+├── .state/                       # 隨進度累積的紀錄
+│   ├── {module}-tasks.md
+│   ├── {module}-pdca.md
+│   ├── {module}-review.md
+│   ├── {module}-state.md
+│   └── {module}-open-questions.md
+├── scripts/                      # 子腳本與情境專用的腳本
+│   ├── ...
+│   └── {module}-tools.py
+└── runtime/                      # 執行期檔案，不進版控（維持原樣）
+```
+
+這個結構是把第 1 節的實體，依「會不會變」與「誰負責變」分成四類目錄，對應第 6 節的檔案權限矩陣：
+
+- **`run-{module}-loop.sh` 留在根目錄、不放進 `scripts/`**：它是外層迴圈的入口，不是被迴圈呼叫的子腳本——迴圈跑起來之後才會去呼叫 `scripts/` 底下的工具與驗證腳本、讀 `prompts/` 組 prompt、寫 `.state/`。把入口跟被呼叫者分開放，一眼就能看出「從哪裡啟動」跟「跑起來後動什麼」是兩件事，也呼應第 6 節「驅動腳本」與「輔助腳本」是不同實體、不同改動權限。
+- **`prompts/` 只放不隨進度改變的東西**：規則書、執行輪流程、審查輪流程三份提示詞，內容是「規則」不是「進度」，所以只有人工能改（第 6 節「不變規則」列）；跟 `.state/` 分開放，是為了讓「這個目錄裡的東西 loop 自己不會動」這件事光看路徑就成立，不必每次都翻檔案地圖確認。
+- **`.state/` 放每輪都會累積或覆寫的紀錄**：任務清單、PDCA、審查紀錄、狀態快照、OQ 五份都是進度的一部分，且各自有不同的「誰能改什麼欄位」規則（見第 6 節），集中放一個目錄，才能讓「這個目錄的東西 loop 可以動，但要照各自規則」跟「`prompts/` 完全不能動」形成清楚對比。
+- **`scripts/` 放子腳本與情境專用工具**：`{module}-tools.py`（共用工具，包一層 `spec-check`／`ui-check` 之類的檢查腳本）、`verify-{module}.sh`（外部驗證）等都在這裡；這些是被 `run-{module}-loop.sh` 或人工呼叫的「工具」，loop 只能執行、不能修改（第 6 節）。跟 repo 既有的 `scripts/`（真正的規格檢查腳本本體）是兩層不同東西：這裡的是 loop 專用、operate on 文件與任務清單的輔助腳本，不要跟上游那份混在一起改。
+- **`runtime/` 維持原樣、不進版控**：`baseline`、`errors.json`、`gates/`、`logs/`、`DONE`、跨輪狀態檔都在這裡，因為這些是「這一次跑起來的暫存狀態」，不是文件成果也不是規則，進版控只會造成噪音；`.gitignore` 要記得排除（見第 10 節第 6 點）。
+
+## 3. 關係
 
 | 關係 | 主詞 → 受詞 | 數量約束 |
 |---|---|---|
@@ -32,13 +61,13 @@
 | `escalates` | 高風險判斷 → OQ | 1 對 1，同時在對應文件標 `⚠️` 並指向該 OQ |
 | `records` | 執行輪 → PDCA | 每輪至少一則，只能追加 |
 
-## 3. 跑法：`run-<name>-loop.sh` 驅動的自動模式
+## 4. 跑法：`run-<name>-loop.sh` 驅動的自動模式
 
 兩個 loop 的規則書都寫了「手動模式（`/loop`）／自動模式」兩種跑法，但實際只跑過自動模式——`run-<name>-loop.sh` 驅動：每輪全新 `claude -p` process（zero context），執行輪與審查輪交替（`REVIEW_EVERY` 或遇關卡），每輪結束外部驗證腳本判定通過與否，`--dangerously-skip-permissions` 才能無人值守 commit，適合跑完整批次工作量（例如六個模組）且無人值守。手動模式只是規則書裡的備案寫法，未實際使用過，本檔不收錄。
 
 **必須先在專用分支（`loop/<name>`）執行**，main 不受影響，壞了可整支丟棄；啟動前腳本會檢查工作區乾淨、`scripts/tests` 先過。
 
-## 4. 執行模型：輪次與關卡
+## 5. 執行模型：輪次與關卡
 
 | 輪次 | 觸發 | 模型／effort | 能做什麼 | 不能做什麼 |
 |---|---|---|---|---|
@@ -48,7 +77,7 @@
 
 **不變量**：核准檔（`runtime/gates/*.approved`）的時間必須早於下一輪開始時間，否則驗證腳本視為 agent 偽造核准。
 
-## 5. 自主決策分級（兩個 loop 共同結構，內容依領域不同）
+## 6. 自主決策分級（兩個 loop 共同結構，內容依領域不同）
 
 每輪都是重新讀檔案（zero context），遇到不確定時**不停下、不等人類回答**，依風險分級處理：
 
@@ -69,7 +98,7 @@ OQ 記錄格式的不變量（沿用 `.dev/lesson-learned/與專家協作的提�
 - 選項牽涉挑既有類別（角色、Use Case、Screen 等）時要列出該類別**完整清單**，不能只列 loop 想到的兩三個。
 - 新增前先查重（既有 OQ 表、已完成產出裡的「待確認事項」），要推翻先前結論須明講「推翻 OQ-xx」並說明差異。
 
-## 6. 檔案權限矩陣（MECE，兩個 loop 都用這個三分法）
+## 7. 檔案權限矩陣（MECE，兩個 loop 都用這個三分法）
 
 | 分類 | 目錄 | 誰可以改 |
 |---|---|---|
@@ -80,7 +109,7 @@ OQ 記錄格式的不變量（沿用 `.dev/lesson-learned/與專家協作的提�
 | 產出對象 | 例如 `.dev/F0x-*/spec-*.md` 或 `ui-*.md` | loop（執行輪） |
 | 上游依據＋規範＋既有腳本 | 來源規格、`.dev/conventions/**`、`scripts/**`、`CLAUDE.md`、`design-*.md` | **不可修改**：缺什麼標 `⚠️` 回饋，不自己補；發現腳本本身有 bug 記 OQ，不修腳本 |
 
-## 7. 外部驗證與停止條件
+## 8. 外部驗證與停止條件
 
 - 每輪執行輪結束，`verify-<name>.sh` 做**外部**驗證（重新跑檢查腳本、比對 diff 範圍、核對任務清單格式），寫入 `runtime/last-verify.md`；不採信 agent 自己宣稱「完成」。
 - 停止條件（四選一，驅動腳本印出原因）：
@@ -90,7 +119,7 @@ OQ 記錄格式的不變量（沿用 `.dev/lesson-learned/與專家協作的提�
   4. 同一任務連續驗證失敗 `MAX_TASK_FAILS` 次，或連續 `MAX_NO_PROGRESS` 個執行輪沒有前進（任務狀態沒變、error 數沒下降）。
 - 人工介入後，把任務改回 `todo`（或建核准檔）即可用同一指令接續，`runtime/` 保留跨輪狀態，已完成的任務不會重做。
 
-## 8. commit 規範（兩個 loop 一致的分類方式）
+## 9. commit 規範（兩個 loop 一致的分類方式）
 
 | 改動對象 | 訊息前綴 |
 |---|---|
@@ -99,7 +128,7 @@ OQ 記錄格式的不變量（沿用 `.dev/lesson-learned/與專家協作的提�
 
 兩類改動分開 commit；只 `git add` 本輪修改的檔案；不 `git push`；`<scope>` 用小寫英文與連字號（`git-convension.md` 限制），不可用 `F0x` 編號。
 
-## 9. 禁止事項（兩個 loop 共同的紅線）
+## 10. 禁止事項（兩個 loop 共同的紅線）
 
 - 定義來源文件沒有的新概念／改寫來源文件正文、更不能改 `.dev/conventions/**`、`scripts/**`、`CLAUDE.md`。
 - 為了讓檢查腳本通過而刪減段落、亂填「不適用」掩蓋真正缺的資訊，或把「討論中」硬標成「已定案」。
@@ -108,11 +137,11 @@ OQ 記錄格式的不變量（沿用 `.dev/lesson-learned/與專家協作的提�
 - 一輪做多個任務、提前做下一個任務、自行發明或改寫任務清單裡既有任務的描述／驗收條件／依賴（只能追加新的 `D-xx`）。
 - 在背景執行指令後就結束回合（一輪必須真正跑完驗證再收尾）。
 
-## 10. 新開一個 loop 時的檢查清單
+## 11. 新開一個 loop 時的檢查清單
 
-1. 依第 6 節建三個子目錄（`prompts/`／`.state/`／`scripts/`）＋ loop 根目錄的驅動腳本＋ `runtime/`（加進 `.gitignore`）。
-2. 規則書（`*-prompt.md`）至少要有：角色、目標、檔案地圖（含「誰可以改」）、鐵則（對應該領域的 MECE 邊界）、第 5 節的自主決策分級表、commit 規範、禁止事項、收尾條件、自動模式操作手冊。
-3. 任務清單第一則規則段要講清楚：狀態值定義、挑選順序、`G*` 關卡怎麼核准、驗收條件裡機械條件怎麼被 `tools accept-check` 判定。
-4. 外部驗證腳本至少要查：檢查腳本 error／warn 數（起點 vs 現在）、diff 範圍是否只動了允許的檔案、任務清單格式是否合法、（若有）逐字引用是否與來源相符。
-5. 驅動腳本沿用 `run-spec-migration-loop.sh`／`run-ui-authoring-loop.sh` 同構：事前檢查（工具、工作區乾淨、測試先過）→ 切分支 → 記 baseline／起點 error 數 → 主迴圈（選任務→判斷 exec/review/gate→組 prompt→`timeout claude -p`→外部驗證→更新跨輪狀態→判斷停止條件）。直接以自動模式為主要跑法即可，不必額外準備手動模式的操作手冊。
+1. 依第 2 節建四個子目錄（`prompts/`／`.state/`／`scripts/`／`runtime/`）＋ loop 根目錄的驅動腳本 `run-{module}-loop.sh`。
+2. 規則書（`prompts/{module}-prompt.md`）至少要有：角色、目標、檔案地圖（含「誰可以改」）、鐵則（對應該領域的 MECE 邊界）、第 6 節的自主決策分級表、commit 規範、禁止事項、收尾條件、自動模式操作手冊。
+3. `.state/{module}-tasks.md` 第一則規則段要講清楚：狀態值定義、挑選順序、`G*` 關卡怎麼核准、驗收條件裡機械條件怎麼被 `tools accept-check` 判定。
+4. `scripts/verify-{module}.sh` 至少要查：檢查腳本 error／warn 數（起點 vs 現在）、diff 範圍是否只動了允許的檔案、任務清單格式是否合法、（若有）逐字引用是否與來源相符。
+5. `run-{module}-loop.sh` 沿用 `run-spec-migration-loop.sh`／`run-ui-authoring-loop.sh` 同構：事前檢查（工具、工作區乾淨、測試先過）→ 切分支 → 記 baseline／起點 error 數 → 主迴圈（選任務→判斷 exec/review/gate→組 prompt→`timeout claude -p`→外部驗證→更新跨輪狀態→判斷停止條件）。直接以自動模式為主要跑法即可，不必額外準備手動模式的操作手冊。
 6. 別忘了把 `runtime/`、`__pycache__/` 加進 `.gitignore`，並在規則書「檔案地圖」明講「不進版控」。
