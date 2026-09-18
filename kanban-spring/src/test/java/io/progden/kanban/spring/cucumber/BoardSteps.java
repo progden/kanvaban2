@@ -69,6 +69,8 @@ public class BoardSteps {
     private String currentSwimlaneName;
     private String currentStageName;
     private int lastCardCount;
+    private int activityCountBeforeAction;
+    private String expectedActivityKeyword;
 
     @Before
     public void resetBoardState() {
@@ -78,6 +80,8 @@ public class BoardSteps {
         lastResult = null;
         pendingName = null;
         pendingBeforeStageId = null;
+        activityCountBeforeAction = 0;
+        expectedActivityKeyword = null;
     }
 
     // ---- Given：登入與開板 ----
@@ -249,6 +253,7 @@ public class BoardSteps {
     public void whenDragSwimlaneAbove(String dragged, String anchor) throws Exception {
         UUID draggedId = resolveSwimlaneId(dragged);
         UUID anchorId = resolveSwimlaneId(anchor);
+        captureActivityBaseline("調整 Swimlane 順序");
         Map<String, String> body = Map.of("beforeId", anchorId.toString());
         lastResult = mockMvc.perform(post("/api/boards/" + currentBoardId + "/swimlanes/" + draggedId + "/move")
                         .session(session)
@@ -272,6 +277,10 @@ public class BoardSteps {
 
     @When("我確認刪除")
     public void whenConfirmDelete() throws Exception {
+        // 替身警告（見 OQ-IMPL-15）：正式 BoardController 的刪除端點沒有「已確認」輸入，
+        // 有卡片時只會回 409；這裡直接操作 fakeCardLookupPort 模擬「應用層協調完成後卡片已清空」
+        // 的結果，不是打正式端點驗證 uc-delete-swimlane post 第 2 條，等 OQ-IMPL-15 定案由對應任務
+        // 補上協調流程後，要改成透過正式端點傳「已確認」再驗證。
         UUID swimlaneId = resolveSwimlaneId(currentSwimlaneName);
         fakeCardLookupPort.removeAllCardsInSwimlane(swimlaneId);
         deleteSwimlane(swimlaneId);
@@ -306,6 +315,7 @@ public class BoardSteps {
     public void whenDragStageLeft(String dragged, String anchor) throws Exception {
         UUID draggedId = resolveStageId(dragged);
         UUID anchorId = resolveStageId(anchor);
+        captureActivityBaseline("調整 Stage 順序");
         Map<String, String> body = Map.of("beforeId", anchorId.toString());
         lastResult = mockMvc.perform(post("/api/boards/" + currentBoardId + "/stages/" + draggedId + "/move")
                         .session(session)
@@ -330,6 +340,10 @@ public class BoardSteps {
 
     @When("我選擇目的 Stage 為 {string}")
     public void whenChooseDestinationStage(String destinationName) throws Exception {
+        // 替身警告（見 OQ-IMPL-15）：正式 BoardController 的刪除端點沒有「目的 Stage」輸入，
+        // 有卡片時只會回 409；這裡直接操作 fakeCardLookupPort 模擬「應用層協調完成後卡片已轉移」
+        // 的結果，不是打正式端點驗證 uc-delete-stage post 第 2 條，等 OQ-IMPL-15 定案由對應任務
+        // 補上協調流程後，要改成透過正式端點傳目的 Stage 再驗證。
         UUID sourceId = resolveStageId(currentStageName);
         UUID destinationId = resolveStageId(destinationName);
         fakeCardLookupPort.moveAllCardsToStage(sourceId, destinationId);
@@ -345,6 +359,7 @@ public class BoardSteps {
     @When("我將 Stage {string} 的角色設定為 {word}")
     public void whenSetStageRole(String name, String role) throws Exception {
         UUID stageId = resolveStageId(name);
+        captureActivityBaseline("設定 Stage");
         Map<String, String> body = Map.of("role", role);
         lastResult = mockMvc.perform(patch("/api/boards/" + currentBoardId + "/stages/" + stageId + "/role")
                         .session(session)
@@ -381,6 +396,7 @@ public class BoardSteps {
     @Then("不應該建立新的 Swimlane")
     public void thenNoNewSwimlaneCreated() {
         assertEquals(1, loadBoardEntity().getSwimlanes().size());
+        assertEquals(activityCountBeforeAction, loadBoardEntity().getActivityLog().size());
     }
 
     @Then("看板不應該再顯示 {string}")
@@ -398,6 +414,9 @@ public class BoardSteps {
 
     @Then("該 Swimlane 與其所有卡片都應該被移除")
     public void thenSwimlaneAndCardsRemoved() {
+        // 替身警告（見 OQ-IMPL-15）：這裡只驗證 Swimlane 本身不存在，沒有驗證卡片是否真的被刪除
+        // ——Card Aggregate（T-03）尚未實作，卡片刪除是 whenConfirmDelete 直接操作
+        // fakeCardLookupPort 模擬出來的，不是正式程式碼路徑的行為，「一併被刪除」這條 post 尚未被驗證。
         assertEquals(204, lastResult.getResponse().getStatus());
         assertFalse(loadBoardEntity().getSwimlanes().stream()
                 .anyMatch(s -> s.getName().equals(currentSwimlaneName)));
@@ -406,6 +425,7 @@ public class BoardSteps {
     @Then("該 Swimlane 不應該被刪除")
     public void thenSwimlaneNotDeleted() {
         assertTrue(loadBoardEntity().getSwimlanes().stream().anyMatch(s -> s.getName().equals(currentSwimlaneName)));
+        assertEquals(activityCountBeforeAction, loadBoardEntity().getActivityLog().size());
     }
 
     // ---- Then：Stage ----
@@ -436,6 +456,7 @@ public class BoardSteps {
     @Then("該 Stage 不應該被刪除")
     public void thenStageNotDeleted() {
         assertTrue(loadBoardEntity().getStages().stream().anyMatch(s -> s.getName().equals(currentStageName)));
+        assertEquals(activityCountBeforeAction, loadBoardEntity().getActivityLog().size());
     }
 
     @Then("系統應該提示我選擇一個目的 Stage 來接收這 {int} 張卡片")
@@ -446,6 +467,9 @@ public class BoardSteps {
 
     @Then("這 {int} 張卡片應該被移動到 {string}")
     public void thenCardsMovedTo(int cardCount, String destinationName) {
+        // 替身警告（見 OQ-IMPL-15）：這裡讀的是 whenChooseDestinationStage 自己寫入
+        // fakeCardLookupPort 的結果，驗證的是測試替身自己做的事，不是正式端點／應用層的行為
+        // ——「card.stage 更新為使用者選擇的目的 stage」這條 post 尚未被正式程式碼路徑驗證。
         UUID destinationId = resolveStageId(destinationName);
         long moved = fakeCardLookupPort.findByBoardId(currentBoardId).stream()
                 .filter(c -> c.stageId().equals(destinationId))
@@ -478,16 +502,28 @@ public class BoardSteps {
     @Then("該操作應該被記錄為一筆活動紀錄，包含操作人與操作時間")
     public void thenActivityRecorded() {
         BoardJpaEntity board = loadBoardEntity();
-        ActivityRecordJpaEntity latest = board.getActivityLog().stream()
+        List<ActivityRecordJpaEntity> activityLog = board.getActivityLog();
+        assertEquals(activityCountBeforeAction + 1, activityLog.size());
+        ActivityRecordJpaEntity latest = activityLog.stream()
                 .max((a, b) -> a.getOccurredAt().compareTo(b.getOccurredAt()))
                 .orElseThrow();
         assertEquals(currentUserId, latest.getOperatorId());
         assertTrue(latest.getOccurredAt().isBefore(Instant.now().plusSeconds(1)));
+        if (expectedActivityKeyword != null) {
+            assertTrue(latest.getAction().contains(expectedActivityKeyword),
+                    "活動紀錄內容應包含「" + expectedActivityKeyword + "」，實際為：" + latest.getAction());
+        }
     }
 
     // ---- helpers ----
 
+    private void captureActivityBaseline(String expectedKeyword) {
+        activityCountBeforeAction = loadBoardEntity().getActivityLog().size();
+        expectedActivityKeyword = expectedKeyword;
+    }
+
     private void doAddSwimlane(String name) throws Exception {
+        captureActivityBaseline("新增 Swimlane");
         Map<String, String> body = Map.of("name", name);
         lastResult = mockMvc.perform(post("/api/boards/" + currentBoardId + "/swimlanes")
                         .session(session)
@@ -502,6 +538,7 @@ public class BoardSteps {
     }
 
     private void renameSwimlane(UUID swimlaneId, String newName) throws Exception {
+        captureActivityBaseline("重新命名 Swimlane");
         Map<String, String> body = Map.of("name", newName);
         lastResult = mockMvc.perform(patch("/api/boards/" + currentBoardId + "/swimlanes/" + swimlaneId)
                         .session(session)
@@ -512,6 +549,7 @@ public class BoardSteps {
     }
 
     private void deleteSwimlane(UUID swimlaneId) throws Exception {
+        captureActivityBaseline("刪除 Swimlane");
         lastResult = mockMvc.perform(delete("/api/boards/" + currentBoardId + "/swimlanes/" + swimlaneId)
                         .session(session))
                 .andReturn();
@@ -525,6 +563,7 @@ public class BoardSteps {
     }
 
     private void doAddStage(String name, UUID beforeStageId) throws Exception {
+        captureActivityBaseline("新增 Stage");
         Map<String, Object> body = new HashMap<>();
         body.put("name", name);
         body.put("beforeStageId", beforeStageId == null ? null : beforeStageId.toString());
@@ -537,6 +576,7 @@ public class BoardSteps {
     }
 
     private void renameStage(UUID stageId, String newName) throws Exception {
+        captureActivityBaseline("重新命名 Stage");
         Map<String, String> body = Map.of("name", newName);
         lastResult = mockMvc.perform(patch("/api/boards/" + currentBoardId + "/stages/" + stageId)
                         .session(session)
@@ -547,6 +587,7 @@ public class BoardSteps {
     }
 
     private void deleteStage(UUID stageId) throws Exception {
+        captureActivityBaseline("刪除 Stage");
         lastResult = mockMvc.perform(delete("/api/boards/" + currentBoardId + "/stages/" + stageId)
                         .session(session))
                 .andReturn();

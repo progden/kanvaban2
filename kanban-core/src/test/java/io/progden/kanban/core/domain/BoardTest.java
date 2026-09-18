@@ -67,10 +67,13 @@ class BoardTest {
     void should_renameSwimlane_when_swimlaneExists() {
         Board board = Board.create(operatorId, "看板", null);
         UUID swimlaneId = board.addSwimlane(operatorId, "緊急項目").getId();
+        int countBefore = board.getActivityLog().size();
 
         board.renameSwimlane(operatorId, swimlaneId, "本週優先");
 
         assertEquals("本週優先", board.getSwimlanes().get(1).getName());
+        assertEquals(countBefore + 1, board.getActivityLog().size());
+        assertEquals(operatorId, board.getActivityLog().get(board.getActivityLog().size() - 1).getOperatorId());
     }
 
     @Test
@@ -79,21 +82,27 @@ class BoardTest {
         UUID a = board.getSwimlanes().get(0).getId();
         UUID b = board.addSwimlane(operatorId, "B").getId();
         UUID c = board.addSwimlane(operatorId, "C").getId();
+        int countBefore = board.getActivityLog().size();
 
         board.moveSwimlaneBefore(operatorId, c, a);
 
         assertEquals(List.of(c, a, b), board.getSwimlanes().stream().map(Swimlane::getId).toList());
         assertEquals(List.of(1, 2, 3), board.getSwimlanes().stream().map(Swimlane::getOrder).toList());
+        assertEquals(countBefore + 1, board.getActivityLog().size());
+        assertEquals(operatorId, board.getActivityLog().get(board.getActivityLog().size() - 1).getOperatorId());
     }
 
     @Test
     void should_removeEmptySwimlane_when_notTheLastOne() {
         Board board = Board.create(operatorId, "看板", null);
         UUID swimlaneId = board.addSwimlane(operatorId, "測試泳道").getId();
+        int countBefore = board.getActivityLog().size();
 
         board.removeSwimlane(operatorId, swimlaneId);
 
         assertEquals(1, board.getSwimlanes().size());
+        assertEquals(countBefore + 1, board.getActivityLog().size());
+        assertEquals(operatorId, board.getActivityLog().get(board.getActivityLog().size() - 1).getOperatorId());
     }
 
     @Test
@@ -128,22 +137,40 @@ class BoardTest {
     @Test
     void should_addStageAtEnd_when_positionNotSpecified() {
         Board board = Board.create(operatorId, "看板", null);
+        int countBefore = board.getActivityLog().size();
 
         board.addStage(operatorId, "驗收中", null);
 
         assertEquals(List.of("待辦", "進行中", "完成", "驗收中"),
                 board.getStages().stream().map(Stage::getName).toList());
+        assertEquals(countBefore + 1, board.getActivityLog().size());
+        assertEquals(operatorId, board.getActivityLog().get(board.getActivityLog().size() - 1).getOperatorId());
     }
 
     @Test
     void should_insertStage_when_positionSpecified() {
         Board board = Board.create(operatorId, "看板", null);
         UUID doneStageId = board.getStages().get(2).getId();
+        int countBefore = board.getActivityLog().size();
 
         board.addStage(operatorId, "驗收中", doneStageId);
 
         assertEquals(List.of("待辦", "進行中", "驗收中", "完成"),
                 board.getStages().stream().map(Stage::getName).toList());
+        assertEquals(countBefore + 1, board.getActivityLog().size());
+    }
+
+    @Test
+    void should_renameStage_when_stageExists() {
+        Board board = Board.create(operatorId, "看板", null);
+        UUID todoStageId = board.getStages().get(0).getId();
+        int countBefore = board.getActivityLog().size();
+
+        board.renameStage(operatorId, todoStageId, "規劃中");
+
+        assertEquals("規劃中", board.getStages().get(0).getName());
+        assertEquals(countBefore + 1, board.getActivityLog().size());
+        assertEquals(operatorId, board.getActivityLog().get(board.getActivityLog().size() - 1).getOperatorId());
     }
 
     @Test
@@ -152,10 +179,13 @@ class BoardTest {
         UUID todo = board.getStages().get(0).getId();
         UUID doing = board.getStages().get(1).getId();
         UUID done = board.getStages().get(2).getId();
+        int countBefore = board.getActivityLog().size();
 
         board.moveStageBefore(operatorId, done, todo);
 
         assertEquals(List.of(done, todo, doing), board.getStages().stream().map(Stage::getId).toList());
+        assertEquals(countBefore + 1, board.getActivityLog().size());
+        assertEquals(operatorId, board.getActivityLog().get(board.getActivityLog().size() - 1).getOperatorId());
     }
 
     @Test
@@ -201,12 +231,15 @@ class BoardTest {
         board.refreshCardSummaries();
 
         assertThrows(DomainException.class, () -> board.removeStage(operatorId, doingStageId));
+        int countBefore = board.getActivityLog().size();
 
         port.moveCardToStage(cardId, todoStageId);
         board.refreshCardSummaries();
         board.removeStage(operatorId, doingStageId);
 
         assertEquals(List.of("待辦", "完成"), board.getStages().stream().map(Stage::getName).toList());
+        assertEquals(countBefore + 1, board.getActivityLog().size());
+        assertEquals(operatorId, board.getActivityLog().get(board.getActivityLog().size() - 1).getOperatorId());
     }
 
     @Test
@@ -214,12 +247,16 @@ class BoardTest {
         Board board = Board.create(operatorId, "看板", null);
         UUID todo = board.getStages().get(0).getId();
         UUID doing = board.getStages().get(1).getId();
+        int countBefore = board.getActivityLog().size();
 
         board.setStageRole(operatorId, todo, StageRole.START);
+        assertEquals(countBefore + 1, board.getActivityLog().size());
         board.setStageRole(operatorId, doing, StageRole.START);
 
         assertEquals(StageRole.NONE, board.getStages().get(0).getRole());
         assertEquals(StageRole.START, board.getStages().get(1).getRole());
+        assertEquals(countBefore + 2, board.getActivityLog().size());
+        assertEquals(operatorId, board.getActivityLog().get(board.getActivityLog().size() - 1).getOperatorId());
     }
 
     /**
