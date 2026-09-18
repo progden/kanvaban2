@@ -82,7 +82,8 @@ spec原文：`.dev/F02-user-membership/spec-user-membership.md` `uc-create-user`
 推論（目前程式碼已採用，非定案）：`kanban-spring/src/main/java/io/progden/kanban/spring/web/UserController.java` 的 `statusFor` 把 `uc-create-user` fail p1（`PASSWORD_TOO_LONG`）對到 400、fail p2（`USERNAME_ALREADY_EXISTS`）對到 409；`uc-login` fail p1／p2（`INVALID_CREDENTIALS`）對到 401；`GET /api/session` 未登入時回 401；`POST /api/logout` 成功回 204。這是依 REST 慣例（輸入不合法用 400、資源衝突用 409、未認證用 401、成功無回應內容用 204）做的推論，不是 spec 逐字規定。
 問題：`uc-create-user`／`uc-login`／`uc-logout`／`GET /api/session` 各情境的 HTTP 狀態碼，要不要定案為目前程式碼採用的對應？
 選項：A. 維持目前對應（400／409／401／204／401，如上）；B. 改用其他對應（例如所有拒絕情境統一回 400，由回應內容的錯誤代碼區分細節）；C. 以上皆非，另訂對應規則並記錄在 `design-user-membership.md` 或另一份技術備忘。
-狀態：待處理。
+狀態：**已解除（2026-09-18，人工決策，採選項 A）**。
+解除說明：維持 T-01 目前採用的對應。這件事跨任務、影響 T-02～T-09 之後所有 web 端點怎麼對應 `fail`，屬於結構性決策，已升級記錄為 [`ADR-001`](adr.md#adr-001usecase-fail-對應-http-狀態碼的慣例)（含完整的語意分類表：400/401/403/404/409/204），不只是這則 OQ 的解除說明。後續任務直接照 ADR-001 的表分類，不用再個別開 OQ。
 
 ## OQ-IMPL-10
 

@@ -87,3 +87,9 @@
 - 決策：附保留核准，狀態從 `review-pending` 改成 `done`，保留事項是 OQ-IMPL-09、OQ-IMPL-10 兩則都還待處理。
 - 理由：第 1 點，Review 自己重跑 `./gradlew clean build --no-daemon`，exit 0，5 份報告共 20 個測試全部通過；第 2 點，兩份 feature 檔跟 spec 的 Gherkin 程式比對後相同，fail 情境的「資料不變」有斷言；第 3 點，`kanban-core/src/main` 沒有 Spring／JPA import；第 4 點，範圍外只有 `.state/**`；第 5 點，D-01／D-02 已處理，OQ 引文逐字核對跟源頭一致，兩則都判定為高風險（不是覆蓋來源），所以附保留核准，不標 blocked；第 6 點不適用。
 - 影響：`impl/T-01-be-user` 可以合併回 `loop/implementation`，T-02／T-04／T-10 的依賴解除。沒有新的 D-xx。OQ-IMPL-09／10 定案後，如果要改狀態碼或加 username 非空檢查，要回頭修 `user` aggregate（OQ-10 選 A 要先走 CR，因為 F02 spec 已定稿）。
+
+### 2026-09-18 OQ-IMPL-09 定案，升級為 ADR-001（Planning）
+- 決策：人工決策維持 T-01 目前採用的 HTTP 狀態碼對應（選項 A），並把它從單一任務的 OQ 解除說明升級成 `adr.md` 的 ADR-001，補上完整的語意分類表（400/401/403/404/409/204），不是只記錄「T-01 用了什麼」，而是「以後所有任務都要照這張表」。
+- 理由：這件事的影響範圍不是 T-01 自己——T-02～T-09 每個 web 端點都要決定 `fail` key 對應什麼狀態碼，如果每個任務各自開 OQ 各自決定，會出現同語意不同狀態碼的不一致；升級成 ADR 讓後續 Dev／Review 有一張表可以直接查，不用每次重新討論。
+- 影響：`open-questions.md` OQ-IMPL-09 標記已解除並指向 ADR-001；`adr.md` 新增 ADR-001。
+- ADR：ADR-001。
