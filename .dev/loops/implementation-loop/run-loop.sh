@@ -87,11 +87,18 @@ set_task_status() {
 # working tree 保持乾淨（其他無人值守流程／下一次啟動的「git status 必須乾淨」
 # 前置檢查才不會被這種標記型異動卡住）。只給「不是靠合併帶進來的狀態變更」用
 # （worktree 建立失敗、撞到 MAX_TASK_ROUNDS 上限）。
+#
+# 用 MERGE_LOCK（不是 LEDGER_LOCK）序列化，因為這裡的 git add／commit 動的是主
+# repo 的 git 狀態，要跟合併步驟（也用 MERGE_LOCK）用同一把鎖，兩條並行管線才
+# 不會同時對主 repo 的 git index／working tree 下手，避免 index.lock 衝突或半個
+# commit 的狀態。
 commit_ledger_status() {
   local id="$1" new="$2" msg="$3"
-  set_task_status "$id" "$new"
-  git add "$LEDGER" > /dev/null 2>&1 || true
-  git commit -q -m "[docs](loops) $msg" > /dev/null 2>&1 || true
+  flock "$MERGE_LOCK" bash -c "
+    sed -i -E 's/^(\| $id \|.*\| )[a-z-]+( \|)/\1$new\2/' '$LEDGER' &&
+    git add '$LEDGER' &&
+    git commit -q -m '[docs](loops) $msg'
+  " > /dev/null 2>&1 || true
 }
 
 # 依賴是否全部 done 且已合併。
@@ -138,8 +145,18 @@ run_pipeline() {
   local branch="impl/$id"
   local pipe_log="$LOGS/pipeline-$id-$(date +%Y%m%d-%H%M%S).log"
 
+  # 自我修復：任務清單上這個任務還是 todo（不是 done，還沒合併），但 worktree／分支
+  # 已經存在——代表上一次執行被中斷過（人工中止、機器重開等），留下沒做完的殘留。
+  # 因為還沒核准、沒合併，這些殘留本來就不是「完成的成果」，直接清掉重新開始是安全的；
+  # 不清掉的話下面的 `git worktree add -b` 會直接失敗（worktree／分支已存在）。
+  if [ -d "$wt" ] || git show-ref --verify --quiet "refs/heads/$branch"; then
+    log "[$id] 偵測到殘留 worktree／分支（上次執行中斷），先清掉再重新開始"
+    git worktree remove "$wt" --force >> "$pipe_log" 2>&1 || true
+    flock "$MERGE_LOCK" git branch -D "$branch" >> "$pipe_log" 2>&1 || true
+  fi
+
   log "[$id] 建立 worktree $wt（分支 $branch）"
-  set_task_status "$id" doing
+  commit_ledger_status "$id" doing "$id 開始執行，狀態改為 doing"
   if ! git worktree add "$wt" -b "$branch" "$LOOP_BRANCH" >> "$pipe_log" 2>&1; then
     log "[$id] worktree 建立失敗，任務標 blocked，見 $pipe_log"
     commit_ledger_status "$id" blocked "worktree 建立失敗，$id 標 blocked"
@@ -190,12 +207,26 @@ $(cat "$REVIEW_PROMPT")" \
     status="$(awk -F'|' -v id="$id" '$0 ~ "^\\| "id" \\|" {gsub(/^ +| +$/,"",$5); print $5}' "$wt/$LEDGER" 2> /dev/null)"
 
     if [ "$status" = done ] || [ "$status" = blocked ]; then
-      log "[$id] worktree 內狀態為 $status，合併回 $LOOP_BRANCH（保留紀錄與 commit 歷史）"
+      log "[$id] worktree 內狀態為 $status，嘗試合併回 $LOOP_BRANCH（保留紀錄與 commit 歷史）"
+      # 注意：一定要真的檢查合併是否成功，不能用 "... || true" 這種吞掉整串失敗的寫法
+      # ——之前就是這樣，合併失敗（例如主 repo working tree 不乾淨）被靜默吞掉，腳本
+      # 還是照樣把 worktree 刪掉，做完的成果只留在 impl/<id> 分支上，沒進整合分支，
+      # 任務清單卻沒人知道要修正。
+      set +e
       flock "$MERGE_LOCK" bash -c "
         git switch '$LOOP_BRANCH' &&
-        git merge --no-ff '$branch' -m '[dev] 合併任務 $id（狀態：$status）' &&
-        git switch - > /dev/null 2>&1 || true
+        git merge --no-ff '$branch' -m '[dev] 合併任務 $id（狀態：$status）'
       " >> "$pipe_log" 2>&1
+      merge_status=$?
+      flock "$MERGE_LOCK" git switch - >> "$pipe_log" 2>&1
+      set -e
+
+      if [ "$merge_status" -ne 0 ]; then
+        log "[$id] 合併失敗（見 $pipe_log），worktree 與分支都保留，標 blocked 交人工處理，不視為完成。"
+        commit_ledger_status "$id" blocked "$id worktree 內已判定 $status，但合併回 $LOOP_BRANCH 失敗，需人工介入（見 $pipe_log）"
+        return
+      fi
+
       if [ "$status" = done ]; then
         git worktree remove "$wt" --force >> "$pipe_log" 2>&1 || true
         log "[$id] 完成並已移除 worktree。"
