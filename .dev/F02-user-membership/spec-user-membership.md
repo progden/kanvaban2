@@ -30,7 +30,7 @@
 | user.password | string(40) | 可留白，長度上限 40 字，字元不限制（可含英文大小寫、符號） | 密碼 |
 | board.name | string | 必填、非空 | 看板名稱，建立時指定 |
 | board.created-by | ref user | 必填 | Board 的建立者 |
-| board-membership.role | enum(Owner, Member) | | 該 `user` 對該 `board` 的角色 |
+| board-membership.role | enum(Owner, Member, Viewer) | | 該 `user` 對該 `board` 的角色 |
 | card.assignees | ref user（多值） | 只能選擇該看板的成員 | 卡片負責人，可複選 |
 
 ### 關係
@@ -53,6 +53,7 @@
 | r-system-user | 系統使用者 | 已登入系統、未涉及特定 Board 管理／成員權限差異的一般使用者：可建立帳號、登入登出、檢視自己有權限的 Board |
 | r-board-owner | Board 擁有者 | Board 的管理角色：可邀請／移除／升級成員、可新增／重新命名／刪除 Swimlane 與 Stage、可刪除 Board；同一個 Board 可以有多位 Owner，但至少要保留一位 |
 | r-board-member | Board 成員 | 被加入 Board 的人，只能新增／編輯／移動／刪除卡片與留言，不能碰成員管理、看板結構（Swimlane/Stage）或刪除 Board |
+| r-board-viewer | Board 唯讀成員 | 被邀請加入 Board 的唯讀角色，可檢視看板與相關統計圖表，不能新增／編輯／移動／刪除任何內容，也不能碰成員管理、看板結構或刪除 Board |
 
 ## Aggregate 標記說明
 
@@ -76,6 +77,7 @@
 | 2026-09-13 |  | 新增 | （原票號 F05）「卡片負責人指派」Feature 補上「拖曳成員頭像到卡片上，追加該成員為負責人」與「拖曳已經是負責人的成員頭像到卡片上，不重複新增」兩條 Scenario，供 F05 人員 Workload 表的拖曳追加負責人操作使用；本檔尚未進入開發，可直接補上，不需開 CR。「拖曳已存在負責人不重複新增」採靜默忽略、不產生活動紀錄的假設，理由：與「指派多位負責人」情境的「負責人集合」語意一致（「assignTo」追加時本來就是集合操作，重複元素不改變集合，不視為一次有效變更），對應 `spec-workload.md` Open Question 的定案 |
 | 2026-09-17 |  | 新增 | 補上遺漏的 `board.name` 欄位（ui-authoring-loop OQ-14 發現：Scenario 裡 Board 都有名稱，但名詞定義欄位表沒有對應欄位），`uc-create-board` post 同步補上「`board.name` 為指定名稱」；本檔尚未進入開發，可直接補上，不需開 CR |
 | 2026-09-17 |  | 變更 | 修正 6 個 usecase 的角色欄位筆誤（ui-authoring-loop OQ-06 發現：填了 F01 的 `r-user`，但本檔角色定義沒有這個 ID）：`uc-set-card-assignees`／`uc-list-card-assignee-candidates`／`uc-view-card-assignees`／`uc-list-cards-by-assignee`／`uc-assign-card-owner-by-drag` 改為 `r-board-member`；`uc-view-board-activity-log` 改為 `r-board-owner`、`r-board-member` 皆可檢視；本檔尚未進入開發，可直接補上，不需開 CR |
+| 2026-09-18 |  | 新增 | 新增唯讀角色 `r-board-viewer`（ui-authoring-loop OQ-44 發現：F07 `spec-canvas-layout.md` 的 `r-canvas-viewer` 找不到對應的看板角色），`board-membership.role` enum 新增 Viewer 值；本次僅新增角色定義與欄位值，既有 use case 的 roles 欄位是否要一併加入 `r-board-viewer`（例如各種檢視類 use case）尚未逐一檢視，見「待釐清」；本檔尚未進入開發，可直接補上，不需開 CR |
 | 2026-09-13 |  | 開發完成 | （原票號 F05）「kanban-core」的「Card」新增「addAssignee」（追加單一負責人，重複則靜默忽略、不產生活動紀錄），對應上述兩條 Scenario 的實作 |
 | 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-create-user`…`uc-view-board-activity-log`） |
 
@@ -824,8 +826,9 @@ Board／Swimlane／Stage／Card 既有事件的操作人記錄已隨 CR-001／CR
 - OQ-06：「Board 權限管理」Feature 的 5 個 Scenario 因 GH-01（uc 必須屬於同一 Feature）與 UC-06（每個 uc 至少一個成功 Scenario）而拆成 5 個本 Feature 專屬的新 uc，不重用「Board 建立與成員邀請」的 uc-invite-member 等既有 uc（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
 - OQ-07：「Board 權限管理」「Board 存取權限」4 個拒絕類 uc 的 roles 依 Background／Feature 標頭補上被拒絕的操作者角色，不留空（見 `.dev/loops/spec-migration-loop/spec-migration-open-questions.md`）
 - 「Label」（標籤）Aggregate 設計不在本文件範圍內，將於獨立的 Feature 文件中處理。
+- 新增 `r-board-viewer`（唯讀角色）後，既有檢視類 use case（例如 `uc-view-card-assignees`、`uc-list-cards-by-assignee`、`uc-view-board-activity-log`，以及 F03／F04／F05／F06 各檢視類 use case）目前 roles 欄位只列 `r-board-owner`／`r-board-member`，尚未逐一檢視是否也要讓 `r-board-viewer` 檢視；本次只新增角色定義本身，範圍不含這項全面盤點，待後續另行處理。
 
 ## 實作備註（留給 `design-user-membership.md`）
 
 - 刪除 Board 對使用者而言是「底下的 Swimlane、Stage、Card 全部一併刪除」（如上述 Scenario），但實作上第一版可以用**封存（archive）**取代真正的實體刪除（例如加一個「archivedAt」欄位），行為上仍表現為使用者看不到、找不到這些資料即可，不必真的刪除資料列。
-- 角色只有「Owner」／「Member」兩種，不需要唯讀 Viewer 或其他角色。
+- 2026-09-18 更新：角色新增「Viewer」唯讀角色（`r-board-viewer`，見 ui-authoring-loop OQ-44／OQ-57），此則備註原先「不需要唯讀 Viewer」的結論已不再適用。既有使用「Owner／Member 兩種」假設的程式碼／測試在實作 Viewer 前需要重新檢視。
