@@ -19,3 +19,20 @@
 推論：同一個 `uc-set-card-assignees` 底下兩條 Scenario 的活動紀錄措辭不同（新增／整批設定 vs 純粹移除），但規格沒有明講「什麼情況該用哪一種措辭」這條切換規則本身。implementation-loop T-04 實作時採用「本次異動若只有移除、沒有新增，就列出被移除者姓名；其餘情況（含新增、混合新增與移除、整批重設）一律列出異動後的完整負責人名單」這條規則，理由是這樣兩條既有 Scenario 的字面期望都能滿足，但規格沒有驗證過「同時新增與移除某成員」這類未覆蓋情境下的正確措辭。
 問題：這個「純粹移除時列被移除者姓名、其餘情況列完整名單」的措辭切換規則，是否為規格真正意圖？若不是，正確規則是什麼？
 選項：A. 維持現有實作（以「本次異動是否為純粹移除」判斷措辭，見 `CardApplicationService.applyAssignment`）；B. 一律使用「將卡片負責人設定為 <完整清單>」，不特別處理純移除情境（但這樣會與「從卡片移除其中一位負責人」這條已定案 Scenario 的逐字期望不符，除非另外修改該 Scenario）；C. 修 `spec-user-membership.md` 明確補上這條切換規則的文字定義（需要開 CR）。
+
+## OQ-T-04-be-board-membership-02
+
+[Level: F02-user-membership/uc-delete-board]
+- 等級：高
+- 阻塞：否
+- 接手：無
+- 原因代碼：spec-ambiguous
+- 開立：Dev 第 1 輪（2026-09-19）
+- 狀態：待處理
+
+情況：【推論＋所本原文】
+引用一（`spec-user-membership.md` `uc-delete-board` usecase 區塊）：『crud: {board: D, card: D, board-membership: R}』
+引用二（`uc-delete-board` post）：『"該 `board` 不再存在"』『"該 `board` 底下的所有 Swimlane、Stage 與 `card` 都一併被刪除"』
+推論：`crud` 只把 `board-membership` 標成 R（讀取），沒有標 D（刪除），implementation-loop T-04 據此推論：刪除 Board 時規格不要求真的把該 Board 底下的 `board-membership` 資料列實體刪除。實作上保留這些孤兒 `board-membership` 列，只在 `uc-view-board-list`（`BoardMembershipApplicationService.listBoardsForUser`）查詢時，用「對應的 Board 是否還存在」過濾掉，不在刪除 Board 當下清掉這些資料列本身。這條推論有風險：`crud` 沒標 D 也可能只是規格撰寫時的遺漏，而非刻意排除。
+問題：刪除 Board 後，是否應該一併刪除該 Board 底下所有 `board-membership` 資料列（即使 `uc-delete-board` 的 `crud` 只標了 R）？
+選項：A. 維持現況（保留孤兒列，查詢時過濾，見 `BoardMembershipApplicationService.listBoardsForUser`）；B. 改為刪除 Board 時一併實體刪除對應的 `board-membership` 資料列（等於認定目前 `crud` 標記是遺漏，需視情況補 CR 修正 `crud` 欄位）。
