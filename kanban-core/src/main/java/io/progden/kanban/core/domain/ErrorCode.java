@@ -29,5 +29,11 @@ public enum ErrorCode {
     /** 看板已經只剩最後一個 Stage，不可再刪除。 */
     MINIMUM_STAGE,
     /** 該 Stage 內仍有卡片，不可直接刪除。 */
-    STAGE_HAS_CARDS
+    STAGE_HAS_CARDS,
+    /** Card 標題留空。 */
+    EMPTY_CARD_TITLE,
+    /** 找不到指定的 Card。 */
+    CARD_NOT_FOUND,
+    /** Comment 內容留空。 */
+    EMPTY_COMMENT_CONTENT
 }

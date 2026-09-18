@@ -2,7 +2,9 @@ package io.progden.kanban.spring.application;
 
 import io.progden.kanban.core.domain.Board;
 import io.progden.kanban.core.domain.BoardRepository;
+import io.progden.kanban.core.domain.Card;
 import io.progden.kanban.core.domain.CardLookupPort;
+import io.progden.kanban.core.domain.CardRepository;
 import io.progden.kanban.core.domain.DomainException;
 import io.progden.kanban.core.domain.ErrorCode;
 import io.progden.kanban.core.domain.StageRole;
@@ -15,16 +17,26 @@ import org.springframework.stereotype.Service;
  * <p>{@code r-board-owner} 權限檢查（僅 Owner 可調整看板結構）依賴 F02 的 {@code BoardMembership}
  * （T-04 尚未實作），本服務目前只要求呼叫端已登入即可操作，尚未強制「僅 Owner」——見
  * implementation-loop OQ-IMPL-15，待 T-04 補上。
+ *
+ * <p>{@code removeSwimlane}／{@code removeStage} 協調 {@code uc-delete-swimlane}／
+ * {@code uc-delete-stage} post 第 2 條「卡片一併刪除／轉移」：先重新整理 {@code Board} 的卡片快取，
+ * 若呼叫端已確認（Swimlane）／指定目的 Stage（Stage），先透過 {@link CardRepository} 完成卡片的
+ * 刪除／轉移，重新整理快取後再呼叫一次 {@code Board} 的刪除方法（此時卡片數應為 0，可順利完成）；
+ * 未確認／未指定目的 Stage 時沿用既有行為，有卡片就丟出 {@code SWIMLANE_HAS_CARDS}／
+ * {@code STAGE_HAS_CARDS}（見 design-kanban-basic.md 第 7 節、implementation-loop OQ-IMPL-17）。
  */
 @Service
 public class BoardApplicationService {
 
     private final BoardRepository boardRepository;
     private final CardLookupPort cardLookupPort;
+    private final CardRepository cardRepository;
 
-    public BoardApplicationService(BoardRepository boardRepository, CardLookupPort cardLookupPort) {
+    public BoardApplicationService(
+            BoardRepository boardRepository, CardLookupPort cardLookupPort, CardRepository cardRepository) {
         this.boardRepository = boardRepository;
         this.cardLookupPort = cardLookupPort;
+        this.cardRepository = cardRepository;
     }
 
     public Board createBoard(UUID operatorId, String name) {
@@ -58,9 +70,16 @@ public class BoardApplicationService {
         return board;
     }
 
-    public Board removeSwimlane(UUID boardId, UUID operatorId, UUID swimlaneId) {
+    public Board removeSwimlane(UUID boardId, UUID operatorId, UUID swimlaneId, boolean confirmed) {
         Board board = loadBoard(boardId);
         board.refreshCardSummaries();
+        if (confirmed) {
+            for (Card card : cardRepository.findActiveBySwimlaneId(swimlaneId)) {
+                card.delete(operatorId);
+                cardRepository.save(card);
+            }
+            board.refreshCardSummaries();
+        }
         board.removeSwimlane(operatorId, swimlaneId);
         boardRepository.save(board);
         return board;
@@ -87,9 +106,16 @@ public class BoardApplicationService {
         return board;
     }
 
-    public Board removeStage(UUID boardId, UUID operatorId, UUID stageId) {
+    public Board removeStage(UUID boardId, UUID operatorId, UUID stageId, UUID destinationStageId) {
         Board board = loadBoard(boardId);
         board.refreshCardSummaries();
+        if (destinationStageId != null) {
+            for (Card card : cardRepository.findActiveByStageId(stageId)) {
+                card.moveToStage(operatorId, destinationStageId);
+                cardRepository.save(card);
+            }
+            board.refreshCardSummaries();
+        }
         board.removeStage(operatorId, stageId);
         boardRepository.save(board);
         return board;
