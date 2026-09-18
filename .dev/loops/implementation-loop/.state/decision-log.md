@@ -142,3 +142,8 @@
 - 理由：D-05、D-08 屬於「登記／更正 OQ」層級的修正，不涉及覆蓋來源或結構衝突，不需要新開 CR；D-06、D-07 屬於測試程式碼的驗證力修正，Review 已明確指出「正式程式碼不要求修改」，故 `Board`／`BoardController`／`BoardApplicationService` 本輪未變動。`./gradlew clean build --no-daemon` 全綠：`kanban-core` 28 個測試（`BoardTest` 17、`UserTest` 10、`NoSpringDependencyTest` 1，新增 1 個測試方法＋既有 7 個方法補充斷言），`kanban-spring` 4 個 feature 檔（`create-user-account` 7、`user-login-logout` 4、`swimlane-management` 7、`stage-management` 8）全過。
 - 影響：`.dev/loops/implementation-loop/.state/open-questions.md`（新增 OQ-IMPL-15，訂正 OQ-IMPL-12／13 引文）、`kanban-spring/src/test/java/.../BoardSteps.java`、`kanban-core/src/test/java/.../BoardTest.java`。不影響 `kanban-core`／`kanban-spring` 的正式程式碼（main source 未變動）。`tasks.md` 的 D-05～D-08 改為 `done`，T-02-be-board 狀態改回 `review-pending`，交由 Review 第 2 輪判定；OQ-IMPL-15 待處理、不阻塞本任務核准（性質同 OQ-IMPL-12～14，是延後給後續任務接手的協調工作）。
 - ADR：無（本輪皆為 OQ 登記／更正與測試驗證力修正，沒有新的跨任務結構性決策）。
+
+### 2026-09-18 T-02-be-board（Review，第 2 輪）
+- 決策：附保留核准，狀態從 `review-pending` 改成 `done`，不新增 D-xx。
+- 理由：第 1 點，Review 自己重跑 `./gradlew clean build --no-daemon`，exit 0，test-results 統計 55 個測試全部通過（core 28、spring 27）；第 2 點，D-06 的替身註解、D-07 的活動紀錄筆數／操作人／關鍵字斷言都逐一核對過，每個 When 都在自己的 API 呼叫前記錄基準，三個 `@fail-p1` 都驗證了訊息逐字一致、資料與活動紀錄筆數不變；第 3 點，grep 確認 core 是乾淨的；第 4 點，diff 只有 `kanban-core/**`、`kanban-spring/**`、`.state/**`；第 5 點，D-05（OQ-IMPL-15）、D-08 引文都到源頭逐字核對過，一致。OQ-IMPL-15 漏列四個替身步驟，由 Review 追加補充段落。OQ-IMPL-12～15 都是高風險或任務順序造成的延後，不是覆蓋來源，所以附保留，不標 `blocked`。
+- 影響：`impl/T-02-be-board` 可以合併回 `loop/implementation`，T-03／T-04 的依賴滿足（T-05／T-09／T-12 還要等其他依賴）。保留事項 R1：OQ-IMPL-15（刪除 Swimlane／Stage 時卡片的連帶刪除／轉移）目前沒有任務接手，要請 Planning 或人工在 T-03 開工前決定；R2～R4 分別是 OQ-IMPL-13、14、12。
