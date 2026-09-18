@@ -30,7 +30,7 @@ describe('App', () => {
       </MemoryRouter>,
     );
 
-    await waitFor(() => expect(screen.getByText(/登入畫面/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('heading', { name: '登入' })).toBeInTheDocument());
   });
 
   it('未登入時嘗試直接進入 Board 列表，會被導向登入畫面', async () => {
@@ -44,7 +44,7 @@ describe('App', () => {
       </MemoryRouter>,
     );
 
-    await waitFor(() => expect(screen.getByText(/登入畫面/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('heading', { name: '登入' })).toBeInTheDocument());
   });
 
   it('已登入時，Board 列表顯示 TopBar 帳號名稱；登出後回到登入畫面', async () => {
@@ -64,7 +64,7 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '登出' }));
 
-    await waitFor(() => expect(screen.getByText(/登入畫面/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('heading', { name: '登入' })).toBeInTheDocument());
   });
 
   it('已登入時造訪登入畫面，會被導向 Board 列表', async () => {
