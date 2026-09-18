@@ -17,7 +17,7 @@
 | ID | 產出範圍 | 依賴（需已合併） | 狀態 | 備註 |
 |---|---|---|---|---|
 | T-00-scaffold | 建立 `kanban-core`（Gradle）、`kanban-spring`（Gradle，依賴 core）、`kanban-frontend`（pnpm）三個專案骨架；CI 可跑 build/test，無業務邏輯 | 無 | done | 其餘任務皆依賴本任務；2026-09-18 Review 核准，見 `review.md` |
-| T-01-be-user | F02 `user` Aggregate Root（domain + port + application + web + persistence，不含 `board-membership`） | T-00-scaffold | review-pending | Dev 交付，見 `decision-log.md`／`state.md` |
+| T-01-be-user | F02 `user` Aggregate Root（domain + port + application + web + persistence，不含 `board-membership`） | T-00-scaffold | doing | 2026-09-18 Review 第 1 輪退回，待處理 D-01、D-02（見本檔底部「修正任務」與 `review.md`） |
 | T-02-be-board | F01 `board` Aggregate（`board`＋`swimlane`＋`stage`，含 `stage.role` START/DONE 唯一性） | T-01-be-user（`board.created-by`） | todo | |
 | T-03-be-card | F01 `card` Aggregate（`card`＋`comment`） | T-02-be-board、T-01-be-user（`card.assignees`／`comment.author`） | todo | |
 | T-04-be-board-membership | F02 `board-membership` ＋ ActivityRecord | T-02-be-board、T-01-be-user | todo | |
@@ -44,3 +44,13 @@
 | T-20-fe-feature-cr-board | `s-feature-cr-board`（Canvas item） | T-13-fe-canvas-shell、T-08-be-feature-cr-board | todo | 原標 blocked 已解除，見 OQ-IMPL-06「解除說明」；依賴改為 T-13 |
 
 （原 `T-18-fe-canvas` 已併入 `T-13-fe-canvas-shell`；原任務清單把 Canvas 排在 F01 畫面之後，方向反了——實際上幾乎所有畫面都要先有 Canvas 容器才能掛載，已於 2026-09-18 校正。）
+
+## 修正任務（D-xx，Review 退回時追加）
+
+### T-01-be-user（2026-09-18 Review 第 1 輪退回）
+
+| ID | 母任務 | 狀態 | 描述 |
+|---|---|---|---|
+| D-01 | T-01-be-user | todo | 失敗情境的 HTTP 狀態碼沒有登記成 OQ。`kanban-spring/src/main/java/io/progden/kanban/spring/web/UserController.java` 的 `statusFor` 把 `uc-create-user` fail p1 對到 400、fail p2 對到 409、`uc-login` fail p1／p2 對到 401，`GET /api/session` 未登入時回 401，`POST /api/logout` 回 204。spec 的 usecase `fail` 只寫『拒絕，不建立新的 `user`』／『拒絕，顯示錯誤訊息 "帳號或密碼錯誤"…』，沒有講狀態碼。`iteration-prompt.md` 第 5 節把『某個失敗情境該回什麼 HTTP 狀態碼』列為高風險的例子，要求『寫進交接摘要「待確認事項」＋ OQ』。這次交接卻寫『沒有待確認事項／沒有新開 OQ』，`decision-log.md` 也沒有記這個選擇。要做的事：在 `open-questions.md` 新開 OQ，依該檔頭格式（`[Level: F02-user-membership/T-01-be-user]`、情況四選一、逐字引用上面兩段 `fail` 原文），列出目前採用的對應和其他選項；`state.md` 交接摘要補上「待確認事項」。程式碼可以不改，這一項是補登記，不是要求換狀態碼。 |
+| D-02 | T-01-be-user | todo | `user.username` 的『非空』限制沒有落實，也沒有登記 OQ。`spec-user-membership.md` 欄位表逐字是『\| user.username \| string \| 非空、全系統不可重複 \| 帳號 ID，登入用 \|』，`ui-user-membership.md` 輸入欄也寫『非空、全系統不可重複，依 `uc-create-user` pre p2』。但 `uc-create-user` 的 `pre` 只有『p1: "`user.password` 長度不可超過 40 字"』『p2: "`user.username` 在系統中不可重複"』，沒有「非空」這條 pre，也沒有對應的 fail 訊息。看程式碼推論（沒實際送請求）：`User.create` 沒檢查 username，`UserJpaEntity.username` 只有 `nullable = false`，所以 `POST /api/users` 送 `username: ""` 會建立成功（201），違反欄位表的『非空』；送 `null` 則會在 JPA 寫入時丟例外，不會回 `ErrorResponse`。要做的事：在 `open-questions.md` 新開 OQ，情況用【兩處矛盾並列】或【推論＋所本原文】，逐字並列欄位表跟 usecase pre 的原文，問的是「空 username 要怎麼拒絕、訊息是什麼」。在 OQ 有結論前，不可以自己編一個錯誤訊息當成定案；如果先做暫行的防護，要在 `decision-log.md` 標成暫定，並在交接摘要「待確認事項」列出來。 |
+

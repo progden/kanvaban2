@@ -71,3 +71,8 @@
 - 理由：撰寫 Cucumber step definitions 時直接手寫 import 導致編譯失敗，逐一核對 Maven Central 下載下來的 jar 內容才找到正確套件路徑；記錄下來避免後續任務（T-02 起）重複踩同樣的坑。
 - 影響：所有需要 MockMvc／`@AutoConfigureMockMvc` 的測試都要 `testImplementation("org.springframework.boot:spring-boot-webmvc-test")`；所有需要手動操作 JSON（`ObjectMapper`／`readValue`／`writeValueAsString`）的程式碼都要 import `tools.jackson.*`，不是 `com.fasterxml.jackson.*`（`readValue`／`writeValueAsString` 拋的是 unchecked 的 `tools.jackson.core.JacksonException`，不再是 checked `IOException`）。
 - ADR：無（技術環境事實記錄，非架構決策；但影響範圍夠廣，Review 或後續任務讀 decision-log 時應留意）。
+
+### 2026-09-18 T-01-be-user（Review）
+- 決策：退回，狀態從 `review-pending` 改回 `doing`，追加 D-01（HTTP 狀態碼選擇要登記成高風險 OQ）、D-02（`user.username`『非空』限制沒落實，要登記 OQ）。
+- 理由：第 1 點，Review 自己重跑 `./gradlew clean build --no-daemon`，建置成功，5 個測試報告共 20 個測試全過；第 2 點，兩份 feature 檔和 spec 的 Gherkin `diff` 過是逐字一致，抽查的 fail-p1／fail-p2 都確實做到「拒絕、訊息、資料不變」，但欄位表的『非空』沒有對應實作，也沒有 OQ；第 3 點，`kanban-core` 沒有 Spring／JPA import；第 4 點，diff 範圍乾淨；第 5 點不通過，失敗情境的 HTTP 狀態碼正是 `iteration-prompt.md` 第 5 節點名的高風險例子，Dev 卻回報「沒有待確認事項」，OQ 登記有遺漏；第 6 點不適用。
+- 影響：不合併回 `loop/implementation`；T-02／T-04／T-10 繼續等待。下一輪 Dev 在同一個 worktree 處理 D-01、D-02，不需要改動既有業務邏輯，除非 D-02 的 OQ 另有結論。
