@@ -95,4 +95,6 @@ spec原文：`.dev/F02-user-membership/spec-user-membership.md`「名詞定義�
 問題：`user.username` 為空字串（或未提供）時，`uc-create-user` 應該如何拒絕？訊息是什麼？是否要新增一條 `pre p3`／對應 `fail p3`？
 選項：A. 補一條 `uc-create-user` 的 `pre p3`（例如「`user.username` 不可為空」）與對應 `fail p3`，訊息比照現有兩則的語氣另訂；B. 維持現狀，把欄位表的「非空」解讀為僅要求資料庫層 NOT NULL 約束，應用層不需要額外拒絕與訊息；C. 以上皆非。
 事實（程式碼推論，未實際送過請求）：`kanban-core` 的 `User.create` 目前沒有檢查 `username` 是否為空字串；`kanban-spring` 的 `UserJpaEntity.username` 只標了 `nullable = false`。因此 `POST /api/users` 送 `username: ""` 會建立成功（201），跟欄位表「非空」矛盾；送 `username: null` 會在寫入資料庫時丟出未轉換的例外，不會回 `ErrorResponse`。
+狀態：**已解除（2026-09-18，人工決策，採選項 A）**。
+解除說明：人工確認 `user.username` 本來就是「非空、不可重複」兩條規則都要——欄位表的「非空」跟 `pre` 沒有列出來是**覆蓋範圍缺口**，不是真的互相矛盾（原本情況欄標「兩處矛盾並列」是我判斷過重了：spec 裡「可留白」講的是 `user.password`，`user.username` 沒有任何一處講允許留空，兩處說法方向一致，只是 `pre`／`fail` 沒有把欄位表已經定的規則操作化，訂正這則分類）。因為 F02 已「定稿」，依 `cr-convention.md` 走了 **CR-006**：`uc-create-user` 新增 `pre.p3`「`user.username` 非空」與對應 `fail.p3`，新增 Scenario「帳號 ID（username）不可留空」（掛 `@CR-006 @uc-create-user @fail-p3`）；`kanban-core` 的 `User.create` 新增檢查（`ErrorCode.USERNAME_BLANK`，訊息「使用者名稱不能為空」，依 ADR-001 對到 400）；新增 2 個 `UserTest` 單元測試與 1 個 Cucumber Scenario（`create-user-account.feature` 現在 7 個 Scenario 全過）。`./scripts/spec-check`／`cr-check --cr CR-006`／`./gradlew clean build` 皆通過。
 狀態：待處理。在本 OQ 有結論前，`kanban-core`／`kanban-spring` 未新增任何防護或錯誤訊息，避免自行編一個訊息當成定案。

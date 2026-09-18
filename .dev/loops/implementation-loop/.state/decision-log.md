@@ -93,3 +93,9 @@
 - 理由：這件事的影響範圍不是 T-01 自己——T-02～T-09 每個 web 端點都要決定 `fail` key 對應什麼狀態碼，如果每個任務各自開 OQ 各自決定，會出現同語意不同狀態碼的不一致；升級成 ADR 讓後續 Dev／Review 有一張表可以直接查，不用每次重新討論。
 - 影響：`open-questions.md` OQ-IMPL-09 標記已解除並指向 ADR-001；`adr.md` 新增 ADR-001。
 - ADR：ADR-001。
+
+### 2026-09-18 OQ-IMPL-10 定案，走 CR-006（Planning）
+- 決策：人工決策採選項 A：`uc-create-user` 補上 `pre.p3`（`user.username` 非空）與對應 `fail.p3`，新增 Scenario；因為 F02 spec 是「定稿」狀態，正式開 **CR-006** 走完整流程（記錄→修改規格→處理完成），不是直接改。同時訂正 OQ-IMPL-10 原本「兩處矛盾並列」的分類——人工確認 spec 裡「可留白」只針對 `user.password`，`user.username` 沒有任何一處講允許留空，這其實是覆蓋範圍缺口（欄位表定了規則、`pre`/`fail` 沒操作化），不是真的矛盾。
+- 理由：F02 已定稿，依 `cr-convention.md` 第 1 節「規格已定稿，要修改 usecase 區塊（含 pre/post/fail）」一律要開 CR，即使只是補一條前置條件也算；T-01-be-user 已經合併完成，不透過 worktree pipeline 重開這個已完成的任務，改由人工直接完成規格＋程式碼的小型修正（CR-006 影響範圍小，明細直接寫在 `.dev/CR.md` 總表，沒開明細檔）。
+- 影響：`.dev/CR.md` 新增 CR-006（處理完成）；`spec-user-membership.md` 的 `uc-create-user` 與變更紀錄；`kanban-core`（`ErrorCode.USERNAME_BLANK`、`User.create` 新增檢查、2 個新單元測試）；`kanban-spring`（`UserController.statusFor` 新增對應、Cucumber feature／step）；`open-questions.md` OQ-IMPL-10 標記已解除並訂正分類。`./gradlew clean build`、`spec-check`、`cr-check --cr CR-006` 皆已重新驗證通過。
+- ADR：無（沿用既有 ADR-001 的 400 分類，不是新的跨任務決策）。
