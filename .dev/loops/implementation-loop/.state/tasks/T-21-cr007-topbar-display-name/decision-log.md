@@ -29,3 +29,33 @@
 
 - `./gradlew clean build --no-daemon`：BUILD SUCCESSFUL（含 `kanban-core`／`kanban-spring` 單元測試與 Cucumber，`user-login-logout.feature` 報告確認新 Scenario 有執行且無 failed）。
 - `kanban-frontend`：`pnpm test -- --run`（`vitest run`）：4 test files、16 tests 全過；`npx tsc -b`：exit 0；`npx oxlint`：exit 0。
+
+## 2026-09-19 Dev 第 2 輪：修正 D-01：補 GET /api/session 測試
+
+### Dev 第 2 輪：修正 D-01
+
+#### 判斷與作法
+
+- D-01 指出 CR-007 驗收標準之一『`GET /api/session` 回應帶顯示名字』沒有測試守住：把 `UserController` 裡 `session.setAttribute(SESSION_DISPLAY_NAME_ATTRIBUTE, ...)` 刪掉，原本的測試仍會全過。
+- 依 D-01「怎樣算修好」給的兩個選項，選擇擴充既有 `UserSteps.thenTopBarShowsName`（`TopBar 應該顯示我的名稱 {string}`）：在原本斷言 `POST /api/login` 回應 `displayName` 之後，額外用同一個 `MockHttpSession` 呼叫 `GET /api/session`，斷言 200 且 `displayName` 與傳入名稱相同。
+- 這個 step 同時被兩個既有 Scenario 使用（`user-login-logout.feature` 第 15 行、第 24 行），不需新增 Scenario、不需改動 Gherkin 文字：
+  - 「使用正確帳號密碼登入」（`user1`，未指定顯示名字）→ 驗證 `GET /api/session` 回傳 `displayName` 等於 `user1`（對應 `s-login` 驗收條件「未指定顯示名字的帳號，顯示的值等於 `user.username`」）。
+  - 「登入後 TopBar 顯示的是顯示名字而不是帳號 ID」（`user5`／`王小明`）→ 驗證 `GET /api/session` 回傳 `displayName` 等於 `王小明`。
+- 未改動 `kanban-core`、`spec`／`ui` 文件、Gherkin 文字；只改了 `kanban-spring/src/test/java/.../UserSteps.java` 一個檔案。
+
+#### 涵蓋範圍
+
+- `uc-login`：四個既有 Scenario 皆沿用（本輪未新增／未修改 Scenario），CR-007 新增的那則與既有「使用正確帳號密碼登入」都新增了 `GET /api/session` 的斷言。
+- 未跳過或延後任何項目。
+
+#### 待確認事項
+
+- 無新增 OQ；本輪未發現需要人類回答的規格疑義。
+
+#### Check（實際跑的指令與結果）
+
+1. `./gradlew clean build --no-daemon` → BUILD SUCCESSFUL（2m 12s）。
+2. `TEST-feature_classpath_features-user-login-logout.feature.xml`：`tests="5" failures="0" errors="0"`。
+3. 迴歸驗證：暫時刪掉 `UserController.login()` 裡 `session.setAttribute(SESSION_DISPLAY_NAME_ATTRIBUTE, ...)` 那行，重跑 `./gradlew :kanban-spring:test --tests "*Cucumber*" --no-daemon`，確認「使用正確帳號密碼登入」與「登入後 TopBar 顯示的是顯示名字而不是帳號 ID」兩個 Scenario 都會在 `UserSteps.java:215`（新增的 `GET /api/session` 斷言）失敗；確認後把 `UserController.java` 還原（`git diff` 為空）。
+4. 還原後重跑 `./gradlew clean build --no-daemon` → BUILD SUCCESSFUL（2m 12s），確認最終狀態全綠。
+5. 前端（`kanban-frontend`）本輪未改動，未重跑。
