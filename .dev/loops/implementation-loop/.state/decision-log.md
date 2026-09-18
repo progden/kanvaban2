@@ -43,3 +43,8 @@
 - 決策：核准，狀態從 `review-pending` 改成 `done`。
 - 理由：Review 自己重跑 `./gradlew clean build` 和前端的 `pnpm install --frozen-lockfile`／`pnpm run build`／`pnpm run test`，全部通過；任務不涵蓋 uc／Scenario，spec 對應不適用；`kanban-core` main source 沒有 Spring／JPA import；diff 範圍只有骨架檔案和 `.state/**`；沒有未決 OQ。`NoSpringDependencyTest` 沒檢查 JPA、前端還留著 Vite 範本樣式、repo 沒有 CI 設定，這三件事判定不影響「骨架可建置、無業務邏輯」這個驗收範圍，記在 `review.md` 給後續任務參考，沒有開 D-xx。
 - 影響：觸發 `impl/T-00-scaffold` 合併回 `loop/implementation`；T-01-be-user（以及依賴鏈上的其他任務）的依賴解除。沒有留給 Dev 的 D-xx。
+
+### 2026-09-18 T-00-scaffold（Review 重新驗證）
+- 決策：維持核准，狀態不動（仍是 `done`）。
+- 理由：上次核准後程式碼沒有異動；重跑 Gradle 建置和前端的 build／test 都通過，`kanban-core` 也仍然沒有 Spring／JPA import。
+- 影響：跟上次核准相同（等待合併回 `loop/implementation`），沒有新的 D-xx。

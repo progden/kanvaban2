@@ -21,3 +21,12 @@
 - 任務定義寫『CI 可跑 build/test』，但 repo 目前沒有任何 CI 設定（沒有 `.github/workflows`）。本輪把它解讀成「指令可以無互動執行」（上面兩組指令都可以），已達成；`scripts/verify.sh` 裡的 build/test TODO 屬於人工權限範圍，本 loop 不能改。
 
 判定：**核准**，`tasks.md` T-00-scaffold 狀態改成 `done`。
+
+## 2026-09-18 T-00-scaffold：重新驗證（維持核准）
+
+Review 被再次觸發時，任務已經是 `done`（核准 commit `ae66801`）。`git diff --stat 4e4c48a..HEAD` 扣掉 `.state/**` 之後沒有任何異動，所以只重跑建置和測試：
+- `./gradlew clean build --no-daemon`：exit 0；`kanban-core`、`kanban-spring` 的測試報告都是 tests="1" failures="0" errors="0"。
+- `kanban-frontend`：`pnpm install --frozen-lockfile` 回報 `Already up to date`，`pnpm run build` 顯示 `✓ built`，`pnpm run test` 結果為 `Tests 1 passed (1)`。
+- `grep -rn "import org.springframework\|import jakarta" kanban-core/src/main`：沒有結果。
+
+判定：維持核准，狀態仍是 `done`，不新增 D-xx。
