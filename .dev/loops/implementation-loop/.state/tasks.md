@@ -17,7 +17,7 @@
 | ID | 產出範圍 | 依賴（需已合併） | 狀態 | 備註 |
 |---|---|---|---|---|
 | T-00-scaffold | 建立 `kanban-core`（Gradle）、`kanban-spring`（Gradle，依賴 core）、`kanban-frontend`（pnpm）三個專案骨架；CI 可跑 build/test，無業務邏輯 | 無 | done | 其餘任務皆依賴本任務；2026-09-18 Review 核准，見 `review.md` |
-| T-01-be-user | F02 `user` Aggregate Root（domain + port + application + web + persistence，不含 `board-membership`） | T-00-scaffold | todo | |
+| T-01-be-user | F02 `user` Aggregate Root（domain + port + application + web + persistence，不含 `board-membership`） | T-00-scaffold | done | 2026-09-18 Review 第 2 輪**附保留核准**（見 `review.md`）：OQ-IMPL-09（HTTP 狀態碼）、OQ-IMPL-10（`user.username` 非空）仍待處理，兩者定案後可能要回頭改 `UserController`／`User.create` 與測試 |
 | T-02-be-board | F01 `board` Aggregate（`board`＋`swimlane`＋`stage`，含 `stage.role` START/DONE 唯一性） | T-01-be-user（`board.created-by`） | todo | |
 | T-03-be-card | F01 `card` Aggregate（`card`＋`comment`） | T-02-be-board、T-01-be-user（`card.assignees`／`comment.author`） | todo | |
 | T-04-be-board-membership | F02 `board-membership` ＋ ActivityRecord | T-02-be-board、T-01-be-user | todo | |
@@ -44,3 +44,13 @@
 | T-20-fe-feature-cr-board | `s-feature-cr-board`（Canvas item） | T-13-fe-canvas-shell、T-08-be-feature-cr-board | todo | 原標 blocked 已解除，見 OQ-IMPL-06「解除說明」；依賴改為 T-13 |
 
 （原 `T-18-fe-canvas` 已併入 `T-13-fe-canvas-shell`；原任務清單把 Canvas 排在 F01 畫面之後，方向反了——實際上幾乎所有畫面都要先有 Canvas 容器才能掛載，已於 2026-09-18 校正。）
+
+## 修正任務（D-xx，Review 退回時追加）
+
+### T-01-be-user（2026-09-18 Review 第 1 輪退回）
+
+| ID | 母任務 | 狀態 | 描述 |
+|---|---|---|---|
+| D-01 | T-01-be-user | done | 已在 `open-questions.md` 新開 OQ-IMPL-09，逐字引用 `uc-create-user`／`uc-login`／`uc-logout` 的 `fail`／`post` 原文，列出目前程式碼採用的 HTTP 狀態碼對應（400／409／401／204／401）與其他選項；`state.md` 已補「待確認事項」。程式碼未變動。 |
+| D-02 | T-01-be-user | done | 已在 `open-questions.md` 新開 OQ-IMPL-10（情況：兩處矛盾並列），逐字並列欄位表『非空、全系統不可重複』與 `uc-create-user` pre p2『`user.username` 在系統中不可重複』（沒有非空）、以及 `ui-user-membership.md` 資料表的對應標註，問「空 username 要怎麼拒絕、訊息是什麼」。未自行編訊息、未加防護，OQ 有結論前程式碼維持原狀，`state.md` 已補「待確認事項」。 |
+

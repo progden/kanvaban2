@@ -1,4 +1,11 @@
 spring:
   application:
     name: kanban-spring
-# 資料庫連線等設定待對應 Aggregate 任務（例如 T-02-be-board）依 persistence 需求補上。
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:kanban}
+    username: ${DB_USERNAME:kanban}
+    password: ${DB_PASSWORD:kanban}
+  jpa:
+    hibernate:
+      # 目前沒有 Flyway／DDL 腳本，暫用 Hibernate 自動更新 schema；之後補 migration 工具時要改掉（T-01 低風險技術決定，見 decision-log.md）。
+      ddl-auto: update
