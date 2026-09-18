@@ -138,3 +138,55 @@ Review 第三次被觸發，任務仍是 `done`（HEAD `b9c40a4`）。`git diff 
 - (R3) 範圍外的紀錄問題，請人工或 Planning 清理：`open-questions.md` OQ-IMPL-10 結尾還有一行過期的『狀態：待處理。…』；`tasks.md` 的 T-01-be-user 備註還寫著『OQ-IMPL-09（HTTP 狀態碼）、OQ-IMPL-10（`user.username` 非空）仍待處理』，但兩則都已經解除。
 
 判定：**附保留核准**。`tasks.md` 的 T-10-fe-shell 狀態改成 `done`，可以合併回 `loop/implementation`；不新增 D-xx。
+
+## 2026-09-18 T-11-fe-auth：退回（第 1 輪）
+
+審查對象：`impl/T-11-fe-auth` 分支 HEAD `73c07f0`（merge-base `f057f94`，程式碼 commit `e8eb7dd`）。
+
+1. **建置／測試（Review 自己重跑）**
+   - `cd kanban-frontend && pnpm install --frozen-lockfile`：`Already up to date`。
+   - `pnpm test`（`vitest run`）：`Test Files 4 passed (4)`、`Tests 16 passed (16)`，exit 0。
+   - `pnpm build`（`tsc -b && vite build`）：`✓ built in 777ms`，exit 0。
+   - `pnpm lint`（`oxlint`）：exit 0。
+   - 根目錄 `./gradlew build -q`：exit 0。
+2. **spec 對應**（對照 `ui-user-membership.md` s-login 第 51～97 行、s-signup 第 5～50 行，以及 `spec-user-membership.md` 的 `uc-create-user`／`uc-login`）
+   - 行為本身：`LoginPage` 登入失敗時只設定錯誤訊息，欄位 state 不清空、不導頁，`AuthProvider` 的登入態不變，符合 `uc-login` fail p1／p2 的『`user.username` 與 `user.password` 不變，我仍停留在登入頁面』。`SignupPage` 對空帳號（`trim() === ''`）、密碼超過 40 字在送出前擋下，訊息跟 spec Scenario 的『"使用者名稱不能為空"』『"密碼長度不可超過 40 個字"』逐字一致，也跟 `kanban-core` `User.java` 第 31～32 行的 `isBlank()` 判斷一致（空白字串兩邊都拒絕）。顯示名字留白時送空字串，由後端 `User.java` 第 41 行補成 `username`，符合 post『`user.display-name` 未指定時預設為 `user.username`』。
+   - 抽查 @fail-p2（`uc-login`，密碼錯誤）：測試斷言訊息『帳號或密碼錯誤』、兩個欄位值保留、「登入」標題還在，成立。後端 `UserApplicationService.java` 第 31、33 行的訊息跟 spec 逐字一致。
+   - **缺漏 1（D-05）**：`ui-user-membership.md` 第 45 行寫『帳號 ID 與系統中既有帳號重複時確認建立帳號，輸入內容保留、顯示訊息，且不觸發 `uc-create-user`』，實作仍會打 `POST /api/users`。Dev 在 decision-log 自己把它解讀成「措辭疊加」並歸為低風險，但這是在詮釋驗收條件的字面意思。依 `iteration-prompt.md` 第 58～59 行，這屬於高風險，要開 OQ，不能自己定案。【我的推論】Dev 的解讀可能是對的，因為前端沒有全體帳號清單，但這要人工確認，不是 Dev 自己說了算。
+   - **缺漏 2（D-06）**：第 91、92 行驗收條件的『TopBar 不顯示帳號名稱』兩個失敗測試都沒有斷言；fail-p1（帳號不存在）的測試也沒有斷言欄位保留、停留本畫面。
+   - **缺漏 3（D-07）**：第 43 行『畫面維持顯示』在「帳號 ID 為空」的測試裡沒有斷言。
+   - 其他驗收條件（登入成功後 TopBar 顯示名稱並導向 Board 列表、前往建立帳號不打 API、密碼留白建立成功並導向 `s-login`、密碼超過 40 字不打 API）都有測試覆蓋，行為也相符。
+3. **kanban-core 純度**：本任務沒動 `kanban-core`；`grep -rn "import org.springframework\|import jakarta\|@Entity\|@Autowired" kanban-core/src/main` 沒有結果。
+4. **任務邊界**：`git diff --stat f057f94..HEAD` 共 9 個檔案，4 個在 `.state/**`，5 個在 `kanban-frontend/src/**`（`pages/LoginPage*`、`pages/SignupPage*`、`App.test.tsx`）。`App.test.tsx` 屬於 T-10 的範圍，但只把選取器從『登入畫面』改成 heading 選取器，因為本任務取代了佔位元件，行為斷言沒變。我接受這個改動。沒動 `.dev/conventions/**`、`scripts/**`、spec／ui／design 本體、`CLAUDE.md`、後端。
+5. **待確認事項／OQ**：OQ-IMPL-12（設計稿無法存取）已登記在 `open-questions.md`，引文我到 `dev-prompt.md`、`planning-prompt.md` 第 19～20 行核對過，跟原文一致；屬於環境限制，不是覆蓋來源。D-05 所說的解讀問題沒有登記成 OQ，見上面第 2 點。
+6. **前端設計稿**：`planning-prompt.md` 第 19～20 行列出 `Login.dc.html`／`Signup.dc.html`，Dev 看不到實際設計稿，也沒有自己發明樣式：用的是純語意 HTML，在檔頭註明「待對照設計稿」，並登記了 OQ-IMPL-12，符合 `dev-prompt.md` 的規則。「需確認？」欄：s-signup 的「確認建立帳號」寫『是（本畫面即確認…）』，按鈕文字就是「確認建立帳號」，符合；s-login 兩個操作都是「否」，符合。「失敗時」欄：用 `role="alert"` 顯示訊息、輸入內容保留，符合。
+
+判定：**退回**。`tasks.md` 的 T-11-fe-auth 狀態改回 `doing`，追加 D-05～D-07（第 1 輪退回，`MAX_TASK_ROUNDS=6`）。D-05 只要求登記 OQ，程式碼不改；D-06、D-07 只要求補測試斷言，產品程式碼預期不用改。
+
+## 2026-09-18 T-11-fe-auth：附保留核准（第 2 輪）
+
+審查對象：`impl/T-11-fe-auth` 分支 HEAD `4b42e68`（merge-base `f057f94`；程式碼 commit `e8eb7dd`，本輪測試補強 commit `224ce6d`）。
+
+1. **建置／測試（Review 自己重跑）**
+   - `cd kanban-frontend && pnpm install --frozen-lockfile`：`Already up to date`。
+   - `pnpm test`（`vitest run`）：`Test Files 4 passed (4)`、`Tests 16 passed (16)`，exit 0。
+   - `pnpm build`（`tsc -b && vite build`）：`✓ built in 772ms`，exit 0。
+   - `pnpm lint`（`oxlint`）：exit 0。
+   - 根目錄 `./gradlew build -q --no-daemon`：exit 0。
+2. **spec 對應**：`git diff 3dcb103..HEAD -- kanban-frontend` 只改了兩個測試檔，`LoginPage.tsx`／`SignupPage.tsx` 沒動，第 1 輪對產品行為的結論仍然成立。
+   - D-06：`LoginPage.test.tsx` 的 fail-p2（密碼錯誤）測試加上 `queryByRole('button', { name: '登出' })` 不存在；fail-p1（帳號不存在）測試加上兩個欄位值保留、「登入」標題還在、「登出」按鈕不存在。我核對過這個斷言有效：測試是用 `MemoryRouter` 掛整個 `App`，`AppShell.tsx` 第 12～14 行同時顯示 `username` 和「登出」按鈕，而且只掛在 `ProtectedRoute` 底下（`App.tsx` 第 32～33 行）。所以「登出」按鈕不存在，等於 TopBar 沒有渲染，也就不會顯示帳號名稱。這對應 `ui-user-membership.md` 第 91、92 行『帳號 ID 與密碼欄位保留、顯示訊息、停留本畫面，且 TopBar 不顯示帳號名稱』。
+   - 抽查 @fail-p1（`uc-login`，帳號不存在）：mock 後端回 401、訊息『帳號或密碼錯誤』。測試斷言 alert 文字、欄位保留、停留登入頁、沒有進入登入態，都成立。
+   - D-07：`SignupPage.test.tsx` 的空帳號測試加上「建立帳號」標題還在，對應第 43 行『畫面維持顯示』。這個測試原本就有斷言『不觸發 `uc-create-user`』（沒有呼叫 `/api/users`）。
+3. **kanban-core 純度**：本任務沒動 `kanban-core`；`grep -rn "import org.springframework\|import jakarta\|@Entity\|@Autowired" kanban-core/src/main` 沒有結果（exit 1）。
+4. **任務邊界**：`git diff --stat f057f94..HEAD` 共 10 個檔案，5 個在 `.state/**`，5 個在 `kanban-frontend/src/**`（`pages/LoginPage*`、`pages/SignupPage*`、`App.test.tsx`；`App.test.tsx` 第 1 輪已經接受）。沒動 `.dev/conventions/**`、`scripts/**`、spec／ui／design 本體、`CLAUDE.md`、後端。
+5. **待確認事項／OQ**：
+   - D-05：OQ-IMPL-13 已登記。五段引文我到源頭逐字核對過，都一致。「情況」段裡有一句推論沒有標成推論，我已在 OQ 底下追加「Review 補充」標明（Dev 寫的內容沒改）。
+   - 等級判斷（這是我的推論）：OQ-IMPL-13 是 ui 檔跟 spec 之間的文字矛盾，屬於 `iteration-prompt.md` 第 5 節的「高風險」（『spec 的 `pre`／`post`／Scenario 沒講清楚該怎麼實作』），不屬於「覆蓋來源」（『spec 定案內容跟現有程式碼結構衝突』）。目前程式碼照 spec 的 `pre p2`／`fail p2`／Scenario 實作，跟其他已合併程式碼沒有結構衝突。定案為 B 的話程式碼不用改；定案為 A 的話要先走 CR 新增查重 usecase，屬於未來的追加工作，不會推翻本任務。所以不標 `blocked`，只能附保留核准。
+   - OQ-IMPL-12（設計稿無法存取）屬於環境限制，第 1 輪已經核對過。
+6. **前端設計稿**：同第 1 輪，沒有自己發明樣式（純語意 HTML，已標「待對照設計稿」）；「需確認？」「失敗時」欄都有落實。
+
+**保留事項（核准附帶條件）**：
+- (R1) OQ-IMPL-13 待處理：帳號重複時目前仍送出 `POST /api/users`，由後端拒絕。定案為 A 的話，要另開 CR，並回頭改 `SignupPage.tsx` 與 `SignupPage.test.tsx`。
+- (R2) OQ-IMPL-12 待處理：版面還沒對照 `Login.dc.html`／`Signup.dc.html`，之後可能要調整樣式（不影響已驗證的行為）。
+
+判定：**附保留核准**。`tasks.md` 的 T-11-fe-auth 狀態改成 `done`，可以合併回 `loop/implementation`；不新增 D-xx。

@@ -111,3 +111,27 @@ spec原文：`.dev/F02-user-membership/ui-user-membership.md` 第 78 行操作�
 選項：A. 維持目前對應（`user.username`），因為 ui 檔用詞是「帳號名稱」而非「顯示名字」；B. 改為 `user.display-name`，因為欄位表明講 `user.display-name` 才是「看板上顯示用」，TopBar 屬於全域顯示情境，且需同步修改 `SessionResponse`／`UserResponse`；C. 以上皆非。
 狀態：待處理。在本 OQ 有結論前，TopBar 維持顯示 `user.username`，不自行改成 `user.display-name`。
 Review 補充（2026-09-18，T-10-fe-shell Review 第 2 輪追加，上面 Dev 寫的內容未改）：上面的引文只有 ui 檔與欄位表，漏了 spec 本身對 TopBar 的兩處描述，補上供人工判斷。`.dev/F02-user-membership/spec-user-membership.md` 第 189 行 `uc-login` post 逐字：『"登入成功，TopBar 顯示該 `user` 的帳號名稱"』；同檔第 219～223 行 Scenario「使用正確帳號密碼登入」逐字：『Given 系統中存在帳號 "user1"，密碼為 "correct-password"』…『And TopBar 應該顯示我的名稱 "user1"』。【Review 的推論】這個 Scenario 沒有指定 `user.display-name`，依欄位表『未指定時預設等於 `user.username`』，兩個欄位的值都是 "user1"，所以這個 Scenario 無法區分選項 A 和 B；spec 的「帳號名稱」跟 ui 檔第 78 行用詞一樣，問題本身不變。
+
+## OQ-IMPL-12
+
+[Level: F02-user-membership/T-11-fe-auth]
+情況：【引用原文】
+`dev-prompt.md`「你要做什麼」第 2 點逐字：『前端任務：依 `ui-*.md` 操作表（觸發的 `uc-xxx`、需確認？、失敗時呈現方式）與驗收條件實作互動；版面依 `planning-prompt.md` 附的設計稿畫面清單，若手上看不到實際設計稿內容，先讀 `.state/tasks.md` 該任務列有沒有附更細的版面摘要，沒有就記 OQ、用最簡潔可用的版面先做，標記「待對照設計稿」，不可以自己發明視覺風格當作定案。』
+`planning-prompt.md`「前端設計稿畫面清單」逐字列出『`Login.dc.html` | F02：登入』『`Signup.dc.html` | F02：註冊』，來源標注『來源：claude.ai Design Artifact，35 個檔案，擷取自 `project/*.dc.html`』。
+`.state/tasks.md` T-11-fe-auth 該列「備註」欄逐字為空（僅 `| T-11-fe-auth | \`s-login\`、\`s-signup\` | T-10-fe-shell | doing | |`），沒有附加版面摘要。
+問題：Dev sub agent（`-p` 一次性行程，無法開啟 claude.ai Design 類型 Artifact）看不到 `Login.dc.html`／`Signup.dc.html` 實際版面，依規則已用 `ui-user-membership.md` s-login／s-signup 的操作表、資料表、驗收條件實作純語意版面（標準 HTML 表單元素：帳號 ID／密碼／顯示名字輸入框、送出按鈕、連結、錯誤訊息 `role="alert"`），未對照設計稿視覺風格（配色、間距、元件庫）。
+狀態：待處理。本任務程式碼（`LoginPage.tsx`／`SignupPage.tsx`）標記「待對照設計稿」，之後若有人工或有設計稿存取權的 agent 對照 `Login.dc.html`／`Signup.dc.html`，可能需要回頭調整版面與樣式（不影響已驗證的操作／驗收條件行為）。
+
+## OQ-IMPL-13
+
+[Level: F02-user-membership/T-11-fe-auth]
+情況：【兩處矛盾並列】
+`.dev/F02-user-membership/ui-user-membership.md` 第 45 行驗收條件逐字：『帳號 ID 與系統中既有帳號重複時確認建立帳號，輸入內容保留、顯示訊息，且不觸發 `uc-create-user`』。
+`.dev/conventions/ui-convention.md` 第 150 行逐字：『驗收條件是元件測試與 E2E 的來源，斷言主詞只能是畫面元素或「是否觸發 `uc-xxx`」，不寫領域狀態（那是 spec Scenario 的事）』——依此，第 45 行「不觸發 `uc-create-user`」是這份 ui 檔合法、且應被當真的斷言主詞，不是隨手帶過的措辭。
+`.dev/F02-user-membership/spec-user-membership.md` 第 97 行 `uc-create-user` 的 `pre` 逐字：『p2: "`user.username` 在系統中不可重複"』；第 104 行 `fail` 逐字：『p2: "拒絕，不建立新的 `user`"』；第 143～147 行 Scenario「帳號 ID（username）不可重複」逐字：『Given 系統中已存在帳號 "user1"』『When 我嘗試建立另一個帳號 "user1"』『Then 系統應該顯示錯誤訊息 "此帳號已被使用"』『And 不應該建立新的帳號』——這個 Scenario 描述 `uc-create-user` 被觸發、系統依 `pre p2` 判斷、依 `fail p2` 拒絕的流程，前提是請求已送達（`uc-create-user` 有被觸發），系統才能判斷「在系統中不可重複」。
+問題：`ui-user-membership.md` 第 45 行「且不觸發 `uc-create-user`」與 `spec-user-membership.md` 的 `uc-create-user` `pre p2`／`fail p2`／對應 Scenario 兩者矛盾——前者要求前端在帳號重複時完全不送出建立帳號請求（即不觸發該 usecase），後者的設計前提是請求已送達、由後端依 `pre p2` 判斷重複並依 `fail p2` 拒絕。前端目前沒有全體帳號清單，spec 也沒有另一個查重用的 usecase／API，若要滿足「不觸發 `uc-create-user`」，前端要如何在送出前就判斷帳號 ID 重複？
+選項：A. 保留 A（依 ui 檔第 45 行字面）——前端必須在送出前自行判斷重複並擋下，代表要新增一個查重用的 API／usecase（spec 目前未定義），屬於新增行為，需要 CR；B. 保留 B（依 spec 的 `pre p2`／`fail p2`／Scenario）——ui 檔第 45 行「不觸發 `uc-create-user`」是措辭疊加或誤寫，實際行為應是「送出後由後端依 `pre p2` 拒絕，前端顯示 `fail p2` 對應訊息、保留輸入」，ui 檔這行文字要修正（需經 `ui-authoring-loop` 或人工改 ui 檔）；C. 缺區分條件（以上皆非，需要人工另外定義判斷方式）。
+事實（程式碼現狀，非定案）：目前 `SignupPage.tsx` 在帳號重複時仍會呼叫 `POST /api/users`（也就是觸發 `uc-create-user`），由後端依 `fail p2` 拒絕（409，訊息「此帳號已被使用」），前端收到後保留輸入、顯示訊息；`SignupPage.test.tsx`「帳號 ID 與系統中既有帳號重複」的測試沒有斷言「不觸發 `uc-create-user`」，跟目前實際行為（會觸發）一致，但跟 ui 檔第 45 行字面矛盾。
+狀態：待處理。在本 OQ 有結論前，程式碼維持現狀（帳號重複時仍送出 `POST /api/users`，由後端拒絕），不自行在前端加一個查重機制去符合 ui 檔第 45 行字面。
+
+Review 補充（2026-09-18，T-11-fe-auth Review 第 2 輪追加，上面 Dev 寫的內容未改）：上面五段引文我已到源頭逐字核對，`ui-user-membership.md` 第 45 行、`ui-convention.md` 第 150 行、`spec-user-membership.md` 第 97、104、143～147 行都跟原文一致。有一處需要標清楚：「情況」段最後一句『這個 Scenario 描述 `uc-create-user` 被觸發、系統依 `pre p2` 判斷、依 `fail p2` 拒絕的流程，前提是請求已送達…』是**推論**，不是 spec 原文。Scenario 本身只寫『When 我嘗試建立另一個帳號 "user1"』，沒寫前端是否送出請求。這個推論不影響問題本身，所以只在這裡補註，不再退回。

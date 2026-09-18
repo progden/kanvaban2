@@ -122,3 +122,25 @@
 - 決策：附保留核准，狀態從 `review-pending` 改成 `done`，不新增 D-xx。
 - 理由：第 1 點，Review 自己重跑 `pnpm install --frozen-lockfile`、`pnpm run test`（2 個檔案、7 個測試全過）、`pnpm run build`、`pnpm run lint`（exit 0），以及 `./gradlew clean build --no-daemon -q`（exit 0）；第 2、6 點，程式碼跟第 1 輪相同，結論不變；第 3 點，grep 確認 core 是乾淨的；第 4 點，diff 只有 `kanban-frontend/**` 和 `.state/**`；第 5 點，D-03（OQ-IMPL-11）、D-04（OQ-IMPL-09 紀錄更正）都已處理，引文逐字核對一致，OQ-IMPL-11 漏引 spec `uc-login` post 與 Scenario，由 Review 追加補充段落，問題本身不變。OQ-IMPL-11 是高風險、不是覆蓋來源，所以附保留，不標 `blocked`。
 - 影響：`impl/T-10-fe-shell` 可以合併回 `loop/implementation`，T-11-fe-auth 的依賴滿足；T-12 仍要等 T-02、T-04。OQ-IMPL-11 定案前 TopBar 維持顯示 `user.username`，選 `display-name` 時要回頭改前端和 T-01 的 `SessionResponse`。
+
+### 2026-09-18 T-11-fe-auth（Dev）
+- 決策：實作 `s-login`（`LoginPage.tsx`）、`s-signup`（`SignupPage.tsx`）表單本體，取代 T-10 留下的佔位元件；沿用 T-10 已建好的 `AuthProvider`／`useAuth`／`ApiError`／`authApi`，不修改這些檔案。`s-signup` 對「帳號 ID 留空」「密碼超過 40 字」兩個依驗收條件明講「不觸發 `uc-create-user`」的失敗情境，採前端送出前先擋（不打 API），訊息沿用 `uc-create-user` fail-p3／fail-p1 原文（分別跟 `kanban-core` `User.create` 的 `ErrorCode.USERNAME_BLANK`／`PASSWORD_TOO_LONG` 訊息逐字核對一致）；「帳號重複」情境無法只靠前端已知資料判斷，仍送出 API，由 `ApiError.message` 顯示後端回傳訊息（跟 `fail-p2` 訊息「此帳號已被使用」一致）。版面看不到 `Login.dc.html`／`Signup.dc.html` 設計稿內容，依 `dev-prompt.md` 規則記 OQ-IMPL-12，先用純語意 HTML 表單（無額外視覺樣式）並標記「待對照設計稿」。
+- 理由：驗收條件文字對三個 `uc-create-user` 失敗情境都寫「不觸發 `uc-create-user`」，但「帳號重複」在技術上只有伺服器知道（前端沒有全體帳號清單），判斷為 ui 檔對三個情境沿用同一句話造成的措辭疊加、不是真的要求前端做不到的事，屬於「技術實作細節不違反 spec」的低風險決定，不另開 OQ；「留空」「密碼過長」兩者前端資料本來就有，直接擋下可以避免不必要的來回並仍完整符合驗收條件字面（不觸發 API）。錯誤訊息optional 全部沿用 spec／後端已定案的逐字文案，不自創新文案。
+- 影響：新增／修改 `kanban-frontend/src/pages/LoginPage.tsx`、`SignupPage.tsx`、`LoginPage.test.tsx`（新增）、`SignupPage.test.tsx`（新增）；因為 `App.test.tsx`（T-10 範圍）用文字比對舊佔位內容『登入畫面』，這輪內容替換後改用 `getByRole('heading', { name: '登入' })` 比對，行為斷言（登入態、TopBar、導向）未變動，只改選取器。`pnpm run test`（16 個測試全過）、`pnpm run lint`、`pnpm run build` 皆通過。新增 OQ-IMPL-12（設計稿無法存取）。
+- ADR：無（沿用既有 `ApiError`／`ADR-001` 的錯誤處理慣例，未新增跨任務決策）。
+
+### 2026-09-18 T-11-fe-auth（Review 第 1 輪）
+- 決策：退回，狀態從 `review-pending` 改回 `doing`，追加 D-05～D-07。
+- 理由：第 1 點，Review 自己重跑 `pnpm test`（4 個檔案、16 個測試全過）、`pnpm build`、`pnpm lint`，以及 `./gradlew build -q`，全部 exit 0；第 3、4、6 點都通過。第 2、5 點沒過：(a) `ui-user-membership.md` 第 45 行寫「帳號重複時…不觸發 `uc-create-user`」，Dev 自己把它解讀為措辭疊加並歸為低風險，沒有開 OQ，依 `iteration-prompt.md` 第 5 節這屬於高風險（D-05）；(b) s-login 第 91、92 行驗收條件的「TopBar 不顯示帳號名稱」，以及 fail-p1 的欄位保留／停留本畫面，都沒有測試斷言（D-06）；(c) s-signup 第 43 行的「畫面維持顯示」沒有斷言（D-07）。
+- 影響：`impl/T-11-fe-auth` 這輪不合併；下一輪 Dev 處理 D-05～D-07。產品程式碼預期不用改，只要登記 OQ、補測試斷言。
+
+### 2026-09-18 T-11-fe-auth（Dev，第 2 輪，D-05～D-07）
+- 決策：D-05 登記 OQ-IMPL-13（情況：兩處矛盾並列），逐字並列 `ui-user-membership.md` 第 45 行『…且不觸發 `uc-create-user`』與 `spec-user-membership.md` 第 97、104、143～147 行 `uc-create-user` 的 `pre p2`／`fail p2`／對應 Scenario，並引 `ui-convention.md` 第 150 行說明第 45 行的斷言主詞是合法的、要當真；OQ 定案前程式碼維持現狀（帳號重複時仍送出 `POST /api/users`，由後端依 `fail p2` 拒絕），不自行在前端加查重機制。D-06 在 `LoginPage.test.tsx` 補上：wrong-password（`fail-p2`）測試新增『TopBar 不顯示帳號名稱』斷言（`queryByRole('button', { name: '登出' })` 為 `null`，因為 `AppShell` 只掛在 `ProtectedRoute` 之下，登入失敗不會進入該路由，這個查詢本身就等於「TopBar 沒有渲染」）；帳號不存在（`fail-p1`）測試補上欄位保留（帳號 ID／密碼值不變）、停留本畫面（`登入` 標題仍在）、TopBar 不顯示帳號名稱三個斷言。D-07 在 `SignupPage.test.tsx`「帳號 ID 為空」測試補上『建立帳號』標題仍在的斷言，對應 `ui-user-membership.md` 第 43 行「畫面維持顯示」。
+- 理由：D-05 依 `iteration-prompt.md` 第 5 節，spec 的驗收條件字面與 `pre`／`fail`／Scenario 衝突屬於高風險，不可以自行判定「措辭疊加」就略過，要開 OQ 讓人工選擇 A（前端加查重、需 CR）或 B（修正 ui 檔第 45 行）；D-06／D-07 都是 Review 指出既有測試沒有覆蓋到已定案的驗收條件字面，補斷言即可，不涉及產品行為判斷，不需要另開 OQ。
+- 影響：`kanban-frontend/src/pages/LoginPage.test.tsx`（2 個測試新增共 5 個斷言）、`SignupPage.test.tsx`（1 個測試新增 1 個斷言）；`open-questions.md` 新增 OQ-IMPL-13。`kanban-frontend/src/pages/LoginPage.tsx`、`SignupPage.tsx` 產品程式碼未變動。`pnpm test` 4 個檔案、16 個測試全過（新增斷言未改變測試數量，只加斷言）。
+- ADR：無（沿用既有結構，未新增跨任務決策）。
+
+### 2026-09-18 T-11-fe-auth（Review，第 2 輪）
+- 決策：附保留核准，狀態從 `review-pending` 改成 `done`，不新增 D-xx。
+- 理由：第 1 點，Review 自己重跑 `pnpm test`（4 個檔案、16 個測試全過）、`pnpm build`、`pnpm lint`，以及 `./gradlew build -q --no-daemon`，全部 exit 0。第 2 點，D-06／D-07 補的斷言對應 `ui-user-membership.md` 第 43、91、92 行；「登出」按鈕不存在的斷言，因為測試掛整個 `App`、`AppShell` 只在 `ProtectedRoute` 底下，確實等於 TopBar 沒有渲染。第 3、4、6 點通過。第 5 點，D-05 的 OQ-IMPL-13 已登記，引文逐字相符。我判斷它是高風險，不是覆蓋來源（ui 檔跟 spec 的文字矛盾，程式碼照 spec 實作，沒有結構衝突），所以附保留核准，不標 `blocked`。
+- 影響：`impl/T-11-fe-auth` 可以合併回 `loop/implementation`。保留事項 R1（OQ-IMPL-13，定案為 A 時要走 CR，並回頭改 `SignupPage.tsx`／測試）、R2（OQ-IMPL-12，版面待對照設計稿）。`open-questions.md` 的 OQ-IMPL-13 底下追加了一段 Review 補充，標明其中一句是推論。

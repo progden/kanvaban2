@@ -32,7 +32,7 @@
 | ID | 產出範圍 | 依賴（需已合併） | 狀態 | 備註 |
 |---|---|---|---|---|
 | T-10-fe-shell | 前端 app shell（路由、API client、登入態管理） | T-00-scaffold、T-01-be-user | done | 2026-09-18 Review 第 2 輪**附保留核准**（見 `review.md`）：D-03、D-04 已處理；OQ-IMPL-11（TopBar 顯示 `user.username` 還是 `user.display-name`）仍待處理，定案為 `display-name` 時要回頭改 `AppShell.tsx` 與 T-01 的 `SessionResponse`。 |
-| T-11-fe-auth | `s-login`、`s-signup` | T-10-fe-shell | doing | |
+| T-11-fe-auth | `s-login`、`s-signup` | T-10-fe-shell | done | 2026-09-18 Review 第 2 輪**附保留核准**（見 `review.md`）：D-05～D-07 已處理；OQ-IMPL-12（設計稿無法存取，版面待對照 `Login.dc.html`／`Signup.dc.html`）、OQ-IMPL-13（`ui-user-membership.md` 第 45 行「不觸發 `uc-create-user`」與 spec `pre p2`／`fail p2`／Scenario 矛盾）仍待處理；OQ-IMPL-13 若定案為 A（前端查重），要另開 CR 新增查重 usecase，並回頭改 `SignupPage.tsx` 與測試 |
 | T-12-fe-board-list | `s-board-list`、`s-board-create-dialog`、`s-board-delete-dialog` | T-10-fe-shell、T-02-be-board、T-04-be-board-membership | todo | 選定 Board 後導向 T-13 的 Canvas，不是導向 T-14 |
 | T-13-fe-canvas-shell | `s-canvas`：F07 item 放置容器（開啟看板時初始化＋移動／調整大小／排層序／錨定 canvas／screen／Viewport 平移縮放記憶／批次操作），提供給其他前端任務掛載自己的 item 內容；`.dev/F07-canvas-layout/ui-canvas-layout.md` 已存在且操作表／資料表完整，直接依它實作 | T-12-fe-board-list、T-09-be-canvas-layout | todo | 基礎設施型任務，T-14～T-20 都依賴它才能把畫面掛上 Canvas；2026-09-18 隨 OQ-IMPL-07／08 定案（見 T-09 備註），`item.component`／canvas 建立時機／角色對應三件事都已寫進 `spec-canvas-layout.md`（草稿，不需 CR）；`ui-canvas-layout.md` 本身仍是「討論中」狀態（待確認事項可能還有殘留，Dev 動工前重讀一次確認），但不再是本任務動工的阻礙 |
 | T-14-fe-board-item | F01 內容作為 Canvas item：`s-board`、`s-swimlane-list`、`s-swimlane-delete-dialog`、`s-stage-list`、`s-stage-delete-dialog`、`s-card-add-dialog`、`s-card-detail`、`s-card-delete-dialog`、`s-card-assignee-picker`（F02，負責人選取，從 `s-card-detail` 進入） | T-13-fe-canvas-shell、T-03-be-card | todo | |
@@ -61,3 +61,10 @@
 | D-03 | T-10-fe-shell | done | 已在 `open-questions.md` 新開 OQ-IMPL-11（情況：推論＋所本原文），逐字引用 `ui-user-membership.md` 第 78、90 行操作表／驗收條件、第 26～27 行資料表，以及 `spec-user-membership.md` 第 28～29 行欄位表，列出「TopBar 目前顯示 `user.username`」這個推論與 A／B／C 三個選項。OQ 定案前 TopBar 維持顯示 `user.username`，未自行改成 `display-name`，`state.md` 已補「待確認事項」。程式碼未變動。 |
 | D-04 | T-10-fe-shell | done | 已在 `decision-log.md` 追加一則更正條目（既有條目未改），指出 OQ-IMPL-09 已於 `06c0a14`（早於本任務 Dev commit `4614e17`）解除並升級為 `adr.md` ADR-001；並說明 `ApiError.status` 的設計跟 ADR-001 分類表一致（例如未登入查 `GET /api/session` 回 401），後續任務依 ADR-001 狀態碼分類做基本分流，精確文案仍依回應內容的錯誤代碼／訊息決定。`tasks.md` T-10 備註、`state.md` 的過期字樣已同步更正。程式碼未變動。 |
 
+### T-11-fe-auth（2026-09-18 Review 第 1 輪退回）
+
+| ID | 母任務 | 狀態 | 描述 |
+|---|---|---|---|
+| D-05 | T-11-fe-auth | done | 登記 OQ（高風險，`iteration-prompt.md` 第 5 節），不要只寫在 `decision-log.md`。`ui-user-membership.md` 第 45 行驗收條件寫『帳號 ID 與系統中既有帳號重複時確認建立帳號，輸入內容保留、顯示訊息，且不觸發 `uc-create-user`』，但 `SignupPage.tsx` 在帳號重複時仍會呼叫 `POST /api/users`（也就是觸發 `uc-create-user`，由後端依 fail p2 拒絕），`SignupPage.test.tsx` 的「帳號 ID 與系統中既有帳號重複」測試也沒有斷言「不觸發」。Dev 在 `decision-log.md` 自行判定這是「措辭疊加」、歸為低風險、不開 OQ，這是在詮釋驗收條件的字面意思，屬於第 5 節『spec 的 `pre`／`post`／Scenario 沒講清楚該怎麼實作』，要開 OQ。OQ 情況用「兩處矛盾並列」或「推論＋所本原文」，至少逐字引用：`ui-user-membership.md` 第 45 行（上面那句）、`.dev/conventions/ui-convention.md` 第 150 行『斷言主詞只能是畫面元素或「是否觸發 `uc-xxx`」』、`spec-user-membership.md` 第 97 行 pre p2 與第 104 行 fail p2、第 143～147 行 Scenario「帳號 ID（username）不可重複」。`state.md` 補「待確認事項」。OQ 定案前程式碼維持現狀（送 API），不要自行改成前端查重。 |
+| D-06 | T-11-fe-auth | done | `LoginPage.test.tsx` 沒有完整覆蓋 `ui-user-membership.md` 第 91、92 行驗收條件。(a) 「帳號不存在時送出登入表單，顯示訊息 "帳號或密碼錯誤"」（對應 `uc-login` @fail-p1）只斷言訊息，沒有斷言『帳號 ID 與密碼欄位保留』『停留本畫面』；(b) 兩個失敗測試（fail-p1、fail-p2）都沒有斷言『TopBar 不顯示帳號名稱』。請補上這些斷言，例如 `queryByRole('button', { name: '登出' })` 為 null，或 TopBar 內沒有該 username，選法由 Dev 決定。 |
+| D-07 | T-11-fe-auth | done | `SignupPage.test.tsx` 的「帳號 ID 為空時確認建立帳號」測試，沒有斷言 `ui-user-membership.md` 第 43 行的『畫面維持顯示』：送出後沒有確認「建立帳號」標題仍在，也沒有確認沒有導向 `s-login`。請補上這個斷言。 |

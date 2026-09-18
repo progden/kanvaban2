@@ -2,8 +2,8 @@
 
 > 每輪覆寫，20 行內；給下一輪／驅動腳本快速回復現況（zero context）。
 
-T-10-fe-shell：Review 第 2 輪**附保留核准**，狀態 `done`，可以合併回 `loop/implementation`。
-- Review 重跑結果：`pnpm run test` 7 個測試全過、`pnpm run build`／`pnpm run lint` 通過、`./gradlew clean build` exit 0；diff 只在 `kanban-frontend/**`＋`.state/**`。
-- 保留：OQ-IMPL-11（TopBar 顯示 `user.username` 還是 `user.display-name`）待人工定案；Review 已在 OQ 底下補上 spec `uc-login` post 與 Scenario 的原文。
-- 範圍外待清理：OQ-IMPL-10 結尾的過期「狀態：待處理」、`tasks.md` T-01 備註的過期 OQ 字樣。
-- 下一步：合併後 T-11-fe-auth 可以開工。
+T-11-fe-auth：Review 第 2 輪**附保留核准**，狀態改成 `done`，可以合併回 `loop/implementation`（見 `review.md`、`decision-log.md`）。
+- Review 自己重跑：`pnpm test`（4 個檔案、16 個測試全過）、`pnpm build`、`pnpm lint`、`./gradlew build -q --no-daemon`，全部 exit 0。
+- D-05～D-07 都已處理；沒有新增 D-xx。
+- 保留事項：OQ-IMPL-13（帳號重複時是否「不觸發 `uc-create-user`」，定案為 A 時要走 CR，並改 `SignupPage.tsx`／測試）、OQ-IMPL-12（版面待對照設計稿），兩則都待人工處理。
+- 下一步：驅動腳本合併 `impl/T-11-fe-auth`。
