@@ -1,10 +1,12 @@
 # T-22-fe-restyle-shell-auth state
 
-> 2026-09-19 Review 第 1 輪 收尾，status＝`doing`。每輪由 `loopctl finish` 覆寫。
+> 2026-09-19 Dev 第 2 輪 收尾，status＝`review-pending`。每輪由 `loopctl finish` 覆寫。
 
-Review 第 1 輪：退回（doing）。
-- pnpm test 16/16 綠燈，lint 與 build 都通過，任務邊界乾淨，行為沒有變動。
-- D-01：Logo 3x3 淺色格位置錯，設計稿是第 3、4、8 格。
-- D-02：共用色票少了 #3B4756，標籤、次要按鈕、小按鈕誤用 #5C6878。
-- D-03：auth 頁的品牌欄寬、padding、Logo 尺寸、標語字級、登入頁插圖跟設計稿不一致，也沒有記下理由。
-- D-04：[產品名稱]、標語、註冊說明卡都是設計稿標為「規格未定義」的文案，Dev 沒開 OQ；『之後不能改』沒有 spec 依據。
+Review 第 2 輪待審。D-01～D-04 本輪全部修好：
+
+- D-01：Logo 3x3 網格淺色格改為第 3、4、8 格（三處共用同一 class，一次修好）。
+- D-02：補上 `--color-text-label: #3b4756`，修正 `.field-label`／`.btn-secondary`／`.btn-sm`／`.auth-brand__note-title` 誤用色。
+- D-03：`.auth-brand`／`.auth-form` 尺寸、auth 品牌欄 Logo／標語字級對齊設計稿，s-login 補回看板示意插圖。
+- D-04：`s-signup` 移除沒有 spec 依據的「之後不能改」宣稱；其餘設計稿標「規格未定義」的品牌文案（產品名稱占位字、標語、插圖、說明卡文案）開立 OQ-T-22-fe-restyle-shell-auth-01（高、不阻塞、owner 人工）。
+
+Review 請先看：`decision-log.md` 這輪紀錄逐項對照設計稿數值；`git diff` 只有 4 個檔案；`pnpm test`／`lint`／`build` 都是本輪重跑過的結果，都綠。
