@@ -1,0 +1,1 @@
+- 2026-09-19 00:59:34 驅動腳本標 blocked：T-03-be-card 第 1 輪 Review 連續兩次沒有正常收尾（沒有呼叫 loopctl finish，整輪也沒有任何新 commit），需人工檢查 .dev/loops/implementation-loop/runtime/logs/pipeline-T-03-be-card-20260919-003051.log
