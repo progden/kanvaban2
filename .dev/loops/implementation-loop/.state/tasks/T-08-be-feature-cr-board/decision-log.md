@@ -31,3 +31,47 @@
 
 - `./gradlew --no-daemon compileJava compileTestJava` → BUILD SUCCESSFUL
 - `./gradlew --no-daemon build`：第一次因 `@ComponentScan` 缺漏，Spring context 啟動失敗（`NoSuchBeanDefinitionException`），43 個測試（含既有 F01 模組）全部連帶失敗；補上 `@ComponentScan` 後重跑，only F06 兩個 Scenario 因角色字串大小寫（"Start"/"Done" 需轉大寫才是合法 `StageRole` 值）與「CR 分組」判斷失敗；修正後最終 `./gradlew --no-daemon build` → **BUILD SUCCESSFUL**，48 個測試（含新增 F06 5 個 Cucumber Scenario＋5 個 `FeatureCrBoardCalculatorTest` 單元測試）全綠。
+
+## 2026-09-19 Dev 第 2 輪：修正 D-01／D-02／D-03
+
+### 處理範圍
+只處理 `fixes.md` 裡三條 `D-xx`，沒有新增功能，沒有動 spec／ui／conventions。
+
+### D-01：orphan CR 清單重複列出同一張 CR
+`FeatureCrBoardCalculator.calculate` 原本在 affects 迴圈裡，每個「找不到 Feature 卡」的 affects
+目標都會 `orphanCrIds.add(cr.crId())` 一次。改成每張 CR 卡先用一個 `boolean isOrphan` 累積「這張卡
+的 affects 目標裡有沒有任何一個指到不存在的 Feature」，迴圈跑完後只 `add` 一次。理由：post p3 主詞
+是「該 `card`」，一張卡只該出現一次，不管它有幾個指到不存在 Feature 的 affects 標籤。
+補測試 `crAffectingMultipleUnknownFeaturesIsOrphanOnlyOnce`：一張 CR 卡帶兩個不存在的 affects 目標，
+斷言 `orphanCrIds` 恰好一筆。
+
+### D-02：p4 警告文字與行為不一致、缺「不影響其他卡片」測試
+兩個子問題分開處理：
+1. 文字與行為二選一：選擇**改文字**、不改行為（CR 標籤仍照常統計）。理由：post p4 只講「同一張卡片
+   帶兩個 Feature 標籤」時忽略「其」Feature／CR 統計，字面上「其」指的是這張卡片本身的 Feature 標籤
+   造成的統計混亂（兩個 Feature 選哪個？），沒有明文要求連這張卡片上獨立的 CR 標籤也一併忽略；而且
+   若把 CR 標籤也一起丟掉，等於讓一張卡片的 Feature 標籤格式錯誤連帶影響它的 CR 記錄，屬於範圍更大
+   的行為變更，spec 沒有依據。所以把警告文字改成「已忽略其 Feature 標籤（該卡片上的 CR 標籤仍照常
+   統計）」，如實描述目前的行為，不改行為本身。
+2. 補測試 `cardWithTwoFeatureLabelsDoesNotAffectOtherCards`：輸入雙 Feature 標籤卡＋一張正常 F03
+   （DONE）＋一張正常 CR-004（affects:F03），斷言 F03 狀態、CR-004 歸屬與狀態都正確、warnings 只有
+   一筆、orphan 清單是空的。Cucumber step `thenOtherCardsUnaffected` 補了一段 Javadoc 註解：這個
+   Scenario 的 Background 只建立一張卡，這一步只能驗到「這張卡片自己的 F01／F02 沒出現」，「其他正
+   常卡片不受影響」實際由上面那個單元測試負責，避免斷言看起來在驗別的東西。
+
+### D-03：`@ComponentScan` 改成 `scanBasePackages`
+拿掉獨立的 `@ComponentScan(basePackages = {...})`，改成
+`@SpringBootApplication(scanBasePackages = "io.progden.kanban")`（共同父套件，涵蓋
+`io.progden.kanban.spring` 與 `io.progden.kanban.query`）。避免直接宣告的 `@ComponentScan` 取代掉
+`@SpringBootApplication` 內建那份、連帶拿掉 Spring Boot 預設的 `TypeExcludeFilter`／
+`AutoConfigurationExcludeFilter`。
+
+### OQ 核對
+沒有新開 OQ；`OQ-T-08-be-feature-cr-board-01`／`-02` 是上一輪留下的（ui／spec 對「orphan 與
+affects 同時成立」的矛盾），這輪修的三條 D-xx 都不影響那個判斷，維持原狀，交給人工處理。
+
+### Check（實際跑的建置與測試）
+`./gradlew clean build --no-daemon`：**BUILD SUCCESSFUL in 2m 24s**。
+`kanban-spring` 測試結果 XML 彙總：`FeatureCrBoardCalculatorTest` 從 5 筆增加到 7 筆（新增
+`crAffectingMultipleUnknownFeaturesIsOrphanOnlyOnce`、`cardWithTwoFeatureLabelsDoesNotAffectOtherCards`），
+全部 0 failure／error；Cucumber「Feature／CR 追蹤表」5 個 Scenario 仍全綠。
