@@ -26,3 +26,9 @@
 - 理由：使用者要求「檢查有沒有缺漏」，設計稿是可核對的具體來源，交叉比對比單看 spec 文字更能抓到遺漏；OQ-44 的角色缺口會直接影響 T-09／T-13 的權限檢查邏輯，屬於同一類「spec 待整合、不可腦補」的缺口，值得獨立追蹤而不是併進 OQ-IMPL-07（兩者選項與影響範圍不同）。
 - 影響：`tasks.md` T-09／T-13 備註補充角色對應缺口與 `ui-canvas-layout.md` 現況（狀態仍「討論中」）；`open-questions.md` 新增 OQ-IMPL-08。
 - ADR：無。
+
+### 2026-09-18 OQ-IMPL-07／OQ-IMPL-08 人工決策，直接補規格（Planning）
+- 決策：人工決策兩件事並直接寫回 `spec-canvas-layout.md`（草稿階段，不需 CR）：(1) canvas 於使用者第一次開啟 Board 時自動建立，同時若無任何 item 則自動放置看板本體 item（`item.component`＝`board`，新增 `uc-init-canvas`／Feature「看板畫布初始化」）；(2) `r-canvas-editor`／`r-canvas-viewer` 對應 `board-membership.role` Owner/Member／Viewer（即 F02 `r-board-owner`／`r-board-member`／`r-board-viewer`）。`open-questions.md` 的 OQ-IMPL-07／08 標記已解除，`tasks.md` T-09／T-13 備註同步更新。
+- 理由：人工判斷 item.component 該用哪個值時，一開始提議沿用 ui 層的 `s-board`，但 `spec-check` 直接報錯（REF-01：spec 不能引用 ui 的 Screen ID，違反 `docs-convention.md` 第 3 節單向引用規則），改用 F01 已定義的實體 ID `board` 解決；角色對應則是人工直接判斷 Owner/Member＝editor、Viewer＝viewer，且因為 F02 在稍早（2026-09-18 稍早的 commit）已新增 `r-board-viewer` 角色，映射可以是正式的三對三對應，不用再標「暫定」。
+- 影響：`spec-canvas-layout.md` 兩則變更紀錄；T-09、T-13 兩個任務原本備註的缺口全部解除，T-14～T-20 間接受益（依賴的 T-13 不再卡在缺規格）。
+- ADR：無（規格本身的決定記在 `spec-canvas-layout.md` 變更紀錄，這裡只記 loop 如何回應）。

@@ -25,7 +25,7 @@
 | T-06-be-kanban-widgets | F03 唯讀 projection（Lead/Cycle Time、WIP、Aging、Throughput/CFD、到期提醒；六個 `uc-view-*` 已定案，角色皆 `r-board-member`） | T-02-be-board、T-03-be-card、T-05-be-board-clock | todo | 原標 blocked 已解除，見 OQ-IMPL-01「解除說明」 |
 | T-07-be-workload | F05 唯讀 projection（Active Card／Workload／未指派統計；`uc-view-workload` 已定案） | T-03-be-card、T-04-be-board-membership | todo | 原標 blocked 已解除，見 OQ-IMPL-02「解除說明」 |
 | T-08-be-feature-cr-board | F06 唯讀 projection（Feature／CR 卡標籤解讀、orphan CR 判定） | T-03-be-card | todo | 原標 blocked 已解除，見 OQ-IMPL-03「解除說明」 |
-| T-09-be-canvas-layout | F07 `canvas`＋`item`＋`viewport`（Item 移動／調整大小／排層序／錨定／批次操作、Viewport 記憶，`uc-place-item`／`uc-remove-item`／`uc-move-item`／`uc-resize-item`／`uc-set-item-capabilities`／`uc-set-item-anchor`／`uc-reorder-item`／`uc-move-items`／`uc-remove-items`／`uc-set-viewport` 十個 uc 皆已在 spec 定義） | T-02-be-board、T-04-be-board-membership（`viewport.user`） | todo | 不含「`item.component` 對應各元件的實際值」——`spec-canvas-layout.md`「待釐清」明講這待整合 CR 定案，屬 spec 層級的缺口，不是本任務範圍可以決定的；`r-canvas-editor`／`r-canvas-viewer` 與 F01/F02 角色（`r-user`／`r-system-user`／`r-board-owner`／`r-board-member`）的對應關係也未定義，見 OQ-IMPL-08，實作時角色檢查先各自獨立處理，不可自行假設對應關係 |
+| T-09-be-canvas-layout | F07 `canvas`＋`item`＋`viewport`（`uc-init-canvas`「看板畫布初始化」＋十個既有 item/viewport CRUD uc，共 11 個 uc 皆已在 spec 定義） | T-02-be-board、T-04-be-board-membership（`viewport.user`） | todo | 2026-09-18 隨 OQ-IMPL-07／08 定案：canvas 於使用者第一次開啟 Board 時自動建立並放置看板本體 `item`（`item.component`＝`board`）；`r-canvas-editor`＝`board-membership.role` Owner／Member，`r-canvas-viewer`＝Viewer（`r-board-viewer`），角色檢查依此對應實作 |
 
 ## 前端任務（Canvas-centric，2026-09-18 依 OQ-49 全面重排）
 
@@ -34,7 +34,7 @@
 | T-10-fe-shell | 前端 app shell（路由、API client、登入態管理） | T-00-scaffold、T-01-be-user | todo | |
 | T-11-fe-auth | `s-login`、`s-signup` | T-10-fe-shell | todo | |
 | T-12-fe-board-list | `s-board-list`、`s-board-create-dialog`、`s-board-delete-dialog` | T-10-fe-shell、T-02-be-board、T-04-be-board-membership | todo | 選定 Board 後導向 T-13 的 Canvas，不是導向 T-14 |
-| T-13-fe-canvas-shell | `s-canvas`：F07 item 放置容器（移動／調整大小／排層序／錨定 canvas／screen／Viewport 平移縮放記憶／批次操作），提供給其他前端任務掛載自己的 item 內容；`.dev/F07-canvas-layout/ui-canvas-layout.md` 已存在且操作表／資料表完整，直接依它實作 | T-12-fe-board-list、T-09-be-canvas-layout | todo | 基礎設施型任務，T-14～T-20 都依賴它才能把畫面掛上 Canvas；`item.component` 實際對應值待整合 CR 定案（同 T-09 備註），本任務先做「容器」本身，不含個別元件內容；`ui-canvas-layout.md` 本身狀態仍是「討論中」（八段裡「待確認事項」有 3 條 ⚠️，含 OQ-IMPL-08 的角色對應缺口），不是「已定案」，Dev 動工前要重讀一次確認沒有新變動 |
+| T-13-fe-canvas-shell | `s-canvas`：F07 item 放置容器（開啟看板時初始化＋移動／調整大小／排層序／錨定 canvas／screen／Viewport 平移縮放記憶／批次操作），提供給其他前端任務掛載自己的 item 內容；`.dev/F07-canvas-layout/ui-canvas-layout.md` 已存在且操作表／資料表完整，直接依它實作 | T-12-fe-board-list、T-09-be-canvas-layout | todo | 基礎設施型任務，T-14～T-20 都依賴它才能把畫面掛上 Canvas；2026-09-18 隨 OQ-IMPL-07／08 定案（見 T-09 備註），`item.component`／canvas 建立時機／角色對應三件事都已寫進 `spec-canvas-layout.md`（草稿，不需 CR）；`ui-canvas-layout.md` 本身仍是「討論中」狀態（待確認事項可能還有殘留，Dev 動工前重讀一次確認），但不再是本任務動工的阻礙 |
 | T-14-fe-board-item | F01 內容作為 Canvas item：`s-board`、`s-swimlane-list`、`s-swimlane-delete-dialog`、`s-stage-list`、`s-stage-delete-dialog`、`s-card-add-dialog`、`s-card-detail`、`s-card-delete-dialog`、`s-card-assignee-picker`（F02，負責人選取，從 `s-card-detail` 進入） | T-13-fe-canvas-shell、T-03-be-card | todo | |
 | T-15-fe-member-management | `s-member-management`（從 Canvas 上「看板成員」item 進入，機制待 T-13 實作時一併定案，見 OQ-45） | T-13-fe-canvas-shell、T-04-be-board-membership | todo | |
 | T-16-fe-activity-log | `s-activity-log`（合併 `board` 與 `board-membership` 的活動紀錄） | T-13-fe-canvas-shell、T-04-be-board-membership | todo | 原任務清單遺漏，2026-09-18 校正時補上 |

@@ -60,7 +60,8 @@ spec原文：`.dev/F07-canvas-layout/spec-canvas-layout.md`「待釐清」段落
 問題：T-09（後端 canvas/item/viewport CRUD）與 T-13（前端 Canvas 容器）能不能動工？`item.component` 實際對應值（例如「看板本體」該填什麼字串）與 `canvas` 建立時機這兩件事要怎麼處理？
 選項：A. T-09／T-13 先做「容器」本身（`item` 的移動／調整大小／排層序／錨定／Viewport CRUD，這些在 spec 名詞定義已有完整定義，不受影響），`item.component` 的實際對應值與 `canvas` 建立時機留白／用暫定字串，等整合 CR 定案後再補一輪；B. 等 CR 先定案這兩件事，T-09／T-13 全部延後；C. 以上皆非。
 事實：影響任務 T-09、T-13、以及依賴 T-13 的 T-14～T-20（共 9 個任務）；這是 spec 本身標記的待釐清事項，不是實作可以腦補的範圍。
-狀態：待解除。
+狀態：**已解除（2026-09-18，人工決策）**。
+解除說明：人工確認：(1) Canvas 建立時機＝使用者第一次開啟該 Board 時，由系統自動初始化，不是建立 Board 當下；(2) 開啟當下，若該 Canvas 還沒有任何 `item`，系統自動放置一個代表看板本體的 `item`（`item.component` 為 `board`，取 F01 已定義的實體 ID，不用 ui 層 Screen ID——`s-board` 這個值因為違反 `docs-convention.md`「spec 不引用 ui」規則被 spec-check 擋下，改用 `board`）；(3) 看板本體以外的元件（F03 圖表等）仍要使用者手動點畫布左側工具列、觸發 `uc-place-item` 才會加入。`spec-canvas-layout.md` 狀態為「草稿」，已直接改規格本文（新增 Feature「看板畫布初始化」與 `uc-init-canvas`，移除對應「待釐清」），不需開 CR，`./scripts/spec-check` 0 error。T-09／T-13 改回 `todo`（若原本因此被標 blocked）。
 
 ## OQ-IMPL-08
 
@@ -70,4 +71,5 @@ spec原文（逐字）：`.dev/loops/ui-authoring-loop/.state/ui-authoring-open-
 問題：T-09（後端 item CRUD 的權限檢查）與 T-13（前端依角色顯示／隱藏操作）要用哪個角色判斷使用者能不能編輯 Canvas？`r-canvas-editor`／`r-canvas-viewer` 目前沒有對應的資料來源（`board-membership.role` 是 Owner／Member／Viewer，不是 `r-canvas-editor`／`r-canvas-viewer`）。
 選項：A. T-09／T-13 先用 `board-membership.role`（Owner／Member＝可編輯、Viewer＝唯讀）直接對應 `r-canvas-editor`／`r-canvas-viewer` 的行為邊界，並標記「暫定對應，待 CR 正式定義後修正」；B. 暫不做權限區分，Canvas 內全部操作對所有看板成員開放，等 CR 定案再收斂；C. 以上皆非。
 事實：影響 T-09、T-13（權限檢查邏輯），間接影響 T-14～T-20（凡是「編輯 vs 唯讀」要區分操作可見性的畫面）。
-狀態：待解除。
+狀態：**已解除（2026-09-18，人工決策）**。
+解除說明：人工確認採選項 A 的映射方向，且不是「暫定」——`.dev/F02-user-membership/spec-user-membership.md` 角色定義表逐字已有『r-board-viewer | Board 唯讀成員 | 被邀請加入 Board 的唯讀角色，可檢視看板與相關統計圖表，不能新增／編輯／移動／刪除任何內容…』（2026-09-18 稍早的變更紀錄新增，本 OQ 原引用只寫到 `r-system-user`／`r-board-owner`／`r-board-member` 三個角色，遺漏了這個，一併更正）。對應關係：`board-membership.role` 為 Owner 或 Member（即 `r-board-owner`／`r-board-member`）對應 `r-canvas-editor`；為 Viewer（即 `r-board-viewer`）對應 `r-canvas-viewer`。已直接寫入 `spec-canvas-layout.md` 角色定義表（草稿階段，不需 CR），`./scripts/spec-check` 0 error。T-09／T-13 的權限檢查依此實作。
