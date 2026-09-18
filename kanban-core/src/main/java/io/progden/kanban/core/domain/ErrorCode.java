@@ -41,5 +41,7 @@ public enum ErrorCode {
     /** 看板時間早於該 board 最後一筆事件的發生時間，不可建立新事件（uc-guard-clock-monotonicity）。 */
     BOARD_CLOCK_BEHIND_LAST_EVENT,
     /** 只有 Owner 可以調整或暫停／恢復看板時間（uc-adjust-board-clock／uc-pause-resume-board-clock）。 */
-    NOT_BOARD_OWNER
+    NOT_BOARD_OWNER,
+    /** 截止日期提醒的門檻天數不是 1 到 365 之間的正整數（uc-view-duedate-reminder fail p1）。 */
+    INVALID_DUEDATE_THRESHOLD_DAYS
 }
