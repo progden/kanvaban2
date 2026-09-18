@@ -64,8 +64,8 @@
 ## 角色定義
 | ID | 名稱 | 說明 |
 |---|---|---|
-| r-canvas-editor | 畫布編輯者 | 可放置與排列畫布元素，並平移與縮放自己的檢視區 |
-| r-canvas-viewer | 畫布檢視者 | 只能平移與縮放自己的檢視區，不可改動元素 |
+| r-canvas-editor | 畫布編輯者 | 可放置與排列畫布元素，並平移與縮放自己的檢視區；對應該 Board 的 `board-membership.role` 為 Owner 或 Member 的使用者（即 `.dev/F02-user-membership/spec-user-membership.md` 的 `r-board-owner`／`r-board-member`） |
+| r-canvas-viewer | 畫布檢視者 | 只能平移與縮放自己的檢視區，不可改動元素；對應該 Board 的 `board-membership.role` 為 Viewer 的使用者（即 `.dev/F02-user-membership/spec-user-membership.md` 的 `r-board-viewer`） |
 
 ## Aggregate 標記說明
 
@@ -81,6 +81,7 @@
 | 日期 | 票號 | 類型 | 摘要 |
 |------|------|------|------|
 | 2026-09-18 |  | 新增 | 依人工決策定案「待釐清」原第 1、3 項：`canvas` 建立時機（使用者第一次開啟 Board 時由系統自動建立）、看板本體如何成為 `item`（固定使用 `item.component` = `board`，即 F01 的實體 ID，不引用 ui 層 Screen ID）；新增「看板畫布初始化」Feature（`uc-init-canvas`）；本檔仍為草稿，不需開 CR |
+| 2026-09-18 |  | 變更 | 依人工決策定案 `r-canvas-editor`／`r-canvas-viewer` 與 F02 看板角色的對應關係：Owner／Member 對應 `r-canvas-editor`，Viewer 對應 `r-board-viewer`／`r-canvas-viewer`；角色定義表補上對應說明，移除「待釐清」對應一項；本次僅補角色對應說明，既有各 uc 的「roles」欄位是否要因此拆分（例如唯讀者不能觸發寫入類 uc 這件事，spec 現在的「roles」欄位本來就只列 `r-canvas-editor`，語意已隱含排除唯讀者，不需再改）不在本次變更範圍 |
 
 ---
 
@@ -747,4 +748,3 @@ Feature: 檢視區
 ## 待釐清
 
 - `item.component`、`viewport.user` 兩個外部識別碼待元件模組與帳號模組定案後改為 ref，已註記於欄位表。
-- `r-canvas-editor`／`r-canvas-viewer` 與帳號模組（`.dev/F02-user-membership/spec-user-membership.md`）定義的 `r-system-user`／`r-board-owner`／`r-board-member` 三者的對應關係尚未定義，待整合時另開 CR 或於本檔草稿階段直接補上。
