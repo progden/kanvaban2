@@ -53,3 +53,21 @@
 - 決策：維持核准，狀態不動（仍是 `done`）。
 - 理由：程式碼從核准後沒有異動；重跑 Gradle 建置和前端 build／test 都通過，`kanban-core` main source 仍然沒有 Spring／JPA import，diff 範圍也沒有變。
 - 影響：仍在等合併回 `loop/implementation`，沒有新的 D-xx。已經是 `done` 的任務又被觸發 Review，可能是驅動腳本合併步驟沒有執行，請人工檢查。
+
+### 2026-09-18 T-01-be-user（Dev）
+- 決策：範圍只做 `spec-user-membership.md`「建立使用者帳號」「使用者登入與登出」兩個 Feature（`uc-create-user`／`uc-login`／`uc-logout`），不碰 `board`／`board-membership`／`card.assignees`（任務定義明講「不含 board-membership」，且 `board`、`board-membership` 是 T-02／T-04 的範圍）；`design-user-membership.md` 描述的 `BoardMembership`／`Card.assignTo` 等「實作狀態」是跨多個未來任務的整體設計備忘，本輪未實作。
+- 理由：依 `tasks.md` 任務顆粒度規則（一列＝一個 Aggregate Root），`user` 是獨立 Aggregate；`design-user-membership.md` 的「實作狀態」段落雖然寫得像已完成，但 `kanban-core`／`kanban-spring` 目前除了 scaffold 只有 `package-info.java`／`NoSpringDependencyTest.java`，本輪確認過那段文字是設計預告，不是既成程式碼，不可以照抄成「已完成」。
+- 影響：`kanban-core` 新增 `User`／`DomainException`／`ErrorCode`（3 個值：`USERNAME_ALREADY_EXISTS`／`PASSWORD_TOO_LONG`／`INVALID_CREDENTIALS`）／`UserRepository`（port）；`kanban-spring` 新增 `application.UserApplicationService`、`persistence.{UserJpaEntity,UserJpaRepository,UserRepositoryAdapter}`、`web.UserController`（`POST /api/users`／`POST /api/login`／`POST /api/logout`／`GET /api/session`，以 `HttpSession` 保存登入狀態）。後續 T-02／T-04 若要新增 `ErrorCode` 值或 `Board`／`BoardMembership`，會編輯同一個 `ErrorCode.java`，合併時留意衝突。
+- ADR：無（單一任務內的技術選型，未跨 aggregate）。
+
+### 2026-09-18 T-01-be-user（Dev，低風險技術決定）
+- 決策：登入狀態用 Spring 內建 `HttpSession`（無 Spring Security），不做密碼雜湊；`kanban-spring` 資料庫層第一次出現，主要設定：正式環境 `spring.jpa.hibernate.ddl-auto=update`（暫無 Flyway／DDL 腳本）、測試改用 `src/test/resources/application.yml` 覆蓋成 H2（`MODE=PostgreSQL`），取代原本 `KanbanApplicationSmokeTest` 排除 DataSource／Hibernate 自動組態的寫法。
+- 理由：spec／CLAUDE.md 都沒指定要用 Spring Security 或密碼雜湊（spec 明確排除「真正的認證安全機制」），HttpSession 足以支撐「TopBar 顯示帳號名稱」「登出後無法存取 Board」兩個驗收條件；`ddl-auto=update` 是過渡手段，之後導入 Flyway 時要換掉。
+- 影響：`kanban-spring/src/main/resources/application.yml` 新增 datasource／jpa 設定（env var 預設值，未連真正 Postgres）；`kanban-spring/src/test/resources/application.yml` 新增 H2 測試設定；`KanbanApplicationSmokeTest` 移除原本的自動組態排除（該排除是 T-00 特意留給「第一個定義 persistence 的任務」處理，見該測試 Javadoc）；`build.gradle.kts` 新增 `com.h2database:h2`（testRuntimeOnly）。
+- ADR：無。
+
+### 2026-09-18 T-01-be-user（Dev，環境限制發現）
+- 決策：記錄一個跟本任務範圍無關但影響後續所有 `kanban-spring` 任務的環境事實：Spring Boot 4.1.1 除了先前已知的 autoconfigure 套件模組化（見 T-00 決策），MockMvc 測試支援也搬到新模組 `org.springframework.boot:spring-boot-webmvc-test`（類別套件 `org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc`，不是舊版 `org.springframework.boot.test.autoconfigure.web.servlet`），而且**預設 Jackson 是 Jackson 3**（`tools.jackson.databind.ObjectMapper`，groupId `tools.jackson.core`，不是舊版 `com.fasterxml.jackson.databind`）；兩者都是實際解壓 jar 內容核對出來的，不是憑記憶假設。
+- 理由：撰寫 Cucumber step definitions 時直接手寫 import 導致編譯失敗，逐一核對 Maven Central 下載下來的 jar 內容才找到正確套件路徑；記錄下來避免後續任務（T-02 起）重複踩同樣的坑。
+- 影響：所有需要 MockMvc／`@AutoConfigureMockMvc` 的測試都要 `testImplementation("org.springframework.boot:spring-boot-webmvc-test")`；所有需要手動操作 JSON（`ObjectMapper`／`readValue`／`writeValueAsString`）的程式碼都要 import `tools.jackson.*`，不是 `com.fasterxml.jackson.*`（`readValue`／`writeValueAsString` 拋的是 unchecked 的 `tools.jackson.core.JacksonException`，不再是 checked `IOException`）。
+- ADR：無（技術環境事實記錄，非架構決策；但影響範圍夠廣，Review 或後續任務讀 decision-log 時應留意）。
