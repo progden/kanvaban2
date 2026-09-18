@@ -8,6 +8,7 @@ import io.progden.kanban.core.domain.CardRepository;
 import io.progden.kanban.core.domain.DomainException;
 import io.progden.kanban.core.domain.ErrorCode;
 import io.progden.kanban.core.domain.StageRole;
+import java.time.Instant;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +45,7 @@ public class BoardApplicationService {
     }
 
     public Board createBoard(UUID operatorId, String name) {
-        Board board = Board.create(operatorId, name, cardLookupPort);
+        Board board = Board.create(operatorId, name, cardLookupPort, Instant.now());
         boardRepository.save(board);
         return board;
     }
@@ -55,21 +56,21 @@ public class BoardApplicationService {
 
     public Board addSwimlane(UUID boardId, UUID operatorId, String name) {
         Board board = loadBoard(boardId);
-        board.addSwimlane(operatorId, name);
+        board.addSwimlane(operatorId, name, Instant.now());
         boardRepository.save(board);
         return board;
     }
 
     public Board renameSwimlane(UUID boardId, UUID operatorId, UUID swimlaneId, String newName) {
         Board board = loadBoard(boardId);
-        board.renameSwimlane(operatorId, swimlaneId, newName);
+        board.renameSwimlane(operatorId, swimlaneId, newName, Instant.now());
         boardRepository.save(board);
         return board;
     }
 
     public Board moveSwimlane(UUID boardId, UUID operatorId, UUID swimlaneId, UUID beforeSwimlaneId) {
         Board board = loadBoard(boardId);
-        board.moveSwimlaneBefore(operatorId, swimlaneId, beforeSwimlaneId);
+        board.moveSwimlaneBefore(operatorId, swimlaneId, beforeSwimlaneId, Instant.now());
         boardRepository.save(board);
         return board;
     }
@@ -81,33 +82,34 @@ public class BoardApplicationService {
         board.ensureSwimlaneRemovable(swimlaneId);
         if (confirmed) {
             for (Card card : cardRepository.findActiveBySwimlaneId(swimlaneId)) {
-                card.delete(operatorId);
+                Instant now = board.newEventTime(Instant.now());
+                card.delete(operatorId, now);
                 cardRepository.save(card);
             }
             board.refreshCardSummaries();
         }
-        board.removeSwimlane(operatorId, swimlaneId);
+        board.removeSwimlane(operatorId, swimlaneId, Instant.now());
         boardRepository.save(board);
         return board;
     }
 
     public Board addStage(UUID boardId, UUID operatorId, String name, UUID beforeStageId) {
         Board board = loadBoard(boardId);
-        board.addStage(operatorId, name, beforeStageId);
+        board.addStage(operatorId, name, beforeStageId, Instant.now());
         boardRepository.save(board);
         return board;
     }
 
     public Board renameStage(UUID boardId, UUID operatorId, UUID stageId, String newName) {
         Board board = loadBoard(boardId);
-        board.renameStage(operatorId, stageId, newName);
+        board.renameStage(operatorId, stageId, newName, Instant.now());
         boardRepository.save(board);
         return board;
     }
 
     public Board moveStage(UUID boardId, UUID operatorId, UUID stageId, UUID beforeStageId) {
         Board board = loadBoard(boardId);
-        board.moveStageBefore(operatorId, stageId, beforeStageId);
+        board.moveStageBefore(operatorId, stageId, beforeStageId, Instant.now());
         boardRepository.save(board);
         return board;
     }
@@ -120,21 +122,57 @@ public class BoardApplicationService {
         if (destinationStageId != null) {
             board.ensureValidDestinationStage(stageId, destinationStageId);
             for (Card card : cardRepository.findActiveByStageId(stageId)) {
-                card.moveToStage(operatorId, destinationStageId);
+                Instant now = board.newEventTime(Instant.now());
+                card.moveToStage(operatorId, destinationStageId, now);
                 cardRepository.save(card);
             }
             board.refreshCardSummaries();
         }
-        board.removeStage(operatorId, stageId);
+        board.removeStage(operatorId, stageId, Instant.now());
         boardRepository.save(board);
         return board;
     }
 
     public Board setStageRole(UUID boardId, UUID operatorId, UUID stageId, StageRole role) {
         Board board = loadBoard(boardId);
-        board.setStageRole(operatorId, stageId, role);
+        board.setStageRole(operatorId, stageId, role, Instant.now());
         boardRepository.save(board);
         return board;
+    }
+
+    /**
+     * {@code uc-adjust-board-clock}：{@code r-board-owner} 權限檢查暫以 {@code board.createdBy} 判斷
+     * （F02 {@code BoardMembership} 尚未實作，見 OQ-T-05-be-board-clock-01，比照既有 OQ-IMPL-15 的
+     * 權限延後模式）。
+     */
+    public Board adjustClock(UUID boardId, UUID operatorId, Instant newTime) {
+        Board board = loadBoard(boardId);
+        requireOwner(board, operatorId);
+        board.adjustClock(operatorId, newTime, Instant.now());
+        boardRepository.save(board);
+        return board;
+    }
+
+    public Board pauseClock(UUID boardId, UUID operatorId) {
+        Board board = loadBoard(boardId);
+        requireOwner(board, operatorId);
+        board.pauseClock(operatorId, Instant.now());
+        boardRepository.save(board);
+        return board;
+    }
+
+    public Board resumeClock(UUID boardId, UUID operatorId) {
+        Board board = loadBoard(boardId);
+        requireOwner(board, operatorId);
+        board.resumeClock(operatorId, Instant.now());
+        boardRepository.save(board);
+        return board;
+    }
+
+    private void requireOwner(Board board, UUID operatorId) {
+        if (!board.getCreatedBy().equals(operatorId)) {
+            throw new DomainException(ErrorCode.NOT_BOARD_OWNER, "只有 Owner 可以調整看板時間");
+        }
     }
 
     private Board loadBoard(UUID boardId) {

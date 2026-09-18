@@ -3,16 +3,21 @@ package io.progden.kanban.spring.persistence;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import io.progden.kanban.core.domain.ActivityRecord;
+import io.progden.kanban.core.domain.BoardClockSnapshot;
+import io.progden.kanban.core.domain.ClockStatus;
 import io.progden.kanban.core.domain.Stage;
 import io.progden.kanban.core.domain.Swimlane;
 
@@ -47,6 +52,22 @@ public class BoardJpaEntity {
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ActivityRecordJpaEntity> activityLog = new ArrayList<>();
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "clock_status", nullable = false)
+    private ClockStatus clockStatus;
+
+    @Column(name = "clock_offset_millis", nullable = false)
+    private long clockOffsetMillis;
+
+    @Column(name = "clock_paused_at")
+    private Instant clockPausedAt;
+
+    @Column(name = "clock_last_event_at", nullable = false)
+    private Instant clockLastEventAt;
+
+    @Column(name = "clock_last_system_now")
+    private Instant clockLastSystemNow;
+
     protected BoardJpaEntity() {
     }
 
@@ -58,6 +79,20 @@ public class BoardJpaEntity {
 
     public void updateName(String newName) {
         this.name = newName;
+    }
+
+    /** 就地寫入 {@code Board} 目前的 {@link BoardClockSnapshot}，比照 Swimlane／Stage 的調和模式。 */
+    public void updateClock(BoardClockSnapshot snapshot) {
+        this.clockStatus = snapshot.status();
+        this.clockOffsetMillis = snapshot.offsetMillis();
+        this.clockPausedAt = snapshot.pausedAt();
+        this.clockLastEventAt = snapshot.lastEventAt();
+        this.clockLastSystemNow = snapshot.lastSystemNow();
+    }
+
+    public BoardClockSnapshot toClockSnapshot() {
+        return new BoardClockSnapshot(clockStatus, clockOffsetMillis, clockPausedAt, clockLastEventAt,
+                clockLastSystemNow);
     }
 
     public void replaceSwimlanes(List<Swimlane> source) {

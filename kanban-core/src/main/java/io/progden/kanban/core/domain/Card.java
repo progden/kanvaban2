@@ -48,12 +48,12 @@ public final class Card {
         this.activityLog = activityLog;
     }
 
-    public static Card create(UUID operatorId, UUID boardId, String title, CardPlacement placement) {
+    public static Card create(UUID operatorId, UUID boardId, String title, CardPlacement placement, Instant now) {
         validateTitle(title);
         Card card = new Card(UUID.randomUUID(), boardId, title, null, null, List.of(),
                 placement.swimlaneId(), placement.stageId(), false,
                 new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-        card.recordActivity(operatorId, "建立卡片「" + title + "」");
+        card.recordActivity(operatorId, "建立卡片「" + title + "」", now);
         return card;
     }
 
@@ -132,39 +132,39 @@ public final class Card {
 
     // ---- 寫入 ----
 
-    public void edit(UUID operatorId, CardDetails details) {
+    public void edit(UUID operatorId, CardDetails details, Instant now) {
         this.description = details.description();
         this.dueDate = details.dueDate();
         this.labels = details.labels() == null ? List.of() : List.copyOf(details.labels());
-        recordActivity(operatorId, "編輯卡片內容");
+        recordActivity(operatorId, "編輯卡片內容", now);
     }
 
-    public void moveToSwimlane(UUID operatorId, UUID swimlaneId) {
+    public void moveToSwimlane(UUID operatorId, UUID swimlaneId, Instant now) {
         this.swimlaneId = swimlaneId;
-        recordActivity(operatorId, "移動卡片至其他 Swimlane");
+        recordActivity(operatorId, "移動卡片至其他 Swimlane", now);
     }
 
-    public void moveToStage(UUID operatorId, UUID stageId) {
+    public void moveToStage(UUID operatorId, UUID stageId, Instant now) {
         UUID fromStageId = this.stageId;
         this.stageId = stageId;
-        stageTransitions.add(new StageTransition(operatorId, fromStageId, stageId, Instant.now()));
+        stageTransitions.add(new StageTransition(operatorId, fromStageId, stageId, now));
     }
 
-    public Comment addComment(UUID operatorId, String content) {
-        Comment comment = Comment.create(operatorId, content);
+    public Comment addComment(UUID operatorId, String content, Instant now) {
+        Comment comment = Comment.create(operatorId, content, now);
         comments.add(comment);
         return comment;
     }
 
-    public void delete(UUID operatorId) {
+    public void delete(UUID operatorId, Instant now) {
         this.deleted = true;
-        recordActivity(operatorId, "刪除卡片");
+        recordActivity(operatorId, "刪除卡片", now);
     }
 
     // ---- 私有輔助 ----
 
-    private void recordActivity(UUID operatorId, String action) {
-        activityLog.add(new ActivityRecord(operatorId, action, Instant.now()));
+    private void recordActivity(UUID operatorId, String action, Instant now) {
+        activityLog.add(new ActivityRecord(operatorId, action, now));
     }
 
     private static void validateTitle(String title) {

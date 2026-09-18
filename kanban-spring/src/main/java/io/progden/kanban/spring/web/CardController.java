@@ -126,6 +126,7 @@ public class CardController {
         return switch (code) {
             case EMPTY_CARD_TITLE, EMPTY_COMMENT_CONTENT -> HttpStatus.BAD_REQUEST;
             case CARD_NOT_FOUND, BOARD_NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case BOARD_CLOCK_BEHIND_LAST_EVENT -> HttpStatus.CONFLICT;
             default -> HttpStatus.BAD_REQUEST;
         };
     }

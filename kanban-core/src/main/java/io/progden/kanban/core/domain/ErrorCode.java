@@ -37,5 +37,9 @@ public enum ErrorCode {
     /** Comment 內容留空。 */
     EMPTY_COMMENT_CONTENT,
     /** 刪除 Stage 時指定的目的 Stage 與來源相同，或不屬於同一看板。 */
-    INVALID_DESTINATION_STAGE
+    INVALID_DESTINATION_STAGE,
+    /** 看板時間早於該 board 最後一筆事件的發生時間，不可建立新事件（uc-guard-clock-monotonicity）。 */
+    BOARD_CLOCK_BEHIND_LAST_EVENT,
+    /** 只有 Owner 可以調整或暫停／恢復看板時間（uc-adjust-board-clock／uc-pause-resume-board-clock）。 */
+    NOT_BOARD_OWNER
 }
