@@ -79,8 +79,8 @@ describe('s-signup', () => {
     expect(calledPaths.some((path) => path.endsWith('/api/users'))).toBe(false);
   });
 
-  it('帳號 ID 與系統中既有帳號重複時確認建立帳號，輸入內容保留、顯示訊息', async () => {
-    mockFetchByPath({
+  it('帳號 ID 與系統中既有帳號重複時確認建立帳號，觸發 uc-create-user，輸入內容保留、顯示訊息', async () => {
+    const calledPaths = mockFetchByPath({
       '/api/session': () => new Response(JSON.stringify({ message: '尚未登入' }), { status: 401 }),
       '/api/users': () => new Response(JSON.stringify({ message: '此帳號已被使用' }), { status: 409 }),
     });
@@ -97,6 +97,8 @@ describe('s-signup', () => {
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('此帳號已被使用'));
     expect(screen.getByLabelText('帳號 ID')).toHaveValue('user1');
+    // 帳號是否重複只有後端知道：畫面要真的呼叫 uc-create-user，再依 fail p2 呈現（CR-008）
+    expect(calledPaths.some((path) => path.endsWith('/api/users'))).toBe(true);
   });
 
   it('密碼留白時確認建立帳號成功，觸發 uc-create-user，並導向 s-login', async () => {

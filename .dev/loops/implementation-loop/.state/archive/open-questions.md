@@ -137,6 +137,8 @@ Review 補充（2026-09-18，T-10-fe-shell Review 第 2 輪追加，上面 Dev �
 選項：A. 保留 A（依 ui 檔第 45 行字面）——前端必須在送出前自行判斷重複並擋下，代表要新增一個查重用的 API／usecase（spec 目前未定義），屬於新增行為，需要 CR；B. 保留 B（依 spec 的 `pre p2`／`fail p2`／Scenario）——ui 檔第 45 行「不觸發 `uc-create-user`」是措辭疊加或誤寫，實際行為應是「送出後由後端依 `pre p2` 拒絕，前端顯示 `fail p2` 對應訊息、保留輸入」，ui 檔這行文字要修正（需經 `ui-authoring-loop` 或人工改 ui 檔）；C. 缺區分條件（以上皆非，需要人工另外定義判斷方式）。
 事實（程式碼現狀，非定案）：目前 `SignupPage.tsx` 在帳號重複時仍會呼叫 `POST /api/users`（也就是觸發 `uc-create-user`），由後端依 `fail p2` 拒絕（409，訊息「此帳號已被使用」），前端收到後保留輸入、顯示訊息；`SignupPage.test.tsx`「帳號 ID 與系統中既有帳號重複」的測試沒有斷言「不觸發 `uc-create-user`」，跟目前實際行為（會觸發）一致，但跟 ui 檔第 45 行字面矛盾。
 狀態：待處理。在本 OQ 有結論前，程式碼維持現狀（帳號重複時仍送出 `POST /api/users`，由後端拒絕），不自行在前端加一個查重機制去符合 ui 檔第 45 行字面。
+狀態：**已解除（2026-09-19，人工決策，採選項 B：以 spec 為準、改 ui 檔）**。
+解除說明：逐句比對七份 ui 檔的驗收條件後，問題只在這一句。同檔 `s-member-management` 對同類情況（只有後端知道的 `pre`）的寫法逐字是『邀請已是成員的帳號時，觸發 `uc-invite-member`，輸入內容保留、顯示訊息，成員清單不變』，對應 `uc-invite-member` fail p2 逐字『"拒絕，不建立新的 `board-membership`，顯示錯誤訊息「此使用者已經是看板成員」"』——也就是「觸發」在 ui 檔裡的用法是「畫面呼叫了 Use Case，結果可以是被拒絕」。【推論】其餘寫「不觸發」的失敗情境（帳號 ID 為空、密碼超過 40 字、門檻天數格式）都是畫面自己能判斷的 `pre`，只有「帳號 ID 重複」是畫面判斷不了卻寫了「不觸發」。已走 CR-008：該句改為『帳號 ID 與系統中既有帳號重複時確認建立帳號，觸發 `uc-create-user`，輸入內容保留、顯示訊息』；`ui-convention.md`「驗收條件」補上「觸發」的定義與兩種 `pre` 的寫法。程式碼行為不變；`SignupPage.test.tsx` 對應測試改回與驗收條件同名，並斷言有送出 `POST /api/users`（`pnpm test` 16 個測試通過）。
 
 Review 補充（2026-09-18，T-11-fe-auth Review 第 2 輪追加，上面 Dev 寫的內容未改）：上面五段引文我已到源頭逐字核對，`ui-user-membership.md` 第 45 行、`ui-convention.md` 第 150 行、`spec-user-membership.md` 第 97、104、143～147 行都跟原文一致。有一處需要標清楚：「情況」段最後一句『這個 Scenario 描述 `uc-create-user` 被觸發、系統依 `pre p2` 判斷、依 `fail p2` 拒絕的流程，前提是請求已送達…』是**推論**，不是 spec 原文。Scenario 本身只寫『When 我嘗試建立另一個帳號 "user1"』，沒寫前端是否送出請求。這個推論不影響問題本身，所以只在這裡補註，不再退回。
 
