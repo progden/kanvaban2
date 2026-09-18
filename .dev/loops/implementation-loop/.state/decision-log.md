@@ -99,3 +99,26 @@
 - 理由：F02 已定稿，依 `cr-convention.md` 第 1 節「規格已定稿，要修改 usecase 區塊（含 pre/post/fail）」一律要開 CR，即使只是補一條前置條件也算；T-01-be-user 已經合併完成，不透過 worktree pipeline 重開這個已完成的任務，改由人工直接完成規格＋程式碼的小型修正（CR-006 影響範圍小，明細直接寫在 `.dev/CR.md` 總表，沒開明細檔）。
 - 影響：`.dev/CR.md` 新增 CR-006（處理完成）；`spec-user-membership.md` 的 `uc-create-user` 與變更紀錄；`kanban-core`（`ErrorCode.USERNAME_BLANK`、`User.create` 新增檢查、2 個新單元測試）；`kanban-spring`（`UserController.statusFor` 新增對應、Cucumber feature／step）；`open-questions.md` OQ-IMPL-10 標記已解除並訂正分類。`./gradlew clean build`、`spec-check`、`cr-check --cr CR-006` 皆已重新驗證通過。
 - ADR：無（沿用既有 ADR-001 的 400 分類，不是新的跨任務決策）。
+
+### 2026-09-18 T-10-fe-shell（Dev）
+- 決策：範圍只做「app shell」本身——路由骨架（React Router 7）、API client（`src/api/http.ts`＋`src/api/authApi.ts`）、登入態管理（`AuthProvider`／`useAuth`，掛載時打 `GET /api/session` 判斷登入態）、`ProtectedRoute`／`GuestOnlyRoute` 兩種路由守衛、`AppShell`（全域 TopBar，顯示帳號名稱＋登出，依 `ui-user-membership.md` 「全域導覽列」的描述）。`s-login`／`s-signup`／`s-board-list`／F07 `s-canvas` 四個畫面本體都只放最小佔位元件（`LoginPage`／`SignupPage`／`BoardListPage`／`BoardCanvasPage`，各自標註「待 T-11／T-12／T-13 實作」），不自行發明任何表單欄位或版面，留給對應任務依 `ui-*.md` 補上。
+- 理由：任務定義明講「路由、API client、登入態管理」三件事，且 T-11／T-12／T-13 是各自獨立任務、有自己的畫面群組範圍，本任務不應該搶做它們的畫面內容（顆粒度規則）；但路由需要有東西可以渲染才能測試導向行為，所以用最小佔位頁面撐住骨架，避免之後被誤讀成已定案的畫面設計。API client 用 `credentials: 'include'` 帶 `HttpSession` cookie，並在 `vite.config.ts` 加 `/api` proxy 轉發到 `http://localhost:8080`（開發模式跨 port 也能帶 cookie）；這是技術實作細節、未違反 spec，屬低風險決定。
+- 影響：`kanban-frontend/package.json` 新增 `react-router-dom`；新增 `src/api/**`、`src/auth/**`、`src/layout/**`、`src/pages/**`；`src/main.tsx` 包一層 `BrowserRouter`；`src/App.tsx` 改為路由定義；`src/setupTests.ts` 補上 `afterEach(cleanup)`（`vite.config.ts` 的 `test.globals` 未開啟，`@testing-library/react` 偵測不到全域 `afterEach`，不手動註冊會導致多次 `render` 殘留 DOM，測試互相污染）。T-11～T-13 之後接手對應佔位頁面時，只需要替換 `pages/*.tsx` 內容並視需要調整 `AppShell`／路由參數，不需要改動 `AuthContext`／API client。OQ-IMPL-09（HTTP 狀態碼未定案）目前不影響本任務：`ApiError` 只帶狀態碼與訊息，呼叫端（T-11 等）預期依訊息內容而非狀態碼判斷分流，狀態碼定案後不需要改這層。
+- ADR：無（單一任務內的技術選型，未跨 aggregate／未違反既有 ADR-001）。
+
+### 2026-09-18 T-10-fe-shell（Review）
+- 決策：退回，狀態從 `review-pending` 改回 `doing`，追加 D-03（TopBar 顯示 `username` 還是 `display-name`，要登記 OQ）、D-04（更正 OQ-IMPL-09「仍待處理」這個過期紀錄，跟 ADR-001 對齊）。
+- 理由：第 1 點，Review 自己重跑 `pnpm install --frozen-lockfile`、`pnpm run test`（2 個檔案、7 個測試全過）、`pnpm run build`、`pnpm run lint`（exit 0），以及 `./gradlew clean build --no-daemon`（exit 0）；第 2 點，`uc-logout` 的操作表列（需確認＝否、回到 `s-login`）和驗收條件都有落實並有測試，`authApi.ts` 也跟後端 record 一致；第 3 點不適用（沒動 core），grep 確認 core 是乾淨的；第 4 點，diff 只有 `kanban-frontend/**` 和 `.state/**`；第 5 點不通過，`ui-user-membership.md`『TopBar 顯示帳號名稱』沒有指定是哪個欄位，Dev 自己選了 `username` 卻沒登記 OQ，另外交接紀錄引用了已解除的 OQ-IMPL-09；第 6 點通過，沒有自己發明樣式。
+- 影響：不合併回 `loop/implementation`，T-11／T-12 繼續等待。下一輪 Dev 在同一個 worktree 處理 D-03、D-04，預期不需要改程式碼。D-03 的 OQ 如果到下一輪 Review 都還沒定案，只能附保留核准。
+
+### 2026-09-18 T-10-fe-shell（Dev，第 2 輪，D-03／D-04 更正紀錄）
+- 更正（不改動上面既有條目，本則為新增）：上面「2026-09-18 T-10-fe-shell（Dev）」一則寫『OQ-IMPL-09（HTTP 狀態碼未定案）目前不影響本任務』，`tasks.md` 對應備註與 `state.md` 也沿用「OQ-IMPL-09 仍待處理／未定案」這個說法——這跟事實不符。OQ-IMPL-09 已經在本任務 Dev commit（`4614e17`）之前的 `06c0a14`（[docs](loops) 解除 OQ-IMPL-09，升級為 ADR-001）解除，並升級記錄為 [`ADR-001`](adr.md#adr-001usecase-fail-對應-http-狀態碼的慣例)。`tasks.md`、`state.md` 的過期字樣已依此次更正同步修改（見兩檔本輪異動）。
+- 決策：`kanban-frontend/src/api/http.ts` 的 `ApiError` 帶 `status`（HTTP 狀態碼）欄位這個設計，跟 ADR-001 的分類表方向一致——例如未登入查 `GET /api/session` 回 401（ADR-001「身分驗證失敗或未登入」那一列），`ApiError.status` 能原封不動承接這個分類，不需要另外解析回應內容才能知道是不是未登入。後續 T-11（登入／註冊畫面）等任務要依 ADR-001 的狀態碼分類做基本分流（例如 401 統一導向 `s-login`、409／400 停留原表單顯示訊息），至於同一狀態碼內要顯示的精確文字訊息，依 ADR-001「回應內容一律帶錯誤代碼…狀態碼判斷語意分類，錯誤代碼判斷精確情境」這句，仍要讀回應內容的錯誤代碼／訊息决定顯示哪一句，不是單靠狀態碼決定文案。
+- 理由：D-04 要求把「呼叫端依訊息內容判斷」這個說法跟 ADR-001 對齊；`ApiError` 目前的欄位（`status`＋訊息）本來就同時支援「狀態碼分流、訊息內容決定文案」兩層，不需要改程式碼，只需要更正文件敘述與釐清後續任務的用法。
+- 影響：本檔（新增更正條目）、`tasks.md`（T-10 備註更正）、`state.md`（更正）。不涉及程式碼改動。
+- ADR：無（沿用既有 ADR-001，本則是對齊既有分類表的用法說明，不是新的結構性決策）。
+
+### 2026-09-18 T-10-fe-shell（Review，第 2 輪）
+- 決策：附保留核准，狀態從 `review-pending` 改成 `done`，不新增 D-xx。
+- 理由：第 1 點，Review 自己重跑 `pnpm install --frozen-lockfile`、`pnpm run test`（2 個檔案、7 個測試全過）、`pnpm run build`、`pnpm run lint`（exit 0），以及 `./gradlew clean build --no-daemon -q`（exit 0）；第 2、6 點，程式碼跟第 1 輪相同，結論不變；第 3 點，grep 確認 core 是乾淨的；第 4 點，diff 只有 `kanban-frontend/**` 和 `.state/**`；第 5 點，D-03（OQ-IMPL-11）、D-04（OQ-IMPL-09 紀錄更正）都已處理，引文逐字核對一致，OQ-IMPL-11 漏引 spec `uc-login` post 與 Scenario，由 Review 追加補充段落，問題本身不變。OQ-IMPL-11 是高風險、不是覆蓋來源，所以附保留，不標 `blocked`。
+- 影響：`impl/T-10-fe-shell` 可以合併回 `loop/implementation`，T-11-fe-auth 的依賴滿足；T-12 仍要等 T-02、T-04。OQ-IMPL-11 定案前 TopBar 維持顯示 `user.username`，選 `display-name` 時要回頭改前端和 T-01 的 `SessionResponse`。

@@ -86,3 +86,55 @@ Review 第三次被觸發，任務仍是 `done`（HEAD `b9c40a4`）。`git diff 
 - (R3) 第 1 輪提過的觀察還沒處理，但都不擋核准：`uc-logout` 的「無法存取 board」目前是用 `/api/session` 間接驗證的，T-02-be-board 要改成真的去打 board 端點；同名同時建立帳號的競態會變成 500；decision-log 裡「spec 明確排除認證安全機制」的出處其實是 `design-user-membership.md`，不是 spec。另外，`/api/session` 未登入時回的 `"尚未登入"` 這段訊息 spec 沒有定義，一併歸到 OQ-IMPL-09 處理。
 
 判定：**附保留核准**。`tasks.md` 的 T-01-be-user 狀態改成 `done`，可以合併回 `loop/implementation`；不新增 D-xx。
+
+## 2026-09-18 T-10-fe-shell：退回（第 1 輪）
+
+審查對象：`impl/T-10-fe-shell` 分支 HEAD `050324b`（merge-base `8e8432b`）。
+
+1. **建置／測試（Review 自己重跑）**
+   - `cd kanban-frontend && pnpm install --frozen-lockfile`：`Already up to date`。
+   - `pnpm run test`（`vitest run`）：`Test Files 2 passed (2)`、`Tests 7 passed (7)`，exit 0。
+   - `pnpm run build`（`tsc -b && vite build`）：`✓ built in 879ms`。
+   - `pnpm run lint`（`oxlint`）：exit 0。
+   - 根目錄 `./gradlew clean build --no-daemon`：exit 0（確認後端沒被影響）。
+2. **spec 對應**：這個任務不包含完整的 `uc-`／Scenario，但 AppShell 的 TopBar 會觸發 `uc-logout`。對照 `ui-user-membership.md` 第 79 行操作表：『登出 | `uc-logout` | 回到本畫面（`s-login`） | 不適用（`uc-logout` 無 fail 定義） | 否』。程式碼中登出不會跳確認框（「需確認？」＝否），登出後 `ProtectedRoute` 導向 `/login`，`App.test.tsx`「已登入時…登出後回到登入畫面」有測到這段。第 93 行驗收條件『已登入狀態下觸發登出動作，觸發 `uc-logout`，並回到本畫面』也成立。未登入導向 `/login`、已登入時擋掉 `/login` 也都有測試。這個任務沒有 `@fail-pN` 可以抽查，因為 `uc-logout` 沒有 fail；登入的 fail 屬於 T-11。`authApi.ts` 的四個端點與欄位，逐一對過 `UserController` 和 `LoginRequest`／`CreateUserRequest`／`UserResponse`／`SessionResponse` 四個 record，都一致。
+3. **kanban-core 純度**：本任務沒動 `kanban-core`；`grep -rn "import org.springframework\|import jakarta\|@Entity\|@Autowired" kanban-core/src/main` 沒有結果（exit 1）。
+4. **任務邊界**：`git diff --stat loop/implementation...HEAD` 共 23 個檔案，除了 `.state/**` 三個檔，其餘都在 `kanban-frontend/**`。沒動 `.dev/conventions/**`、`scripts/**`、spec／ui／design 本體。
+5. **待確認事項／OQ**：**不通過（D-03、D-04）**。
+   - (a) TopBar 顯示的名稱沒有依據。`ui-user-membership.md` 第 78 行逐字寫『TopBar 顯示帳號名稱』，第 90 行寫『成功後 TopBar 顯示該使用者名稱』。同一份檔案第 26 行把 `user.username` 標為『帳號 ID』，第 27 行把 `user.display-name` 標為『顯示名字』。spec 第 29 行 `user.display-name` 的說明是『顯示名字，看板上顯示用』。【我的推論】「帳號名稱／使用者名稱」都沒有明確對應到其中一個欄位，Dev 自己選了 `username`，屬於 `iteration-prompt.md` 第 5 節的「高風險」：『spec 的 `pre`／`post`／Scenario 沒講清楚該怎麼實作』。而且如果結論是 `display-name`，還要改 T-01 的 `SessionResponse`，但交接摘要寫『待確認事項／新開 OQ：無』。這跟 T-01 第 1 輪被退回的原因相同。
+   - (b) 交接摘要、`tasks.md` 備註、`decision-log.md` 都說 OQ-IMPL-09『仍待處理／未定案』。實際上 OQ-IMPL-09 在 `06c0a14` 已經解除並升級為 ADR-001，時間早於本任務的 Dev commit `4614e17`。紀錄跟事實不符。程式碼本身沒問題（`ApiError` 有保留 `status`），但「呼叫端依訊息內容判斷」這個說法，要跟 ADR-001『前端／API 使用者可以只看狀態碼就做基本分流』的立場對齊。
+   - 【我的推論】這兩件都屬於「高風險／紀錄正確性」，不是「覆蓋來源」，所以不標 `blocked`。
+6. **前端設計稿**：`planning-prompt.md` 的畫面清單中沒有獨立的 shell 或 TopBar 畫面（Login／Signup 等屬於 T-11 以後的任務）。Dev 沒有加任何樣式，四個佔位頁也都註明由哪個任務接手，沒有自己發明視覺風格。通過。
+
+**不擋這次判定的觀察（不另開 D-xx）**：
+- `AppShell.tsx` 用 `void logout()` 呼叫登出。如果 `POST /api/logout` 發生網路錯誤，會變成 unhandled rejection，畫面也沒有任何反應。`uc-logout` 沒有定義 fail，所以不算違反規格，之後可以考慮補上。
+- `AuthProvider` 在 `fetchSession` 遇到任何錯誤（包括 500 或網路錯誤）都當成未登入，這是合理的預設。
+- `open-questions.md` 的 OQ-IMPL-10 結尾還留著一行舊的『狀態：待處理。…』，跟上面的『狀態：已解除』互相矛盾。這是 CR-006 處理時留下的，不在本任務範圍內，請人工或 Planning 清掉。
+
+判定：**退回**。`tasks.md` 的 T-10-fe-shell 狀態改回 `doing`，追加 D-03、D-04（第 1 輪退回，`MAX_TASK_ROUNDS=6`）。程式碼不需要修改；D-03 只要求登記 OQ，D-04 只要求更正紀錄。
+
+## 2026-09-18 T-10-fe-shell：附保留核准（第 2 輪）
+
+審查對象：`impl/T-10-fe-shell` 分支 HEAD `bca59de`（merge-base `8e8432b`，也就是 `loop/implementation` 目前的 HEAD）。`git diff --stat 89d416e..HEAD` 只有 `.state/**` 四個檔案（decision-log、open-questions、state、tasks），程式碼跟第 1 輪審查時相同。
+
+1. **建置／測試（Review 自己重跑）**
+   - `cd kanban-frontend && pnpm install --frozen-lockfile`：`Already up to date`。
+   - `pnpm run test`（`vitest run`）：`Test Files 2 passed (2)`、`Tests 7 passed (7)`，exit 0。
+   - `pnpm run build`（`tsc -b && vite build`）：`✓ built in 1.17s`。
+   - `pnpm run lint`（`oxlint`）：exit 0。
+   - 根目錄 `./gradlew clean build --no-daemon -q`：exit 0。
+2. **spec 對應**：程式碼沒變，第 1 輪的結論仍然成立：`uc-logout` 對應 `ui-user-membership.md` 第 79 行操作表（需確認＝否、回到 `s-login`）與第 93 行驗收條件，有 `App.test.tsx` 覆蓋；`uc-logout` 沒有 fail，登入的 `@fail-p1`／`@fail-p2` 屬於 T-11，本任務沒有 `@fail-pN` 可以抽查。
+3. **kanban-core 純度**：本任務沒動 `kanban-core`；`grep -rn "import org.springframework\|import jakarta\|@Entity\|@Autowired" kanban-core/src/main` 沒有結果（exit 1）。
+4. **任務邊界**：`git diff --stat loop/implementation...HEAD` 共 25 個檔案，除了 `.state/**` 五個檔，其餘 20 個都在 `kanban-frontend/**`。沒動 `.dev/conventions/**`、`scripts/**`、spec／ui／design 本體、`CLAUDE.md`、`kanban-core/**`、`kanban-spring/**`。
+5. **待確認事項／OQ**：D-03、D-04 已處理。
+   - D-03：OQ-IMPL-11 已登記。我到源頭逐字核對引文：`ui-user-membership.md` 第 26、27、78、90 行，`spec-user-membership.md` 第 28、29 行，都跟 OQ 裡的引文一致。程式碼事實也核對過：`SessionResponse` 只有 `username`，`AppShell.tsx` 顯示 `useAuth()` 的 `username`。**缺漏**：OQ 沒有引用 spec 本身的 `uc-login` post（第 189 行『"登入成功，TopBar 顯示該 `user` 的帳號名稱"』）和 Scenario 第 223 行『And TopBar 應該顯示我的名稱 "user1"』。我已在 OQ-IMPL-11 底下追加一段「Review 補充」，逐字補上這兩處（Dev 寫的內容沒改）。【我的推論】補上的原文沒有改變問題本身，Scenario 也區分不了 A／B（`display-name` 沒指定時等於 `username`），所以不為這個缺漏再退回一輪。
+   - D-04：`decision-log.md` 新增的更正條目已核對：`adr.md` 第 44 行『身分驗證失敗或未登入 | 401 Unauthorized』、第 49 行『狀態碼判斷語意分類，錯誤代碼判斷精確情境』，跟更正內容一致；`tasks.md` T-10 備註、`state.md` 的過期字樣已改掉。
+   - 等級判斷（這是我的推論）：OQ-IMPL-11 屬於 `iteration-prompt.md` 第 5 節的「高風險」（『spec 的 `pre`／`post`／Scenario 沒講清楚該怎麼實作』），不屬於「覆蓋來源」。不管選 A 或 B，都只是換一個顯示欄位，最多在 `SessionResponse` 加一個欄位，不會推翻既有結構。所以不標 `blocked`，只能附保留核准。
+6. **前端設計稿**：同第 1 輪，沒有自己發明樣式，通過。
+
+**保留事項（核准附帶條件）**：
+- (R1) OQ-IMPL-11 待處理：TopBar 目前顯示 `user.username`，是實作推論，還沒定案。如果定案為 `user.display-name`，要改 `kanban-frontend/src/layout/AppShell.tsx`、`auth` 相關型別，以及 T-01 的 `SessionResponse`（已合併，需要另開修正）。
+- (R2) 第 1 輪提過的觀察還沒處理，但不擋核准：`AppShell.tsx` 的 `void logout()` 在網路錯誤時會變成 unhandled rejection。
+- (R3) 範圍外的紀錄問題，請人工或 Planning 清理：`open-questions.md` OQ-IMPL-10 結尾還有一行過期的『狀態：待處理。…』；`tasks.md` 的 T-01-be-user 備註還寫著『OQ-IMPL-09（HTTP 狀態碼）、OQ-IMPL-10（`user.username` 非空）仍待處理』，但兩則都已經解除。
+
+判定：**附保留核准**。`tasks.md` 的 T-10-fe-shell 狀態改成 `done`，可以合併回 `loop/implementation`；不新增 D-xx。
