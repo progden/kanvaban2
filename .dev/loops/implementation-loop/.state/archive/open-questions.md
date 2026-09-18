@@ -153,6 +153,8 @@ spec原文：`.dev/F02-user-membership/spec-user-membership.md` 第 260～269 �
 問題：這組預設 Swimlane／Stage 名稱與數量是否為正式定案？若非，正確定案內容為何？
 選項：A. 維持目前實作（1 個「預設泳道」＋ 3 個「待辦」「進行中」「完成」，皆依 Background/Given 文字逐字採用）；B. `uc-create-board` 的 `post` 應明確補上這條規則（走 CR，因為 `spec-user-membership.md` 狀態為「定稿」）；C. 以上皆非（例如預設值應可由使用者在建立當下自訂，不該寫死在 domain 層）。
 狀態：待處理。在本 OQ 有結論前，`kanban-core` 的 `Board.create` 維持目前實作（選項 A 的內容），`kanban-spring`／Cucumber 驗收測試皆以此為準。
+狀態：**已解除（2026-09-19，人工決策，採選項 A 的內容＋選項 B 的作法）**。
+解除說明：人工定案：新看板帶 1 個 Swimlane「預設泳道」＋3 個 Stage「待辦」「進行中」「完成」，`stage.role` 皆為 NONE。討論時曾考慮預設就給「進行中」START、「完成」DONE，人工否決——Stage 角色是要看 Cycle/Lead Time 圖表時才設定的（`.dev/CR.md` CR-003 逐字：『新增 Stage 角色標記（Start／Done），供 F03 標準圖表計算 Cycle/Lead Time 使用』；欄位表逐字：『Stage 在流程中的意義，預設 NONE』），跟建立看板是不同時機，由 `uc-set-stage-role` 負責。已走 CR-009：`uc-create-board` 新增 post 逐字『"新的 `board` 帶有 1 個 `swimlane`（名稱「預設泳道」）與 3 個 `stage`，依序為「待辦」、「進行中」、「完成」，`stage.role` 皆為 NONE"』，新增 Scenario「建立 Board 後帶有預設的 Swimlane 與 Stage」。`Board.create` 現況已符合、不用改；新 Scenario 的 step definition 由 T-04-be-board-membership 一併補上。
 
 ## OQ-IMPL-15
 

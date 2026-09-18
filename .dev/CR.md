@@ -10,7 +10,7 @@
 | CR-006 | 建立帳號時 username 不可留空的 pre／fail 補齊 | 變更 | implementation-loop（T-01-be-user，OQ-IMPL-10） | 2026-09-18 | spec-user-membership | `uc-create-user` | 處理完成 | 2026-09-18 | |
 | CR-007 | 登入後 TopBar 顯示 display-name | 變更 | implementation-loop（T-10-fe-shell，OQ-IMPL-11） | 2026-09-18 | spec-user-membership、ui-user-membership | `uc-login`、`s-login` | 待處理 | | |
 | CR-008 | 帳號 ID 重複時的驗收條件改為「觸發 uc-create-user」 | 變更 | implementation-loop（T-11-fe-auth，OQ-IMPL-13） | 2026-09-19 | ui-user-membership | `s-signup` | 處理完成 | 2026-09-19 | |
-| CR-009 | 建立看板時的預設 Swimlane／Stage | 變更 | implementation-loop（T-02-be-board，OQ-IMPL-14） | 2026-09-19 | spec-user-membership | `uc-create-board` | 修改規格 | | |
+| CR-009 | 建立看板時的預設 Swimlane／Stage | 變更 | implementation-loop（T-02-be-board，OQ-IMPL-14） | 2026-09-19 | spec-user-membership | `uc-create-board` | 待處理 | | |
 
 ### CR-001：Board/Card 補上操作人記錄
 - 背景：Swimlane／Stage／Card 會改變狀態的情境，原本沒有記錄是誰做的操作，F02 要做活動紀錄需要這份資料。
