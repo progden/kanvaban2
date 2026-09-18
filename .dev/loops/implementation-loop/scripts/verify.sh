@@ -56,6 +56,14 @@ for id in $(task_ids); do
   esac
 done
 
+# 2.5 依賴欄裡的每個 T-xx 都必須是任務清單上的任務。依賴欄的說明文字只要不小心寫到
+# 「T-02 的…」這種縮寫，就會被當成一個不存在的依賴，該任務永遠不會被派工（靜默死結）。
+for id in $(task_ids); do
+  for dep in $(awk -F'|' -v id="$id" '$0 ~ "^\\| "id" \\|" {print $4}' "$LEDGER" | grep -oE 'T-[0-9A-Za-z-]+' || true); do
+    grep -q "^| $dep |" "$LEDGER" || { notes+=("FAIL：任務 $id 的依賴欄出現不存在的任務 ID「$dep」（說明文字不要寫 T-xx 縮寫）"); fail=1; }
+  done
+done
+
 # 3. 任務目錄必須對得回任務清單（_planning 是安排階段自己的目錄）
 for d in "$STATE"/tasks/*/; do
   name="$(basename "$d")"
