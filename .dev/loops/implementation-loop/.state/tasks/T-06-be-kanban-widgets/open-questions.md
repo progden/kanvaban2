@@ -58,3 +58,26 @@ Review 第 1 輪實際在本 worktree 執行 `./gradlew clean build --no-daemon`
 
 問題：整合分支上 `BoardClockSteps`／`FeatureCrBoardSteps` 重複宣告「我已登入系統，並開啟 Board {string}」，導致 `./gradlew build` 紅燈。這要由誰、在哪裡修？修好之前 T-06 無法取得綠燈建置，不能核准。
 選項：A. 人工直接在 `loop/implementation` 修（例如刪掉 `FeatureCrBoardSteps` 的重複 `@Given`，改呼叫 `BoardClockSteps` 的既有方法），再把整合分支合併進本 worktree，重跑 T-06 Review；B. 在 `.state/tasks.md` 新增一個修正任務（允許改 T-05／T-08 的 step 檔），完成後 T-06 再 rebase／merge 並重跑 Review；C. 人工明確授權 T-06 的 Dev 在本任務範圍內一併修掉這個重複定義（等於放寬第 4 點的邊界），再跑一輪 Dev。
+
+## OQ-T-06-be-kanban-widgets-03
+
+[Level: F03-kanban-widgets/uc-view-wip]
+- 等級：高
+- 阻塞：否
+- 接手：人工
+- 原因代碼：spec-conflict
+- 開立：Review 第 1 輪（2026-09-19）
+- 狀態：待處理
+
+情況：【兩處矛盾並列】
+`.dev/F03-kanban-widgets/spec-kanban-widgets.md`「其他名詞」表（第 33 行）：
+『| WIP（Work In Progress） | 目前不在 Done 角色 Stage 的卡片數量，依 Stage 分組統計 |』
+同檔 `uc-view-wip` 的 post（第 136 行）：
+『依 Stage 分組顯示目前的 `card` 數量』
+同檔 Scenario「檢視各 Stage 目前的卡片數量」（第 171 行；Background 已寫『Stage "完成" 已設定角色為 Done』）：
+『Then 應該顯示 Stage "待辦" 卡片數 3、"進行中" 卡片數 2、"完成" 卡片數 5』
+
+推論：名詞表的定義會把 Done 角色的 Stage 排除在 WIP 之外，但 Scenario 要求 Done 角色的 Stage "完成" 也要列出卡片數 5，兩者矛盾。Dev 第 1 輪依 post／Scenario 實作（`WipCalculator` 不排除 Done 角色 Stage），只寫進 decision-log 當成「低風險技術決定」，沒有開 OQ；依規則書第 5 節，spec 內部說法不一致屬於高風險，應該要開 OQ。這樣實作不用改任何定稿文字（Scenario 是驗收依據），所以不阻塞。本則由 Review 補開。
+
+問題：`uc-view-wip` 回傳的各 Stage 卡片數，是否要包含 Done 角色的 Stage？
+選項：A. 包含（維持現行實作，名詞表的 WIP 定義之後走 CR 改寫成跟 Scenario 一致）；B. 排除（改 Scenario 走 CR，實作之後跟著改 `WipCalculator`）；C. 兩者都回傳（各 Stage 卡片數照常列出，另外回一個不含 Done 的 WIP 總數），走 CR 讓名詞表與 post 一起定案。
