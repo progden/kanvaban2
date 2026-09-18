@@ -123,6 +123,8 @@ Review 補充（2026-09-18，T-10-fe-shell Review 第 2 輪追加，上面 Dev �
 `.state/tasks.md` T-11-fe-auth 該列「備註」欄逐字為空（僅 `| T-11-fe-auth | \`s-login\`、\`s-signup\` | T-10-fe-shell | doing | |`），沒有附加版面摘要。
 問題：Dev sub agent（`-p` 一次性行程，無法開啟 claude.ai Design 類型 Artifact）看不到 `Login.dc.html`／`Signup.dc.html` 實際版面，依規則已用 `ui-user-membership.md` s-login／s-signup 的操作表、資料表、驗收條件實作純語意版面（標準 HTML 表單元素：帳號 ID／密碼／顯示名字輸入框、送出按鈕、連結、錯誤訊息 `role="alert"`），未對照設計稿視覺風格（配色、間距、元件庫）。
 狀態：待處理。本任務程式碼（`LoginPage.tsx`／`SignupPage.tsx`）標記「待對照設計稿」，之後若有人工或有設計稿存取權的 agent 對照 `Login.dc.html`／`Signup.dc.html`，可能需要回頭調整版面與樣式（不影響已驗證的操作／驗收條件行為）。
+狀態：**已解除（2026-09-18，人工決策）**。
+解除說明：這不是 T-11 單一任務的問題，是環境缺口——`claude -p` 行程打不開 claude.ai Artifact，之後每個前端任務都會撞到。人工決議把設計稿匯出進 repo：`.dev/ui-prototype/`（21 個檔，來源 <https://claude.ai/artifact/5v45krEsoCJdWwu7fjV5sH>，對照表與使用規則見該目錄 `README.md`）；`dev-prompt.md`／`review-prompt.md`／`iteration-prompt.md` 已改成直接讀這個目錄。`LoginPage.tsx`／`SignupPage.tsx`／TopBar 的版面補做由任務 `T-22-fe-restyle-shell-auth` 接手。
 
 ## OQ-IMPL-13
 

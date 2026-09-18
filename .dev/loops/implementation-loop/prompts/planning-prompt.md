@@ -12,7 +12,7 @@
 5. 校對／更新 `.state/tasks.md`：若既有任務列的描述、依賴、範圍已經涵蓋規格內容，不要無理由重寫；若規格自上次安排後有變（例如某模組剛完成遷移），更新該列，並在 `.state/tasks/_planning/decision-log.md` 記一則決策紀錄說明改了什麼、依據哪裡。
 6. 任何找不到依據的地方（規格未遷移、ui 檔不存在、設計稿沒有對應畫面）：任務標 `blocked`（寫 `.state/tasks/<task-id>/status`），在 `.state/tasks/_planning/open-questions.md` 用 lesson-learned 的 OQ 格式追加一則（ID 格式 `OQ-PLAN-<兩位數>`），**不可以自己編一個「合理的」範圍去填補**。
 
-## 前端設計稿畫面清單（固定資料，來源：claude.ai Design Artifact，35 個檔案，擷取自 `project/*.dc.html`）
+## 前端設計稿畫面清單（檔案已匯出到 `.dev/ui-prototype/`，檔案與 Screen ID 的正式對照見該目錄 `README.md`；下表是當初排任務用的推測）
 
 | 檔名 | 推測對應模組／用途 |
 |---|---|

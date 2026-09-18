@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Noto+Sans+TC:wght@400;500;700&amp;display=swap">
+  <style>
+    *{box-sizing:border-box;}
+    body{margin:0;background:#FFFFFF;font-family:'IBM Plex Sans','Noto Sans TC',sans-serif;color:#16202C;-webkit-font-smoothing:antialiased;}
+    a{color:#1F4BD8;}a:hover{color:#16359B;}
+    .id{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7B8896;}
+    .uc{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#1F4BD8;}
+    .sid{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#16202C;background:#DEE4EF;border-radius:3px;padding:3px 8px;}
+    .warn{font-size:10px;line-height:1.55;color:#8A4B00;background:#FFF4E3;border:1px solid #EFC489;border-radius:4px;padding:3px 7px;display:inline-block;}
+    .hd{height:38px;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid #E2E6EE;background:#F7F8FA;font-size:12px;color:#5C6878;flex-shrink:0;}
+    .lbl{font-size:12px;font-weight:500;color:#3B4756;display:block;margin-bottom:6px;}
+    .inp{height:44px;border:1px solid #C9D0DC;border-radius:6px;background:#fff;padding:0 12px;font-size:14px;font-family:inherit;color:#16202C;width:100%;}
+    .btn{height:44px;border:0;border-radius:6px;background:#1F4BD8;color:#fff;font-family:inherit;font-size:14px;font-weight:500;padding:0 18px;cursor:pointer;}
+    .btn2{height:44px;border:1px solid #C9D0DC;border-radius:6px;background:#fff;color:#3B4756;font-family:inherit;font-size:14px;padding:0 18px;cursor:pointer;}
+    .btnsm{height:30px;border:1px solid #C9D0DC;border-radius:5px;background:#fff;color:#3B4756;font-family:inherit;font-size:12px;padding:0 10px;cursor:pointer;}
+    .err{font-size:12px;color:#A02515;background:#FDECEA;border:1px solid #F3C0B9;border-radius:6px;padding:9px 11px;}
+    .av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0;}
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; background: #FFFFFF;">
+<div class="hd"><span class="sid">s-canvas</span><span style="font-weight:500;color:#16202C;">看板畫布主畫面</span><span class="sid">s-board</span><span>看板本體＝畫布上的一個 item</span><span style="margin-left:auto;">F07 canvas-layout ＋ F01 basic-kanban</span></div>
+
+<div style="flex-grow:1;display:flex;flex-direction:column;">
+
+  <div style="height:48px;background:#fff;border-bottom:1px solid #DDE2EA;display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;">
+    <a href="BoardList.dc.html" class="btnsm" style="text-decoration:none;display:inline-flex;align-items:center;line-height:28px;">← 我的看板</a>
+    <div style="width:1px;height:24px;background:#E2E6EE;"></div>
+    <div>
+      <div style="font-size:14px;font-weight:600;line-height:1.2;">付款平台改版</div>
+      <span class="id">board.name</span>
+    </div>
+    <span class="warn" style="margin-left:14px;">⚠️ 規格未定義：畫布頂列本身。F07 尚無 ui-canvas-layout.md</span>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+      <div class="av" style="background:#1F4BD8;">柏</div>
+      <button class="btnsm">登出</button>
+    </div>
+  </div>
+
+  <div style="flex-grow:1;position:relative;background:#E8EAF0;background-image:radial-gradient(#C6CBD7 1.5px, transparent 1.5px);background-size:22px 22px;overflow:hidden;">
+
+    <div style="position:absolute;left:14px;top:14px;width:46px;background:#fff;border:1px solid #D3D9E3;border-radius:8px;box-shadow:0 2px 8px rgba(22,32,44,.10);padding:6px;display:flex;flex-direction:column;gap:4px;">
+      <button aria-label="選取" style="width:34px;height:34px;border:0;border-radius:6px;background:#E6ECFB;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#1F4BD8" stroke-width="1.5" stroke-linejoin="round"><path d="M3 2l9 5.2-4 1.1-1.6 3.9z"></path></svg>
+      </button>
+      <button aria-label="平移畫布" style="width:34px;height:34px;border:0;border-radius:6px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#5C6878" stroke-width="1.5" stroke-linecap="round"><path d="M8 2v12M2 8h12"></path></svg>
+      </button>
+      <div style="height:1px;background:#E7EAF0;margin:2px 4px;"></div>
+      <button aria-label="加入元件" style="width:34px;height:34px;border:0;border-radius:6px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#5C6878" stroke-width="1.5" stroke-linecap="round"><path d="M8 3v10M3 8h10"></path></svg>
+      </button>
+    </div>
+    <div style="position:absolute;left:68px;top:98px;display:flex;flex-direction:column;gap:3px;width:200px;">
+      <span class="uc">加入元件 → uc-place-item</span>
+      <span class="warn">⚠️ 規格未定義：畫布工具列本身</span>
+    </div>
+
+    <div style="position:absolute;left:150px;top:26px;width:906px;height:596px;background:#fff;border:1px solid #C4CBD8;border-radius:8px;box-shadow:0 8px 24px rgba(22,32,44,.13);display:flex;flex-direction:column;overflow:hidden;">
+      <div style="height:34px;background:#F2F4F8;border-bottom:1px solid #E2E6EE;display:flex;align-items:center;gap:8px;padding:0 12px;flex-shrink:0;">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#5C6878" stroke-width="1.4"><rect x="2" y="2" width="12" height="12" rx="1.5"></rect><path d="M6 2v12M2 6h12"></path></svg>
+        <span style="font-size:12px;font-weight:600;">看板本體</span>
+        <span class="sid">s-board</span>
+        <span class="id" style="margin-left:auto;">item.component ＝ 看板本體（⚠️ 值未定案，見 spec-canvas-layout 待釐清）</span>
+      </div>
+
+      <div style="flex-grow:1;display:grid;grid-template-columns:106px repeat(4, minmax(0,1fr));grid-template-rows:44px repeat(3, minmax(0,1fr));">
+
+        <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #DDE2EA;"></div>
+        <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #DDE2EA;padding:7px 10px;">
+          <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:12px;font-weight:600;">Backlog</span><span style="font-size:9.5px;font-weight:500;color:#0F766E;background:#DDF1EE;border-radius:3px;padding:1px 5px;">START</span></div>
+          <div style="display:flex;gap:8px;"><span class="id">stage.name</span><span class="id">stage.role</span></div>
+        </div>
+        <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #DDE2EA;padding:7px 10px;">
+          <div style="font-size:12px;font-weight:600;">開發中</div>
+        </div>
+        <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #DDE2EA;padding:7px 10px;">
+          <div style="font-size:12px;font-weight:600;">Code Review</div>
+        </div>
+        <div style="border-bottom:1px solid #DDE2EA;padding:7px 10px;">
+          <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:12px;font-weight:600;">完成</span><span style="font-size:9.5px;font-weight:500;color:#157F3D;background:#DFF2E5;border-radius:3px;padding:1px 5px;">DONE</span></div>
+        </div>
+
+        <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #EDF0F5;background:#FAFBFC;padding:10px;">
+          <div style="font-size:12px;font-weight:600;">前端</div>
+          <div class="id">swimlane.name</div>
+        </div>
+        <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #EDF0F5;padding:8px;">
+          <div style="background:#fff;border:1px solid #DDE2EA;border-left:3px solid #1F4BD8;border-radius:5px;padding:8px 9px;box-shadow:0 1px 2px rgba(22,32,44,.06);">
+            <div style="font-size:12.5px;font-weight:500;line-height:1.4;">結帳頁 3DS 驗證流程</div>
+            <div class="id">card.title</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+              <span style="font-size:11px;color:#5C6878;">10/02</span>
+              <div class="av" style="background:#7A4FC4;width:20px;height:20px;font-size:9.5px;margin-left:auto;">郁</div>
+            </div>
+            <div style="display:flex;gap:6px;"><span class="id">card.due-date</span><span class="id" style="margin-left:auto;">card.assignees</span></div>
+          </div>
+          <div class="id" style="margin-top:6px;line-height:1.6;">格內位置 ＝ card.swimlane × card.stage<br>其餘卡片同一套欄位，不重複標註</div>
+        </div>
+        <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #EDF0F5;padding:8px;">
+          <div style="background:#fff;border:1px solid #DDE2EA;border-left:3px solid #1F4BD8;border-radius:5px;padding:8px 9px;opacity:.4;">
+            <div style="font-size:12.5px;font-weight:500;">購物車金額重算</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:8px;"><span style="font-size:11px;color:#5C6878;">09/24</span>
+              <div style="margin-left:auto;display:flex;"><div class="av" style="background:#7A4FC4;width:20px;height:20px;font-size:9.5px;">郁</div><div class="av" style="background:#B0561A;width:20px;height:20px;font-size:9.5px;margin-left:-6px;border:1.5px solid #fff;">翔</div></div>
+            </div>
+          </div>
+          <div class="id" style="margin-top:6px;">拖曳中的原位置</div>
+        </div>
+        <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #EDF0F5;padding:8px;background:#F3F7FF;">
+          <div style="border:1.5px dashed #1F4BD8;border-radius:5px;height:56px;display:flex;align-items:center;justify-content:center;">
+            <span class="uc">uc-move-card-stage</span>
+          </div>
+          <div style="margin-top:8px;background:#fff;border:1px solid #DDE2EA;border-left:3px solid #1F4BD8;border-radius:5px;padding:8px 9px;box-shadow:0 6px 16px rgba(31,75,216,.24);transform:rotate(-1.5deg);">
+            <div style="font-size:12.5px;font-weight:500;">購物車金額重算</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:8px;"><span style="font-size:11px;color:#5C6878;">09/24</span>
+              <div style="margin-left:auto;display:flex;"><div class="av" style="background:#7A4FC4;width:20px;height:20px;font-size:9.5px;">郁</div><div class="av" style="background:#B0561A;width:20px;height:20px;font-size:9.5px;margin-left:-6px;border:1.5px solid #fff;">翔</div></div>
+            </div>
+          </div>
+        </div>
+        <div style="border-bottom:1px solid #EDF0F5;padding:8px;"></div>
+
+        <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #EDF0F5;background:#FAFBFC;padding:10px;"><div style="font-size:12px;font-weight:600;">後端</div></div>
+        <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #EDF0F5;padding:8px;">
+          <div style="background:#fff;border:1px solid #DDE2EA;border-left:3px solid #0F766E;border-radius:5px;padding:8px 9px;">
+            <div style="font-size:12.5px;font-weight:500;">退款 API 冪等性</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:8px;"><span style="font-size:11px;color:#5C6878;">10/10</span><div class="av" style="background:#0F766E;width:20px;height:20px;font-size:9.5px;margin-left:auto;">帆</div></div>
+          </div>
+        </div>
+        <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #EDF0F5;padding:8px;">
+          <div style="background:#fff;border:1px solid #DDE2EA;border-left:3px solid #0F766E;border-radius:5px;padding:8px 9px;">
+            <div style="font-size:12.5px;font-weight:500;">對帳批次任務</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:8px;"><span style="font-size:11px;color:#5C6878;">09/19</span><div class="av" style="background:#0F766E;width:20px;height:20px;font-size:9.5px;margin-left:auto;">帆</div></div>
+          </div>
+        </div>
+        <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #EDF0F5;padding:8px;"></div>
+        <div style="border-bottom:1px solid #EDF0F5;padding:8px;">
+          <div style="background:#fff;border:1px solid #DDE2EA;border-left:3px solid #157F3D;border-radius:5px;padding:8px 9px;">
+            <div style="font-size:12.5px;font-weight:500;">付款狀態 Webhook</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:8px;"><span style="font-size:11px;color:#5C6878;">09/12</span><div style="margin-left:auto;display:flex;"><div class="av" style="background:#0F766E;width:20px;height:20px;font-size:9.5px;">帆</div><div class="av" style="background:#1F4BD8;width:20px;height:20px;font-size:9.5px;margin-left:-6px;border:1.5px solid #fff;">柏</div></div></div>
+          </div>
+        </div>
+
+        <div style="border-right:1px solid #E7EAF0;background:#FAFBFC;padding:10px;"><div style="font-size:12px;font-weight:600;">SRE</div></div>
+        <div style="border-right:1px solid #E7EAF0;padding:8px;">
+          <div style="background:#fff;border:1px solid #DDE2EA;border-left:3px solid #B0561A;border-radius:5px;padding:8px 9px;">
+            <div style="font-size:12.5px;font-weight:500;">支付閘道健康檢查</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:8px;"><span style="font-size:11px;color:#5C6878;">09/16</span><div class="av" style="background:#B0561A;width:20px;height:20px;font-size:9.5px;margin-left:auto;">翔</div></div>
+          </div>
+          <button class="btnsm" style="width:100%;margin-top:8px;border-style:dashed;color:#5C6878;">＋ 新增卡片</button>
+          <div class="id" style="margin-top:4px;">每格一個入口 → s-card-add-dialog</div>
+        </div>
+        <div style="border-right:1px solid #E7EAF0;padding:8px;">
+          <div style="background:#fff;border:1px solid #DDE2EA;border-left:3px solid #B0561A;border-radius:5px;padding:8px 9px;">
+            <div style="font-size:12.5px;font-weight:500;">藍綠部署腳本</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:8px;"><div class="av" style="background:#1F4BD8;width:20px;height:20px;font-size:9.5px;margin-left:auto;">柏</div></div>
+          </div>
+        </div>
+        <div style="border-right:1px solid #E7EAF0;padding:8px;"></div>
+        <div style="padding:8px;"></div>
+      </div>
+    </div>
+
+    <div style="position:absolute;left:150px;top:632px;display:flex;flex-direction:column;gap:4px;width:906px;">
+      <span class="id">卡片往上下拖 → uc-move-card-swimlane（換 Swimlane、原 Stage）；往左右拖 → uc-move-card-stage</span>
+      <span class="id">點擊卡片 → s-card-detail；卡片選單的刪除 → s-card-delete-dialog（皆為純前端導覽）</span>
+    </div>
+
+    <div style="position:absolute;right:16px;top:16px;width:212px;background:#fff;border:1px solid #C4CBD8;border-radius:8px;box-shadow:0 6px 18px rgba(22,32,44,.14);overflow:hidden;">
+      <div style="height:30px;background:#F2F4F8;border-bottom:1px solid #E2E6EE;display:flex;align-items:center;gap:6px;padding:0 10px;">
+        <span style="font-size:11.5px;font-weight:600;">看板成員</span>
+        <span style="margin-left:auto;font-size:9px;color:#5C6878;background:#E4E8EF;border-radius:3px;padding:1px 5px;">固定於畫面</span>
+      </div>
+      <div style="padding:10px;display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;align-items:center;gap:8px;"><div class="av" style="background:#7A4FC4;">郁</div><span style="font-size:12px;">林郁婷</span></div>
+        <div style="display:flex;align-items:center;gap:8px;"><div class="av" style="background:#1F4BD8;">柏</div><span style="font-size:12px;">陳柏翰</span></div>
+        <div style="display:flex;align-items:center;gap:8px;"><div class="av" style="background:#0F766E;">帆</div><span style="font-size:12px;">蔡依帆</span></div>
+        <div style="display:flex;align-items:center;gap:8px;"><div class="av" style="background:#B0561A;">翔</div><span style="font-size:12px;">黃孟翔</span></div>
+      </div>
+      <div style="padding:0 10px 10px;">
+        <button class="btnsm" style="width:100%;border-style:dashed;color:#5C6878;">＋ 加入成員</button>
+      </div>
+      <div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:4px;">
+        <span class="id">user.display-name</span>
+        <span class="uc">拖頭像到卡片 → uc-assign-card-owner-by-drag</span>
+        <span class="id">加入成員 → 開啟 s-member-management（OQ-45）</span>
+      </div>
+    </div>
+    <div style="position:absolute;right:16px;top:330px;width:212px;display:flex;flex-direction:column;gap:5px;">
+      <span class="id">畫布上另一個獨立 item：item.anchor ＝ screen，不隨平移縮放</span>
+      <span class="warn">⚠️ 跨 item 拖曳機制待 F07 補充（ui-kanban-basic.md OQ-19）</span>
+      <span class="warn">⚠️ 加入成員的進入機制細節待 T7.02 撰寫 s-canvas 時定案</span>
+    </div>
+
+    <div style="position:absolute;left:1064px;top:466px;width:230px;height:148px;background:#fff;border:1px solid #C4CBD8;border-radius:8px;box-shadow:0 6px 18px rgba(22,32,44,.12);overflow:hidden;opacity:.6;">
+      <div style="height:28px;background:#F2F4F8;border-bottom:1px solid #E2E6EE;display:flex;align-items:center;padding:0 10px;"><span style="font-size:11px;font-weight:600;color:#5C6878;">週產出</span></div>
+      <div style="padding:14px;display:flex;align-items:flex-end;gap:7px;height:108px;">
+        <div style="flex-grow:1;height:34%;background:#C9D3E6;"></div><div style="flex-grow:1;height:58%;background:#C9D3E6;"></div>
+        <div style="flex-grow:1;height:46%;background:#C9D3E6;"></div><div style="flex-grow:1;height:78%;background:#C9D3E6;"></div>
+        <div style="flex-grow:1;height:62%;background:#C9D3E6;"></div><div style="flex-grow:1;height:90%;background:#C9D3E6;"></div>
+      </div>
+    </div>
+    <div style="position:absolute;left:1064px;top:624px;width:232px;">
+      <span class="warn">⚠️ 規格未定義：圖表元件（F03）如何成為畫布 item。此處僅示意「畫布上放得下別的元件」，非定案內容。</span>
+    </div>
+
+    <div style="position:absolute;left:16px;bottom:16px;width:196px;background:#fff;border:1px solid #C4CBD8;border-radius:8px;box-shadow:0 4px 12px rgba(22,32,44,.12);padding:8px;">
+      <div style="position:relative;height:100px;background:#EEF1F6;border-radius:4px;overflow:hidden;">
+        <div style="position:absolute;left:18px;top:12px;width:104px;height:64px;background:#C9D3E6;border-radius:2px;"></div>
+        <div style="position:absolute;right:10px;top:8px;width:26px;height:22px;background:#D6DCE8;border-radius:2px;"></div>
+        <div style="position:absolute;right:14px;bottom:12px;width:34px;height:22px;background:#D6DCE8;border-radius:2px;"></div>
+        <div style="position:absolute;left:8px;top:4px;width:140px;height:82px;border:2px solid #1F4BD8;border-radius:2px;background:rgba(31,75,216,.07);"></div>
+      </div>
+      <div style="margin-top:6px;display:flex;flex-direction:column;gap:3px;">
+        <span style="font-size:10.5px;color:#5C6878;">縮圖導覽</span>
+        <span class="id">藍框 ＝ viewport.x / .y / .zoom</span>
+        <span class="warn">⚠️ 縮圖由資料推導，屬尚未撰寫的 ui-canvas-layout.md</span>
+      </div>
+    </div>
+
+    <div style="position:absolute;right:16px;bottom:16px;display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+      <div style="display:flex;align-items:center;background:#fff;border:1px solid #C4CBD8;border-radius:8px;box-shadow:0 4px 12px rgba(22,32,44,.12);overflow:hidden;">
+        <button aria-label="縮小" style="width:36px;height:36px;border:0;background:#fff;cursor:pointer;font-size:16px;color:#3B4756;">−</button>
+        <div style="width:1px;height:20px;background:#E7EAF0;"></div>
+        <button style="height:36px;border:0;background:#fff;cursor:pointer;font-size:12.5px;font-weight:500;padding:0 12px;color:#16202C;font-family:inherit;">80%</button>
+        <div style="width:1px;height:20px;background:#E7EAF0;"></div>
+        <button aria-label="放大" style="width:36px;height:36px;border:0;background:#fff;cursor:pointer;font-size:16px;color:#3B4756;">＋</button>
+      </div>
+      <span class="uc">uc-set-viewport</span>
+      <span class="id">縮放範圍 canvas.zoom-min 0.1 ～ canvas.zoom-max 4</span>
+      <span class="id">只改自己的 viewport，不影響其他人</span>
+    </div>
+
+  </div>
+</div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

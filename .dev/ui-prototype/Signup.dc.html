@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Noto+Sans+TC:wght@400;500;700&amp;display=swap">
+  <style>
+    *{box-sizing:border-box;}
+    body{margin:0;background:#FFFFFF;font-family:'IBM Plex Sans','Noto Sans TC',sans-serif;color:#16202C;-webkit-font-smoothing:antialiased;}
+    a{color:#1F4BD8;}a:hover{color:#16359B;}
+    .id{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7B8896;}
+    .uc{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#1F4BD8;}
+    .sid{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#16202C;background:#DEE4EF;border-radius:3px;padding:3px 8px;}
+    .warn{font-size:10px;line-height:1.55;color:#8A4B00;background:#FFF4E3;border:1px solid #EFC489;border-radius:4px;padding:3px 7px;display:inline-block;}
+    .hd{height:38px;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid #E2E6EE;background:#F7F8FA;font-size:12px;color:#5C6878;flex-shrink:0;}
+    .lbl{font-size:12px;font-weight:500;color:#3B4756;display:block;margin-bottom:6px;}
+    .inp{height:44px;border:1px solid #C9D0DC;border-radius:6px;background:#fff;padding:0 12px;font-size:14px;font-family:inherit;color:#16202C;width:100%;}
+    .btn{height:44px;border:0;border-radius:6px;background:#1F4BD8;color:#fff;font-family:inherit;font-size:14px;font-weight:500;padding:0 18px;cursor:pointer;}
+    .btn2{height:44px;border:1px solid #C9D0DC;border-radius:6px;background:#fff;color:#3B4756;font-family:inherit;font-size:14px;padding:0 18px;cursor:pointer;}
+    .btnsm{height:30px;border:1px solid #C9D0DC;border-radius:5px;background:#fff;color:#3B4756;font-family:inherit;font-size:12px;padding:0 10px;cursor:pointer;}
+    .err{font-size:12px;color:#A02515;background:#FDECEA;border:1px solid #F3C0B9;border-radius:6px;padding:9px 11px;}
+    .av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0;}
+  </style>
+</helmet>
+<div style="width: 1280px; height: 800px; display: flex; flex-direction: column; background: #FFFFFF;">
+<div class="hd"><span class="sid">s-signup</span><span style="font-weight:500;color:#16202C;">註冊帳號</span><span>類型：表單</span><span>狀態：已定案</span><span style="margin-left:auto;">F02 user-membership</span></div>
+<div style="flex-grow:1;display:flex;">
+
+  <div style="width:540px;background:#E8EAF0;background-image:radial-gradient(#C3C8D4 1.5px, transparent 1.5px);background-size:24px 24px;padding:56px 48px;display:flex;flex-direction:column;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:26px;height:26px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:2px;">
+        <div style="background:#1F4BD8;"></div><div style="background:#1F4BD8;"></div><div style="background:#A9B6D6;"></div>
+        <div style="background:#A9B6D6;"></div><div style="background:#1F4BD8;"></div><div style="background:#1F4BD8;"></div>
+        <div style="background:#1F4BD8;"></div><div style="background:#A9B6D6;"></div><div style="background:#1F4BD8;"></div>
+      </div>
+      <span style="font-size:15px;font-weight:600;">[產品名稱]</span>
+    </div>
+
+    <div style="background:#fff;border:1px solid #CBD2DF;border-radius:8px;padding:20px 22px;width:400px;">
+      <div style="font-size:12px;font-weight:600;color:#3B4756;margin-bottom:14px;">帳號建立後無法刪除</div>
+      <ul style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.85;color:#5C6878;">
+        <li>帳號 ID 全系統唯一，之後不能改。</li>
+        <li>顯示名字留空時，會直接使用帳號 ID。</li>
+        <li>密碼可以留空。</li>
+      </ul>
+      <div class="id" style="margin-top:12px;line-height:1.7;">依 s-signup 操作表「需確認？」欄：是（本畫面即確認，user 目前無刪除 Use Case）</div>
+    </div>
+
+    <span class="warn">⚠️ 規格未定義：此說明卡的文案與版面，`ui-user-membership.md` 未定義</span>
+  </div>
+
+  <div style="flex-grow:1;padding:0 88px;display:flex;flex-direction:column;justify-content:center;">
+    <h1 style="margin:0 0 6px;font-size:24px;font-weight:600;">建立帳號</h1>
+    <p style="margin:0 0 24px;font-size:13px;color:#5C6878;">建立完成後會回到登入頁。</p>
+
+    <div style="margin-bottom:18px;">
+      <label class="lbl" for="su-u">帳號 ID <span class="id">user.username</span></label>
+      <input class="inp" id="su-u" type="text" value="poyu.chen" style="border-color:#D9564A;">
+      <div style="margin-top:7px;" class="err">這個帳號 ID 已經有人使用了，換一個試試。</div>
+      <div style="margin-top:6px;display:flex;flex-direction:column;gap:3px;">
+        <span class="id">驗證：非空、全系統不可重複（uc-create-user pre p2）</span>
+        <span class="id">失敗依 uc-create-user p1／p2：輸入內容保留、顯示訊息</span>
+        <span class="warn">⚠️ 規格未定義：訊息文字內容</span>
+      </div>
+    </div>
+
+    <div style="margin-bottom:18px;">
+      <label class="lbl" for="su-d">顯示名字 <span class="id">user.display-name</span><span style="color:#7B8896;font-weight:400;"> ・選填</span></label>
+      <input class="inp" id="su-d" type="text" value="" placeholder="留空時等於帳號 ID">
+      <div class="id" style="margin-top:6px;">未指定時預設等於 user.username</div>
+    </div>
+
+    <div style="margin-bottom:26px;">
+      <label class="lbl" for="su-p">密碼 <span class="id">user.password</span><span style="color:#7B8896;font-weight:400;"> ・選填，可留白</span></label>
+      <input class="inp" id="su-p" type="password" value="">
+      <div class="id" style="margin-top:6px;">長度上限 40 字，字元不限制（uc-create-user pre p1）</div>
+    </div>
+
+    <button class="btn" style="width:100%;">建立帳號</button>
+    <div style="margin-top:7px;display:flex;flex-direction:column;gap:3px;">
+      <span class="uc">uc-create-user</span>
+      <span class="id">成功後導向 s-login</span>
+    </div>
+
+    <div style="margin-top:30px;padding-top:20px;border-top:1px solid #E2E6EE;font-size:13px;color:#5C6878;">
+      已經有帳號了？<a href="Login.dc.html" style="font-weight:500;">回到登入</a>
+      <div class="id" style="margin-top:5px;">⚠️ 規格未定義：s-signup 未定義返回 s-login 的操作，僅定義「中途放棄＝離開畫面」</div>
+    </div>
+  </div>
+</div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

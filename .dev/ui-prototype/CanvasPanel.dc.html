@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Noto+Sans+TC:wght@400;500;700&amp;display=swap">
+  <style>
+    *{box-sizing:border-box;}
+    body{margin:0;background:#FFFFFF;font-family:'IBM Plex Sans','Noto Sans TC',sans-serif;color:#16202C;-webkit-font-smoothing:antialiased;}
+    a{color:#1F4BD8;}a:hover{color:#16359B;}
+    .id{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7B8896;}
+    .uc{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#1F4BD8;}
+    .sid{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#16202C;background:#DEE4EF;border-radius:3px;padding:3px 8px;}
+    .warn{font-size:10px;line-height:1.55;color:#8A4B00;background:#FFF4E3;border:1px solid #EFC489;border-radius:4px;padding:3px 7px;display:inline-block;}
+    .hd{height:38px;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid #E2E6EE;background:#F7F8FA;font-size:12px;color:#5C6878;flex-shrink:0;}
+    .lbl{font-size:12px;font-weight:500;color:#3B4756;display:block;margin-bottom:6px;}
+    .inp{height:44px;border:1px solid #C9D0DC;border-radius:6px;background:#fff;padding:0 12px;font-size:14px;font-family:inherit;color:#16202C;width:100%;}
+    .btn{height:44px;border:0;border-radius:6px;background:#1F4BD8;color:#fff;font-family:inherit;font-size:14px;font-weight:500;padding:0 18px;cursor:pointer;}
+    .btn2{height:44px;border:1px solid #C9D0DC;border-radius:6px;background:#fff;color:#3B4756;font-family:inherit;font-size:14px;padding:0 18px;cursor:pointer;}
+    .btnsm{height:30px;border:1px solid #C9D0DC;border-radius:5px;background:#fff;color:#3B4756;font-family:inherit;font-size:12px;padding:0 10px;cursor:pointer;}
+    .err{font-size:12px;color:#A02515;background:#FDECEA;border:1px solid #F3C0B9;border-radius:6px;padding:9px 11px;}
+    .av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0;}
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; background: #FFFFFF;">
+<div class="hd"><span class="sid">s-canvas</span><span style="font-weight:500;color:#16202C;">選中看板 item 後的屬性／操作面板</span><span class="sid">s-swimlane-list</span><span>類型：列表</span><span>狀態：已定案</span></div>
+
+<div style="flex-grow:1;display:flex;flex-direction:column;">
+  <div style="height:48px;background:#fff;border-bottom:1px solid #DDE2EA;display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;">
+    <a href="BoardList.dc.html" class="btnsm" style="text-decoration:none;display:inline-flex;align-items:center;line-height:28px;">← 我的看板</a>
+    <div style="width:1px;height:24px;background:#E2E6EE;"></div>
+    <div style="font-size:14px;font-weight:600;">付款平台改版</div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px;"><div class="av" style="background:#1F4BD8;">柏</div><button class="btnsm">登出</button></div>
+  </div>
+
+  <div style="flex-grow:1;display:flex;">
+
+    <div style="width:920px;position:relative;background:#E8EAF0;background-image:radial-gradient(#C6CBD7 1.5px, transparent 1.5px);background-size:22px 22px;overflow:hidden;flex-shrink:0;">
+
+      <div style="position:absolute;left:100px;top:96px;width:700px;height:480px;">
+        <div style="position:absolute;left:0;top:-42px;display:flex;align-items:center;gap:4px;background:#fff;border:1px solid #C4CBD8;border-radius:7px;box-shadow:0 4px 12px rgba(22,32,44,.14);padding:4px 6px;">
+          <button class="btnsm" style="border:0;">置頂</button>
+          <button class="btnsm" style="border:0;">置底</button>
+          <div style="width:1px;height:18px;background:#E7EAF0;"></div>
+          <button class="btnsm" style="border:0;">鎖定</button>
+          <button class="btnsm" style="border:0;">固定於畫面</button>
+          <div style="width:1px;height:18px;background:#E7EAF0;"></div>
+          <button class="btnsm" style="border:0;color:#A02515;">移除</button>
+        </div>
+
+        <div style="position:absolute;inset:0;background:#fff;border:2px solid #1F4BD8;border-radius:8px;box-shadow:0 10px 28px rgba(22,32,44,.16);display:flex;flex-direction:column;overflow:hidden;">
+          <div style="height:32px;background:#EAF0FE;border-bottom:1px solid #D4DFF8;display:flex;align-items:center;gap:8px;padding:0 12px;flex-shrink:0;">
+            <span style="font-size:12px;font-weight:600;">看板本體</span><span class="sid">s-board</span>
+            <span style="margin-left:auto;font-size:10px;color:#1F4BD8;font-family:'IBM Plex Mono',monospace;">選取中</span>
+          </div>
+          <div style="flex-grow:1;display:grid;grid-template-columns:86px repeat(4, minmax(0,1fr));grid-template-rows:34px repeat(3, minmax(0,1fr));font-size:11px;">
+            <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #DDE2EA;"></div>
+            <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #DDE2EA;padding:9px;font-weight:600;">Backlog</div>
+            <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #DDE2EA;padding:9px;font-weight:600;">開發中</div>
+            <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #DDE2EA;padding:9px;font-weight:600;">Code Review</div>
+            <div style="border-bottom:1px solid #DDE2EA;padding:9px;font-weight:600;">完成</div>
+
+            <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #EDF0F5;background:#FAFBFC;padding:9px;font-weight:600;">前端</div>
+            <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #EDF0F5;padding:7px;"><div style="background:#fff;border:1px solid #DDE2EA;border-left:3px solid #1F4BD8;border-radius:4px;padding:7px;">結帳頁 3DS 驗證流程</div></div>
+            <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #EDF0F5;padding:7px;"><div style="background:#fff;border:1px solid #DDE2EA;border-left:3px solid #1F4BD8;border-radius:4px;padding:7px;">購物車金額重算</div></div>
+            <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #EDF0F5;padding:7px;"><div style="background:#fff;border:1px solid #DDE2EA;border-left:3px solid #1F4BD8;border-radius:4px;padding:7px;">優惠券輸入欄</div></div>
+            <div style="border-bottom:1px solid #EDF0F5;padding:7px;"></div>
+
+            <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #EDF0F5;background:#FAFBFC;padding:9px;font-weight:600;">後端</div>
+            <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #EDF0F5;padding:7px;"><div style="background:#fff;border:1px solid #DDE2EA;border-left:3px solid #0F766E;border-radius:4px;padding:7px;">退款 API 冪等性</div></div>
+            <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #EDF0F5;padding:7px;"><div style="background:#fff;border:1px solid #DDE2EA;border-left:3px solid #0F766E;border-radius:4px;padding:7px;">對帳批次任務</div></div>
+            <div style="border-right:1px solid #E7EAF0;border-bottom:1px solid #EDF0F5;padding:7px;"></div>
+            <div style="border-bottom:1px solid #EDF0F5;padding:7px;"><div style="background:#fff;border:1px solid #DDE2EA;border-left:3px solid #157F3D;border-radius:4px;padding:7px;">付款狀態 Webhook</div></div>
+
+            <div style="border-right:1px solid #E7EAF0;background:#FAFBFC;padding:9px;font-weight:600;">SRE</div>
+            <div style="border-right:1px solid #E7EAF0;padding:7px;"><div style="background:#fff;border:1px solid #DDE2EA;border-left:3px solid #B0561A;border-radius:4px;padding:7px;">支付閘道健康檢查</div></div>
+            <div style="border-right:1px solid #E7EAF0;padding:7px;"><div style="background:#fff;border:1px solid #DDE2EA;border-left:3px solid #B0561A;border-radius:4px;padding:7px;">藍綠部署腳本</div></div>
+            <div style="border-right:1px solid #E7EAF0;padding:7px;"></div>
+            <div style="padding:7px;"></div>
+          </div>
+        </div>
+
+        <div style="position:absolute;left:-5px;top:-5px;width:10px;height:10px;background:#fff;border:2px solid #1F4BD8;border-radius:2px;"></div>
+        <div style="position:absolute;left:345px;top:-5px;width:10px;height:10px;background:#fff;border:2px solid #1F4BD8;border-radius:2px;"></div>
+        <div style="position:absolute;right:-5px;top:-5px;width:10px;height:10px;background:#fff;border:2px solid #1F4BD8;border-radius:2px;"></div>
+        <div style="position:absolute;left:-5px;top:235px;width:10px;height:10px;background:#fff;border:2px solid #1F4BD8;border-radius:2px;"></div>
+        <div style="position:absolute;right:-5px;top:235px;width:10px;height:10px;background:#fff;border:2px solid #1F4BD8;border-radius:2px;"></div>
+        <div style="position:absolute;left:-5px;bottom:-5px;width:10px;height:10px;background:#fff;border:2px solid #1F4BD8;border-radius:2px;"></div>
+        <div style="position:absolute;left:345px;bottom:-5px;width:10px;height:10px;background:#fff;border:2px solid #1F4BD8;border-radius:2px;"></div>
+        <div style="position:absolute;right:-5px;bottom:-5px;width:10px;height:10px;background:#fff;border:2px solid #1F4BD8;border-radius:2px;"></div>
+      </div>
+
+      <div style="position:absolute;left:100px;top:22px;width:700px;display:flex;gap:10px;flex-wrap:wrap;">
+        <span class="uc">置頂／置底 → uc-reorder-item</span>
+        <span class="uc">鎖定 → uc-set-item-capabilities</span>
+        <span class="uc">固定於畫面 → uc-set-item-anchor</span>
+        <span class="uc">移除 → uc-remove-item</span>
+      </div>
+      <div style="position:absolute;left:100px;top:590px;width:700px;display:flex;flex-direction:column;gap:5px;">
+        <span class="id">拖曳框內任意處移動 → uc-move-item（item.x／item.y；item.movable 為 false 時不可移動）</span>
+        <span class="id">拖曳八個把手調整大小 → uc-resize-item（item.width／item.height，皆須大於 0）</span>
+        <span class="id">按住 Shift 加選多個元素後整組拖曳 → uc-move-items；整組刪除 → uc-remove-items</span>
+        <span class="warn">⚠️ 規格未定義：選取框、把手與浮動工具列的視覺樣式。F07 尚無 ui-canvas-layout.md；選取屬 UI 行為</span>
+      </div>
+    </div>
+
+    <div style="width:520px;background:#fff;border-left:1px solid #DDE2EA;display:flex;flex-direction:column;flex-shrink:0;">
+      <div style="padding:14px 18px 0;border-bottom:1px solid #E7EAF0;">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <div>
+            <div style="font-size:14px;font-weight:600;">看板本體</div>
+            <div class="id" style="margin-top:3px;">選取中的 item</div>
+          </div>
+          <button class="btnsm" aria-label="關閉面板" style="margin-left:auto;">關閉</button>
+        </div>
+        <span class="warn" style="margin:10px 0;">⚠️ 規格未定義：這個屬性／操作面板本身（容器、頁籤、開啟方式）。進入點見 ui-kanban-basic.md OQ-17</span>
+        <div style="display:flex;gap:2px;margin-top:6px;">
+          <div style="padding:9px 14px;font-size:13px;font-weight:600;border-bottom:2px solid #1F4BD8;color:#1F4BD8;">泳道</div>
+          <div style="padding:9px 14px;font-size:13px;color:#5C6878;border-bottom:2px solid transparent;">階段</div>
+          <div style="padding:9px 14px;font-size:13px;color:#5C6878;border-bottom:2px solid transparent;">版面</div>
+        </div>
+      </div>
+
+      <div style="flex-grow:1;padding:18px;overflow:hidden;">
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;">
+          <h2 style="margin:0;font-size:13px;font-weight:600;">泳道</h2>
+          <span class="sid">s-swimlane-list</span>
+        </div>
+        <p style="margin:0 0 14px;font-size:12px;color:#5C6878;">拖曳左側握把調整順序。</p>
+
+        <div style="border:1px solid #E2E6EE;border-radius:7px;overflow:hidden;">
+          <div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-bottom:1px solid #EDF0F5;background:#fff;">
+            <svg width="11" height="14" viewBox="0 0 11 14" fill="#A9B2C0"><circle cx="3" cy="3" r="1.4"></circle><circle cx="8" cy="3" r="1.4"></circle><circle cx="3" cy="7" r="1.4"></circle><circle cx="8" cy="7" r="1.4"></circle><circle cx="3" cy="11" r="1.4"></circle><circle cx="8" cy="11" r="1.4"></circle></svg>
+            <span style="font-size:13px;flex-grow:1;">前端</span>
+            <button class="btnsm">重新命名</button>
+            <button class="btnsm" style="color:#A02515;">刪除</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-bottom:1px solid #EDF0F5;background:#F3F7FF;border-left:3px solid #1F4BD8;">
+            <svg width="11" height="14" viewBox="0 0 11 14" fill="#1F4BD8"><circle cx="3" cy="3" r="1.4"></circle><circle cx="8" cy="3" r="1.4"></circle><circle cx="3" cy="7" r="1.4"></circle><circle cx="8" cy="7" r="1.4"></circle><circle cx="3" cy="11" r="1.4"></circle><circle cx="8" cy="11" r="1.4"></circle></svg>
+            <input class="inp" value="後端平台" style="height:32px;flex-grow:1;font-size:13px;border-color:#1F4BD8;">
+            <button class="btnsm" style="border-color:#1F4BD8;color:#1F4BD8;">儲存</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:11px 12px;background:#fff;">
+            <svg width="11" height="14" viewBox="0 0 11 14" fill="#A9B2C0"><circle cx="3" cy="3" r="1.4"></circle><circle cx="8" cy="3" r="1.4"></circle><circle cx="3" cy="7" r="1.4"></circle><circle cx="8" cy="7" r="1.4"></circle><circle cx="3" cy="11" r="1.4"></circle><circle cx="8" cy="11" r="1.4"></circle></svg>
+            <span style="font-size:13px;flex-grow:1;">SRE</span>
+            <button class="btnsm">重新命名</button>
+            <button class="btnsm" style="color:#A02515;">刪除</button>
+          </div>
+        </div>
+
+        <div style="margin-top:9px;display:flex;flex-direction:column;gap:4px;">
+          <span class="id">名稱 ＝ swimlane.name（非空）　順序 ＝ board 與 swimlane 的關係</span>
+          <span class="uc">握把拖曳 → uc-reorder-swimlane　儲存名稱 → uc-rename-swimlane</span>
+          <span class="uc">刪除 → 開啟 s-swimlane-delete-dialog（純前端導覽）</span>
+        </div>
+
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid #E7EAF0;">
+          <label class="lbl" for="sw-new">新增泳道 <span class="id">swimlane.name</span></label>
+          <div style="display:flex;gap:8px;">
+            <input class="inp" id="sw-new" value="" placeholder="輸入泳道名稱" style="border-color:#D9564A;">
+            <button class="btn" style="flex-shrink:0;">新增</button>
+          </div>
+          <div style="margin-top:8px;" class="err">泳道名稱不能留空。</div>
+          <div style="margin-top:7px;display:flex;flex-direction:column;gap:4px;">
+            <span class="uc">uc-add-swimlane</span>
+            <span class="id">成功 → 新泳道加在列表最下方；失敗依 p1：輸入內容保留、顯示訊息</span>
+            <span class="warn">⚠️ 規格未定義：訊息文字內容</span>
+          </div>
+        </div>
+
+        <div style="margin-top:18px;padding:11px 12px;background:#F7F8FA;border:1px solid #E7EAF0;border-radius:6px;display:flex;flex-direction:column;gap:4px;">
+          <span class="id">狀態・載入中：載入泳道清單時顯示</span>
+          <span class="id">狀態・空資料：不適用（board 與 swimlane 關係 min ＝ 1，不會有空列表）</span>
+          <span class="id">狀態・資料差異：只剩 1 個泳道時，刪除按鈕停用（uc-delete-swimlane p1）</span>
+          <span class="id">狀態・無權限：不適用（F01 僅定義 r-user 一種角色）</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

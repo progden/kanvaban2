@@ -50,7 +50,7 @@ OQ 內文檔的格式（`loopctl` 會檢查）：一行 `情況：【引用原�
 3. **核對 `kanban-core` 純度**：`io.progden.kanban.core.domain` 底下不可以出現 Spring／JPA 的 import（`@Entity`、`@Autowired`、`org.springframework.*`、`jakarta.persistence.*` 等）；跨 aggregate 的讀取投影是否真的放在 `io.progden.kanban.query.*` 而不是散落在各 aggregate 裡。
 4. **核對任務邊界**：`git diff loop/implementation...HEAD --stat` 看這個 worktree 相對整合分支的改動範圍，是否只動了這個任務該動的檔案；動到別的 aggregate、別的模組、`.dev/conventions/**`、`scripts/**`、spec／ui 文件本體，一律判定退回。`.state/` 底下只允許 `.state/tasks/<task-id>/**` 與 `.state/adr/` 的**新增**檔；出現 `.state/tasks.md`、`.state/archive/**`、別的任務目錄的異動，一律退回（那會讓合併回整合分支時衝突）。
 5. **核對交接摘要的待確認事項／OQ**：Dev 留的「待確認事項」是不是真的都用 `loopctl oq add` 開成 OQ（`loopctl show` 列得出來），不是只寫在交接摘要裡就消失。**Dev 開的每一則 OQ 都要逐一核對**：引文到源頭逐字比對；`等級`／`阻塞` 標得對不對（用上面那一句檢驗：做完這個任務是否必須違反某段定稿原文？Dev 傾向把該阻塞的標成不阻塞）；`接手` 指的任務是不是真的會處理這件事（看 `.state/tasks.md` 那個任務的產出範圍），沒有人接手卻不是 `人工`／`無` 的要退回。Dev 標錯的，你另開一則正確的 OQ 並在內文註明取代哪一則；OQ 存在但影響範圍是「覆蓋來源」等級的，這個任務不可以核准成 `done`，要標 `blocked`。
-6. 前端任務：額外核對是否真的對照了 `planning-prompt.md` 附的設計稿畫面清單／版面摘要，還是自己發明了視覺風格；`ui-*.md` 操作表的「需確認？」欄（是否要二次確認對話框）與「失敗時」欄的呈現方式是否落實。
+6. 前端任務：打開 `.dev/ui-prototype/` 裡對應的 `*.dc.html`（對照表見該目錄 `README.md`），核對實作的版面結構、配色、字體是否真的照設計稿，還是自己發明了視覺風格；設計稿上的灰色註記（Attribute ID、`uc-xxx`、「⚠️ 規格未定義」）不可以出現在產品畫面裡；`ui-*.md` 操作表的「需確認？」欄（是否要二次確認對話框）與「失敗時」欄的呈現方式是否落實。
 
 ## 判定（三選一，用 `loopctl finish --verdict` 寫下）
 

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Noto+Sans+TC:wght@400;500;700&amp;display=swap">
+  <style>
+    *{box-sizing:border-box;}
+    body{margin:0;background:#FFFFFF;font-family:'IBM Plex Sans','Noto Sans TC',sans-serif;color:#16202C;-webkit-font-smoothing:antialiased;}
+    a{color:#1F4BD8;}a:hover{color:#16359B;}
+    .id{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7B8896;}
+    .uc{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#1F4BD8;}
+    .sid{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#16202C;background:#DEE4EF;border-radius:3px;padding:3px 8px;}
+    .warn{font-size:10px;line-height:1.55;color:#8A4B00;background:#FFF4E3;border:1px solid #EFC489;border-radius:4px;padding:3px 7px;display:inline-block;}
+    .hd{height:38px;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid #E2E6EE;background:#F7F8FA;font-size:12px;color:#5C6878;flex-shrink:0;}
+    .lbl{font-size:12px;font-weight:500;color:#3B4756;display:block;margin-bottom:6px;}
+    .inp{height:44px;border:1px solid #C9D0DC;border-radius:6px;background:#fff;padding:0 12px;font-size:14px;font-family:inherit;color:#16202C;width:100%;}
+    .btn{height:44px;border:0;border-radius:6px;background:#1F4BD8;color:#fff;font-family:inherit;font-size:14px;font-weight:500;padding:0 18px;cursor:pointer;}
+    .btn2{height:44px;border:1px solid #C9D0DC;border-radius:6px;background:#fff;color:#3B4756;font-family:inherit;font-size:14px;padding:0 18px;cursor:pointer;}
+    .btnsm{height:30px;border:1px solid #C9D0DC;border-radius:5px;background:#fff;color:#3B4756;font-family:inherit;font-size:12px;padding:0 10px;cursor:pointer;}
+    .err{font-size:12px;color:#A02515;background:#FDECEA;border:1px solid #F3C0B9;border-radius:6px;padding:9px 11px;}
+    .av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0;}
+  </style>
+</helmet>
+<div style="width: 560px; height: 620px; display: flex; flex-direction: column; background: #FFFFFF;">
+<div class="hd"><span class="sid">s-card-assignee-picker</span><span style="font-weight:500;color:#16202C;">卡片負責人選取</span><span>狀態：已定案</span></div>
+<div style="flex-grow:1;position:relative;background:#F7F8FA;overflow:hidden;">
+  <div style="position:absolute;inset:0;background:rgba(22,32,44,.44);"></div>
+
+  <div style="position:absolute;left:50%;top:22px;transform:translateX(-50%);width:420px;background:#fff;border-radius:10px;box-shadow:0 18px 48px rgba(16,24,36,.32);overflow:hidden;">
+    <div style="padding:20px 22px 14px;border-bottom:1px solid #E7EAF0;">
+      <h2 style="margin:0;font-size:16px;font-weight:600;">指派負責人</h2>
+      <p style="margin:5px 0 0;font-size:12.5px;color:#5C6878;">支付閘道健康檢查</p>
+    </div>
+
+    <div style="padding:14px 22px 6px;">
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;">
+        <span style="font-size:12px;font-weight:600;">看板成員</span>
+        <span class="id">候選清單 ← board-membership</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;">
+        <label for="ap1" style="display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:6px;cursor:pointer;background:#F3F7FF;">
+          <input type="checkbox" id="ap1" checked="" style="width:16px;height:16px;accent-color:#1F4BD8;">
+          <div class="av" style="background:#B0561A;">翔</div>
+          <span style="font-size:13px;flex-grow:1;">黃孟翔</span>
+          <span style="font-size:11px;color:#7B8896;font-family:'IBM Plex Mono',monospace;">mengxiang.huang</span>
+        </label>
+        <label for="ap2" style="display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:6px;cursor:pointer;background:#F3F7FF;">
+          <input type="checkbox" id="ap2" checked="" style="width:16px;height:16px;accent-color:#1F4BD8;">
+          <div class="av" style="background:#1F4BD8;">柏</div>
+          <span style="font-size:13px;flex-grow:1;">陳柏翰</span>
+          <span style="font-size:11px;color:#7B8896;font-family:'IBM Plex Mono',monospace;">poyu.chen</span>
+        </label>
+        <label for="ap3" style="display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:6px;cursor:pointer;">
+          <input type="checkbox" id="ap3" style="width:16px;height:16px;accent-color:#1F4BD8;">
+          <div class="av" style="background:#0F766E;">帆</div>
+          <span style="font-size:13px;flex-grow:1;">蔡依帆</span>
+          <span style="font-size:11px;color:#7B8896;font-family:'IBM Plex Mono',monospace;">yifan.tsai</span>
+        </label>
+        <label for="ap4" style="display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:6px;cursor:pointer;">
+          <input type="checkbox" id="ap4" style="width:16px;height:16px;accent-color:#1F4BD8;">
+          <div class="av" style="background:#7A4FC4;">郁</div>
+          <span style="font-size:13px;flex-grow:1;">林郁婷</span>
+          <span style="font-size:11px;color:#7B8896;font-family:'IBM Plex Mono',monospace;">yuting.lin</span>
+        </label>
+      </div>
+
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px;">
+        <span class="id">已勾選 ＝ card.assignees（多選）</span>
+        <span class="id">清單只列該 card 所屬 board 的成員，不含非成員（uc-list-card-assignee-candidates post）</span>
+        <span class="id">卡片目前沒有負責人時，候選清單全部未勾選</span>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;padding:14px 22px;background:#F7F8FA;border-top:1px solid #E7EAF0;display:flex;align-items:center;gap:10px;justify-content:flex-end;">
+      <button class="btn2">取消</button>
+      <div style="text-align:right;">
+        <button class="btn">儲存</button>
+        <div class="uc" style="margin-top:4px;">uc-set-card-assignees</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:460px;display:flex;flex-direction:column;gap:5px;">
+    <span class="id" style="color:#CBD3E0;">從 s-card-detail 的負責人指派入口進來；儲存後回 s-card-detail，負責人欄位顯示新名單</span>
+    <span class="id" style="color:#CBD3E0;">取消 → 關閉，不套用勾選變更，不觸發 uc-set-card-assignees</span>
+    <span class="id" style="color:#CBD3E0;">載入中：載入候選清單與目前負責人時顯示。三個對應 uc 皆無 fail 定義，無錯誤與無權限狀態</span>
+    <span class="warn">⚠️ 規格未定義：勾選樣式、是否可搜尋候選人</span>
+  </div>
+</div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":560,"height":620}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

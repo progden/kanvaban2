@@ -34,7 +34,7 @@
 | 產出對象（後端） | `kanban-core/**`、`kanban-spring/**`（repo 根目錄新建） | Dev（依任務） |
 | 產出對象（前端） | `kanban-frontend/**`（repo 根目錄新建） | Dev（依任務） |
 | 上游依據 | `.dev/F0x-*/spec-*.md`／`ui-*.md`／`design-*.md`、`.dev/conventions/**`、`CLAUDE.md`、既有 `scripts/**` | **不可修改**：規格沒寫到的行為不能腦補，缺什麼記 OQ；`scripts/**` 是規格檢查腳本，跟本 loop 的程式碼實作無關，禁止觸碰 |
-| 前端視覺依據 | 設計稿（見 `planning-prompt.md` 附的畫面清單，claude.ai Design 類型 Artifact） | 只讀引用；Dev 無法直接開啟該 Artifact 時，以 `.state/tasks.md` 裡該任務列附的畫面結構摘要為準，不得自行發明版面 |
+| 前端視覺依據 | `.dev/ui-prototype/*.dc.html`（claude.ai Design Artifact 的匯出檔，對照表與使用規則見該目錄 `README.md`） | 只讀；只當版面與視覺依據，行為以 ui／spec 為準；沒有設計稿的畫面沿用同一套視覺語彙，不得自行發明風格 |
 
 ### 2.1 為什麼 `.state/` 是「一個任務一個目錄」
 

@@ -53,7 +53,7 @@ OQ 內文檔的格式（`loopctl` 會檢查）：一行 `情況：【引用原�
    - `kanban-spring`：application／web／persistence 層，實作 `kanban-core` 定義的 port（例如 `CardLookupPort`），跨 aggregate 的讀取投影放 `io.progden.kanban.query.*`。
    - 每個 Scenario 對應一個 Cucumber step definition，Given/When/Then 直接對應 Gherkin 步驟的意圖語言，不要在 step definition 裡才發明規格沒講的行為。
    - `usecase` 區塊的 `pre`／`post`／`fail` 是驗收依據；`fail` 情境要真的測到「拒絕，訊息為 "..."，且資料不變」。
-   - 前端任務：依 `ui-*.md` 操作表（觸發的 `uc-xxx`、需確認？、失敗時呈現方式）與驗收條件實作互動；版面依 `planning-prompt.md` 附的設計稿畫面清單，若手上看不到實際設計稿內容，先讀 `.state/tasks.md` 該任務列有沒有附更細的版面摘要，沒有就記 OQ、用最簡潔可用的版面先做，標記「待對照設計稿」，不可以自己發明視覺風格當作定案。
+   - 前端任務：依 `ui-*.md` 操作表（觸發的 `uc-xxx`、需確認？、失敗時呈現方式）與驗收條件實作互動；版面與視覺依 `.dev/ui-prototype/`（先讀它的 `README.md`：檔案與 Screen ID 對照、哪些是設計註記不可做進畫面）——直接讀對應的 `*.dc.html`，照它的版面結構、間距、配色、字體實作。設計稿只管長相，**行為一律以 `ui-*.md`／`spec-*.md` 為準**；兩者不一致時照 ui／spec 做並開 OQ。這個畫面沒有設計稿時，沿用既有設計稿的視覺語彙做最簡潔可用的版面（不用為此開 OQ，在交接摘要註明即可），不可以自己發明另一套視覺風格。
 3. **遇到不確定**：依 `iteration-prompt.md` 第 5 節分級處理，高風險寫進交接摘要「待確認事項」＋ `loopctl oq add`，不停下等人類回答（zero-context loop 前提）。**詮釋驗收條件或 Scenario 的字面意思也算高風險**：只要你發現自己在想「這句話應該是指…」，就是要開 OQ 的訊號，不是低風險的自行決定（前幾個任務的 Review 退回，多半都是這個原因）；覆蓋來源等級（spec 定案內容互相衝突）禁止自行選一個，任務標 `blocked`。
 4. **測試先寫或至少同時寫**：每個 Scenario 至少一個 Cucumber 測試對應；`kanban-core` 的不變量要有單元測試；不可以只寫 production code 不寫測試就想過關——Review 會自己跑測試，測試不存在或跳過視為未完成。
 5. **跑一次完整建置＋測試**，確認在你自己的 worktree 裡是綠的，才進入收尾。

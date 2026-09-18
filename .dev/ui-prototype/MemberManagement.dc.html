@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Noto+Sans+TC:wght@400;500;700&amp;display=swap">
+  <style>
+    *{box-sizing:border-box;}
+    body{margin:0;background:#FFFFFF;font-family:'IBM Plex Sans','Noto Sans TC',sans-serif;color:#16202C;-webkit-font-smoothing:antialiased;}
+    a{color:#1F4BD8;}a:hover{color:#16359B;}
+    .id{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7B8896;}
+    .uc{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#1F4BD8;}
+    .sid{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#16202C;background:#DEE4EF;border-radius:3px;padding:3px 8px;}
+    .warn{font-size:10px;line-height:1.55;color:#8A4B00;background:#FFF4E3;border:1px solid #EFC489;border-radius:4px;padding:3px 7px;display:inline-block;}
+    .hd{height:38px;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid #E2E6EE;background:#F7F8FA;font-size:12px;color:#5C6878;flex-shrink:0;}
+    .lbl{font-size:12px;font-weight:500;color:#3B4756;display:block;margin-bottom:6px;}
+    .inp{height:44px;border:1px solid #C9D0DC;border-radius:6px;background:#fff;padding:0 12px;font-size:14px;font-family:inherit;color:#16202C;width:100%;}
+    .btn{height:44px;border:0;border-radius:6px;background:#1F4BD8;color:#fff;font-family:inherit;font-size:14px;font-weight:500;padding:0 18px;cursor:pointer;}
+    .btn2{height:44px;border:1px solid #C9D0DC;border-radius:6px;background:#fff;color:#3B4756;font-family:inherit;font-size:14px;padding:0 18px;cursor:pointer;}
+    .btnsm{height:30px;border:1px solid #C9D0DC;border-radius:5px;background:#fff;color:#3B4756;font-family:inherit;font-size:12px;padding:0 10px;cursor:pointer;}
+    .err{font-size:12px;color:#A02515;background:#FDECEA;border:1px solid #F3C0B9;border-radius:6px;padding:9px 11px;}
+    .av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0;}
+  </style>
+</helmet>
+<div style="width: 880px; height: 900px; display: flex; flex-direction: column; background: #FFFFFF;">
+<div class="hd"><span class="sid">s-member-management</span><span style="font-weight:500;color:#16202C;">Board 成員管理</span><span>類型：對話框</span><span>狀態：已定案</span><span style="margin-left:auto;">F02 user-membership</span></div>
+<div style="flex-grow:1;position:relative;background:#E8EAF0;background-image:radial-gradient(#C6CBD7 1.5px, transparent 1.5px);background-size:22px 22px;overflow:hidden;">
+  <div style="position:absolute;inset:0;background:rgba(22,32,44,.44);"></div>
+
+  <div style="position:absolute;left:22px;top:18px;width:560px;background:#fff;border-radius:10px;box-shadow:0 18px 48px rgba(16,24,36,.32);overflow:hidden;display:flex;flex-direction:column;max-height:800px;">
+    <div style="padding:20px 24px 16px;border-bottom:1px solid #E7EAF0;display:flex;align-items:flex-start;gap:12px;">
+      <div>
+        <h2 style="margin:0;font-size:17px;font-weight:600;">看板成員</h2>
+        <p style="margin:5px 0 0;font-size:12.5px;color:#5C6878;">付款平台改版 · 4 人</p>
+      </div>
+      <button class="btnsm" aria-label="關閉" style="margin-left:auto;">關閉</button>
+    </div>
+
+    <div style="padding:18px 24px;border-bottom:1px solid #E7EAF0;background:#FAFBFC;">
+      <label class="lbl" for="mm-u">邀請成員 <span class="id">user.username</span></label>
+      <div style="display:flex;gap:8px;align-items:flex-start;">
+        <input class="inp" id="mm-u" value="yuting.lin" style="flex-grow:1;border-color:#D9564A;">
+        <label for="mm-r" style="position:absolute;left:-9999px;">邀請角色</label>
+        <select id="mm-r" style="height:44px;border:1px solid #C9D0DC;border-radius:6px;font-family:inherit;font-size:13.5px;background:#fff;padding:0 9px;color:#16202C;flex-shrink:0;">
+          <option>Member</option><option>Owner</option>
+        </select>
+        <button class="btn" style="flex-shrink:0;">邀請</button>
+      </div>
+      <div style="margin-top:9px;" class="err">這個人已經是看板成員了。</div>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">
+        <span class="uc">uc-invite-member</span>
+        <span class="id">驗證：須為系統中已存在帳號，且不是該 board 現有成員（pre p2）</span>
+        <span class="id">角色欄 ＝ board-membership.role，enum(Owner, Member)，單選</span>
+        <span class="id">失敗依 fail p2：輸入內容保留、顯示訊息，成員清單不變</span>
+        <span class="warn">⚠️ 規格未定義：訊息文字內容</span>
+      </div>
+    </div>
+
+    <div style="padding:16px 24px 20px;overflow:hidden;">
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:11px;">
+        <h3 style="margin:0;font-size:12.5px;font-weight:600;">成員</h3>
+        <span class="id">user.username／user.display-name／board-membership.role</span>
+      </div>
+
+      <div style="border:1px solid #E2E6EE;border-radius:7px;overflow:hidden;">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #EDF0F5;">
+          <div class="av" style="background:#1F4BD8;">柏</div>
+          <div style="flex-grow:1;min-width:0;">
+            <div style="font-size:13px;font-weight:500;">陳柏翰</div>
+            <div style="font-size:11px;color:#7B8896;font-family:'IBM Plex Mono',monospace;">poyu.chen</div>
+          </div>
+          <span style="font-size:10.5px;font-weight:500;color:#1F4BD8;background:#E6ECFB;border:1px solid #CBD9F6;border-radius:4px;padding:3px 8px;">Owner</span>
+          <button class="btnsm" style="color:#A02515;">移除</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #EDF0F5;">
+          <div class="av" style="background:#0F766E;">帆</div>
+          <div style="flex-grow:1;min-width:0;">
+            <div style="font-size:13px;font-weight:500;">蔡依帆</div>
+            <div style="font-size:11px;color:#7B8896;font-family:'IBM Plex Mono',monospace;">yifan.tsai</div>
+          </div>
+          <span style="font-size:10.5px;color:#5C6878;border:1px solid #E2E6EE;border-radius:4px;padding:3px 8px;">Member</span>
+          <button class="btnsm">設為 Owner</button>
+          <button class="btnsm" style="color:#A02515;">移除</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;">
+          <div class="av" style="background:#B0561A;">翔</div>
+          <div style="flex-grow:1;min-width:0;">
+            <div style="font-size:13px;font-weight:500;">黃孟翔</div>
+            <div style="font-size:11px;color:#7B8896;font-family:'IBM Plex Mono',monospace;">mengxiang.huang</div>
+          </div>
+          <span style="font-size:10.5px;color:#5C6878;border:1px solid #E2E6EE;border-radius:4px;padding:3px 8px;">Member</span>
+          <button class="btnsm">設為 Owner</button>
+          <button class="btnsm" style="color:#A02515;">移除</button>
+        </div>
+      </div>
+
+      <div style="margin-top:9px;display:flex;flex-direction:column;gap:4px;">
+        <span class="uc">設為 Owner → uc-change-member-role　移除 → uc-remove-member</span>
+        <span class="id">兩者都需確認：設為 Owner 不可逆（spec 未定義將 Owner 降級為 Member 的操作）</span>
+        <span class="id">移除唯一 Owner 時依 fail p1：不移除、顯示訊息，該成員仍在清單中</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="position:absolute;right:20px;top:18px;width:238px;display:flex;flex-direction:column;gap:9px;">
+
+    <div style="background:#fff;border:1px solid #C4CBD8;border-radius:9px;box-shadow:0 10px 26px rgba(16,24,36,.26);padding:15px 16px;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:7px;">移除蔡依帆？</div>
+      <p style="margin:0 0 10px;font-size:12px;line-height:1.7;color:#3B4756;">她還是 <strong style="font-weight:600;">3 張卡片</strong>的負責人。</p>
+      <div style="display:flex;gap:7px;justify-content:flex-end;">
+        <button class="btnsm">取消</button>
+        <button class="btnsm" style="border-color:#A02515;color:#A02515;">移除</button>
+      </div>
+      <div class="id" style="margin-top:8px;line-height:1.7;">依 uc-remove-member pre p2：成員仍是 card 負責人時，先顯示確認訊息並告知張數，確認後才觸發 uc-remove-member</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #C4CBD8;border-radius:9px;box-shadow:0 10px 26px rgba(16,24,36,.26);padding:15px 16px;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:7px;">把蔡依帆設為 Owner？</div>
+      <p style="margin:0 0 10px;font-size:12px;line-height:1.7;color:#3B4756;">這個動作沒辦法改回來。</p>
+      <div style="display:flex;gap:7px;justify-content:flex-end;">
+        <button class="btnsm">取消</button>
+        <button class="btnsm" style="border-color:#1F4BD8;color:#1F4BD8;">設為 Owner</button>
+      </div>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">
+        <span class="id">依操作表「需確認？」欄：是。spec 未定義任何操作可將 Owner 降級為 Member，故不可逆</span>
+        <span class="warn">⚠️ 規格未定義：確認的呈現形式與文字（操作表只寫「需確認」）</span>
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #C4CBD8;border-radius:9px;box-shadow:0 10px 26px rgba(16,24,36,.26);padding:15px 16px;">
+      <div style="font-size:11px;font-weight:600;color:#5C6878;margin-bottom:9px;">r-board-member 視角</div>
+      <div class="err" style="font-size:11.5px;">只有看板擁有者可以邀請成員。</div>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">
+        <span class="uc">uc-reject-invite-by-member</span>
+        <span class="uc">uc-reject-role-change-by-member</span>
+        <span class="id">兩者恆不成功：顯示訊息、停留本畫面，清單與角色顯示不變</span>
+        <span class="id">r-board-member 看得到完整成員清單，只是操作被拒絕</span>
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #C4CBD8;border-radius:9px;box-shadow:0 10px 26px rgba(16,24,36,.26);padding:15px 16px;display:flex;flex-direction:column;gap:5px;">
+      <span class="id">進入點：F07 s-canvas 上「看板成員」item 的加入成員操作（OQ-45）</span>
+      <span class="id">關閉 → 回 s-canvas，成員清單不變</span>
+      <span class="id">狀態・載入中：載入成員清單時顯示　空資料：不適用（至少一位 Owner）</span>
+      <span class="warn">⚠️ 進入機制細節待 T7.02 撰寫 s-canvas 時定案</span>
+      <span class="warn">⚠️ 規格未定義：確認小卡的樣式與所有訊息文字</span>
+    </div>
+  </div>
+</div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":880,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
