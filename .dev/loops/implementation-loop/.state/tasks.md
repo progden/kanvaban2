@@ -46,3 +46,10 @@
 | T-20-fe-feature-cr-board | `s-feature-cr-board`（Canvas item） | T-13-fe-canvas-shell、T-08-be-feature-cr-board | 原標 blocked 已解除，見 OQ-IMPL-06「解除說明」；依賴改為 T-13 |
 
 （原 `T-18-fe-canvas` 已併入 `T-13-fe-canvas-shell`；原任務清單把 Canvas 排在 F01 畫面之後，方向反了——實際上幾乎所有畫面都要先有 Canvas 容器才能掛載，已於 2026-09-18 校正。）
+
+## CR 追加任務（規格定稿後的變更，改動既有已合併的任務產出）
+
+| ID | 產出範圍 | 依賴（需已合併） | 備註 |
+|---|---|---|---|
+| T-21-cr007-topbar-display-name | CR-007：`uc-login` 登入後 TopBar 顯示 `user.display-name`。後端：`GET /api/session`（「SessionResponse」）與登入回應補上顯示名字，新增 Scenario「登入後 TopBar 顯示的是顯示名字而不是帳號 ID」的 Cucumber step；前端：`kanban-frontend` 登入態與「AppShell」TopBar 改顯示顯示名字，依 `ui-user-membership.md` `s-login` 驗收條件補測試。允許改動 T-01-be-user、T-10-fe-shell、T-11-fe-auth 已合併的檔案，但只限這個 CR 需要的部分 | T-01-be-user、T-10-fe-shell、T-11-fe-auth | 來源：`archive/open-questions.md` OQ-IMPL-11（2026-09-18 人工決議採選項 B）。完成並驗收後，人工把 `.dev/CR.md` CR-007 改「處理完成」並清掉 spec 的 `@added @wip` |
+

@@ -110,6 +110,8 @@ spec原文：`.dev/F02-user-membership/ui-user-membership.md` 第 78 行操作�
 問題：TopBar 顯示的「帳號名稱」／「該使用者名稱」應該是 `user.username` 還是 `user.display-name`？若是後者，`GET /api/session` 的 `SessionResponse` 需要一併補上 `displayName` 欄位（屬於 T-01-be-user 範圍的後端修改）。
 選項：A. 維持目前對應（`user.username`），因為 ui 檔用詞是「帳號名稱」而非「顯示名字」；B. 改為 `user.display-name`，因為欄位表明講 `user.display-name` 才是「看板上顯示用」，TopBar 屬於全域顯示情境，且需同步修改 `SessionResponse`／`UserResponse`；C. 以上皆非。
 狀態：待處理。在本 OQ 有結論前，TopBar 維持顯示 `user.username`，不自行改成 `user.display-name`。
+狀態：**已解除（2026-09-18，人工決策，採選項 B）**。
+解除說明：TopBar 顯示 `user.display-name`。依據（人工判斷，非規格原文）：欄位表第 29 行逐字『顯示名字，看板上顯示用，可以與其他帳號重複』，與成員清單（`ui-user-membership.md` 第 216 行 `user.display-name`）、查詢對象（第 365 行）的顯示一致。這要動到已定稿的 `uc-login` post 與 `s-login` 操作表／驗收條件，已走 CR-007：`uc-login` post 改為『"登入成功，TopBar 顯示該 `user` 的顯示名字"』，新增 Scenario「登入後 TopBar 顯示的是顯示名字而不是帳號 ID」（帳號 "user5"、顯示名字 "王小明"，用來區分兩個欄位——既有 Scenario 的 "user1" 未指定顯示名字，兩欄同值）。程式碼修改由任務 `T-21-cr007-topbar-display-name` 接手（`SessionResponse` 補顯示名字、TopBar 改顯示它）；在該任務合併前，程式碼現狀仍是顯示 `user.username`。
 Review 補充（2026-09-18，T-10-fe-shell Review 第 2 輪追加，上面 Dev 寫的內容未改）：上面的引文只有 ui 檔與欄位表，漏了 spec 本身對 TopBar 的兩處描述，補上供人工判斷。`.dev/F02-user-membership/spec-user-membership.md` 第 189 行 `uc-login` post 逐字：『"登入成功，TopBar 顯示該 `user` 的帳號名稱"』；同檔第 219～223 行 Scenario「使用正確帳號密碼登入」逐字：『Given 系統中存在帳號 "user1"，密碼為 "correct-password"』…『And TopBar 應該顯示我的名稱 "user1"』。【Review 的推論】這個 Scenario 沒有指定 `user.display-name`，依欄位表『未指定時預設等於 `user.username`』，兩個欄位的值都是 "user1"，所以這個 Scenario 無法區分選項 A 和 B；spec 的「帳號名稱」跟 ui 檔第 78 行用詞一樣，問題本身不變。
 
 ## OQ-IMPL-12
