@@ -19,9 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * spec-kanban-basic.md「Card（卡片）編輯」對應的 application 層。
  *
- * <p>{@code uc-add-card} 的 {@code board: R} 只用來確認 {@code board} 存在（新增時需要有效的
- * board 才能承接卡片）；spec 未要求驗證 {@code swimlaneId}／{@code stageId} 是否真的屬於該 board，
- * 本服務也不做這層檢查（低風險技術決定，見 decision-log.md）。
+ * <p>{@code uc-add-card} 的 {@code board: R} 用來確認 {@code board} 存在（新增時需要有效的
+ * board 才能承接卡片），並確認指定的 {@code swimlaneId}／{@code stageId} 真的存在、屬於該 board
+ * （CR-011，透過 {@link Board#ensureSwimlaneExists}／{@link Board#ensureStageExists}）；
+ * {@code uc-move-card-swimlane}／{@code uc-move-card-stage} 的目的地同樣要通過這層檢查。
  *
  * <p>CR-004（Board Clock）：{@code Card} 沒有自己的時鐘，每個會寫入事件的方法都先載入所屬
  * {@code Board}，透過 {@link Board#newEventTime} 取得看板時間並套用 {@code uc-guard-clock-monotonicity}
@@ -44,6 +45,8 @@ public class CardApplicationService {
     @Transactional
     public Card addCard(UUID boardId, UUID operatorId, String title, UUID swimlaneId, UUID stageId) {
         Board board = loadBoard(boardId);
+        board.ensureSwimlaneExists(swimlaneId);
+        board.ensureStageExists(stageId);
         Instant now = board.newEventTime(Instant.now());
         Card card = Card.create(operatorId, boardId, title, new CardPlacement(swimlaneId, stageId), now);
         boardRepository.save(board);
@@ -70,6 +73,7 @@ public class CardApplicationService {
     public Card moveCardSwimlane(UUID cardId, UUID operatorId, UUID swimlaneId) {
         Card card = loadCard(cardId);
         Board board = loadBoard(card.getBoardId());
+        board.ensureSwimlaneExists(swimlaneId);
         Instant now = board.newEventTime(Instant.now());
         card.moveToSwimlane(operatorId, swimlaneId, now);
         boardRepository.save(board);
@@ -81,6 +85,7 @@ public class CardApplicationService {
     public Card moveCardStage(UUID cardId, UUID operatorId, UUID stageId) {
         Card card = loadCard(cardId);
         Board board = loadBoard(card.getBoardId());
+        board.ensureStageExists(stageId);
         Instant now = board.newEventTime(Instant.now());
         card.moveToStage(operatorId, stageId, now);
         boardRepository.save(board);

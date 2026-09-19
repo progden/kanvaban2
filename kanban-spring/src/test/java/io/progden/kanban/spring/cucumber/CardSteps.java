@@ -64,6 +64,8 @@ public class CardSteps {
     private LocalDate pendingDueDate;
     private List<String> pendingLabels;
     private UUID stageIdBeforeMove;
+    private UUID swimlaneIdBeforeAttempt;
+    private UUID stageIdBeforeAttempt;
 
     // ---- Given：Background ----
 
@@ -136,6 +138,14 @@ public class CardSteps {
         syncLastResult();
     }
 
+    @When("我嘗試在不存在的 Swimlane 中新增卡片")
+    public void whenAttemptAddCardToNonexistentSwimlane() throws Exception {
+        UUID stageId = boardSteps.resolveStageId("待辦");
+        cardCountBeforeAttempt = activeCardCount();
+        lastResult = attemptCreate("設計登入頁面", UUID.randomUUID(), stageId);
+        syncLastResult();
+    }
+
     // ---- When：編輯卡片 ----
 
     @When("我開啟該卡片的詳細編輯畫面")
@@ -195,6 +205,30 @@ public class CardSteps {
         UUID stageId = boardSteps.resolveStageId(stageName);
         stageIdBeforeMove = loadCurrentCard().getStageId();
         Map<String, String> body = Map.of("stageId", stageId.toString());
+        lastResult = mockMvc.perform(post("/api/cards/" + currentCardId + "/move-stage")
+                        .session(boardSteps.getSession())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andReturn();
+        syncLastResult();
+    }
+
+    @When("我嘗試將該卡片拖曳到不存在的 Swimlane")
+    public void whenAttemptDragCardToNonexistentSwimlane() throws Exception {
+        swimlaneIdBeforeAttempt = loadCurrentCard().getSwimlaneId();
+        Map<String, String> body = Map.of("swimlaneId", UUID.randomUUID().toString());
+        lastResult = mockMvc.perform(post("/api/cards/" + currentCardId + "/move-swimlane")
+                        .session(boardSteps.getSession())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andReturn();
+        syncLastResult();
+    }
+
+    @When("我嘗試將該卡片拖曳到不存在的 Stage")
+    public void whenAttemptDragCardToNonexistentStage() throws Exception {
+        stageIdBeforeAttempt = loadCurrentCard().getStageId();
+        Map<String, String> body = Map.of("stageId", UUID.randomUUID().toString());
         lastResult = mockMvc.perform(post("/api/cards/" + currentCardId + "/move-stage")
                         .session(boardSteps.getSession())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -311,6 +345,16 @@ public class CardSteps {
         assertEquals(stageIdBeforeMove, transition.getFromStageId());
         assertEquals(card.getStageId(), transition.getToStageId());
         assertTrue(transition.getOccurredAt().isBefore(Instant.now().plusSeconds(1)));
+    }
+
+    @Then("卡片的 Swimlane 應該維持不變")
+    public void thenCardSwimlaneUnchanged() {
+        assertEquals(swimlaneIdBeforeAttempt, loadCurrentCard().getSwimlaneId());
+    }
+
+    @Then("卡片的 Stage 應該維持不變")
+    public void thenCardStageUnchanged() {
+        assertEquals(stageIdBeforeAttempt, loadCurrentCard().getStageId());
     }
 
     // ---- Then：留言 ----

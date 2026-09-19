@@ -81,6 +81,7 @@
 | 2026-09-17 |  | 新增 | 補上遺漏的「留言」實體 `comment`（ui-authoring-loop OQ-09 發現：`uc-add-comment` post 描述留言內容、留言者、留言時間，但名詞定義完全沒有對應實體與欄位），新增 `comment.content`／`comment.author`／`comment.created-at`，`card`→`comment` 關係，`uc-add-comment` 的 crud、post、Aggregate 標記同步更新；本檔尚未進入開發，可直接補上，不需開 CR |
 | 2026-09-18 |  | 變更 | 修正 9 個結構調整 usecase 的角色（ui-authoring-loop OQ-25 發現：`uc-add-swimlane` 等 9 個 usecase 的 roles 寫 r-user，未區分 Owner／Member，但 F02 `uc-reject-structure-change-by-member` 明訂只有 Owner 能調整結構），`uc-add-swimlane`／`uc-rename-swimlane`／`uc-reorder-swimlane`／`uc-delete-swimlane`／`uc-add-stage`／`uc-rename-stage`／`uc-reorder-stage`／`uc-delete-stage`／`uc-set-stage-role` 的 roles 改為 r-board-owner；本檔尚未進入開發，可直接補上，不需開 CR |
 | 2026-09-19 | CR-010 | 變更 | `uc-add-comment` 新增 pre.p2（`comment.content` 非空）與對應 fail.p2，補齊欄位表「非空」限制原本缺的拒絕分支（implementation-loop T-03-be-card OQ-T-03-be-card-01 發現）；新增 Scenario「留言內容不可為空」，掛 @CR-010 @uc-add-comment @fail-p2 |
+| 2026-09-19 | CR-011 | 變更 | `uc-add-card`／`uc-move-card-swimlane`／`uc-move-card-stage` 新增 pre.p2（目的 swimlane／stage 存在且屬於該 board）與對應 fail.p2，補齊欄位表「ref」「建立時必填」隱含的參照完整性，原本三個 usecase 都沒有這層拒絕分支（implementation-loop T-03-be-card OQ-T-03-be-card-02 發現）；新增 3 則 Scenario，分別掛 @CR-011 @uc-add-card @fail-p2、@CR-011 @uc-move-card-swimlane @fail-p2、@CR-011 @uc-move-card-stage @fail-p2 |
 
 ---
 
@@ -427,12 +428,14 @@ Feature: Stage（階段）管理
   crud: {board: R, card: C}
   pre:
     p1: "`card.title` 非空"
+    p2: "目的 `swimlane` 與 `stage` 存在，且屬於指定的 `board`"
   post:
     - "新的 `card` 出現在指定的 `swimlane` 與 `stage` 交會格中"
     - "`card.title` 顯示為輸入的標題"
     - "該操作被記錄為 `card` 的一筆活動紀錄，包含操作人與操作時間"
   fail:
     p1: "拒絕，不建立新的 `card`"
+    p2: "拒絕，不建立新的 `card`"
   emits: []
   requires: []
   calls-sync: []
@@ -458,10 +461,12 @@ Feature: Stage（階段）管理
   crud: {board: R, card: U}
   pre:
     p1: "`card` 存在於指定的 `swimlane` 與 `stage`"
+    p2: "目的 `swimlane` 存在，且屬於 `card` 所在的 `board`"
   post:
     - "`card.swimlane` 更新為目的 `swimlane`"
     - "該操作被記錄為 `card` 的一筆活動紀錄，包含操作人與操作時間"
-  fail: {}
+  fail:
+    p2: "拒絕，`card.swimlane` 維持不變"
   emits: []
   requires: []
   calls-sync: []
@@ -472,10 +477,12 @@ Feature: Stage（階段）管理
   crud: {board: R, card: U}
   pre:
     p1: "`card` 存在，且位於來源 `stage`"
+    p2: "目的 `stage` 存在，且屬於 `card` 所在的 `board`"
   post:
     - "`card.stage` 更新為目的 `stage`"
     - "卡片的狀態異動被記錄，包含操作人、異動時間與異動前後的 `stage`"
-  fail: {}
+  fail:
+    p2: "拒絕，`card.stage` 維持不變"
   emits: []
   requires: []
   calls-sync: []
@@ -544,6 +551,14 @@ Feature: Card（卡片）編輯
     Then 系統應該顯示錯誤訊息 "卡片標題不可為空"
     And 不應該建立新的卡片
 
+  @CR-011 @uc-add-card @fail-p2
+  # Related aggregate:
+  #   board: read
+  Scenario: 建立卡片時目的 Swimlane 不存在
+    When 我嘗試在不存在的 Swimlane 中新增卡片
+    Then 系統應該顯示錯誤訊息 "找不到指定的 Swimlane"
+    And 不應該建立新的卡片
+
   @CR-001 @CR-002 @uc-edit-card
   # Related aggregate:
   #   card: read, write
@@ -572,6 +587,16 @@ Feature: Card（卡片）編輯
     And 該卡片不應該再出現在 Swimlane "本週優先" 中
     And 該操作應該被記錄為一筆活動紀錄，包含操作人與操作時間
 
+  @CR-011 @uc-move-card-swimlane @fail-p2
+  # Related aggregate:
+  #   board: read
+  #   card: read
+  Scenario: 卡片跨 Swimlane 移動時目的 Swimlane 不存在
+    Given 存在一張卡片 "設計登入頁面"，位於 Swimlane "本週優先" 與 Stage "待辦"
+    When 我嘗試將該卡片拖曳到不存在的 Swimlane
+    Then 系統應該顯示錯誤訊息 "找不到指定的 Swimlane"
+    And 卡片的 Swimlane 應該維持不變
+
   @CR-001 @uc-move-card-stage
   # Related aggregate:
   #   board: read
@@ -581,6 +606,16 @@ Feature: Card（卡片）編輯
     When 我將該卡片拖曳到 Stage "進行中"
     Then 該卡片應該顯示於 Stage "進行中"
     And 卡片的狀態異動應該被記錄，包含操作人、異動時間與異動前後的 Stage
+
+  @CR-011 @uc-move-card-stage @fail-p2
+  # Related aggregate:
+  #   board: read
+  #   card: read
+  Scenario: 卡片跨 Stage 移動時目的 Stage 不存在
+    Given 存在一張卡片 "設計登入頁面"，位於 Stage "待辦"
+    When 我嘗試將該卡片拖曳到不存在的 Stage
+    Then 系統應該顯示錯誤訊息 "找不到指定的 Stage"
+    And 卡片的 Stage 應該維持不變
 
   @uc-add-comment
   # Related aggregate:

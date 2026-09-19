@@ -60,7 +60,9 @@ spec-kanban-basic.md 名詞定義／欄位表對 `comment.content` 的限制欄�
 - 接手：人工
 - 原因代碼：spec-ambiguous
 - 開立：Dev 第 2 輪（2026-09-19）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-19，人工決策，採選項 A）**
+
+解除說明：人工開 CR-011，並訂立通則：**spec 欄位表已隱含要求、且能單純由邏輯推理出對應拒絕情境的 fail 分支，一律直接補齊，不留給後續任務或等實際出問題才回頭補**（後續遇到同類「欄位表有限制但 usecase 沒對應 fail」的 OQ，比照本則處理，不用每次重新請示）。`uc-add-card`／`uc-move-card-swimlane`／`uc-move-card-stage` 各新增 `pre.p2`（目的 swimlane／stage 存在且屬於該 board）與對應 `fail.p2`，新增 3 則 Scenario（分別掛 `@CR-011 @uc-add-card @fail-p2`、`@CR-011 @uc-move-card-swimlane @fail-p2`、`@CR-011 @uc-move-card-stage @fail-p2`）。程式碼：`Board` 新增 `ensureSwimlaneExists`／`ensureStageExists`（重用既有的 `SWIMLANE_NOT_FOUND`／`STAGE_NOT_FOUND`），`CardApplicationService` 的 `addCard`／`moveCardSwimlane`／`moveCardStage` 呼叫這兩個方法，`CardController` 補上這兩個錯誤碼的 404 對照。`ui-kanban-basic.md` `s-board`／`s-card-add-dialog` 操作表同步更新。`./scripts/spec-check`／`./scripts/ui-check` 0 error；`./gradlew clean build` 確認 136 個測試全綠（含新增的 3 個）。詳見 `.dev/CR.md` CR-011。
 
 情況：【推論＋所本原文】
 

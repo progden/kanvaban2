@@ -152,6 +152,24 @@ public final class Board {
         return (int) cardSummaries.stream().filter(c -> c.stageId().equals(stageId)).count();
     }
 
+    /**
+     * 供 {@code Card} 的寫入操作（{@code uc-add-card}／{@code uc-move-card-swimlane}）確認目的
+     * {@code swimlane} 真的存在、且屬於這個 {@code board}（CR-011）；不存在時拋出
+     * {@link ErrorCode#SWIMLANE_NOT_FOUND}，呼叫端不需另外承接回傳值。
+     */
+    public void ensureSwimlaneExists(UUID swimlaneId) {
+        findSwimlane(swimlaneId);
+    }
+
+    /**
+     * 供 {@code Card} 的寫入操作（{@code uc-add-card}／{@code uc-move-card-stage}）確認目的
+     * {@code stage} 真的存在、且屬於這個 {@code board}（CR-011）；不存在時拋出
+     * {@link ErrorCode#STAGE_NOT_FOUND}，呼叫端不需另外承接回傳值。
+     */
+    public void ensureStageExists(UUID stageId) {
+        findStage(stageId);
+    }
+
     // ---- Swimlane ----
 
     public Swimlane addSwimlane(UUID operatorId, String name, Instant systemNow) {

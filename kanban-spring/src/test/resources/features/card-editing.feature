@@ -30,6 +30,14 @@ Feature: Card（卡片）編輯
     Then 系統應該顯示錯誤訊息 "卡片標題不可為空"
     And 不應該建立新的卡片
 
+  @CR-011 @uc-add-card @fail-p2
+  # Related aggregate:
+  #   board: read
+  Scenario: 建立卡片時目的 Swimlane 不存在
+    When 我嘗試在不存在的 Swimlane 中新增卡片
+    Then 系統應該顯示錯誤訊息 "找不到指定的 Swimlane"
+    And 不應該建立新的卡片
+
   @CR-001 @CR-002 @uc-edit-card
   # Related aggregate:
   #   card: read, write
@@ -58,6 +66,16 @@ Feature: Card（卡片）編輯
     And 該卡片不應該再出現在 Swimlane "本週優先" 中
     And 該操作應該被記錄為一筆活動紀錄，包含操作人與操作時間
 
+  @CR-011 @uc-move-card-swimlane @fail-p2
+  # Related aggregate:
+  #   board: read
+  #   card: read
+  Scenario: 卡片跨 Swimlane 移動時目的 Swimlane 不存在
+    Given 存在一張卡片 "設計登入頁面"，位於 Swimlane "本週優先" 與 Stage "待辦"
+    When 我嘗試將該卡片拖曳到不存在的 Swimlane
+    Then 系統應該顯示錯誤訊息 "找不到指定的 Swimlane"
+    And 卡片的 Swimlane 應該維持不變
+
   @CR-001 @uc-move-card-stage
   # Related aggregate:
   #   board: read
@@ -67,6 +85,16 @@ Feature: Card（卡片）編輯
     When 我將該卡片拖曳到 Stage "進行中"
     Then 該卡片應該顯示於 Stage "進行中"
     And 卡片的狀態異動應該被記錄，包含操作人、異動時間與異動前後的 Stage
+
+  @CR-011 @uc-move-card-stage @fail-p2
+  # Related aggregate:
+  #   board: read
+  #   card: read
+  Scenario: 卡片跨 Stage 移動時目的 Stage 不存在
+    Given 存在一張卡片 "設計登入頁面"，位於 Stage "待辦"
+    When 我嘗試將該卡片拖曳到不存在的 Stage
+    Then 系統應該顯示錯誤訊息 "找不到指定的 Stage"
+    And 卡片的 Stage 應該維持不變
 
   @uc-add-comment
   # Related aggregate:

@@ -238,8 +238,8 @@
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
 |---|---|---|---|---|
-| 拖曳卡片跨 Swimlane | `uc-move-card-swimlane` | 卡片顯示於目的 Swimlane 與原 Stage 的交會格 | 不適用（`uc-move-card-swimlane` 無 fail 定義） | 否 |
-| 拖曳卡片跨 Stage | `uc-move-card-stage` | 卡片顯示於目的 Stage | 不適用（`uc-move-card-stage` 無 fail 定義） | 否 |
+| 拖曳卡片跨 Swimlane | `uc-move-card-swimlane` | 卡片顯示於目的 Swimlane 與原 Stage 的交會格 | 依 `uc-move-card-swimlane` p2：卡片維持原位，顯示訊息 | 否 |
+| 拖曳卡片跨 Stage | `uc-move-card-stage` | 卡片顯示於目的 Stage | 依 `uc-move-card-stage` p2：卡片維持原位，顯示訊息 | 否 |
 | 拖曳成員頭像到卡片追加負責人 | `uc-assign-card-owner-by-drag`（F02） | 卡片縮圖的負責人顯示更新 | 不適用（`uc-assign-card-owner-by-drag` 無 fail 定義） | 否 |
 | 新增卡片 | — | 開啟 `s-card-add-dialog` | 不適用 | 否 |
 | 開啟卡片詳情 | — | 開啟 `s-card-detail` | 不適用 | 否 |
@@ -248,7 +248,7 @@
 ### 狀態
 - 載入中：載入 Swimlane、Stage 與卡片資料時顯示
 - 空資料：不適用（`board` 與 `swimlane`、`stage` 的關係 min 皆為 1，交會格結構至少存在；單一交會格內無卡片時顯示為空格，不視為錯誤）
-- 錯誤：不適用（`uc-move-card-swimlane`／`uc-move-card-stage`／`uc-assign-card-owner-by-drag` 目前均無 fail 定義）
+- 錯誤：拖曳卡片跨 Swimlane 或 Stage 失敗時，依上方操作表顯示對應訊息；`uc-assign-card-owner-by-drag` 目前仍無 fail 定義，不適用
 - 無權限：不適用（F01 spec 僅定義 `r-user` 一種角色，無角色差異）
 - 資料狀態差異：不適用
 
@@ -294,7 +294,7 @@
 ### 操作
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
 |---|---|---|---|---|
-| 確認新增 | `uc-add-card` | 關閉對話框，回到 `s-board`，該卡片顯示於指定 Swimlane 與 Stage 的交會格 | 依 `uc-add-card` p1：輸入內容保留，顯示訊息 | 否 |
+| 確認新增 | `uc-add-card` | 關閉對話框，回到 `s-board`，該卡片顯示於指定 Swimlane 與 Stage 的交會格 | 依 `uc-add-card` p1／p2：輸入內容保留，顯示訊息 | 否 |
 | 取消 | — | 關閉對話框 | — | 否 |
 
 ### 狀態
@@ -307,6 +307,7 @@
 ### 驗收條件
 - 開啟時顯示目的 Swimlane、目的 Stage 名稱
 - 標題輸入為空時確認新增，對話框維持開啟、輸入內容保留、顯示訊息
+- 目的 Swimlane 或 Stage 在對話框開啟後被刪除時確認新增，對話框維持開啟、輸入內容保留、顯示訊息
 - 確認新增成功後，關閉對話框，回到 `s-board`，該卡片顯示於指定 Swimlane 與 Stage 的交會格，且觸發 `uc-add-card`
 - 取消後關閉對話框，且不觸發 `uc-add-card`
 
