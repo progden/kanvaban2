@@ -10,7 +10,9 @@
 - 接手：T-04-be-board-membership
 - 原因代碼：upstream-missing
 - 開立：Dev 第 1 輪（2026-09-19）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-19，隨 OQ-T-05-be-board-clock-02 一併處理）**
+
+解除說明：本則的「接手」欄已由 Review 判定錯誤、由 OQ-T-05-be-board-clock-02 取代；實際處理與結論見 -02 底下的解除說明（ADR-002）。
 
 情況：【推論＋所本原文】
 `spec-board-clock.md` 的 `uc-adjust-board-clock`／`uc-pause-resume-board-clock` 兩個 usecase 逐字寫著：
@@ -59,7 +61,9 @@ OQ-IMPL-15 完全不做權限檢查，而是用 `board.createdBy`（`Board.creat
 - 接手：人工
 - 原因代碼：upstream-missing
 - 開立：Review 第 1 輪（2026-09-19）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-19，人工決策，升級為 ADR-002）**
+
+解除說明：這是跨任務、影響後續實作方式的結構性決策，不指派給單一追加任務，改升級記錄為 [ADR-002：BoardMembership 上線前的 Owner 權限代理，必須在合併後由下一個動到它的任務換成正式查詢](../../archive/adr.md#adr-002boardmembership-上線前的-owner-權限代理必須在合併後由下一個動到它的任務換成正式查詢)。訂立通則：`BoardMembership`（T-04）合併之前，用 `board.createdBy` 代理或完全不檢查都可接受；但 T-04 合併之後，**下一個實際去動到那段權限判斷程式碼的任務**，有義務先把它換成查詢 `BoardMembership` 才能繼續做該任務原本要做的修改，不必另外開追加任務、也不必每個代理判斷各自開 OQ。T-05 維持本輪 `board.createdBy` 代理做法（選項 A 的精神，但責任歸屬用 ADR 綁未來任務，不是綁 T-04）。
 
 情況：【推論＋所本原文】
 本則取代 OQ-T-05-be-board-clock-01 的「接手」欄（原填 T-04-be-board-membership，Review 第 1 輪判定接手者錯誤）；問題本身與等級（高、不阻塞）不變。

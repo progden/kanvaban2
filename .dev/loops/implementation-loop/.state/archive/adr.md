@@ -53,3 +53,53 @@
 
 ### 後果（Consequences）
 T-02～T-09（以及任何之後新增的 web 端點）的 Dev 輪，實作 `fail` 對應的 HTTP 狀態碼時要依上表分類，不必再各自開 OQ 討論；遇到表格涵蓋不到的新語意分類（例如批次操作部分失敗），才需要新開 OQ 或回頭修這則 ADR（推翻時開新 ADR，狀態改 `Superseded by ADR-xxx`）。Review 審查時可以直接依這張表核對，不用逐案判斷合不合理。
+
+## ADR-002：BoardMembership 上線前的 Owner 權限代理，必須在合併後由下一個動到它的任務換成正式查詢
+
+- 狀態：Accepted
+- 日期：2026-09-19
+- 提出者：人工決策（源自 T-05-be-board-clock 的 OQ-T-05-be-board-clock-02）
+
+### 背景（Context）
+`spec-board-clock.md`「決議紀錄」逐字：『權限檢查由呼叫端查「BoardMembership」後決定是否呼叫
+「Board」的方法，「kanban-core」本身不做權限判斷』——正式的 Owner 判斷依據是 F02 的
+`BoardMembership`（`board-membership.role` 為 Owner），但 `BoardMembership` 由 T-04-be-board-membership
+實作，跟需要「僅 Owner 可操作」的其他任務（T-02 的 9 個結構調整端點、T-05 的
+`uc-adjust-board-clock`／`uc-pause-resume-board-clock`）平行開發，互相看不到對方，且合併順序不固定。
+
+目前已出現兩種不同的暫時處理方式：
+1. T-02（`BoardApplicationService` 的 9 個結構調整方法）：完全不做 Owner 檢查，只要求已登入
+   （`implementation-loop OQ-IMPL-15`，明確待 T-04 補上）。
+2. T-05（`BoardApplicationService.requireOwner`，`adjustClock`／`pauseClock`／`resumeClock` 共用）：
+   用 `board.getCreatedBy().equals(operatorId)` 代理 Owner 判斷（`OQ-T-05-be-board-clock-02`），
+   因為 `uc-adjust-board-clock` 的 `fail.p1` 是這個 usecase 自己明確定義、要測的情境，不能比照 T-02
+   完全不測。
+
+T-04 的任務範圍（`.state/tasks.md`）明確限定只能改「T-02 的九個結構調整端點」，不包含 T-05 的看板時鐘
+三個端點；也就是說 T-04 完成後，第 1 種暫時做法會被 T-04 自然接手換掉，但第 2 種做法（以及未來任何
+task 可能各自發明的第三種、第四種代理方式）不會有任何任務主動去改，會變成永遠留在程式碼裡的技術債，
+且 Review 沒有一份清單可以核對「這裡是不是還在用代理判斷」。
+
+### 決策（Decision）
+訂立通則：**在 `BoardMembership`（T-04）合併之前，任何需要「僅 Owner 可操作」的程式碼，可以用
+`board.createdBy` 代理判斷或完全不檢查（兩種暫時做法都可接受，依各任務當下的 spec fail 定義決定）；
+但 T-04 合併之後，下一個實際去動到那段程式碼（`requireOwner` 或任何新的權限判斷方法）的任務，
+有義務先把它換成查詢 `BoardMembership`，才能繼續做該任務原本要做的修改**——不必另外開一個專門
+「補權限檢查」的追加任務，也不必每個代理判斷各自開一則 OQ 討論「由誰來改」。Review 審查任何
+任務時，只要 diff 動到含有 Owner／權限判斷邏輯的檔案，且當下 `BoardMembership` 已存在，就要檢查
+是否仍在用 `createdBy` 代理或完全略過檢查，是的話退回，要求該任務一併換成正式查詢。
+
+### 考慮過的替代方案（Alternatives）
+- 人工在 `.state/tasks.md` 補一個專門的追加任務（依賴 T-04、T-05）——被否決：每多一種代理權限判斷
+  的寫法，就要再多開一個追加任務，任務清單會一直長；而且在那個追加任務排進去、開跑之前，程式碼
+  一直帶著已知的技術債，沒有人在 Review 時會去攔。
+- 現在就把 `board.createdBy` 代理正式寫進 spec 決議紀錄（走 CR）——被否決：這會跟同一份 spec 已經
+  寫的『kanban-core 本身不做權限判斷、由呼叫端查 BoardMembership』互相矛盾，等於用 CR 覆蓋掉決議
+  紀錄裡明確的長期設計方向，只是為了讓一個過渡期的權宜之計看起來像是定案。
+
+### 後果（Consequences）
+T-04 合併之後，任何任務（不限定是哪一個）只要要去修改 `BoardApplicationService` 裡帶有 Owner／權限
+判斷邏輯的方法（目前已知的是 `requireOwner` 供 `adjustClock`／`pauseClock`／`resumeClock` 共用，以及
+T-02 九個結構調整方法本來就沒做的檢查），都要在那次改動裡把判斷依據換成查詢 `BoardMembership`
+（`board-membership.role` 為 Owner），不能維持代理判斷或略過不驗證。Review 依此條目直接核對，不用
+另開 OQ；真的要推翻這個處理方式（例如決定要幫這件事另開專門任務），開新 ADR 取代本則。
