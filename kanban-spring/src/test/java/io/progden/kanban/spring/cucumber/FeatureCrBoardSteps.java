@@ -45,12 +45,8 @@ public class FeatureCrBoardSteps {
     private Map<?, ?> lastBody;
 
     // ---- Given：Background ----
-
-    @Given("我已登入系統，並開啟 Board {string}")
-    public void givenLoggedInAndBoardOpened(String boardName) throws Exception {
-        boardSteps.givenLoggedIn();
-        boardSteps.givenBoardOpened(boardName);
-    }
+    // 「我已登入系統，並開啟 Board {string}」步驟已移到 BoardSteps（共用步驟，
+    // 避免與 BoardClockSteps 重複定義），見 OQ-T-06-be-kanban-widgets-02。
 
     @Given("Stage {string} 已設定角色為 {word}，Stage {string} 已設定角色為 {word}")
     public void givenStageRoles(String firstStage, String firstRole, String secondStage, String secondRole)

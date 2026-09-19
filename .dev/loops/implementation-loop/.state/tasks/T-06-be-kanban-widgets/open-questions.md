@@ -10,7 +10,9 @@
 - 接手：人工
 - 原因代碼：cucumber-duplicate-step-definition
 - 開立：Dev 第 1 輪（2026-09-19）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-19，人工決策，隨 OQ-T-06-be-kanban-widgets-02 一併處理）**
+
+解除說明：本則已被 OQ-T-06-be-kanban-widgets-02 取代（Review 判定等級／阻塞標錯後補開），實際處理與結論見 -02 底下的解除說明。
 
 情況：【推論＋所本原文】
 證據（本輪 `./gradlew clean build --no-daemon` 實際輸出，非規格原文，是本輪跑出的建置紀錄，逐字引用如下）：
@@ -34,7 +36,9 @@
 - 接手：人工
 - 原因代碼：env-broken
 - 開立：Review 第 1 輪（2026-09-19）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-19，人工決策，採選項 A）**
+
+解除說明：人工直接在 `loop/implementation` 修：把「我已登入系統，並開啟 Board {string}」這句共用步驟移到 `BoardSteps.java`（`BoardClockSteps`／`FeatureCrBoardSteps` 本來就都注入了這個類別的 `boardSteps` 欄位，是唯一適合放共用登入／開板步驟的既有基礎類別），從 `BoardClockSteps.java`／`FeatureCrBoardSteps.java` 兩邊都刪除各自的重複定義（改留 `BoardSteps` 那份唯一版本，不是保留其中一個任務檔的版本）。修完後 `./gradlew clean build --no-daemon` → BUILD SUCCESSFUL，kanban-core＋kanban-spring 共 132 個測試全綠，`DuplicateStepDefinitionException` 消失。T-06 可以重新合併整合分支、重跑 Review。
 
 情況：【推論＋所本原文】
 本則取代 OQ-T-06-be-kanban-widgets-01（Dev 標為「高／不阻塞」，等級與阻塞標錯；問題本身與證據相同）。

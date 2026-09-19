@@ -88,12 +88,8 @@ public class BoardClockSteps {
     }
 
     // ---- Given：Background ----
-
-    @Given("我已登入系統，並開啟 Board {string}")
-    public void givenLoggedInAndBoardOpened(String name) throws Exception {
-        boardSteps.givenLoggedIn();
-        boardSteps.givenBoardOpened(name);
-    }
+    // 「我已登入系統，並開啟 Board {string}」步驟已移到 BoardSteps（共用步驟，
+    // 避免與 FeatureCrBoardSteps 重複定義），見 OQ-T-06-be-kanban-widgets-02。
 
     @Given("看板時間目前為 {word} {word}")
     public void givenClockCurrentlyAt(String date, String time) throws Exception {

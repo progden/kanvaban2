@@ -141,6 +141,15 @@ public class BoardSteps {
         currentBoardId = UUID.fromString((String) responseBody.get("id"));
     }
 
+    // 原本 BoardClockSteps／FeatureCrBoardSteps 各自重複定義同一句步驟文字，
+    // 合併回整合分支後觸發 Cucumber DuplicateStepDefinitionException，改移到
+    // 這裡當共用步驟（見 OQ-T-06-be-kanban-widgets-02 人工決議）。
+    @Given("我已登入系統，並開啟 Board {string}")
+    public void givenLoggedInAndBoardOpened(String name) throws Exception {
+        givenLoggedIn();
+        givenBoardOpened(name);
+    }
+
     // ---- Given：Swimlane 前置狀態 ----
 
     @Given("看板目前有 {int} 個 Swimlane {string}")
