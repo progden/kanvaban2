@@ -80,6 +80,7 @@
 | 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-add-swimlane`、`uc-rename-swimlane`、`uc-reorder-swimlane`、`uc-delete-swimlane`、`uc-add-stage`、`uc-rename-stage`、`uc-reorder-stage`、`uc-delete-stage`、`uc-set-stage-role`、`uc-add-card`、`uc-edit-card`、`uc-move-card-swimlane`、`uc-move-card-stage`、`uc-add-comment`、`uc-delete-card`） |
 | 2026-09-17 |  | 新增 | 補上遺漏的「留言」實體 `comment`（ui-authoring-loop OQ-09 發現：`uc-add-comment` post 描述留言內容、留言者、留言時間，但名詞定義完全沒有對應實體與欄位），新增 `comment.content`／`comment.author`／`comment.created-at`，`card`→`comment` 關係，`uc-add-comment` 的 crud、post、Aggregate 標記同步更新；本檔尚未進入開發，可直接補上，不需開 CR |
 | 2026-09-18 |  | 變更 | 修正 9 個結構調整 usecase 的角色（ui-authoring-loop OQ-25 發現：`uc-add-swimlane` 等 9 個 usecase 的 roles 寫 r-user，未區分 Owner／Member，但 F02 `uc-reject-structure-change-by-member` 明訂只有 Owner 能調整結構），`uc-add-swimlane`／`uc-rename-swimlane`／`uc-reorder-swimlane`／`uc-delete-swimlane`／`uc-add-stage`／`uc-rename-stage`／`uc-reorder-stage`／`uc-delete-stage`／`uc-set-stage-role` 的 roles 改為 r-board-owner；本檔尚未進入開發，可直接補上，不需開 CR |
+| 2026-09-19 | CR-010 | 變更 | `uc-add-comment` 新增 pre.p2（`comment.content` 非空）與對應 fail.p2，補齊欄位表「非空」限制原本缺的拒絕分支（implementation-loop T-03-be-card OQ-T-03-be-card-01 發現）；新增 Scenario「留言內容不可為空」，掛 @CR-010 @uc-add-comment @fail-p2 |
 
 ---
 
@@ -485,10 +486,12 @@ Feature: Stage（階段）管理
   crud: {card: R, comment: C}
   pre:
     p1: "`card` 存在"
+    p2: "`comment.content` 非空"
   post:
     - "新的 `comment` 建立成功，`comment.content` 為輸入內容，`comment.author` 為留言者，`comment.created-at` 為留言的操作時間"
     - "新的 `comment` 加入 `card` 的留言列表"
-  fail: {}
+  fail:
+    p2: "拒絕，不新增 `comment`"
   emits: []
   requires: []
   calls-sync: []
@@ -588,6 +591,15 @@ Feature: Card（卡片）編輯
     When 我在卡片中新增留言 "已完成初稿，請協助審閱"
     Then 該留言應該顯示在卡片的留言列表中
     And 留言應該記錄留言者與留言時間
+
+  @CR-010 @uc-add-comment @fail-p2
+  # Related aggregate:
+  #   card: read
+  Scenario: 留言內容不可為空
+    Given 存在一張卡片 "設計登入頁面"
+    When 我嘗試在卡片中新增一則空白留言
+    Then 系統應該顯示錯誤訊息 "留言內容不可為空"
+    And 不應該新增留言
 
   @CR-001 @uc-delete-card
   # Related aggregate:

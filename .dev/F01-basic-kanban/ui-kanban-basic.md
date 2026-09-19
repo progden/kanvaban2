@@ -346,14 +346,14 @@
 | 操作 | 觸發 | 成功後 | 失敗時 | 需確認？ |
 |---|---|---|---|---|
 | 儲存變更 | `uc-edit-card` | 停留本畫面，描述、截止日期、標籤欄位顯示儲存後的內容 | 不適用（`uc-edit-card` 無 fail 定義） | 否 |
-| 新增留言 | `uc-add-comment` | 依 `uc-add-comment` post：該留言顯示於留言列表 | 不適用（`uc-add-comment` 無 fail 定義） | 否 |
+| 新增留言 | `uc-add-comment` | 依 `uc-add-comment` post：該留言顯示於留言列表 | 依 `uc-add-comment` p2：輸入內容保留，顯示訊息 | 否 |
 | 開啟負責人選取 | — | 開啟 `s-card-assignee-picker`（F02），回來後負責人欄位顯示更新後的名單 | 不適用（純前端導覽） | 否（可重新開啟本入口調整負責人，非不可逆操作） |
 | 關閉 | — | 回到進入前的畫面（`s-board` 或 F02 `s-cards-by-assignee`，跨模組）；回到 `s-board` 時，看板交會格內容更新 | — | 否 |
 
 ### 狀態
 - 載入中：載入卡片內容與留言列表時顯示
 - 空資料：不適用（進入本畫面代表指定的 `card` 已存在，依 `uc-edit-card` pre p1）
-- 錯誤：不適用（`uc-edit-card`、`uc-add-comment` 均無 fail 定義）
+- 錯誤：新增留言失敗時，依上方操作表顯示對應訊息（`uc-edit-card` 仍無 fail 定義，不適用）
 - 無權限：不適用（F01 spec 僅定義 `r-user` 一種角色，無角色差異）
 - 資料狀態差異：不適用
 

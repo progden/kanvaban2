@@ -59,6 +59,7 @@ public class CardSteps {
     private String currentCardTitle;
     private long cardCountBeforeAttempt;
     private long cardActivityCountBefore;
+    private int commentCountBeforeAttempt;
     private String pendingDescription;
     private LocalDate pendingDueDate;
     private List<String> pendingLabels;
@@ -215,6 +216,18 @@ public class CardSteps {
         syncLastResult();
     }
 
+    @When("我嘗試在卡片中新增一則空白留言")
+    public void whenAttemptAddBlankComment() throws Exception {
+        commentCountBeforeAttempt = loadCurrentCard().getComments().size();
+        Map<String, String> body = Map.of("content", "");
+        lastResult = mockMvc.perform(post("/api/cards/" + currentCardId + "/comments")
+                        .session(boardSteps.getSession())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andReturn();
+        syncLastResult();
+    }
+
     // ---- When：刪除卡片 ----
 
     @When("我點擊刪除該卡片")
@@ -313,6 +326,11 @@ public class CardSteps {
         var comment = card.getComments().get(card.getComments().size() - 1);
         assertEquals(boardSteps.getCurrentUserId(), comment.getAuthorId());
         assertTrue(comment.getCreatedAt().isBefore(Instant.now().plusSeconds(1)));
+    }
+
+    @Then("不應該新增留言")
+    public void thenNoNewCommentAdded() {
+        assertEquals(commentCountBeforeAttempt, loadCurrentCard().getComments().size());
     }
 
     // ---- Then：刪除卡片 ----

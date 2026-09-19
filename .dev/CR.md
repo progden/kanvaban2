@@ -11,6 +11,7 @@
 | CR-007 | 登入後 TopBar 顯示 display-name | 變更 | implementation-loop（T-10-fe-shell，OQ-IMPL-11） | 2026-09-18 | spec-user-membership、ui-user-membership | `uc-login`、`s-login` | 待處理 | | |
 | CR-008 | 帳號 ID 重複時的驗收條件改為「觸發 uc-create-user」 | 變更 | implementation-loop（T-11-fe-auth，OQ-IMPL-13） | 2026-09-19 | ui-user-membership | `s-signup` | 處理完成 | 2026-09-19 | |
 | CR-009 | 建立看板時的預設 Swimlane／Stage | 變更 | implementation-loop（T-02-be-board，OQ-IMPL-14） | 2026-09-19 | spec-user-membership | `uc-create-board` | 待處理 | | |
+| CR-010 | 留言內容不可為空的 pre／fail 補齊 | 變更 | implementation-loop（T-03-be-card，OQ-T-03-be-card-01） | 2026-09-19 | spec-kanban-basic、ui-kanban-basic | `uc-add-comment` | 處理完成 | 2026-09-19 | |
 
 ### CR-001：Board/Card 補上操作人記錄
 - 背景：Swimlane／Stage／Card 會改變狀態的情境，原本沒有記錄是誰做的操作，F02 要做活動紀錄需要這份資料。
@@ -56,3 +57,8 @@
 - 背景：`spec-kanban-basic.md` 關係表規定 `board`→`swimlane`、`board`→`stage` 的 min 都是 1（「看板至少保留一個 Swimlane／Stage」），新建的看板不能是空的，但 `uc-create-board` 的 post 沒有寫新看板帶什麼；F01 多條 Scenario 的前提用到「預設泳道」與「待辦／進行中／完成」，`implementation-loop` T-02-be-board 依此推論實作（OQ-IMPL-14）。2026-09-19 人工定案：採用這組預設，Stage 角色皆為 NONE——角色是要看 Cycle/Lead Time 圖表時才由 `uc-set-stage-role` 設定（CR-003），跟建立看板是不同時機。
 - 變更內容：`uc-create-board` 新增 post「新的 `board` 帶有 1 個 `swimlane`（名稱「預設泳道」）與 3 個 `stage`，依序為「待辦」、「進行中」、「完成」，`stage.role` 皆為 NONE」，`crud` 補 `swimlane: C`、`stage: C`；新增 Scenario「建立 Board 後帶有預設的 Swimlane 與 Stage」；既有 Scenario 的 Aggregate 註解同步。
 - 驗收標準：新增的 Scenario 由 Cucumber 驗證通過（step definition 由 `implementation-loop` 任務 T-04-be-board-membership 一併補上，`uc-create-board` 的 Owner membership post 也在該任務完成）；`kanban-core` 的「Board.create」行為不需要改（現況已符合）。
+
+### CR-010：留言內容不可為空的 pre／fail 補齊
+- 背景：`spec-kanban-basic.md` 名詞定義欄位表已明訂 `comment.content`「非空」，但 `uc-add-comment` 的 `pre` 只有「`card` 存在」一條、`fail: {}`，沒有對應「內容非空」的拒絕分支；`ui-kanban-basic.md` `s-card-detail` 操作表「新增留言」的「失敗時」欄因此寫「不適用（`uc-add-comment` 無 fail 定義）」。`implementation-loop` T-03-be-card 實作時依欄位表限制，在 `Comment.create`／`Card.addComment` 拒絕空白留言（`EMPTY_COMMENT_CONTENT`），但沒有對應的 spec 定義（OQ-T-03-be-card-01）。2026-09-19 人工決議：採選項 A，正式補上 fail 分支。
+- 變更內容：`uc-add-comment` 新增 `pre.p2`（`` `comment.content` 非空 ``）與對應 `fail.p2`（`` 拒絕，不新增 `comment` ``）；新增 Scenario「留言內容不可為空」（`@CR-010 @uc-add-comment @fail-p2`）；`ui-kanban-basic.md` `s-card-detail` 操作表「新增留言」的「失敗時」欄改為「依 `uc-add-comment` p2：輸入內容保留，顯示訊息」，「狀態」段「錯誤」欄同步。
+- 驗收標準：新增的 Scenario 由 Cucumber 驗證通過（`kanban-spring` `CardSteps.java` 補上對應 step definition）；`./scripts/spec-check`、`./scripts/ui-check` 0 error；`./gradlew clean build` 通過。程式碼行為不需要改（`Comment.java` 現況已拒絕空白留言、回應 400 `EMPTY_COMMENT_CONTENT`）。

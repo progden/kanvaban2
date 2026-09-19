@@ -10,7 +10,9 @@
 - 接手：人工
 - 原因代碼：spec-ambiguous
 - 開立：Dev 第 2 輪（2026-09-19）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-19，人工決策，採選項 A）**
+
+解除說明：人工開 CR-010，`uc-add-comment` 新增 `pre.p2`（`comment.content` 非空）與對應 `fail.p2`，新增 Scenario「留言內容不可為空」（`@CR-010 @uc-add-comment @fail-p2`），`ui-kanban-basic.md` `s-card-detail` 操作表「新增留言」的「失敗時」欄同步更新。`kanban-spring` 的 `CardSteps.java` 補上對應 step definition（`我嘗試在卡片中新增一則空白留言`／`不應該新增留言`），`./gradlew clean build` 確認 133 個測試全綠、新 Scenario 有跑到；`./scripts/spec-check`／`./scripts/ui-check` 0 error。既有的 `Comment.java` 拒絕邏輯（`EMPTY_COMMENT_CONTENT`）不用改，現況已符合新補的 fail 定義。詳見 `.dev/CR.md` CR-010。
 
 情況：【推論＋所本原文】
 

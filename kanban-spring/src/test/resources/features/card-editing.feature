@@ -78,6 +78,15 @@ Feature: Card（卡片）編輯
     Then 該留言應該顯示在卡片的留言列表中
     And 留言應該記錄留言者與留言時間
 
+  @CR-010 @uc-add-comment @fail-p2
+  # Related aggregate:
+  #   card: read
+  Scenario: 留言內容不可為空
+    Given 存在一張卡片 "設計登入頁面"
+    When 我嘗試在卡片中新增一則空白留言
+    Then 系統應該顯示錯誤訊息 "留言內容不可為空"
+    And 不應該新增留言
+
   @CR-001 @uc-delete-card
   # Related aggregate:
   #   card: read, write
