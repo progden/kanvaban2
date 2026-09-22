@@ -2,11 +2,11 @@
 // （見 .dev/ui-prototype/README.md「檔案與 Screen ID」），對話框沿用 index.css 的 .dialog-backdrop／
 // .dialog-panel／.field／.btn 系列，成員清單樣式另見 MemberManagementDialog.css。
 //
-// 「移除成員」需確認的時機只在目標成員仍是卡片負責人時（uc-remove-member pre p2、驗收條件「移除仍是卡片
-// 負責人的成員時，先顯示確認訊息並告知卡片張數，確認後才觸發 uc-remove-member」；驗收條件沒有為一般移除
-// 另外要求確認步驟）：先以 confirmed=false 呼叫，後端在這種情況下回 409、訊息內含卡片張數，前端據此顯示
-// 確認卡片，確認後才以 confirmed=true 重打；訊息不符合這個樣式（例如「看板至少需要保留一位 Owner」）時，
-// 視為一般失敗，直接顯示訊息，不進入確認流程。
+// 「移除成員」與「變更成員角色」在 ui-user-membership.md 操作表的「需確認？」欄都是「是」，一律先顯示
+// 確認卡片、不先打 API：點擊「移除」先顯示一般確認訊息，使用者按下確認才以 confirmed=false 呼叫；若目標
+// 成員仍是卡片負責人（uc-remove-member pre p2），後端會回 409、訊息內含卡片張數，前端把確認卡片的訊息換
+// 成這則訊息並要求再次確認，確認後才以 confirmed=true 重打。其他失敗（例如 fail p1「看板至少需要保留一
+// 位 Owner」）視為一般失敗：關閉確認卡片、在該列下方直接顯示訊息，成員仍留在清單中。
 // 「變更成員角色」則不論卡片狀態一律先確認（ui-user-membership.md 該列「需確認？」：spec 未定義將 Owner
 // 降級為 Member 的操作，視為不可逆）。
 import { useEffect, useState } from 'react';
@@ -40,7 +40,9 @@ export function MemberManagementDialog({ boardId, currentUsername, onClose }: Me
   const [roleChangeError, setRoleChangeError] = useState<string | null>(null);
   const [roleChanging, setRoleChanging] = useState(false);
 
-  const [removeTarget, setRemoveTarget] = useState<{ username: string; message: string } | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<{ username: string; message: string; confirmed: boolean } | null>(
+    null,
+  );
   const [removeError, setRemoveError] = useState<{ username: string; message: string } | null>(null);
   const [removing, setRemoving] = useState(false);
 
@@ -101,37 +103,29 @@ export function MemberManagementDialog({ boardId, currentUsername, onClose }: Me
     }
   }
 
-  async function handleRemoveClick(username: string) {
+  function handleRemoveClick(username: string, displayName: string) {
     setRemoveError(null);
-    setRemoving(true);
-    try {
-      await membershipApi.removeMember(boardId, username, false);
-      await refreshMembers();
-    } catch (e) {
-      if (e instanceof ApiError && CARD_ASSIGNEE_CONFIRMATION_PATTERN.test(e.message)) {
-        setRemoveTarget({ username, message: e.message });
-      } else {
-        setRemoveError({ username, message: e instanceof ApiError ? e.message : '移除成員失敗，請稍後再試' });
-      }
-    } finally {
-      setRemoving(false);
-    }
+    setRemoveTarget({ username, message: `確定要移除 ${displayName}？`, confirmed: false });
   }
 
   async function handleConfirmRemove() {
     if (removeTarget === null) {
       return;
     }
-    const { username } = removeTarget;
+    const { username, confirmed } = removeTarget;
     setRemoving(true);
     setRemoveError(null);
     try {
-      await membershipApi.removeMember(boardId, username, true);
+      await membershipApi.removeMember(boardId, username, confirmed);
       setRemoveTarget(null);
       await refreshMembers();
     } catch (e) {
-      setRemoveTarget(null);
-      setRemoveError({ username, message: e instanceof ApiError ? e.message : '移除成員失敗，請稍後再試' });
+      if (e instanceof ApiError && CARD_ASSIGNEE_CONFIRMATION_PATTERN.test(e.message)) {
+        setRemoveTarget({ username, message: e.message, confirmed: true });
+      } else {
+        setRemoveTarget(null);
+        setRemoveError({ username, message: e instanceof ApiError ? e.message : '移除成員失敗，請稍後再試' });
+      }
     } finally {
       setRemoving(false);
     }
@@ -213,7 +207,7 @@ export function MemberManagementDialog({ boardId, currentUsername, onClose }: Me
                     {displayRole(member.role)}
                   </span>
 
-                  {member.role !== 'OWNER' && (
+                  {member.role === 'MEMBER' && (
                     <button
                       type="button"
                       className="btn-sm"
@@ -230,7 +224,7 @@ export function MemberManagementDialog({ boardId, currentUsername, onClose }: Me
                       type="button"
                       className="btn-sm member-management-dialog__remove"
                       disabled={removing}
-                      onClick={() => void handleRemoveClick(member.username)}
+                      onClick={() => handleRemoveClick(member.username, member.displayName)}
                     >
                       移除
                     </button>

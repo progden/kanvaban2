@@ -153,7 +153,7 @@ describe('s-member-management', () => {
     expect(within(row).getByText('Member')).toBeInTheDocument();
   });
 
-  it('移除非唯一 Owner 或 Member 後，該成員自清單移除，不需額外確認', async () => {
+  it('移除非唯一 Owner 或 Member 後，先顯示確認，確認後該成員才自清單移除', async () => {
     mockFetch([
       { method: 'GET', path: '/members', respond: () => jsonResponse([OWNER, MEMBER]) },
       { method: 'DELETE', path: '/yating', respond: () => jsonResponse(null, 204) },
@@ -163,17 +163,23 @@ describe('s-member-management', () => {
     await screen.findByText('雅婷');
 
     const row = screen.getByText('雅婷').closest('li') as HTMLElement;
+    fireEvent.click(within(row).getByRole('button', { name: '移除' }));
+    await within(row).findByText('確定要移除 雅婷？');
+    // 確認前不應該已經移除
+    expect(screen.getByText('雅婷')).toBeInTheDocument();
+
     vi.spyOn(globalThis, 'fetch').mockRestore();
     mockFetch([
       { method: 'GET', path: '/members', respond: () => jsonResponse([OWNER]) },
       { method: 'DELETE', path: '/yating', respond: () => jsonResponse(null, 204) },
     ]);
-    fireEvent.click(within(row).getByRole('button', { name: '移除' }));
+    const confirmActions = screen.getByText('確定要移除 雅婷？').parentElement as HTMLElement;
+    fireEvent.click(within(confirmActions).getByRole('button', { name: '移除' }));
 
     await waitFor(() => expect(screen.queryByText('雅婷')).not.toBeInTheDocument());
   });
 
-  it('移除看板唯一 Owner 時，顯示訊息，該成員仍留在清單中', async () => {
+  it('移除看板唯一 Owner 時，確認後顯示訊息，該成員仍留在清單中', async () => {
     mockFetch([
       { method: 'GET', path: '/members', respond: () => jsonResponse([OWNER]) },
       {
@@ -187,19 +193,22 @@ describe('s-member-management', () => {
     const row = (await screen.findByText('陳柏翰')).closest('li') as HTMLElement;
 
     fireEvent.click(within(row).getByRole('button', { name: '移除' }));
+    const confirmMessage = await within(row).findByText('確定要移除 陳柏翰？');
+    const confirmActions = confirmMessage.parentElement as HTMLElement;
+    fireEvent.click(within(confirmActions).getByRole('button', { name: '移除' }));
 
     await within(row).findByText('看板至少需要保留一位 Owner');
     expect(screen.getByText('陳柏翰')).toBeInTheDocument();
   });
 
-  it('移除仍是卡片負責人的成員時，先顯示確認訊息並告知卡片張數，確認後才觸發移除', async () => {
-    const confirmMessage = '雅婷 仍是 2 張卡片的負責人，移除後這些卡片會變成未指派';
+  it('移除仍是卡片負責人的成員時，先顯示一般確認，確認後才依卡片張數要求再次確認，確認後才觸發移除', async () => {
+    const cardMessage = '雅婷 仍是 2 張卡片的負責人，移除後這些卡片會變成未指派';
     mockFetch([
       { method: 'GET', path: '/members', respond: () => jsonResponse([OWNER, MEMBER]) },
       {
         method: 'DELETE',
         path: '/yating',
-        respond: () => jsonResponse({ message: confirmMessage }, 409),
+        respond: () => jsonResponse({ message: cardMessage }, 409),
       },
     ]);
 
@@ -207,7 +216,10 @@ describe('s-member-management', () => {
     const row = (await screen.findByText('雅婷')).closest('li') as HTMLElement;
 
     fireEvent.click(within(row).getByRole('button', { name: '移除' }));
-    await within(row).findByText(confirmMessage);
+    const firstConfirm = await within(row).findByText('確定要移除 雅婷？');
+    fireEvent.click(within(firstConfirm.parentElement as HTMLElement).getByRole('button', { name: '移除' }));
+
+    await within(row).findByText(cardMessage);
     // 確認前不應該已經移除
     expect(screen.getByText('雅婷')).toBeInTheDocument();
 
@@ -216,10 +228,20 @@ describe('s-member-management', () => {
       { method: 'GET', path: '/members', respond: () => jsonResponse([OWNER]) },
       { method: 'DELETE', path: '/yating', respond: () => jsonResponse(null, 204) },
     ]);
-    const confirmActions = screen.getByText(confirmMessage).parentElement as HTMLElement;
+    const confirmActions = screen.getByText(cardMessage).parentElement as HTMLElement;
     fireEvent.click(within(confirmActions).getByRole('button', { name: '移除' }));
 
     await waitFor(() => expect(screen.queryByText('雅婷')).not.toBeInTheDocument());
+  });
+
+  it('角色為 Viewer 的成員列沒有設為 Owner 按鈕', async () => {
+    const viewer = { username: 'weichen', displayName: '偉辰', role: 'VIEWER' };
+    mockFetch([{ method: 'GET', path: '/members', respond: () => jsonResponse([OWNER, viewer]) }]);
+
+    render(<MemberManagementDialog boardId="board-a" currentUsername="user1" onClose={() => {}} />);
+    const row = (await screen.findByText('偉辰')).closest('li') as HTMLElement;
+
+    expect(within(row).queryByRole('button', { name: '設為 Owner' })).not.toBeInTheDocument();
   });
 
   it('r-board-member 看不到移除成員的操作', async () => {
