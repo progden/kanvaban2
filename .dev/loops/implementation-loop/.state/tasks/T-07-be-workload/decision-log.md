@@ -47,3 +47,50 @@
 - `./gradlew :kanban-spring:test --no-daemon`：BUILD SUCCESSFUL（含 6 個新增 Cucumber Scenario 與 4 個
   `WorkloadCalculatorTest` 單元測試，全數通過）。
 - `./gradlew build --no-daemon`：BUILD SUCCESSFUL（`kanban-core`／`kanban-spring` 全部測試）。
+
+## 2026-09-22 Dev 第 2 輪：Dev 第 2 輪：修正 D-01、D-02
+
+### Dev 第 2 輪：修正 D-01、D-02
+
+#### D-01：Workload 回應補 displayName
+
+- `WorkloadResponse.java`：`MemberWorkloadEntry` 由 `(UUID userId, String username, int cardCount)`
+  改為 `(UUID userId, String username, String displayName, int cardCount)`，比照既有的
+  `AssigneeCandidateResponse` 寫法，`username` 保留未移除。
+- `WorkloadController.toEntry()`：新增 `user.getDisplayName()` 填入 `displayName`。
+- `WorkloadSteps.java`：
+  - `ensureUserExists()` 建立測試使用者時，改為帶入與 `username` 不同的 `displayName`
+    （`username + "－顯示名稱"`），並記錄到新增的 `displayNamesByUsername` map，供斷言比對。
+  - 新增私有方法 `memberFieldOf(username, field)`（把 `workloadOf` 改為呼叫它取 `cardCount`，
+    避免重複的 members 掃描邏輯）與 `displayNameFor(username)`。
+  - `thenWorkloadIs`（對應 Scenario「檢視單一負責人的工作量」）新增一行斷言，比對回應
+    `members[].displayName` 等於前置資料設定的顯示名稱，涵蓋「顯示名字與帳號 ID 不同」的情境。
+  - 未新增／改動任何 Gherkin 步驟文字，`workload.feature` 與 spec 仍逐字相同；驗證全部放在
+    step definition 層。
+
+#### D-02：清理殘留
+
+- `WorkloadQueryService.java`：移除未使用的 `import io.progden.kanban.spring.persistence.CardJpaEntity;`。
+- `WorkloadSteps.java` class javadoc：原本聲稱「登入與開板、Stage 角色設定沿用 BoardSteps／
+  FeatureCrBoardSteps 已註冊的共用步驟，這裡不重複定義」與事實不符（`givenSingleStageRole` 確實
+  在本檔定義了 `Stage {string} 已設定角色為 {word}`）。改為：登入與開板沿用 `BoardSteps`
+  （這裡不重複定義）；Stage 角色設定在本檔另外定義（`givenSingleStageRole`，轉呼叫
+  `BoardSteps.whenSetStageRole`）。同時移除已不存在引用的 `{@link FeatureCrBoardSteps}`。
+
+#### 涵蓋範圍
+
+本輪未新增 Scenario／entity／uc，維持第 1 輪涵蓋的 `uc-view-workload`、
+`uc-drag-assign-card-owner` 與 6＋2 個 Scenario；`kanban-core` 本輪未觸及，無 Spring／JPA import。
+
+#### 待確認事項
+
+無新增 OQ；D-01、D-02 皆依 Review 指示可直接修正，未涉及任何規格定案文字的覆蓋或衝突。
+
+#### Check（本輪實際跑的建置／測試）
+
+`./gradlew clean build --no-daemon`：`BUILD SUCCESSFUL in 3m 16s`，`14 actionable tasks: 14 executed`。
+`kanban-spring/build/test-results/test/` 共 30 份結果檔，全部 `failures="0" errors="0"`；
+`TEST-feature_classpath_features-workload.feature.xml`：`tests="6"` 全過；
+`TEST-feature_classpath_features-card-assignment.feature.xml`：`tests="7"` 全過（未受影響）。
+`git status --porcelain`：僅本輪四個檔案變更，已 commit（`[dev](workload) Workload 回應補上
+displayName 並清理殘留`）。
