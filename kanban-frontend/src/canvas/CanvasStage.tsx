@@ -454,7 +454,13 @@ export function CanvasStage({
               <span>{item.component}</span>
             </div>
             <div className="canvas-item__body">
-              <Content itemId={item.id} component={item.component} width={box.width} height={box.height} />
+              <Content
+                itemId={item.id}
+                component={item.component}
+                width={box.width}
+                height={box.height}
+                boardId={boardId}
+              />
             </div>
             {selected && canEdit && selectedIds.length === 1 && item.resizable && (
               <>

@@ -50,3 +50,15 @@ export function countActiveCards(boardId: string): Promise<number> {
     .get<{ cardCount: number }>(`/api/boards/${boardId}/card-count`)
     .then((response) => response.cardCount);
 }
+
+export function adjustClock(boardId: string, newTime: string): Promise<BoardResponse> {
+  return apiClient.patch<BoardResponse>(`/api/boards/${boardId}/clock`, { newTime });
+}
+
+export function pauseClock(boardId: string): Promise<BoardResponse> {
+  return apiClient.post<BoardResponse>(`/api/boards/${boardId}/clock/pause`);
+}
+
+export function resumeClock(boardId: string): Promise<BoardResponse> {
+  return apiClient.post<BoardResponse>(`/api/boards/${boardId}/clock/resume`);
+}
