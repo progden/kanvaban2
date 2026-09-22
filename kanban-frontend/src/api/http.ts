@@ -44,4 +44,5 @@ export const apiClient = {
       method: 'POST',
       body: body === undefined ? undefined : JSON.stringify(body),
     }),
+  del: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 };
