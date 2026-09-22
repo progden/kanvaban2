@@ -134,4 +134,35 @@ class CardApplicationServiceTest {
         Card reloaded = cardRepository.findById(card.getId()).orElseThrow();
         assertThat(reloaded.getAssigneeIds()).isEmpty();
     }
+
+    @Test
+    void 列出看板卡片時只回傳該看板未刪除的卡片() {
+        UUID ownerId = UUID.randomUUID();
+        Board board = boardApplicationService.createBoard(ownerId, "測試看板");
+        UUID swimlaneId = board.getSwimlanes().get(0).getId();
+        UUID stageId = board.getStages().get(0).getId();
+        Card keptCard = cardApplicationService.addCard(board.getId(), ownerId, "保留的卡片", swimlaneId, stageId);
+        Card deletedCard = cardApplicationService.addCard(board.getId(), ownerId, "已刪除的卡片", swimlaneId, stageId);
+        cardApplicationService.deleteCard(deletedCard.getId(), ownerId);
+
+        Board otherBoard = boardApplicationService.createBoard(ownerId, "另一個看板");
+        cardApplicationService.addCard(otherBoard.getId(), ownerId, "另一看板的卡片",
+                otherBoard.getSwimlanes().get(0).getId(), otherBoard.getStages().get(0).getId());
+
+        List<Card> cards = cardApplicationService.listCardsForBoard(board.getId(), ownerId);
+
+        assertThat(cards).extracting(Card::getId).containsExactly(keptCard.getId());
+    }
+
+    @Test
+    void 非成員列出看板卡片時被拒絕() {
+        UUID ownerId = UUID.randomUUID();
+        Board board = boardApplicationService.createBoard(ownerId, "測試看板");
+        UUID nonMemberId = UUID.randomUUID();
+
+        assertThatThrownBy(() -> cardApplicationService.listCardsForBoard(board.getId(), nonMemberId))
+                .isInstanceOf(DomainException.class)
+                .extracting(e -> ((DomainException) e).getCode())
+                .isEqualTo(ErrorCode.FORBIDDEN);
+    }
 }

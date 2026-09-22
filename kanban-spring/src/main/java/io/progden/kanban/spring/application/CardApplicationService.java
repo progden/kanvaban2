@@ -186,6 +186,17 @@ public class CardApplicationService {
                 .toList();
     }
 
+    /**
+     * 供 {@code s-board}（T-14）渲染 Swimlane × Stage 交會格用：列出該看板全部未刪除的卡片。
+     * spec 沒有為此定義獨立的 uc（{@code s-board} 的資料段直接引用 {@code card.swimlane}／
+     * {@code card.stage} 等既有欄位），比照 T-12 新增 card-count 端點的先例，重用既有的
+     * {@code CardRepository.findActiveByBoardId}，屬低風險技術決定（見 decision-log）。
+     */
+    public List<Card> listCardsForBoard(UUID boardId, UUID operatorId) {
+        boardMembershipApplicationService.ensureMember(boardId, operatorId);
+        return cardRepository.findActiveByBoardId(boardId);
+    }
+
     private void applyAssignment(Card card, UUID operatorId, List<UUID> newAssigneeIds) {
         List<UUID> deduped = new java.util.ArrayList<>(new LinkedHashSet<>(newAssigneeIds));
         List<UUID> before = card.getAssigneeIds();

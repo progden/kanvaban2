@@ -128,6 +128,18 @@ public class CardController {
         });
     }
 
+    @GetMapping("/api/boards/{boardId}/cards")
+    public ResponseEntity<?> listCardsForBoard(@PathVariable UUID boardId, HttpSession session) {
+        return withOperator(session, operatorId -> {
+            List<CardResponse> cards = cardApplicationService
+                    .listCardsForBoard(boardId, operatorId)
+                    .stream()
+                    .map(CardResponse::from)
+                    .toList();
+            return ResponseEntity.ok(cards);
+        });
+    }
+
     @GetMapping("/api/boards/{boardId}/assignee-candidates")
     public ResponseEntity<?> listAssigneeCandidates(@PathVariable UUID boardId, HttpSession session) {
         return withOperator(session, operatorId -> {

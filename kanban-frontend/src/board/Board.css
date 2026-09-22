@@ -1,0 +1,340 @@
+/* s-board 及相關對話框：版面依 Main.dc.html／CanvasPanel.dc.html／PanelStage.dc.html／
+   CardDetail.dc.html／AssigneePicker.dc.html（見 .dev/ui-prototype/README.md），
+   行為以 ui-kanban-basic.md／ui-user-membership.md 為準。 */
+
+.board-item {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.board-item__toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.board-grid {
+  flex-grow: 1;
+  display: grid;
+  grid-auto-rows: minmax(90px, auto);
+  overflow: auto;
+}
+
+.board-grid__corner {
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-muted);
+}
+
+.board-grid__stage-header {
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-muted);
+  padding: 7px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.board-grid__stage-role {
+  font-size: 9.5px;
+  font-weight: 500;
+  color: #0f766e;
+  background: #ddf1ee;
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+.board-grid__swimlane-label {
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid #edf0f5;
+  background: var(--color-bg-muted);
+  padding: 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.board-grid__cell {
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid #edf0f5;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.board-grid__add-card {
+  height: 30px;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.board-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-primary);
+  border-radius: 5px;
+  padding: 8px 9px;
+  cursor: pointer;
+}
+
+.board-card__title {
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.board-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.board-card__due {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.board-card__avatars {
+  display: flex;
+  margin-left: auto;
+}
+.board-card__avatars .avatar {
+  width: 20px;
+  height: 20px;
+  font-size: 9.5px;
+  margin-left: -6px;
+  border: 1.5px solid #fff;
+}
+.board-card__avatars .avatar:first-child {
+  margin-left: 0;
+}
+
+.board-card__delete {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  line-height: 1;
+}
+.board-card__delete:hover {
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+}
+
+/* 泳道／階段管理面板（s-swimlane-list／s-stage-list） */
+.board-structure-panel {
+  width: 480px;
+}
+
+.board-structure-panel__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.board-structure-panel__head h2 {
+  margin: 0;
+  font-size: 15px;
+  flex-grow: 1;
+}
+
+.board-structure-panel__list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  overflow: hidden;
+}
+.board-structure-panel__list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border-bottom: 1px solid #edf0f5;
+}
+.board-structure-panel__list li:last-child {
+  border-bottom: 0;
+}
+
+.board-structure-panel__name {
+  flex-grow: 1;
+  font-size: 13px;
+}
+
+.board-structure-panel__role-label {
+  position: absolute;
+  left: -9999px;
+}
+
+.board-structure-panel__add-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* 新增卡片對話框（s-card-add-dialog） */
+.board-add-card-dialog__target {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.board-add-card-dialog__target > div {
+  flex-grow: 1;
+  background: var(--color-bg-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 9px 11px;
+}
+
+/* 卡片詳情（s-card-detail） */
+.board-card-detail {
+  width: 780px;
+  max-width: calc(100vw - 32px);
+}
+
+.board-card-detail__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  border-bottom: 1px solid #e7eaf0;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+}
+.board-card-detail__breadcrumb {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+}
+.board-card-detail__title {
+  margin: 0;
+  font-size: 19px;
+}
+
+.board-card-detail__body {
+  display: flex;
+  gap: 22px;
+}
+
+.board-card-detail__main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.board-card-detail__textarea {
+  width: 100%;
+  height: 90px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 13.5px;
+  resize: vertical;
+}
+
+.board-card-detail__section-title {
+  font-size: 13px;
+  margin: 20px 0 10px;
+}
+
+.board-card-detail__comments {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.board-card-detail__comment-author {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.board-card-detail__comment-time {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--color-text-label);
+}
+.board-card-detail__comments p {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  color: var(--color-text-label);
+}
+
+.board-card-detail__comment-form {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+}
+.board-card-detail__comment-form textarea {
+  flex-grow: 1;
+  height: 56px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+  padding: 9px 11px;
+  font-family: inherit;
+  font-size: 13.5px;
+  resize: vertical;
+}
+
+.board-card-detail__side {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.board-card-detail__assignees {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+/* 負責人選取（s-card-assignee-picker） */
+.board-assignee-picker__list {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+}
+.board-assignee-picker__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.board-assignee-picker__name {
+  font-size: 13px;
+  flex-grow: 1;
+}
+.board-assignee-picker__username {
+  font-size: 11px;
+  color: var(--color-text-subtle);
+  font-family: var(--font-mono);
+}

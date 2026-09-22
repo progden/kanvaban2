@@ -13,6 +13,8 @@ import * as canvasApi from '../api/canvasApi';
 import type { CanvasView } from '../api/canvasApi';
 import { ApiError } from '../api/http';
 import { useAuth } from '../auth/useAuth';
+import { BoardContext } from '../board/BoardContext';
+import '../board/BoardItemContent';
 import { BoardClockControl } from '../canvas/BoardClockControl';
 import { CanvasStage } from '../canvas/CanvasStage';
 import '../canvas/CanvasStage.css';
@@ -82,14 +84,16 @@ export function BoardCanvasPage() {
       {canvas === null && error === null && <p className="canvas-page__error">載入中…</p>}
 
       {canvas !== null && (
-        <CanvasStage
-          boardId={boardId}
-          zoomMin={canvas.zoomMin}
-          zoomMax={canvas.zoomMax}
-          initialItems={canvas.items}
-          initialViewport={canvas.viewport}
-          canEdit={canEdit}
-        />
+        <BoardContext.Provider value={{ boardId, canEdit }}>
+          <CanvasStage
+            boardId={boardId}
+            zoomMin={canvas.zoomMin}
+            zoomMax={canvas.zoomMax}
+            initialItems={canvas.items}
+            initialViewport={canvas.viewport}
+            canEdit={canEdit}
+          />
+        </BoardContext.Provider>
       )}
     </div>
   );

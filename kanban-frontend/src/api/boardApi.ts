@@ -62,3 +62,40 @@ export function pauseClock(boardId: string): Promise<BoardResponse> {
 export function resumeClock(boardId: string): Promise<BoardResponse> {
   return apiClient.post<BoardResponse>(`/api/boards/${boardId}/clock/resume`);
 }
+
+export function addSwimlane(boardId: string, name: string): Promise<BoardResponse> {
+  return apiClient.post<BoardResponse>(`/api/boards/${boardId}/swimlanes`, { name });
+}
+
+export function renameSwimlane(boardId: string, swimlaneId: string, name: string): Promise<BoardResponse> {
+  return apiClient.patch<BoardResponse>(`/api/boards/${boardId}/swimlanes/${swimlaneId}`, { name });
+}
+
+export function moveSwimlane(boardId: string, swimlaneId: string, beforeId: string | null): Promise<BoardResponse> {
+  return apiClient.post<BoardResponse>(`/api/boards/${boardId}/swimlanes/${swimlaneId}/move`, { beforeId });
+}
+
+export function removeSwimlane(boardId: string, swimlaneId: string): Promise<void> {
+  return apiClient.del<void>(`/api/boards/${boardId}/swimlanes/${swimlaneId}?confirmed=true`);
+}
+
+export function addStage(boardId: string, name: string, beforeStageId: string | null): Promise<BoardResponse> {
+  return apiClient.post<BoardResponse>(`/api/boards/${boardId}/stages`, { name, beforeStageId });
+}
+
+export function renameStage(boardId: string, stageId: string, name: string): Promise<BoardResponse> {
+  return apiClient.patch<BoardResponse>(`/api/boards/${boardId}/stages/${stageId}`, { name });
+}
+
+export function moveStage(boardId: string, stageId: string, beforeId: string | null): Promise<BoardResponse> {
+  return apiClient.post<BoardResponse>(`/api/boards/${boardId}/stages/${stageId}/move`, { beforeId });
+}
+
+export function removeStage(boardId: string, stageId: string, destinationStageId: string | null): Promise<void> {
+  const query = destinationStageId === null ? '' : `?destinationStageId=${destinationStageId}`;
+  return apiClient.del<void>(`/api/boards/${boardId}/stages/${stageId}${query}`);
+}
+
+export function setStageRole(boardId: string, stageId: string, role: string): Promise<BoardResponse> {
+  return apiClient.patch<BoardResponse>(`/api/boards/${boardId}/stages/${stageId}/role`, { role });
+}
