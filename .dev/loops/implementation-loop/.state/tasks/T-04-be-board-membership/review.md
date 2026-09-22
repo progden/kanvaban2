@@ -67,3 +67,6 @@
 - R4 OQ-T-04-be-board-membership-04（Viewer 讀取／寫入的切分、403 與訊息文字）：接手＝無（等人工／CR 裁決）
 - R5 OQ-T-04-be-board-membership-05（看板列表要不要列出 Viewer 的看板）：接手＝無（等人工／CR 裁決）；前端 T-12 會直接沿用現況
 - R6 OQ-T-04-be-board-membership-06（F01 卡片端點沒有成員／Viewer 檢查）：接手＝人工
+
+#### 人工複核（2026-09-22）
+Review 第 2 輪已在 worktree 內判定 done，但合併回 `loop/implementation` 失敗（分支分岔後與 T-05／T-08／CR-010～013 的多檔案改動衝突，見 `driver-note.md`）。人工逐檔解衝突（`420afb7`）：Owner／成員權限檢查與 Board Clock 事件時間邏輯合併進同一段程式碼、兩個獨立的 D-01 回歸測試合併進同一個測試檔，另外補上合併範圍外但因簽章不同步而編譯失敗的兩處呼叫（`Card.assignTo`／`BoardApplicationService.deleteBoard`）。`./gradlew clean build --no-daemon` 全綠（kanban-core 56、kanban-spring 119，共 175 測試，0 failures/0 errors）。判定：**核准，status=done，已合併**。
