@@ -38,3 +38,24 @@
 問題：`s-workload-dashboard` 的成員頭像拖曳（`uc-drag-assign-card-owner` 的觸發來源）是否要對 `r-board-viewer` 停用？
 
 選項：A. 維持現行實作（`r-board-viewer` 不可拖曳頭像，理由是拖曳追加負責人屬編輯動作，`r-board-viewer` 定義明確排除編輯）；B. 依 `ui-workload.md`「無角色差異」逐字定案內容，讓所有角色（含 `r-board-viewer`）都能拖曳；C. 以上皆非，待 `spec-user-membership.md`「待釐清」項全面盤點後再決定。
+
+## OQ-T-19-fe-workload-03
+
+[Level: s-board/uc-drag-assign-card-owner]
+- 等級：高
+- 阻塞：否
+- 接手：T-14-fe-board-item
+- 原因代碼：cross-item-dependency-missing
+- 開立：Dev 第 2 輪（2026-09-22）
+- 狀態：待處理
+
+情況：【推論＋所本原文】
+本則取代 `OQ-T-19-fe-workload-01` 關於「拖放目標端」的那一半。
+
+`ui-workload.md`「操作」表「拖曳成員頭像到卡片追加負責人」列逐字：『觸發 `uc-drag-assign-card-owner`；卡片顯示於同一畫布上 F01 `s-board` item 的縮圖負責人更新（依 OQ-42，本畫面不顯示個別卡片，拖放目標為同時存在於畫布上的 `s-board` item）』。`.dev/loops/implementation-loop/.state/tasks.md` T-14-fe-board-item 那一列「產出範圍」欄逐字：『F01 內容作為 Canvas item：`s-board`、`s-swimlane-list`、…、`s-card-detail`、…』，拖放目標（`s-board` item 的卡片縮圖）落在這個範圍內。
+
+推論：T-19 開工時 `.state/tasks/T-14-fe-board-item/status` 為 `doing`（尚未合併回整合分支），本 worktree 看不到任何卡片縮圖節點可掛 `onDrop`，也看不到本輪新增的 `ADR-T-19-fe-workload-01`（記錄拖放協定 `cardAssigneeDrag.ts` 的 `CARD_ASSIGNEE_DRAG_MIME`／`acceptsCardAssigneeDrop`／`handleCardAssigneeDrop`）。T-14 目前不會、也沒有理由知道要沿用這個協定模組，需要人工介入才能把兩邊接上。
+
+問題：T-14-fe-board-item 合併時，是否要沿用 `cardAssigneeDrag.ts` 的 `acceptsCardAssigneeDrop`／`handleCardAssigneeDrop` 把卡片縮圖的 `onDrop` 接上 `uc-drag-assign-card-owner`？由誰在什麼時間點把這件事轉達給 T-14（或另開銜接任務）？
+
+選項：A. 由人工在安排階段把本 ADR 轉達給 T-14-fe-board-item，T-14 合併時直接沿用 `cardAssigneeDrag.ts` 接上卡片縮圖 `onDrop`；B. 安排階段另開一個 T-19 之後的銜接任務，待 T-14 合併後專門處理這條掛接；C. 以上皆非。
