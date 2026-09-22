@@ -67,6 +67,10 @@ async function renderCanvas(extra: Record<string, () => Response> = {}) {
     '/api/boards/board-a': () => jsonResponse(BOARD_A),
     '/api/boards/board-a/canvas': () => jsonResponse(canvasResponse()),
     '/api/boards/board-a/members': () => jsonResponse(MEMBERS_OWNER),
+    // T-14：item.component === 'board' 掛載真正的看板內容（BoardItemContent），
+    // 載入時會額外打這兩支 API；本檔測的是 s-canvas 本身的行為，預設回傳空清單即可。
+    '/api/boards/board-a/cards': () => jsonResponse([]),
+    '/api/boards/board-a/assignee-candidates': () => jsonResponse([]),
     ...extra,
   });
 
