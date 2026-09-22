@@ -28,11 +28,11 @@ import tools.jackson.databind.ObjectMapper;
  * spec-workload.md「Feature: 人員工作量檢視」對應的 Cucumber step definitions，透過 MockMvc 打
  * {@code WorkloadController} 的實際端點，驗證 web／query／persistence 整條路徑。
  *
- * <p>登入與開板、Stage 角色設定沿用 {@link BoardSteps}／{@link FeatureCrBoardSteps} 已註冊的共用步驟
- * （「我已登入系統，並開啟 Board X」「Stage X 已設定角色為 Y，Stage X 已設定角色為 Y」），這裡不重複
- * 定義。「拖曳成員頭像追加負責人」的兩個 Scenario 與 spec-user-membership.md
- * {@code uc-assign-card-owner-by-drag} 是同一個操作，步驟文字與 {@link CardAssignmentSteps} 完全相同，
- * 共用其定義（見 spec-workload.md「Use Case 定義」下方說明）。
+ * <p>登入與開板沿用 {@link BoardSteps} 已註冊的共用步驟（「我已登入系統，並開啟 Board X」），這裡不
+ * 重複定義；「Stage X 已設定角色為 Y」在本檔另外定義（{@link #givenSingleStageRole}，轉呼叫
+ * {@link BoardSteps#whenSetStageRole}）。「拖曳成員頭像追加負責人」的兩個 Scenario 與
+ * spec-user-membership.md {@code uc-assign-card-owner-by-drag} 是同一個操作，步驟文字與
+ * {@link CardAssignmentSteps} 完全相同，共用其定義（見 spec-workload.md「Use Case 定義」下方說明）。
  */
 public class WorkloadSteps {
 
@@ -54,11 +54,13 @@ public class WorkloadSteps {
     private BoardSteps boardSteps;
 
     private final Map<String, UUID> cardIdsByTitle = new HashMap<>();
+    private final Map<String, String> displayNamesByUsername = new HashMap<>();
     private Map<?, ?> lastBody;
 
     @Before
     public void resetWorkloadState() {
         cardIdsByTitle.clear();
+        displayNamesByUsername.clear();
         lastBody = null;
     }
 
@@ -127,6 +129,8 @@ public class WorkloadSteps {
     @Then("{string} 的工作量應該顯示為 {int}")
     public void thenWorkloadIs(String username, int expected) {
         assertEquals(expected, workloadOf(username));
+        assertEquals(displayNameFor(username), memberFieldOf(username, "displayName"),
+                "回應的 displayName 應該是 user.display-name，不是 username");
     }
 
     @Then("{string} 的工作量應該包含卡片 {string}")
@@ -148,14 +152,22 @@ public class WorkloadSteps {
     // ---- helpers ----
 
     private int workloadOf(String username) {
+        return ((Number) memberFieldOf(username, "cardCount")).intValue();
+    }
+
+    private Object memberFieldOf(String username, String field) {
         UUID userId = userIdFor(username);
         List<?> members = (List<?>) lastBody.get("members");
         return members.stream()
                 .map(m -> (Map<?, ?>) m)
                 .filter(m -> userId.toString().equals(m.get("userId")))
                 .findFirst()
-                .map(m -> ((Number) m.get("cardCount")).intValue())
-                .orElse(0);
+                .<Object>map(m -> m.get(field))
+                .orElse(field.equals("cardCount") ? Integer.valueOf(0) : null);
+    }
+
+    private String displayNameFor(String username) {
+        return displayNamesByUsername.get(username);
     }
 
     private void inviteMember(String username) throws Exception {
@@ -176,7 +188,9 @@ public class WorkloadSteps {
         if (userJpaRepository.existsByUsername(username)) {
             return;
         }
-        Map<String, String> body = Map.of("username", username, "password", DEFAULT_PASSWORD);
+        String displayName = username + "－顯示名稱";
+        displayNamesByUsername.put(username, displayName);
+        Map<String, String> body = Map.of("username", username, "displayName", displayName, "password", DEFAULT_PASSWORD);
         mockMvc.perform(post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(body)));

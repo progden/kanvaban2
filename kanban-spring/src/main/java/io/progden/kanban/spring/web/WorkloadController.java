@@ -53,7 +53,7 @@ public class WorkloadController {
     private MemberWorkloadEntry toEntry(MemberWorkloadView view) {
         User user = userRepository.findById(view.userId())
                 .orElseThrow(() -> new IllegalStateException("找不到使用者：" + view.userId()));
-        return new MemberWorkloadEntry(view.userId(), user.getUsername(), view.cardCount());
+        return new MemberWorkloadEntry(view.userId(), user.getUsername(), user.getDisplayName(), view.cardCount());
     }
 
     private ResponseEntity<?> withOperator(HttpSession session, Function<UUID, ResponseEntity<?>> action) {

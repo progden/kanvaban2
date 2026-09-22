@@ -8,7 +8,6 @@ import io.progden.kanban.core.domain.ErrorCode;
 import io.progden.kanban.core.domain.Stage;
 import io.progden.kanban.core.domain.StageRole;
 import io.progden.kanban.spring.application.BoardMembershipApplicationService;
-import io.progden.kanban.spring.persistence.CardJpaEntity;
 import io.progden.kanban.spring.persistence.CardJpaRepository;
 import java.util.Map;
 import java.util.UUID;
