@@ -32,3 +32,22 @@
 
 - `./gradlew build --no-daemon`：BUILD SUCCESSFUL（含 `kanban-core`／`kanban-spring` 全部單元測試與 Cucumber）。
 - `kanban-frontend`：`npx tsc -b`（0 錯誤）、`npx oxlint`（僅既有風格的 2 則 warning，其中 1 則是 T-13 遺留、1 則是本任務新檔案的同類 warning，不影響功能）、`npx vitest run`：7 個測試檔、67 個測試全過（含新增的 `src/board/BoardItemContent.test.tsx` 24 個測試，涵蓋本任務 9 個畫面的主要驗收條件；`BoardCanvasPage.test.tsx` 補上 T-14 新增內容需要的預設 mock 後仍全數通過）。
+
+## 2026-09-22 Dev 第 2 輪：處理 D-01～D-04
+
+### 這輪做了什麼
+
+- **D-01（s-card-detail 留言未顯示 comment.created-at）**：`CardDetailDialog.tsx` 新增 `formatCommentTime`（`MM/DD HH:mm`，沿用 `CardDetail.dc.html` 呈現格式），留言列表改為先依 `comment.createdAt` 由舊到新排序（`localeCompare`，ISO 字串可直接字典序比較）再渲染，作者旁加一個 `board-card-detail__comment-time` span。`Board.css` 補樣式。新增測試斷言時間有顯示、且排序正確（時間格式化在測試裡用同一套邏輯換算期望值，避免受測試機時區影響而 flaky）。
+- **D-02（刪除對話框卡片數為 0 時不顯示）**：`SwimlanePanel.tsx`／`StagePanel.tsx` 的刪除確認區塊拿掉 `cardCount > 0` 才渲染文字的判斷，卡片數一律顯示；Stage 的「選目的 Stage」下拉選單維持只在卡片數 > 0 才出現（ui 明文的資料狀態差異，這部分不改）。各補一則測試（卡片數 0 情境）。
+- **D-03（9 條 ui 驗收條件缺測試）**：依 D-xx 內文逐條補測試（跨 Stage 拖曳、兩個移動 p2 失敗、swimlane 重新命名／排序／空名稱新增、stage 重新命名／排序／角色互斥、留言 p2 失敗），共新增約 15 個測試。**補測試過程中發現一個真的 bug**：`StagePanel.tsx` 的 `handleRename`／`renamingId` 狀態機制完整存在，但畫面上完全沒有觸發它的「重新命名」按鈕（`SwimlanePanel.tsx` 有、`StagePanel.tsx` 沒有），是死碼——這代表 Review 第 1 輪指出「沒測試」的地方，其中一條 (`uc-rename-stage`) 原本連手動點都點不到。已補上按鈕，行為對齊 `SwimlanePanel.tsx`。
+- **D-04（OQ-T-14-fe-board-item-01 第三段引文非逐字）**：另開 `OQ-T-14-fe-board-item-02`，內文取代第一則的第三段，改為逐字照抄 OQ-19「選項」欄第 2 項全文（含原本被省略的「拖曳來源與目標分屬兩個不同 item」關鍵句）；`OQ-T-14-fe-board-item-01` 維持存在（`loopctl oq add` 只能新增，不能改既有列），交人工核對後把 01 標記為已被 02 取代。等級／阻塞／接手沿用 Review 覆核過的「高／否／無」。
+
+### Check（實際跑過的建置／測試）
+
+- `kanban-frontend`：`npx tsc -b`（0 錯誤）、`npx oxlint`（維持既有 2 則風格 warning，無新增）、`npx vitest run`：7 檔、**80 個測試全過**（含本輪新增約 15 個）。
+- `./gradlew build --no-daemon`：`BUILD SUCCESSFUL`（本輪未動 `kanban-core`／`kanban-spring`，任務全部 up-to-date）。
+- `git status --porcelain`：工作區乾淨（已 commit）。
+
+### 待確認事項
+
+- `OQ-T-14-fe-board-item-01`（原引文有誤，見 D-04）與 `OQ-T-14-fe-board-item-02`（逐字取代版）都待人工處理：`uc-assign-card-owner-by-drag` 這一列操作本輪仍未實作，等 F07 補「看板成員」item。
