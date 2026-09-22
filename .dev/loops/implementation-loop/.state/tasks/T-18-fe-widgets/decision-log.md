@@ -35,3 +35,11 @@
 - `npm run build`（`tsc -b && vite build`）：通過，`dist/` 產出成功
 - `npm run test`（`vitest run`）：10 個測試檔、48 個測試全數通過（含本任務新增 4 個 widget 測試檔）
 - `npm run lint`（`oxlint`）：僅既有 1 則 warning（`itemComponentRegistry.tsx` 的 fast-refresh 提示，非本任務新增）
+
+## 2026-09-22 Dev 第 2 輪：修正 D-01：OQ 逐字引文與先例回應
+
+### D-01 修正：訂正 OQ 引文並回應先例
+
+- 讀完 `.dev/F07-canvas-layout/spec-canvas-layout.md` 第 31 行完整原文（含被刪的括號『不用 UI 層的 Screen ID，spec 不引用 ui』與最後一句）後，另開 `OQ-T-18-fe-widgets-02` 取代 `OQ-T-18-fe-widgets-01`，逐字引用補齊，並在 `ui-canvas-layout.md` 引文修正為『待整合 CR 定案』（原引文誤刪空白）。
+- 正面回應先例後，維持本任務原決定（Screen ID 命名）：先例（看板本體用實體 ID `board`、不用 Screen ID）的適用前提是「spec 本身已有可用識別碼」，但 F03 四個儀表板在 spec-kanban-widgets.md 沒有 entity，只有六個 `uc-view-*`，且與四個畫面不是一對一（`uc-view-wip`／`uc-view-aging-wip` 同屬 `s-wip-dashboard`，`uc-view-throughput`／`uc-view-cfd` 同屬 `s-throughput-cfd-dashboard`）；spec 沒有定義「一組 uc 合成一個 item」的識別碼，這個分組是 ui-kanban-widgets.md 才有的概念，先例的前提不成立。改用 `uc-` 代表值（新 OQ 選項 B）需要另外自創「取哪一個 uc 代表整組」的規則，spec 沒有依據，並不會比 Screen ID 更貼近 spec，故不採用。
+- 維持原決定，`registerKanbanWidgets.ts` 與四個 widget 測試的 component 值不變，無須改動、測試維持全綠。
