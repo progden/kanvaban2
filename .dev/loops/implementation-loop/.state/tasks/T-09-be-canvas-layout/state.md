@@ -1,16 +1,17 @@
 # T-09-be-canvas-layout state
 
-> 2026-09-22 Dev 第 2 輪 收尾，status＝`review-pending`。每輪由 `loopctl finish` 覆寫。
+> 2026-09-22 Review 第 2 輪 收尾，status＝`doing`。每輪由 `loopctl finish` 覆寫。
 
-2026-09-22 Dev 第 2 輪收尾，status＝`doing`（等待 Review）。
+2026-09-22 Review 第 2 輪收尾，判定退回，status＝`doing`。
 
-處理了 Review 第 1 輪退回的 D-01～D-03：
-- D-01：`CanvasSteps.thenRejected` 補上資料不變快照比對（全庫 canvas_items／viewports
-  逐欄比對），12 個 `@fail-pN` Scenario 現在真的會驗到「且資料不變」，已改測試並全部通過。
-- D-02／D-03：依規則補開 `OQ-T-09-be-canvas-layout-02`（item.z 唯一鍵範圍）、
-  `OQ-T-09-be-canvas-layout-03`（Background 繞過 uc-init-canvas），實作維持現況未改。
+我自己跑 `./gradlew clean build --no-daemon`：BUILD SUCCESSFUL in 3m 9s，42 份測試結果檔
+全部 failures=0 errors=0；spec 五個 gherkin 區塊與五個 feature 檔逐行比對一字不差；
+19 個 `@fail-pN` 全走共用的「拒絕…且資料不變」步驟，D-01 的快照比對是複製值、測試端無交易，
+斷言不是空轉；`kanban-core` 無 Spring／JPA import；diff 只動 `kanban-core/**`、`kanban-spring/**`
+與本任務 `.state/` 目錄，工作區乾淨。
 
-`./gradlew clean build --no-daemon` BUILD SUCCESSFUL，43 個 canvas Scenario 與其餘既有測試全綠。
+唯一未過：`OQ-T-09-be-canvas-layout-03` 的引文『Scenario: 放置畫布元素』在 spec 不存在
+（原文為『Scenario: 放置元件到空畫布』），違反逐字引用規則 → D-04。
 
-Review 這輪要先看：`CanvasSteps.java` 的快照比對邏輯是否真的會抓到「資料被寫入才拒絕」的迴歸；
-兩則新 OQ 的引文與選項是否合理。
+下一輪 Dev 只需另開一則引文正確、註明取代 OQ-...-03 的 OQ，程式碼與測試不必更動。
+三則 OQ 皆為「高、不阻塞」（`spec-canvas-layout.md` 為草稿），接手人工，不影響後續核准。
