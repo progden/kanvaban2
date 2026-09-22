@@ -4,6 +4,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import App from '../App';
+import { registerItemComponent, type ItemContentProps } from '../canvas/itemComponentRegistry';
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(status === 204 ? null : JSON.stringify(body), { status });
@@ -223,19 +224,95 @@ describe('s-canvas', () => {
     expect(screen.queryByRole('button', { name: '移除' })).not.toBeInTheDocument();
   });
 
-  it('放置元件成功後顯示於畫布，觸發 uc-place-item', async () => {
-    await renderCanvas({
+  it('放置元件成功後顯示於畫布，觸發 uc-place-item，帶上位置與能力欄位', async () => {
+    const calls = await renderCanvas({
       '/api/boards/board-a/canvas/items': () =>
         jsonResponse(
-          { id: 'item-2', component: '銷售圖表', anchor: 'canvas', x: 0, y: 0, width: 300, height: 200, z: 2, movable: true, resizable: true, removable: true },
+          { id: 'item-2', component: '銷售圖表', anchor: 'canvas', x: 100, y: 200, width: 300, height: 200, z: 2, movable: false, resizable: false, removable: false },
           201,
         ),
     });
 
     fireEvent.click(screen.getByRole('button', { name: '＋ 加入元件' }));
     fireEvent.change(screen.getByLabelText('元件識別碼'), { target: { value: '銷售圖表' } });
+    fireEvent.change(screen.getByLabelText('X'), { target: { value: '100' } });
+    fireEvent.change(screen.getByLabelText('Y'), { target: { value: '200' } });
+    fireEvent.click(screen.getByLabelText('可移動'));
+    fireEvent.click(screen.getByLabelText('可調整大小'));
+    fireEvent.click(screen.getByLabelText('可移除'));
     fireEvent.click(screen.getByRole('button', { name: '加入' }));
 
     await waitFor(() => expect(screen.getByTestId('canvas-item-item-2')).toBeInTheDocument());
+    const placeCall = calls.find((c) => c.url.endsWith('/api/boards/board-a/canvas/items'));
+    expect(placeCall?.body).toEqual({
+      component: '銷售圖表',
+      x: 100,
+      y: 200,
+      width: 300,
+      height: 200,
+      anchor: 'canvas',
+      movable: false,
+      resizable: false,
+      removable: false,
+    });
+  });
+
+  it('設定元件能力觸發 uc-set-item-capabilities，帶上三項能力欄位', async () => {
+    const calls = await renderCanvas({
+      '/api/canvas-items/item-1/capabilities': () =>
+        jsonResponse({ ...BOARD_ITEM, movable: false, resizable: true, removable: true }),
+    });
+
+    fireEvent.mouseDown(screen.getByTestId('canvas-item-item-1'), { clientX: 0, clientY: 0 });
+    fireEvent.mouseUp(window, { clientX: 0, clientY: 0 });
+    fireEvent.click(screen.getByRole('button', { name: '可移動：開' }));
+
+    await waitFor(() =>
+      expect(calls.some((c) => c.url.endsWith('/api/canvas-items/item-1/capabilities'))).toBe(true),
+    );
+    const capabilitiesCall = calls.find((c) => c.url.endsWith('/api/canvas-items/item-1/capabilities'));
+    expect(capabilitiesCall?.body).toEqual({ movable: false, resizable: true, removable: true });
+  });
+
+  it('掛載的元件內容收到的 itemId 為該 item 的 id，不是 item.component', async () => {
+    const received: ItemContentProps[] = [];
+    registerItemComponent('board', (props) => {
+      received.push(props);
+      return null;
+    });
+
+    await renderCanvas();
+
+    expect(received.length).toBeGreaterThan(0);
+    expect(received[0].itemId).toBe('item-1');
+    expect(received[0].component).toBe('board');
+  });
+
+  it('z-index：z 為 0 或負值的元件仍渲染於背景之上，且不高於加入元件按鈕與浮動工具列', async () => {
+    const zeroZItem = { ...BOARD_ITEM, z: 0 };
+    const negativeZItem = { ...BOARD_ITEM, id: 'item-2', x: 500, z: -1 };
+    await renderCanvas({
+      '/api/boards/board-a/canvas': () => jsonResponse(canvasResponse([zeroZItem, negativeZItem])),
+    });
+
+    const item1 = screen.getByTestId('canvas-item-item-1');
+    const item2 = screen.getByTestId('canvas-item-item-2');
+    expect(Number(item1.style.zIndex)).toBeGreaterThan(0);
+    expect(Number(item2.style.zIndex)).toBeGreaterThan(0);
+
+    const addButton = screen.getByRole('button', { name: '＋ 加入元件' }).closest('.canvas-add-button') as HTMLElement;
+    expect(Number(addButton.style.zIndex)).toBeGreaterThan(Number(item1.style.zIndex));
+    expect(Number(addButton.style.zIndex)).toBeGreaterThan(Number(item2.style.zIndex));
+  });
+
+  it('浮動工具列：選取 y=0 的元件時，工具列 top 不為負值', async () => {
+    await renderCanvas();
+
+    fireEvent.mouseDown(screen.getByTestId('canvas-item-item-1'), { clientX: 0, clientY: 0 });
+    fireEvent.mouseUp(window, { clientX: 0, clientY: 0 });
+
+    const toolbar = screen.getByRole('button', { name: '置頂' }).closest('.canvas-toolbar') as HTMLElement;
+    expect(Number(toolbar.style.top.replace('px', ''))).toBeGreaterThanOrEqual(0);
+    expect(Number(toolbar.style.zIndex)).toBeGreaterThan(Number(screen.getByTestId('canvas-item-item-1').style.zIndex));
   });
 });
