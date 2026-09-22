@@ -121,3 +121,57 @@ IndexOutOfBoundsException（HTTP 500）。spec 沒有定義空選取的行為，
 
 另記一件不構成退回理由、也不列 D-xx 的觀察（沿用第 1 輪）：`CanvasApplicationService.moveItems` 在
 `itemIds` 為空陣列時會於 `items.get(0)` 丟 IndexOutOfBoundsException；spec 未定義空選取行為，不要求處理。
+
+## 2026-09-22 Review 第 3 輪：退回
+
+### 1. 自己跑建置與完整測試（未採信 Dev 交接摘要）
+
+Dev 第 3 輪自述「未重跑建置」，因此本輪從頭跑一次：
+
+- `./gradlew clean build --no-daemon`：**BUILD SUCCESSFUL in 3m 8s**，14 actionable tasks: 14 executed。
+- 逐一讀 `kanban-spring/build/test-results/test/*.xml` 與 `kanban-core/build/test-results/test/*.xml`：42 份結果檔全部 `skipped="0" failures="0" errors="0"`。canvas 五個 feature 檔：canvas-init 3、canvas-item-placement 8、canvas-item-arrangement 19、canvas-item-batch 7、canvas-viewport 6，合計 43。
+
+### 2. spec 對應核對
+
+- `spec-canvas-layout.md` 的 ```gherkin 區塊共 43 個 `Scenario`，五個 feature 檔合計也是 43。以 Python 逐行比對 spec 的 gherkin 區塊與五個 feature 檔的非空行：feature 檔只多出 5 組共 10 行的中文註解（「本檔為 … 的逐字複製」），**spec 沒有任何一行遺漏**，確認是逐字複製。
+- 11 個 use case 的 `@uc-` tag 全部出現在 feature 檔：`uc-init-canvas` 3、`uc-place-item` 5、`uc-remove-item` 3、`uc-move-item` 4、`uc-resize-item` 7、`uc-set-item-capabilities` 2、`uc-set-item-anchor` 3、`uc-reorder-item` 3、`uc-move-items` 4、`uc-remove-items` 3、`uc-set-viewport` 6；`@fail-p1` 11、`@fail-p2` 5、`@fail-p3` 2、`@fail-p4` 1。
+- **`@fail-pN` 的「且資料不變」抽查（突變測試）**：把 `Item.move`（`Item.java` 第 61 行）的 `ensureMovable();` 暫時換成註解、重跑 `./gradlew :kanban-spring:test --tests "…RunCucumberTest"`，結果 **130 tests completed, 1 failed**，失敗的正是 `canvas-item-arrangement.feature:41` 的 `拒絕，訊息為 "此元素不可移動"，且資料不變`（`CanvasSteps.thenRejected:382`，訊息『預期操作被拒絕，實際狀態碼為 200』）。確認 D-01 的快照斷言不是裝飾，護欄拿掉真的會轉紅。驗證後已 `cp` 還原 `Item.java`，`git status --porcelain` 為空。
+- 批次操作原子性：`CanvasApplicationService.moveItems`／`removeItems` 都是先全部載入、全部驗證（`ensureMovable`／`ensureRemovable`／`mixedAnchor`）才逐一套用，符合 `uc-move-items`／`uc-remove-items` 三個 `fail` 的『拒絕，資料不變』。
+- 角色檢查：寫入型 uc 走 `boardMembershipApplicationService.ensureCanEdit`、`uc-set-viewport` 走 `ensureMember`，與 `.state/tasks.md` T-09 備註的 `r-canvas-editor`＝Owner／Member 對應一致。
+
+### 3. `kanban-core` 純度
+
+`grep -rnE "org\.springframework|jakarta\.persistence|@Entity|@Autowired" kanban-core/src/main/java/` 零命中；`NoSpringDependencyTest` 通過。本任務三個 Aggregate（`canvas`／`item`／`viewport`）皆非跨 aggregate 讀取投影，`io.progden.kanban.query.*` 未被改動，符合分層。
+
+### 4. 任務邊界
+
+`git diff loop/implementation...HEAD --stat`：47 檔、+3340/-2。全部落在 `kanban-core`／`kanban-spring` 的 canvas 相關新檔、五個 `canvas-*.feature`、`CanvasSteps.java`，加上 `.state/tasks/T-09-be-canvas-layout/**`。唯一動到既有檔的是 `ErrorCode.java`（+20/-2，只追加 9 個 canvas 錯誤碼、既有列不變）。沒有動到別的 aggregate、`.dev/conventions/**`、`scripts/**`、spec／ui 文件本體，也沒有動 `.state/tasks.md`／`.state/archive/**`／別的任務目錄。**邊界乾淨。**
+
+### 5. OQ 核對
+
+`spec-canvas-layout.md` 第 14 行為『狀態：草稿』，四則 OQ 皆不需要違反任何**已定稿**原文即可完成任務，因此「高、不阻塞」的標記正確。
+
+- **OQ-01**（HTTP 狀態碼，spec 未定義）：引用的三段失敗訊息『此元素不可移動』『此元素不可調整大小』『此元素不可移除』在 spec 中均可 `grep -F` 命中；屬「規格沒寫」而非「違反定稿」，不阻塞正確。接手填「無」，但 `T-13-fe-canvas-shell` 會消費這些端點——保留事項見下。
+- **OQ-02**（`item.z` 唯一鍵範圍）：三段引文（欄位表限制欄『必填、同一 `canvas` 內唯一』、`uc-place-item` post、「層序」段落）逐字比對 spec，各命中 1 次。兩處矛盾並列格式正確，接手「人工」正確（要改的是 spec 文字）。
+- **OQ-03**：引文『Scenario: 放置畫布元素』在 spec 中 `grep -cF` 為 0，確為 Review 第 2 輪指出的問題；已由 OQ-04 取代。
+- **OQ-04**（取代 OQ-03）：三段引文逐字比對——`uc-init-canvas` post 第 2 條（spec 第 100 行，整句照貼無誤）、『Given 畫布已由系統建立』（命中 4 次）、『Scenario: 放置元件到空畫布』與『Given 畫布中沒有任何元素』（各命中 1 次）——**全部逐字相符，D-04 已達成**。
+- Dev 交接摘要列出的待確認事項與 `loopctl show` 的 OQ 清單一致，沒有只寫在摘要裡卻沒開成 OQ 的項目。
+
+### 6. 前端設計稿
+
+本任務為後端任務，不適用。
+
+### 判定：退回（`doing`）
+
+第 1～5 點除了下述一項之外都通過，但發現一個規格未涵蓋、卻會讓伺服器丟出未攔截例外的缺陷，已開 **D-05**：
+
+`CanvasApplicationService.moveItems` 第 192 行 `items.get(0).getAnchor()` 在 `itemIds` 為空陣列時丟 `IndexOutOfBoundsException`；`MoveItemsRequest`／`RemoveItemsRequest` 對 `itemIds` 沒有任何驗證，JSON 缺該欄位時 `itemIds.stream()` 丟 `NullPointerException`；`CanvasController.withOperator`（第 176～180 行）只 catch `DomainException`，兩者都會穿透成 HTTP 500 且回應主體不是 `ErrorResponse`。`uc-move-items` `pre` p1 逐字為『指定的每個 `item` 皆存在』，空集合下三個 `pre` 皆為真、`post` 亦為真，所以這不是規格違反，而是規格未定義的邊界目前落到伺服器錯誤上——必須改成一個明確定義的回應（no-op 成功或以 `DomainException` 拒絕，擇一並記入決策紀錄），並補測試。
+
+本輪只寫 `D-05` 與本紀錄，未改動任何產出程式碼（`Item.java` 的突變驗證已還原，工作區乾淨）。
+
+### 若下一輪修好 D-05，屆時的保留事項與接手者
+
+- `OQ-T-09-be-canvas-layout-01`（HTTP 狀態碼分配 409/404/400）：接手目前填「無」。實際會受影響的是 **`T-13-fe-canvas-shell`**（依賴 T-09，會消費這些端點）；定案若改變狀態碼，`T-13` 要一併調整錯誤處理。建議 Dev 下一輪在 OQ-01 或決策紀錄中補記這層關係（不另要求改 OQ 的接手欄，`loopctl` 無法改既有 OQ 內文）。
+- `OQ-T-09-be-canvas-layout-02`（`item.z` 唯一鍵範圍）：接手 **人工**，需修 `spec-canvas-layout.md` 文字（草稿，不需 CR）。定案為選項 B 時要回頭改 `ItemJpaEntity` 唯一鍵與 `nextZ`。
+- `OQ-T-09-be-canvas-layout-04`（Background「畫布已由系統建立」是否含看板本體 item）：接手 **人工**，需修 spec 文字。定案為選項 B 時要回頭改 `CanvasSteps.givenCanvasEstablished` 與多個 Scenario 的 z 期望值。
+- `OQ-T-09-be-canvas-layout-03`：已由 OQ-04 取代，人工接手時以 OQ-04 為準，本則僅作歷史紀錄。
