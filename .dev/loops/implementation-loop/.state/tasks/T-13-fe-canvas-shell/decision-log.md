@@ -121,3 +121,27 @@ OQ-45／OQ-49（看板成員／F03～F06 圖表如何成為 `item` 待整合 CR 
 - `pnpm run lint`（oxlint）：僅 1 則既有非阻斷 warning（`itemComponentRegistry.tsx` fast-refresh 建議搬檔）
 - `pnpm test`（vitest run）：6 個檔案、40 個測試全數通過（新增 5 個測試涵蓋 D-01～D-03）
 - `pnpm run build`（`tsc -b && vite build`）：通過
+
+## 2026-09-22 Dev 第 3 輪：補齊 D-05 前端測試
+
+### D-05：補 uc-set-item-anchor／uc-remove-items 前端測試
+
+`src/pages/BoardCanvasPage.test.tsx` 新增三則測試：
+
+1. 「設定錨定方式為固定於畫面觸發 uc-set-item-anchor…」：`viewport` 設為 `{x:10,y:20,zoom:1.25}`（`zoom !== 1` 且有平移，才驗得到 `convertBoxForAnchor()` 的換算），斷言 `PATCH .../anchor` 帶到的 `{anchor:'screen', x:-12.5, y:-25, width:1125, height:750}` 與手算的換算值一致，並斷言回應套用後畫面元件位置更新、按鈕文字切換為「錨定於畫布」。
+2. 「批次移除前顯示確認，確認後觸發 uc-remove-items…」：shift 多選兩個元件、按批次工具列「移除」，斷言先出現「移除這 2 個元件？」確認對話框，確認後呼叫 `POST .../remove-batch` 帶到兩個 item id，兩個元件皆從畫面消失。
+3. 「批次移除失敗時顯示後端訊息…」：同一批次選取，`remove-batch` 回 409 + 訊息，斷言確認對話框內顯示該訊息（`RemoveItemsDialog` 的 `role="alert"`），兩個元件仍在畫面上——對應 `uc-remove-items` p1/p2「所選元件皆不變，顯示訊息」。
+
+實作沒有發現 bug，未改動任何既有行為，`handleConfirmRemove()`／`RemoveItemsDialog` 的既有 try/catch 已經符合需求，只是先前沒有測試把關。
+
+### Check
+
+在 `kanban-frontend/` 前景跑：
+
+- `pnpm test`：`Test Files 6 passed (6)`、`Tests 43 passed (43)`。
+- `pnpm run build`（`tsc -b && vite build`）：通過，`✓ 50 modules transformed`、`✓ built in 766ms`。
+- `pnpm run lint`：僅原有 1 則非阻斷 warning（`itemComponentRegistry.tsx` `react(only-export-components)`）。
+
+### 交接摘要
+
+D-01～D-05 全部處理完成，`OQ-T-13-fe-canvas-shell-01` 維持既有標記（等級高、不阻塞、接手人工）。本輪只新增測試檔案的斷言，未動 `CanvasStage.tsx`／`geometry.ts`／`canvasApi.ts` 等既有實作。Review 這輪應只需複驗新增的三則測試是否確實涵蓋 D-05 要求的三點（換算後座標、確認流程、失敗路徑）。
