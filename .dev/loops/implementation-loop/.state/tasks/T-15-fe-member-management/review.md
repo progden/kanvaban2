@@ -123,3 +123,6 @@ Dev 第 2 輪交接摘要「待確認事項」三項與 `loopctl show` 列出的
 2. `OQ-02` 問題 (2)（`r-board-member` 嘗試移除成員的拒絕情境）：接手＝**人工**，需先在 `spec-user-membership.md` 補一個對應 usecase 才有實作依據；現況前端對 `r-board-member` 隱藏「移除」按鈕。
 3. `OQ-02` 問題 (1)：行為面已由 `D-01` 結案（一律先確認），僅剩 OQ 內文推論過時，接手＝**人工**（在該則底下補解除說明並把狀態改為已解除）。
 4. `OQ-03`（Viewer 角色在本畫面的顯示與 ui 資料表／角色權限表缺漏）：接手＝**人工**，需走 CR 修訂 `ui-user-membership.md`（補 Viewer 與 `r-board-viewer`，或確認本畫面不管理 Viewer）。另，後端 `BoardMembershipApplicationService.changeMemberRole` 缺 `uc-change-member-role` pre p2 檢查屬 **T-04-be-board-membership** 範圍，本任務只在前端不提供違反 pre p2 的入口。
+
+#### 人工複核（2026-09-22）
+Review 已判定 done，但合併回 `loop/implementation` 失敗（分支分岔後與 T-14／T-17／T-19 對 `BoardCanvasPage.tsx` import／註冊區塊的新增內容衝突，見 `driver-note.md`）。人工解衝突（`162d7d3`）：純新增內容串接即可；另外補上 `ItemContentProps` 新增 `boardId` 必填欄位後，`BoardMembersItem.test.tsx` 未同步更新導致的編譯錯誤。`pnpm build`／`pnpm test` 全綠（19 測試檔、125 測試）。判定：**核准，status=done，已合併**。
