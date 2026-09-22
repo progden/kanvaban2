@@ -28,3 +28,27 @@
 - `pnpm exec vitest run`：7 個測試檔、47 個測試全過（含新增的 `ActivityLogItem.test.tsx` 4 個測試）
 - `pnpm run build`（`tsc -b && vite build`）：成功
 - `pnpm run lint`（oxlint）：僅既有 `itemComponentRegistry.tsx` 的 fast-refresh 警告（與本次改動無關），無新增警告
+
+## 2026-09-22 Dev 第 2 輪：修正 D-01：錯誤訊息改用 form-error
+
+### 這輪做了什麼
+
+修正 Review 第 1 輪留下的 D-01：`ActivityLogItem.tsx` 載入失敗時的錯誤段落，`className` 由 `"activity-log__error"` 改為 `"form-error activity-log__error"`，沿用專案唯一的錯誤訊息共用樣式 `.form-error`（`src/index.css:148`，色底／框線／字級皆來自它），與同屬 Canvas 群組的 `CanvasStage.tsx:433`、`BoardCanvasPage.tsx:67` 等處寫法一致。`ActivityLogItem.css` 的 `.activity-log__error` 收斂成只管版面（`margin: 0; padding: 12px;`），移除自訂的 `font-size` 與無色呈現。
+
+### 涵蓋範圍
+
+只動了 D-01 指名的這一處；本輪未再處理 spec／uc／Scenario，沿用第 1 輪已核對過的 `uc-view-board-activity-log` 對應與測試涵蓋。
+
+### 待確認事項
+
+OQ-T-16-fe-activity-log-01、OQ-T-16-fe-activity-log-02 皆為 Review 上一輪已開立、不阻塞，本輪未新增 OQ，維持待處理。
+
+### Check
+
+於 `kanban-frontend/` 實際執行：
+
+- `pnpm exec vitest run`：`Test Files 7 passed (7)`、`Tests 47 passed (47)`（含 `ActivityLogItem.test.tsx` 載入失敗測試，仍以 `role="alert"` 查詢，未受 class 變動影響）。
+- `pnpm run build`（`tsc -b && vite build`）：`✓ 53 modules transformed`、`✓ built in 1.50s`。
+- `pnpm run lint`（oxlint）：僅剩 `src/canvas/itemComponentRegistry.tsx:21:10` 既有警告（T-13 遺留，本任務未改動該檔）。
+
+三項全綠，未動其他檔案。
