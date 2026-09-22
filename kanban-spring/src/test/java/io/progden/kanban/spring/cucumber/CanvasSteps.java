@@ -23,6 +23,7 @@ import io.progden.kanban.spring.persistence.UserJpaRepository;
 import io.progden.kanban.spring.persistence.ViewportJpaEntity;
 import io.progden.kanban.spring.persistence.ViewportJpaRepository;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +73,7 @@ public class CanvasSteps {
     private UUID currentBoardId;
     private UUID currentCanvasId;
     private MvcResult lastResult;
+    private List<Map<String, Object>> preActionSnapshot;
 
     private final Map<String, UUID> itemIdsByName = new HashMap<>();
     private final Map<String, Long> initialZByName = new HashMap<>();
@@ -219,6 +221,7 @@ public class CanvasSteps {
 
     @When("^我(?:再次)?開啟看板 \"([^\"]+)\"$")
     public void whenOpenBoard(String boardName) throws Exception {
+        captureSnapshot();
         UUID boardId = boardIdsByName.get(boardName);
         lastResult = mockMvc.perform(get("/api/boards/" + boardId + "/canvas").session(session)).andReturn();
         if (lastResult.getResponse().getStatus() == 200) {
@@ -233,11 +236,13 @@ public class CanvasSteps {
     @When("^我將元件 \"([^\"]+)\" 放置到畫布，左上角 \\(([^,]+), ([^)]+)\\)，大小 ([^ ]+) × ([^ ]+)$")
     public void whenPlaceItemSimple(String component, double x, double y, double width, double height)
             throws Exception {
+        captureSnapshot();
         doPlaceItem(component, x, y, width, height, null, null, null, null);
     }
 
     @When("^我將元件 \"([^\"]+)\" 放置到畫布，欄位如下：$")
     public void whenPlaceItemWithFields(String component, DataTable table) throws Exception {
+        captureSnapshot();
         Map<String, String> fields = tableAsMap(table);
         double x = Double.parseDouble(fields.get("X"));
         double y = Double.parseDouble(fields.get("Y"));
@@ -253,6 +258,7 @@ public class CanvasSteps {
 
     @When("^我將元素 \"([^\"]+)\" 移動到左上角 \\(([^,]+), ([^)]+)\\)$")
     public void whenMoveItem(String itemName, double x, double y) throws Exception {
+        captureSnapshot();
         UUID itemId = resolveItemIdOrRandom(itemName);
         Map<String, Object> body = Map.of("x", x, "y", y);
         lastResult = mockMvc.perform(post("/api/canvas-items/" + itemId + "/move")
@@ -264,6 +270,7 @@ public class CanvasSteps {
 
     @When("^我將元素 \"([^\"]+)\" 調整為左上角 \\(([^,]+), ([^)]+)\\)，大小 ([^ ]+) × ([^ ]+)$")
     public void whenResizeItem(String itemName, double x, double y, double width, double height) throws Exception {
+        captureSnapshot();
         UUID itemId = resolveItemIdOrRandom(itemName);
         Map<String, Object> body = Map.of("x", x, "y", y, "width", width, "height", height);
         lastResult = mockMvc.perform(post("/api/canvas-items/" + itemId + "/resize")
@@ -275,6 +282,7 @@ public class CanvasSteps {
 
     @When("^我將元素 \"([^\"]+)\" 設為(.+)$")
     public void whenSetItemCapabilities(String itemName, String descriptor) throws Exception {
+        captureSnapshot();
         ItemDescriptor d = new ItemDescriptor();
         applyAllClauses(d, descriptor);
         UUID itemId = resolveItemIdOrRandom(itemName);
@@ -290,6 +298,7 @@ public class CanvasSteps {
             + "大小 ([^ ]+) × ([^ ]+)$")
     public void whenSetItemAnchor(
             String itemName, String anchorText, double x, double y, double width, double height) throws Exception {
+        captureSnapshot();
         UUID itemId = resolveItemIdOrRandom(itemName);
         String anchor = "固定於畫面".equals(anchorText) ? "screen" : "canvas";
         Map<String, Object> body = Map.of("anchor", anchor, "x", x, "y", y, "width", width, "height", height);
@@ -302,6 +311,7 @@ public class CanvasSteps {
 
     @When("^我將元素 \"([^\"]+)\" (置頂|置底)$")
     public void whenReorderItem(String itemName, String direction) throws Exception {
+        captureSnapshot();
         UUID itemId = resolveItemIdOrRandom(itemName);
         Map<String, Object> body = Map.of("toFront", "置頂".equals(direction));
         lastResult = mockMvc.perform(post("/api/canvas-items/" + itemId + "/reorder")
@@ -313,6 +323,7 @@ public class CanvasSteps {
 
     @When("^我移除元素 \"([^\"]+)\"$")
     public void whenRemoveItem(String itemName) throws Exception {
+        captureSnapshot();
         UUID itemId = resolveItemIdOrRandom(itemName);
         lastResult = mockMvc.perform(delete("/api/canvas-items/" + itemId).session(session)).andReturn();
     }
@@ -322,6 +333,7 @@ public class CanvasSteps {
     @When("^我將元素 \"([^\"]+)\"、\"([^\"]+)\" 一起移動，位移量為 \\(([^,]+), ([^)]+)\\)$")
     public void whenMoveItemsBatch(String firstName, String secondName, String dxText, String dyText)
             throws Exception {
+        captureSnapshot();
         double dx = Double.parseDouble(dxText);
         double dy = Double.parseDouble(dyText);
         List<UUID> itemIds = new ArrayList<>();
@@ -337,6 +349,7 @@ public class CanvasSteps {
 
     @When("^我一起移除元素 \"([^\"]+)\"、\"([^\"]+)\"$")
     public void whenRemoveItemsBatch(String firstName, String secondName) throws Exception {
+        captureSnapshot();
         List<UUID> itemIds = new ArrayList<>();
         itemIds.add(resolveItemIdOrRandom(firstName));
         itemIds.add(resolveItemIdOrRandom(secondName));
@@ -352,6 +365,7 @@ public class CanvasSteps {
 
     @When("^我將檢視區設定為左上角 \\(([^,]+), ([^)]+)\\)，縮放比例 ([\\d.]+)$")
     public void whenSetViewport(double x, double y, double zoom) throws Exception {
+        captureSnapshot();
         Map<String, Object> body = Map.of("x", x, "y", y, "zoom", zoom);
         lastResult = mockMvc.perform(put("/api/boards/" + currentBoardId + "/canvas/viewport")
                         .session(session)
@@ -368,6 +382,7 @@ public class CanvasSteps {
         assertTrue(status >= 400, "預期操作被拒絕，實際狀態碼為 " + status);
         Map<?, ?> body = readBody(lastResult);
         assertEquals(message, body.get("message"));
+        assertEquals(preActionSnapshot, snapshotState(), "拒絕操作後，canvas_items／viewports 的資料應與操作前完全相同");
     }
 
     // ---- Then：看板畫布初始化 ----
@@ -656,6 +671,48 @@ public class CanvasSteps {
         }
         return itemJpaRepository.findByCanvasIdAndAnchor(currentCanvasId, d.anchor).stream()
                 .mapToLong(ItemJpaEntity::getZ).max().orElse(0) + 1;
+    }
+
+    // ---- helpers：拒絕情境「且資料不變」快照（D-01） ----
+
+    /**
+     * 在送出可能被拒絕的請求前，把全部 {@code canvas_items}／{@code viewports} 逐欄拍照，
+     * 供 {@link #thenRejected} 比對「拒絕後資料不變」；全庫掃描（而非只掃 currentCanvasId）
+     * 是因為看板不存在等情境連 canvas 都還沒建立。
+     */
+    private void captureSnapshot() {
+        preActionSnapshot = snapshotState();
+    }
+
+    private List<Map<String, Object>> snapshotState() {
+        List<Map<String, Object>> snapshot = new ArrayList<>();
+        itemJpaRepository.findAll().stream()
+                .sorted(Comparator.comparing(ItemJpaEntity::getId))
+                .forEach(item -> snapshot.add(Map.ofEntries(
+                        Map.entry("kind", "item"),
+                        Map.entry("id", item.getId()),
+                        Map.entry("canvasId", item.getCanvasId()),
+                        Map.entry("component", item.getComponent()),
+                        Map.entry("anchor", item.getAnchor()),
+                        Map.entry("x", item.getX()),
+                        Map.entry("y", item.getY()),
+                        Map.entry("width", item.getWidth()),
+                        Map.entry("height", item.getHeight()),
+                        Map.entry("z", item.getZ()),
+                        Map.entry("movable", item.isMovable()),
+                        Map.entry("resizable", item.isResizable()),
+                        Map.entry("removable", item.isRemovable()))));
+        viewportJpaRepository.findAll().stream()
+                .sorted(Comparator.comparing(ViewportJpaEntity::getId))
+                .forEach(viewport -> snapshot.add(Map.of(
+                        "kind", "viewport",
+                        "id", viewport.getId(),
+                        "canvasId", viewport.getCanvasId(),
+                        "userId", viewport.getUserId(),
+                        "x", viewport.getX(),
+                        "y", viewport.getY(),
+                        "zoom", viewport.getZoom())));
+        return snapshot;
     }
 
     // ---- helpers：檢視區 ----
