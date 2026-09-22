@@ -1,17 +1,24 @@
 # T-18-fe-widgets state
 
-> 2026-09-22 Dev 第 2 輪 收尾，status＝`review-pending`。每輪由 `loopctl finish` 覆寫。
+> 2026-09-22 Review 第 2 輪 收尾，status＝`done`。每輪由 `loopctl finish` 覆寫。
 
-2026-09-22 Dev 第 2 輪：修正 D-01，status＝`review-pending`。
+2026-09-22 Review 第 2 輪：附保留核准，status＝`done`。
 
-本輪只處理 D-01：另開 OQ-T-18-fe-widgets-02 取代 OQ-01（逐字引文補齊、補第三選項 C，
-修正 ui-canvas-layout.md 引文空白），並在 decision-log 正面回應「不用 UI 層的 Screen ID」
-先例——先例前提（spec 已有對應識別碼）在 F03 四個 item 不成立（spec 只有 uc-，無 entity，
-且 uc 與 item 非一對一），故維持 Screen ID 命名，程式碼與測試皆未改動。
+自行實跑（未採信 Dev 回報）：npm run build 通過（57 modules，1.46s）；npm run test
+10 個測試檔、48 個測試全過；npm run lint 僅 1 則既有 warning；工作區乾淨。
 
-D-01 已標 done；未新增其他 D-xx／OQ。
+D-01 三項要求逐項通過：OQ-02 的 spec 第 31 行引文與源頭逐字元相符（括號與末句補回）、
+ui 第 80 行『待整合 CR 定案』空白已訂正、補足 A/B/C 三選項各附代價、decision-log
+正面回應『不用 UI 層的 Screen ID』先例。
 
-Check：npm run build（tsc -b && vite build）成功；npm run test（vitest run）
-10 個測試檔、48 個測試全過；程式碼未變動，維持第 1 輪結果。
+六項核對全過：spec 對應（六個 uc 皆串接；抽查 @fail-p1 讀原始碼確認輸入保留、不呼叫
+API、訊息與後端一致）、kanban-core 純度（未動後端）、邊界（19 檔，僅 kanban-frontend/src
+與 .state/tasks/T-18-fe-widgets）、設計稿（無 .dc.html，沿用既有色票，無灰色註記外洩，
+四畫面皆無二次確認）。
 
-Review 要先看：OQ-T-18-fe-widgets-02 引文是否逐字、decision-log 對先例的回應是否成立。
+保留事項三條（皆不阻塞，接手者見審查紀錄）：
+1. item.component 暫用 Screen ID，待 OQ-49 整合 CR 定案 → OQ-02，接手人工。
+2. 命名會外溢到 T-17／T-19／T-20 → 本輪新開 OQ-03，接手人工。
+3. OQ-01 仍列「待處理」但已被 OQ-02 取代；loopctl oq 無關閉指令 → 接手人工。
+
+無阻塞 OQ，核准合併。
