@@ -17,10 +17,14 @@ import { BoardClockControl } from '../canvas/BoardClockControl';
 import { CanvasStage } from '../canvas/CanvasStage';
 import '../canvas/CanvasStage.css';
 import { registerItemComponent } from '../canvas/itemComponentRegistry';
+import { WorkloadDashboard } from '../canvas/WorkloadDashboard';
 
 // item.component === 'board-clock-control'：s-board-clock-control（見 ui-board-clock.md），
 // 每個模組各自的 item 內容在這裡（畫布掛載處）自行註冊，其餘元件識別碼由各自任務補上。
 registerItemComponent('board-clock-control', BoardClockControl);
+// item.component === 'workload-dashboard'：s-workload-dashboard（見 ui-workload.md），
+// 命名依 ADR-T-17-fe-clock-control-01（Screen ID 去掉 s- 前綴、kebab-case）。
+registerItemComponent('workload-dashboard', WorkloadDashboard);
 
 export function BoardCanvasPage() {
   const { boardId } = useParams<{ boardId: string }>();

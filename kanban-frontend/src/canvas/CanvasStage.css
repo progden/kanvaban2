@@ -90,6 +90,75 @@
   gap: 8px;
 }
 
+.workload-dashboard {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.workload-dashboard__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.workload-dashboard__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workload-dashboard__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.workload-dashboard__name {
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workload-dashboard__count {
+  border: 0;
+  background: var(--color-bg-muted);
+  border-radius: 4px;
+  min-width: 28px;
+  height: 24px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.workload-dashboard__unassigned {
+  border-top: 1px solid var(--color-border);
+  padding-top: 8px;
+  color: var(--color-text-muted);
+}
+
+.cards-by-assignee__list {
+  margin: 0;
+  padding-left: 18px;
+  max-height: 240px;
+  overflow: auto;
+}
+
 .clock-control__time {
   font-size: 16px;
   font-weight: 600;
