@@ -1,11 +1,14 @@
 # T-15-fe-member-management state
 
-> 2026-09-22 Review 第 1 輪 收尾，status＝`doing`。每輪由 `loopctl finish` 覆寫。
+> 2026-09-22 Dev 第 2 輪 收尾，status＝`review-pending`。每輪由 `loopctl finish` 覆寫。
 
-Review 第 1 輪判定退回。自己跑的驗證：`pnpm test` 8 檔 54 測試全過、`pnpm run build` 通過、`pnpm run lint` 只剩 T-13 既有的 1 則 fast-refresh warning。任務邊界乾淨（只動 `kanban-frontend/src/canvas/members/**`、`boardMembershipApi.ts` 追加三個函式、`BoardCanvasPage.tsx` 一行 import，`.state/` 只動自己的任務目錄）。八條驗收條件都有對應測試，`@uc-remove-member @fail-p1` 抽查成立（訊息逐字相符、清單不變）。設計稿 `MemberManagement.dc.html` 的版面／字級／色票相符，灰色註記沒做進產品畫面。
+Review 第 2 輪待審。本輪只修 D-01、D-02，未動其他範圍。
 
-待下一輪 Dev 處理：
-- `D-01`：「移除成員」要一律先顯示確認（ui 操作表「需確認？」欄＝是，與「變更成員角色」同值），現況只在卡片負責人情境確認；確認後才打 API，後端回卡片張數訊息時再要求二次確認並以 `confirmed=true` 重打。測試標題與斷言同步改。
-- `D-02`：「設為 Owner」的顯示條件由 `member.role !== 'OWNER'` 改成 `member.role === 'MEMBER'`，避免對 Viewer 列提供違反 `uc-change-member-role` pre p2 的入口，並補一個 VIEWER 列無此按鈕的測試。
+- D-01：「移除成員」改成一律先顯示確認卡才打 API；卡片負責人情境維持先 confirmed=false 再依 409 張數訊息二次確認、confirmed=true 重打；其他失敗維持關閉確認卡＋列下方顯示訊息。三個既有移除相關測試同步改斷言與標題。
+- D-02：「設為 Owner」顯示條件改成 `member.role === 'MEMBER'`（原 `!== 'OWNER'` 會誤放行 Viewer），新增 Viewer 無此按鈕的測試。
 
-OQ 現況（皆不阻塞）：`OQ-01`（`item.component` 值，接手人工／F07 整合 CR）維持；`OQ-02` 問題 (1) 改由 `D-01` 承接、問題 (2) 維持待處理（接手人工）；本輪新開 `OQ-03`（`board-membership.role` 的 Viewer 值在 spec 欄位表與 ui 資料表兩處矛盾，接手人工，需走 CR）。沒有等級「覆蓋」或「環境」的阻塞 OQ。
+Check：`pnpm test` 8 檔 55 測試全過、`pnpm run build` 通過、`pnpm run lint` 僅剩 T-13 既有 1 則 warning（本輪未動的檔案）。
+
+Review 請先看：`MemberManagementDialog.tsx` 的 `handleRemoveClick`／`handleConfirmRemove` 新流程是否確實符合「移除成員」「需確認？＝是」且卡片負責人二次確認保留；`member.role === 'MEMBER'` 條件是否確實擋掉 Viewer。
+
+OQ-01／OQ-02(2)／OQ-03 維持不阻塞，本輪無新開 OQ。
