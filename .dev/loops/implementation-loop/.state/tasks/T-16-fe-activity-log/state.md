@@ -1,9 +1,13 @@
 # T-16-fe-activity-log state
 
-> 2026-09-22 Dev 第 1 輪 收尾，status＝`review-pending`。每輪由 `loopctl finish` 覆寫。
+> 2026-09-22 Review 第 1 輪 收尾，status＝`doing`。每輪由 `loopctl finish` 覆寫。
 
-現在狀態：`s-activity-log` 前端實作已完成並 commit（`kanban-frontend/src/api/activityLogApi.ts`、`canvas/ActivityLogItem.tsx`＋`.css`＋測試、`main.tsx` 註冊）。呼叫 T-04 已合併的 `GET /api/boards/{boardId}/activity-log`，以 Canvas item（`item.component === "activity-log"`）呈現操作人＋動作＋時間，依後端排序原樣顯示。
+Review 第 1 輪判定：退回（`doing`），留一條 D-01 待下一輪 Dev 處理。
 
-這輪做了什麼：`ui-user-membership.md` `s-activity-log` 因 OQ-29 標記「未討論」，但其前提（跨 aggregate 投影）已由 T-04 補齊，故依 usecase 區塊與 Gherkin Scenario 推論實作最小可用畫面；進入路徑沿用 T-13 既有的一般化「加入元件」機制。版面細節與 `item.component` 命名是推論決定，已開不阻塞 OQ-T-16-fe-activity-log-01 徵詢是否要回頭補齊 ui 文件。
+自己實跑的驗證：`pnpm exec vitest run` 47/47 全過、`pnpm run build` 成功、`pnpm run lint` 只有 T-13 既有的 fast-refresh 警告；`git diff loop/implementation...HEAD --stat` 10 檔全在 T-16 範圍內，`.state/` 只動自己的任務目錄，邊界乾淨。spec 面核對 `uc-view-board-activity-log`（`fail` 為空，無 `@fail-pN` 可抽）：排序（後端 `occurredAt` 反序、前端原樣顯示）、操作人與動作呈現、null 備援、API 欄位契約、權限（`ensureMember`）皆與 post 相符，4 個前端測試涵蓋排序／空清單／備援／載入失敗。未觸及 Java 檔，`kanban-core` 純度不受影響。
 
-Review 要先看：(1) OQ-T-16-fe-activity-log-01 的推論是否合理；(2) `ActivityLogItem.tsx` 對後端回應形狀（`operatorUsername`/`operatorDisplayName` 可為 null）的處理；(3) `pnpm exec vitest run` 全綠（47/47）、`pnpm run build`／`lint` 皆過。
+退回原因（D-01）：`ActivityLogItem` 載入失敗的 `.activity-log__error` 未沿用專案唯一的錯誤樣式 `.form-error`（`src/index.css:148`），只設了 padding／font-size、無配色，偏離 `.dev/ui-prototype/README.md` 第 36 行對無設計稿畫面「沿用既有視覺語彙、不另外發明風格」的要求；`s-activity-log` 正是該句點名的畫面。
+
+OQ：核對 Dev 的 OQ-T-16-fe-activity-log-01，引文逐字無誤，等級「高」／阻塞「否」／接手「無」判定正確，維持有效；其「情況」欄一句推論把 OQ-29 的兩個前提說成都已成立（實際上 spec 原文仍寫『本情境目前尚未實作』），另開 OQ-T-16-fe-activity-log-02（高、不阻塞、接手：人工）補正，不取代原則。兩則皆不阻塞。
+
+下一輪 Dev 要做：修 D-01（錯誤段落改用 `form-error`，`.activity-log__error` 收斂成只管版面），重跑 vitest／build／lint 確認全綠，不需動其他檔案。
