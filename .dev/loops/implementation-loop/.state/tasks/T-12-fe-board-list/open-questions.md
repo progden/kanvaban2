@@ -10,7 +10,7 @@
 - 接手：無
 - 原因代碼：spec-ambiguous
 - 開立：Dev 第 1 輪（2026-09-22）
-- 狀態：待處理
+- 狀態：**已由 OQ-T-12-fe-board-list-03 取代並解除（2026-09-22）**，見該則解除說明
 
 情況：【推論＋所本原文】
 
@@ -41,7 +41,9 @@
 - 接手：T-14-fe-board-item
 - 原因代碼：spec-ambiguous
 - 開立：Dev 第 2 輪（2026-09-22）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-22，人工核對，維持選項 A 的判斷成立）**
+
+解除說明：T-14-fe-board-item 已合併（`decision-log.md` 第 29 行、`review.md` 第 81 行）確認 `BoardCanvasPage.tsx`（T-13 產出）既有的 `getBoard` 失敗處理已經符合這裡要求的行為，不需要另外的程式碼改動。人工複核程式碼確認：`BoardCanvasPage.tsx` 的 `getBoard(boardId)` 失敗時（含非成員被後端拒絕的情況）在 `.catch` 裡 `setError(...)`，畫面渲染 `error !== null` 時顯示 `role="alert"` 的錯誤訊息、不做任何導頁，符合 spec「顯示訊息，停留本畫面」的字面要求。
 
 情況：【引用原文】
 

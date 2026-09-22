@@ -10,6 +10,9 @@
 - 接手：人工
 - 原因代碼：merge-conflict
 - 開立：安排階段第 3 次重跑（2026-09-22）
+- 狀態：**已解除（2026-09-22，人工採選項 A）**
+
+解除說明：人工依序 `git merge impl/T-14-fe-board-item`、`git merge impl/T-15-fe-member-management`，手工解 `boardApi.ts`／`cardApi.ts`／`BoardCanvasPage.tsx` 的新增內容衝突（各自新增不同 API 函式／import／`registerItemComponent` 呼叫，功能無重疊，直接串接），另修正兩處因後續任務改了共用簽章（`ItemContentProps.boardId`、`Card.delete`／`assignTo` 的 `Instant now`）導致的編譯錯誤。`./gradlew clean build`、`pnpm build`／`pnpm test` 皆全綠後把兩個 `status` 改回 `done`，並合併進 `loop/implementation`（commit `2fd755e`、`162d7d3`）。詳見 `.state/tasks/T-14-fe-board-item/review.md`、`.state/tasks/T-15-fe-member-management/review.md` 各自的「人工複核」段。
 
 情況：【推論＋所本原文】
 

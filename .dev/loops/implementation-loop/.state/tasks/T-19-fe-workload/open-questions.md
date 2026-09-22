@@ -10,7 +10,7 @@
 - 接手：T-14-fe-board-item
 - 原因代碼：cross-item-dependency-missing
 - 開立：Dev 第 1 輪（2026-09-22）
-- 狀態：待處理
+- 狀態：**已由 OQ-T-19-fe-workload-03（拖放目標端那一半）與 OQ-T-19-fe-workload-04（點擊卡片開啟詳情那一半）取代並解除（2026-09-22）**，見該兩則解除說明
 
 情況：【推論＋所本原文】
 `ui-workload.md`「操作」表「拖曳成員頭像到卡片追加負責人」列逐字：『觸發 `uc-drag-assign-card-owner`；卡片顯示於同一畫布上 F01 `s-board` item 的縮圖負責人更新（依 OQ-42，本畫面不顯示個別卡片，拖放目標為同時存在於畫布上的 `s-board` item）』；「驗收條件」段逐字：『拖曳成員頭像到同一畫布上 F01 `s-board` item 的卡片後，觸發 `uc-drag-assign-card-owner`』。`ui-user-membership.md`「s-cards-by-assignee」「操作」表逐字：『開啟卡片詳情 | — | 開啟 F01 `s-card-detail`（跨模組） | 不適用 | 否』。`.dev/loops/implementation-loop/.state/tasks.md` T-19 這一列的依賴欄只列『T-13-fe-canvas-shell、T-07-be-workload』，不含 T-14-fe-board-item。
@@ -89,7 +89,9 @@
 - 接手：人工
 - 原因代碼：tooling-missing
 - 開立：Review 第 2 輪（2026-09-22）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-22，人工採選項 A）**
+
+解除說明：已在 `OQ-T-19-fe-workload-01` 底下補一行解除說明，指向 OQ-03／OQ-04 取代關係，避免誤依它原本錯誤的「接手：T-14-fe-board-item」欄位行動。`loopctl` 目前確實沒有 `resolve`／`supersede` 子指令（選項 B 不採用，屬於工具鏈改動，不在本次範圍），先維持人工手動補解除說明的既有慣例即可。
 
 情況：【推論＋所本原文】
 `.dev/loops/implementation-loop/.state/tasks/T-19-fe-workload/open-questions.md` 的 `OQ-T-19-fe-workload-01` 欄位逐字：『- 接手：T-14-fe-board-item』、『- 狀態：待處理』。
