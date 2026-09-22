@@ -61,3 +61,34 @@ uc-remove-item fail p2 逐字為：
 問題：`item.z` 的唯一鍵範圍應以欄位表限制欄字面（同一 canvas 內唯一）為準，還是以 `uc-place-item` post／「層序」段落（同一錨定方式內唯一）為準？
 
 選項：A. 維持現況，`(canvas_id, anchor, z)` 唯一鍵（同一錨定方式內唯一），並回頭修正欄位表限制欄文字使其與 post／層序一致；B. 改為 `(canvas_id, z)` 唯一鍵（canvas 內唯一），並修正 `uc-place-item` post 與「層序」段落文字使其與欄位表一致。
+
+## OQ-T-09-be-canvas-layout-03
+
+[Level: canvas-layout/uc-init-canvas]
+- 等級：高
+- 阻塞：否
+- 接手：人工
+- 原因代碼：spec-conflict
+- 開立：Dev 第 2 輪（2026-09-22）
+- 狀態：待處理
+
+情況：【兩處矛盾並列】
+
+`spec-canvas-layout.md` `uc-init-canvas` 的 `post` 第 2 條逐字為：
+
+『若該 `canvas` 原本沒有任何 `item`，建立一個 `item`：`item.component` 為 `board`、`item.x` 為 0、`item.y` 為 0、`item.width` 為 900、`item.height` 為 600、`item.anchor` 為 canvas、`item.z` 為 1、`item.movable`／`item.resizable`／`item.removable` 皆為 true』
+
+「元件放置」Feature 的 Background 與 Scenario 逐字為：
+
+『Background:
+    Given 畫布已由系統建立』
+
+『Scenario: 放置畫布元素
+    Given 畫布中沒有任何元素
+    ...』
+
+推論：Background「畫布已由系統建立」若真的走 `uc-init-canvas`，canvas 建立當下一定會連帶建立一個 z=1 的看板本體 `item`（post 第 2 條），與後面「畫布中沒有任何元素」「畫布中存在 2 個錨定於畫布的元素，層序分別為 1、2」等 Given 假設的初始狀態（z 從 1 起算、或完全無元素）矛盾。測試前置（`CanvasSteps.givenCanvasEstablished`）因此直接以 `canvasJpaRepository.save(...)` 建立空白 canvas，繞過 `uc-init-canvas`，這個偏離沒有依規則開 OQ。
+
+問題：「元件放置」「畫布元素排列」「畫布元素批次操作」三個 Feature 的 Background「畫布已由系統建立」，其前置狀態應理解為「已走過 `uc-init-canvas`（因此已有 z=1 看板本體元素，後續 Scenario 的 z 期望值需相應偏移）」，還是「單純建立一個空白 canvas（不含任何元素，維持現有測試前置與 Scenario 字面 z 值）」？
+
+選項：A. 維持現況，Background 前置用空白 canvas（不呼叫 `uc-init-canvas`），並修正 spec 讓「元件放置」等 Feature 的 Background 文字明確排除看板本體元素；B. Background 改走 `GET /api/boards/{boardId}/canvas`（真正觸發 `uc-init-canvas`），並回頭修正「元件放置」等 Feature 內所有依賴「畫布中沒有任何元素」「層序從 1 起算」的 Scenario 與其 z 值期望。
