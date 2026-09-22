@@ -59,3 +59,24 @@
 問題：T-14-fe-board-item 合併時，是否要沿用 `cardAssigneeDrag.ts` 的 `acceptsCardAssigneeDrop`／`handleCardAssigneeDrop` 把卡片縮圖的 `onDrop` 接上 `uc-drag-assign-card-owner`？由誰在什麼時間點把這件事轉達給 T-14（或另開銜接任務）？
 
 選項：A. 由人工在安排階段把本 ADR 轉達給 T-14-fe-board-item，T-14 合併時直接沿用 `cardAssigneeDrag.ts` 接上卡片縮圖 `onDrop`；B. 安排階段另開一個 T-19 之後的銜接任務，待 T-14 合併後專門處理這條掛接；C. 以上皆非。
+
+## OQ-T-19-fe-workload-04
+
+[Level: s-cards-by-assignee/uc-list-cards-by-assignee]
+- 等級：高
+- 阻塞：否
+- 接手：人工
+- 原因代碼：upstream-missing
+- 開立：Dev 第 2 輪（2026-09-22）
+- 狀態：待處理
+
+情況：【推論＋所本原文】
+本則取代 `OQ-T-19-fe-workload-01` 關於「點擊卡片開啟詳情」的那一半。
+
+`.dev/F02-user-membership/ui-user-membership.md`「s-cards-by-assignee」「操作」表逐字：『開啟卡片詳情 | — | 開啟 F01 `s-card-detail`（跨模組） | 不適用 | 否』。`.dev/loops/implementation-loop/.state/tasks.md` T-19-fe-workload 那一列「產出範圍」欄逐字：『`s-workload-dashboard`（Canvas item）＋ `s-cards-by-assignee`（從前者點擊進入）』，`s-cards-by-assignee` 本身屬於 T-19 自己的產出範圍；而導覽目的地 `s-card-detail` 屬於 T-14-fe-board-item 的產出範圍（同檔 T-14 那一列逐字列出 `s-card-detail`）。
+
+推論：這項留白要改的檔案（`CardsByAssigneeDialog.tsx`）在 T-19 的範圍內，但因為目的地路由（`s-card-detail`）此刻不存在（T-14 仍 `doing`），T-19 本輪只能先做成不可點擊的純顯示列表；T-14 不會主動回頭改 T-19 的檔案，這件事沒有任何已登記任務會自動處理，需要人工在 T-14 合併後安排一個 T-19 的補作實例。
+
+問題：`s-cards-by-assignee` 卡片列導向 `s-card-detail` 這項留白，應該由誰、在什麼時間點補上？
+
+選項：A. 人工在 T-14-fe-board-item 合併後，安排一個 T-19-fe-workload 的後續修訂實例，補上 `CardsByAssigneeDialog.tsx` 卡片列可點擊導向 `s-card-detail`；B. 併入上一則（拖放目標端）的銜接任務一起處理；C. 以上皆非。
