@@ -1,15 +1,19 @@
 # T-09-be-canvas-layout state
 
-> 2026-09-22 Dev 第 3 輪 收尾，status＝`review-pending`。每輪由 `loopctl finish` 覆寫。
+> 2026-09-22 Review 第 3 輪 收尾，status＝`doing`。每輪由 `loopctl finish` 覆寫。
 
-Dev 第 3 輪收尾。
+Review 第 3 輪判定退回（`doing`），等下一輪 Dev 處理 D-05。
 
-本輪只處理 D-04：Review 第 2 輪指出 `OQ-...-03` 引文夾帶一個不存在的 Scenario 標題
-『Scenario: 放置畫布元素』，違反逐字引用規則。因 `loopctl` 不能改既有 OQ 內文，
-已另開 `OQ-T-09-be-canvas-layout-04`（內容開頭註明取代 OQ-03），三段引文皆對照
-`spec-canvas-layout.md` 第 100／198／202～204 行逐字核對後照貼，推論與選項沿用原內容。
+已自行驗證通過的部分（不需重做）：
 
-程式碼與測試本輪未變動（D-04 不要求更動實作）；上一輪 Review 已確認建置與 43 個
-Scenario 全數通過，工作區乾淨。
+- `./gradlew clean build --no-daemon` BUILD SUCCESSFUL，42 份測試結果檔 failures=0 errors=0，canvas 五個 feature 合計 43 scenario 全綠。
+- 五個 `canvas-*.feature` 與 spec gherkin 區塊逐行比對，只多出中文註解，無遺漏；11 個 uc 的 tag 齊備。
+- 突變測試（暫移除 `Item.move` 的 `ensureMovable()`）確認 `@fail-pN` 的「且資料不變」斷言會真的轉紅；驗證後已還原。
+- `kanban-core` 無 Spring／JPA import；任務邊界乾淨（只動 canvas 相關新檔＋`ErrorCode` 追加項＋自己的 `.state` 目錄）。
+- D-04 已達成：OQ-04 三段引文逐字核對與 spec 相符；OQ-01／02／04 的等級「高、不阻塞」標記正確（spec 為草稿）。
 
-Review 這輪只需核對 `OQ-...-04` 的三段引文是否真的逐字相符即可。
+待處理：
+
+- **D-05**：批次端點 `itemIds` 為空或缺欄位時丟 `IndexOutOfBoundsException`／`NullPointerException`，穿透成 HTTP 500。需改成明確定義的回應＋記決策＋補測試＋重跑 build。
+
+不阻塞的保留事項（接手見 `review.md` 第 3 輪末段）：OQ-01 接手實質為 T-13-fe-canvas-shell；OQ-02、OQ-04 接手人工；OQ-03 已由 OQ-04 取代。
