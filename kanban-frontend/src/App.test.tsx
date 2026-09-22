@@ -52,6 +52,7 @@ describe('App', () => {
       '/api/session': () =>
         new Response(JSON.stringify({ username: 'alice', displayName: '小美' }), { status: 200 }),
       '/api/logout': () => new Response(null, { status: 204 }),
+      '/api/boards': () => new Response(JSON.stringify([]), { status: 200 }),
     });
 
     render(
@@ -62,7 +63,7 @@ describe('App', () => {
 
     await waitFor(() => expect(screen.getByText('小美')).toBeInTheDocument());
     expect(screen.queryByText('alice')).not.toBeInTheDocument();
-    expect(screen.getByText(/Board 列表/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '我的看板' })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: '登出' }));
 
@@ -73,6 +74,7 @@ describe('App', () => {
     mockFetchByPath({
       '/api/session': () =>
         new Response(JSON.stringify({ username: 'alice', displayName: '小美' }), { status: 200 }),
+      '/api/boards': () => new Response(JSON.stringify([]), { status: 200 }),
     });
 
     render(
@@ -81,6 +83,6 @@ describe('App', () => {
       </MemoryRouter>,
     );
 
-    await waitFor(() => expect(screen.getByText(/Board 列表/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('heading', { name: '我的看板' })).toBeInTheDocument());
   });
 });
