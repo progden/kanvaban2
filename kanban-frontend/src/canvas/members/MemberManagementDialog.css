@@ -1,0 +1,138 @@
+/* s-member-management：版面依 .dev/ui-prototype/MemberManagement.dc.html
+   （標題列＋邀請表單＋成員清單），對話框外框沿用 index.css 的 .dialog-panel。 */
+
+.member-management-dialog {
+  width: 560px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.member-management-dialog__header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.member-management-dialog__header h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+.member-management-dialog__header button {
+  margin-left: auto;
+}
+.member-management-dialog__count {
+  margin: 5px 0 0;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.member-management-dialog__invite {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-muted);
+}
+.member-management-dialog__invite-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.member-management-dialog__invite-row .field-input {
+  flex-grow: 1;
+}
+.member-management-dialog__role-select {
+  flex-shrink: 0;
+  width: 120px;
+}
+.member-management-dialog__invite-error {
+  margin-top: 9px;
+  margin-bottom: 0;
+}
+.member-management-dialog__visually-hidden {
+  position: absolute;
+  left: -9999px;
+}
+
+.member-management-dialog__list {
+  list-style: none;
+  margin: 0;
+  padding: 16px 24px 20px;
+  overflow-y: auto;
+}
+
+.member-management-dialog__row {
+  border: 1px solid var(--color-border);
+  border-top: none;
+  padding: 10px 12px;
+}
+.member-management-dialog__row:first-child {
+  border-top: 1px solid var(--color-border);
+  border-radius: 7px 7px 0 0;
+}
+.member-management-dialog__row:last-child {
+  border-radius: 0 0 7px 7px;
+}
+.member-management-dialog__row:only-child {
+  border-radius: 7px;
+}
+
+.member-management-dialog__row-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.member-management-dialog__identity {
+  flex-grow: 1;
+  min-width: 0;
+}
+.member-management-dialog__display-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+.member-management-dialog__username {
+  font-size: 11px;
+  color: var(--color-text-subtle);
+  font-family: var(--font-mono);
+}
+
+.member-management-dialog__role-badge {
+  font-size: 10.5px;
+  font-weight: 500;
+  border-radius: 4px;
+  padding: 3px 8px;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+.member-management-dialog__role-badge--owner {
+  color: var(--color-primary);
+  background: #e6ecfb;
+  border-color: #cbd9f6;
+}
+
+.member-management-dialog__remove {
+  color: var(--color-error-text);
+}
+
+.member-management-dialog__confirm {
+  margin-top: 10px;
+  padding: 12px;
+  background: var(--color-bg-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+.member-management-dialog__confirm p {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  color: var(--color-text-label);
+}
+.member-management-dialog__confirm-actions {
+  display: flex;
+  gap: 7px;
+  justify-content: flex-end;
+}

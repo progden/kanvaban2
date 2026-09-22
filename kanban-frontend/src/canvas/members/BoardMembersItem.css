@@ -1,0 +1,36 @@
+/* 「看板成員」item 內容：小型頭像清單，點擊開啟 s-member-management。 */
+
+.board-members-item {
+  height: 100%;
+  display: flex;
+}
+
+.board-members-item__trigger {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  text-align: left;
+}
+
+.board-members-item__avatars {
+  display: flex;
+}
+
+.board-members-item__avatar {
+  margin-left: -6px;
+  border: 2px solid #fff;
+}
+.board-members-item__avatar:first-child {
+  margin-left: 0;
+}
+
+.board-members-item__error {
+  color: var(--color-error-text);
+}

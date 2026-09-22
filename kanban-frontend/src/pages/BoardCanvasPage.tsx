@@ -1,6 +1,8 @@
 // s-canvas：依 ui-canvas-layout.md 操作表／驗收條件實作；版面依 Main.dc.html（見
 // .dev/ui-prototype/README.md「檔案與 Screen ID」），只取上方列（返回、看板名稱）與畫布本體的版面，
 // 畫布上「看板本體」item 內容由 T-14-fe-board-item 實作，本任務只提供掛載點（見 canvas/itemComponentRegistry.tsx）。
+// 「看板成員」item（item.component === 'board-members'，T-15）在此以 side-effect import 註冊，
+// 讓使用者透過 CanvasStage 的「＋ 加入元件」放到畫布上時能解析到內容（見 canvas/members/BoardMembersItem.tsx）。
 //
 // 開啟看板觸發 uc-init-canvas（GET /api/boards/{boardId}/canvas），操作者角色依
 // spec-canvas-layout.md 角色定義換算：board-membership.role 為 Owner／Member 對應 r-canvas-editor
@@ -19,6 +21,7 @@ import { BoardClockControl } from '../canvas/BoardClockControl';
 import { CanvasStage } from '../canvas/CanvasStage';
 import '../canvas/CanvasStage.css';
 import { registerItemComponent } from '../canvas/itemComponentRegistry';
+import '../canvas/members/BoardMembersItem';
 import { WorkloadDashboard } from '../canvas/WorkloadDashboard';
 
 // item.component === 'board-clock-control'：s-board-clock-control（見 ui-board-clock.md），
