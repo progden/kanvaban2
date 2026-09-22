@@ -95,3 +95,42 @@
 問題：s-board-list 的「刪除」按鈕是否應該只對該 Board 的 Owner 顯示（如設計稿灰字註記「角色僅 r-board-owner」所述，需要額外的角色判斷，例如打 GET /api/boards/{boardId}/members 找出自己的角色），還是可以像本任務實作的一樣，對 Owner 與 Member 都顯示、靠後端 uc-delete-board pre p1 的既有拒絕訊息把關（如角色與權限表、spec Scenario 的寫法所暗示）？
 
 選項：A. 維持本任務目前實作（所有看得到 Board 的使用者都看到刪除按鈕，非 Owner 點擊後由後端訊息擋下，設計稿註記視為尚待用 CR 更正或補充說明）；B. 修改為只有 Owner 才顯示刪除按鈕（依設計稿註記，需要額外的角色判斷機制，屬於後續修正任務）
+
+## OQ-T-12-fe-board-list-04
+
+[Level: s-board-delete-dialog]
+- 等級：高
+- 阻塞：否
+- 接手：人工
+- 原因代碼：spec-conflict
+- 開立：Review 第 2 輪（2026-09-22）
+- 狀態：待處理
+
+情況：【兩處矛盾並列】
+
+本則補充 `OQ-T-12-fe-board-list-03`（不取代它）：該則已並列 `ui-user-membership.md` s-board-list 角色與權限表與 `BoardDeleteDialog.dc.html` 的灰字註記，但漏掉了同一份**已定稿 ui 文件**裡另一段與設計稿註記同向、且比設計稿更具效力的原文，人工只看 OQ-03 會低估「只對 Owner 顯示」那一側的依據強度。
+
+引用 `.dev/F02-user-membership/ui-user-membership.md` s-board-delete-dialog「角色與權限」表（逐字）：
+『| 角色 | 看得到 | 做得到 |
+|---|---|---|
+| `r-board-owner` | 該 Board 名稱、其底下的 Swimlane 數、Stage 數與卡片數 | 確認刪除、取消 |』
+
+同一節「狀態」段（逐字）：
+『- 無權限：不適用（`uc-delete-board` roles 僅 `r-board-owner`，spec 未定義本畫面內的角色差異）』
+
+與上述同向的設計稿原文，引用 `.dev/ui-prototype/BoardDeleteDialog.dc.html` 第 77 行灰字註記（逐字）：
+『從 s-board-list 每一列的「刪除 Board」操作進來（OQ-47）；角色僅 r-board-owner』
+
+相反方向的原文，引用 `.dev/F02-user-membership/spec-user-membership.md`（Feature「Board 權限管理」）：
+『Scenario: 只有 Owner 可以刪除 Board，刪除後底下的資料一併刪除
+    Given 這個 Board 有 2 個 Swimlane、3 個 Stage，以及數張卡片
+    When "雅婷" 嘗試刪除這個 Board
+    Then 系統應該顯示錯誤訊息 "只有 Owner 可以刪除看板"
+    When 我以 Owner 身分刪除這個 Board
+    Then 這個 Board 應該不再存在』
+
+推論：s-board-delete-dialog 的角色與權限表只列 `r-board-owner`，代表這個對話框在 ui 層次上預期只有 Owner 會進入；本任務目前的實作（列表每一列都顯示「刪除」按鈕，Member 點擊後也會開啟同一個對話框、按下確認才由後端訊息擋下）會讓 Member 進到一個 ui 只授予 `r-board-owner` 的畫面。但 spec 的 `uc-delete-board` Scenario 明確寫了 Member（"雅婷"）「嘗試刪除這個 Board」並收到錯誤訊息，代表 spec 預期存在一條非 Owner 也能發動刪除嘗試的路徑；依 `docs-convention.md` 的引用方向 `spec ← ui ← design`，spec 較上游，因此本審查判定本任務照 spec 做不必違反任何定稿文字，維持不阻塞。另外，前端目前沒有取得「自己在某個 Board 的角色」的管道：`GET /api/boards` 回傳的 `BoardResponse` 沒有角色欄位，要改成只對 Owner 顯示需要新增後端欄位或每列多打一次 `GET /api/boards/{boardId}/members`，屬於本任務範圍外的結構性改動。
+
+問題：s-board-delete-dialog 的角色與權限表既然只列 `r-board-owner`，是否代表「列表的刪除按鈕與這個對話框都只該對 Owner 開放」（需要 CR 補上前端取得自身角色的機制與對應 spec 欄位），還是維持 spec Scenario 隱含的「任何成員都可嘗試、由 `uc-delete-board` pre p1 擋下」？
+
+選項：A. 維持現況（照 spec Scenario，所有看得到 Board 的使用者都看得到刪除按鈕與對話框，非 Owner 確認後由「只有 Owner 可以刪除看板」擋下），由人工判定是否開 CR 把 ui 的角色與權限表與設計稿註記改成與 spec 一致；B. 依 ui s-board-delete-dialog 角色與權限表與設計稿註記，改成只有 Owner 看得到刪除入口，並開 CR 補上前端判斷自身角色所需的資料來源（例如 `BoardResponse` 增加呼叫者角色欄位），交由後續修訂實例實作。
