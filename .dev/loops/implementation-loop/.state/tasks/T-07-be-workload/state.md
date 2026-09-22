@@ -1,17 +1,23 @@
 # T-07-be-workload state
 
-> 2026-09-22 Dev 第 2 輪 收尾，status＝`review-pending`。每輪由 `loopctl finish` 覆寫。
+> 2026-09-22 Review 第 2 輪 收尾，status＝`done`。每輪由 `loopctl finish` 覆寫。
 
-Review 第 1 輪的 D-01、D-02 皆已修好，本輪送出 review-pending。
+# T-07-be-workload state
 
-- D-01：`MemberWorkloadEntry` 補上 `displayName`（`WorkloadController.toEntry()` 填
-  `user.getDisplayName()`），`WorkloadSteps` 新增顯示名字與帳號 ID 不同的前置資料與斷言。
-- D-02：移除 `WorkloadQueryService` 未使用的 import；修正 `WorkloadSteps` class javadoc 與
-  實際註冊步驟不符的敘述。
+Review 第 2 輪：核准（`done`），不帶保留。
 
-Review 請先看：`WorkloadResponse.java`／`WorkloadController.java` 的 `displayName` 欄位、
-`WorkloadSteps.thenWorkloadIs` 新增的斷言與 `ensureUserExists` 的 displayName 設定。
+- 自行重跑 `./gradlew clean build --no-daemon`：BUILD SUCCESSFUL in 3m 25s，14 tasks executed；
+  30 份測試結果檔全部 0 failures／0 errors（workload.feature 6、card-assignment.feature 7、
+  WorkloadCalculatorTest 4）。
+- `workload.feature` 與 `spec-workload.md` gherkin 區塊逐字比對相符；`uc-view-workload` post p1～p4
+  與 `uc-drag-assign-card-owner` post 皆有對應實作與測試；兩個 usecase 無 fail 定義，無 `@fail-` 可抽查。
+- D-01 已修：`MemberWorkloadEntry` 補 `displayName`，由 `user.getDisplayName()` 填入，測試以
+  「顯示名字 ≠ 帳號 ID」的前置資料斷言，且確認該斷言非空轉。
+- D-02 已修：移除未使用的 `CardJpaEntity` import；`WorkloadSteps` javadoc 與實際註冊步驟一致。
+- `kanban-core` 無 Spring／JPA import，本任務也未動 `kanban-core/**`；投影在
+  `io.progden.kanban.query.workload`。
+- 邊界乾淨：只動 workload 產出、`CardAssignmentSteps` +5 行（第 1 輪已判定可接受）與
+  `.state/tasks/T-07-be-workload/`。
+- 無任何 OQ（阻塞或不阻塞皆無）。
 
-`./gradlew clean build --no-daemon`：BUILD SUCCESSFUL，3m16s，14 tasks executed；
-workload.feature 6 Scenario／card-assignment.feature 7 Scenario／全部 30 份測試結果 0 failures。
-無新增 OQ。
+可合併回 `loop/implementation`。
