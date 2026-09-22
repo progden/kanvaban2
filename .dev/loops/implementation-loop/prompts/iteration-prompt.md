@@ -12,7 +12,7 @@
 | 開發（Dev） | `dev-prompt.md` | 該任務對應的程式碼＋測試，commit 在專屬 worktree 分支 | 每個 `todo`→`doing` 任務各自一個 worktree，最多 5 個並行 |
 | 審查（Review） | `review-prompt.md` | 審查紀錄／`D-xx` 修正任務／核准或退回 | 與對應 Dev 同一個 worktree，讀取＋可新增審查紀錄，不可改動產出程式碼本體 |
 
-安排階段先跑完、產生任務清單，才進入開發／審查的平行階段；`.state/tasks/<task-id>/fixes.md` 裡新出現的 `D-xx`（審查退回的修正項）由**同一個任務的 Dev 輪**處理，不算新任務、不佔用新的並行名額。
+安排階段先跑完、產生任務清單，才進入開發／審查的平行階段。驅動腳本在「無可執行任務」時不直接判定 `DONE`，先重跑一次安排階段；安排階段若追加了任務列、或把已補齊依據的 `blocked` 改回 `todo`，回到平行階段；安排階段沒有任何變動才判定 `DONE`。`.state/tasks/<task-id>/fixes.md` 裡新出現的 `D-xx`（審查退回的修正項）由**同一個任務的 Dev 輪**處理，不算新任務、不佔用新的並行名額。
 
 ## 1. 角色
 
@@ -25,7 +25,7 @@
 | 分類 | 路徑 | 誰可以改 |
 |---|---|---|
 | 不變規則 | `prompts/*.md` | 人工 |
-| 任務清單（靜態） | `.state/tasks.md`（ID／產出範圍／依賴／備註，**沒有狀態欄**） | 人工或安排階段；Dev／Review **不可改** |
+| 任務清單（靜態） | `.state/tasks.md`（ID／產出範圍／依賴／備註，**沒有狀態欄**） | 人工或安排階段；Dev／Review **不可改**。備註欄固定記「涵蓋 CR：CR-xxx, CR-yyy」（安排階段寫入該列時，spec 中該主體全部 `@CR-xxx` tag 的集合；沒有寫「無」）。這是安排階段判斷程式碼是否落後 spec 的唯一依據。 |
 | 任務目錄 | `.state/tasks/<task-id>/`：`status`／`fixes.md`／`decision-log.md`／`review.md`／`open-questions.md`／`state.md`／`rounds.log`（收尾紀錄）／`driver-note.md`（驅動腳本標 blocked 的原因） | **只有這個任務自己的 Dev／Review，而且只能透過 `scripts/loopctl`**（依各自權限，見第 1 節）；別的任務只讀。安排階段自己的紀錄寫 `.state/tasks/_planning/` |
 | ADR | `.state/adr/ADR-<task-id>-<兩位數>-<slug>.md`，一則一檔 | Dev 只能**新增**檔；既有 ADR 只能由人工改狀態欄 |
 | 舊紀錄 | `.state/archive/**`（2026-09-18 前的共用 `decision-log.md`／`review.md`／`open-questions.md`／`state.md`／`adr.md`，`OQ-IMPL-01～17`、`ADR-001` 在這裡） | 只讀（人工可在既有 OQ 底下補解除說明） |
@@ -53,7 +53,7 @@ Dev／Review 跟驅動腳本、跟下一輪的自己，都是透過 `.state/` �
 1. **用既有 ID 確保完整**：任務清單的每一列必須能指回 `.dev/F0x-*/spec-*.md` 的實體 ID（`board`／`card`／…）或 `ui-*.md` 的 Screen ID（`s-*`），不可以無中生有一個規格沒定義的主體。跨模組關聯要看 `r-` 關係表（例如 `card.assignees ref user` → `card` 依賴 `user`）與「其他名詞」裡點名的跨模組依據（例如 F03「asOf 取自 Board Clock」→ widgets 依賴 board-clock）。
 2. **依主體（aggregate）依賴關係排序**：一個任務等於一個 Aggregate Root（含它的內部實體，例如 `board` 任務包含 `swimlane`／`stage`）或一個前端畫面群組；任務 A 依賴任務 B，若 A 的實體欄位 `ref` 到 B 的實體，或 A 是唯讀 projection 而其計算依據來自 B（F03／F05／F06 之於 F01／F02／F04）。前端畫面群組依賴它呼叫的 `uc-xxx` 所屬的後端任務。
 3. **顆粒度：一個主體一次做完，不可切更細**：後端任務範圍 = 該 Aggregate 的 `kanban-core` domain model（entity／值物件／不變量）＋ `kanban-spring` 的 port 實作／application service／web endpoint／persistence（JPA repository、Flyway/DDL）＋ 該模組 Scenario 對應的 Cucumber step definitions，一次做完，不能拆成「這輪只做 domain，下輪做 web」。前端任務範圍 = 該畫面群組的元件、狀態管理、API 串接、`ui-*.md` 操作表列出的所有 UseCase 觸發與驗收條件，一次做完。反面例子：不可以把 `card` 拆成「新增 card domain」「新增 card API」兩個任務——那是同一個任務裡的子步驟，不是任務清單的列。
-4. **CR 是既有 Aggregate 的追加任務，不是新主體**：CR-001～004 已經併入 F01／F02 現在的名詞定義（例如 `card.assignees`、`comment.author`、Board Clock 的 `occurredAt`），任務清單不用照 CR 演進順序重放，直接依「規格現在定案的樣子」實作；但 `board-clock`（F04）因為會改寫 `board`／`card` 事件的時間來源，實作上仍必須排在 `board`／`card` 任務之後（見任務清單 `BE-board-clock` 的依賴）。
+4. **CR 是既有 Aggregate 的追加任務，不是新主體**。任務主體＝一個 Aggregate Root 或畫面群組，ID 永久不變（例：`T-03-be-card`）；同一主體可以有多個**任務實例**，每個實例是一輪完整的 Dev→Review→合併。安排階段第一次排任務時依「規格現在定案的樣子」實作，已併入 spec 的 CR 不重放；任務 `done` 並合併後 spec 又因 CR 變動，由安排階段追加一列修訂實例 `<原ID>-rN`（N 從 2 起遞增），產出範圍只寫該批 CR 的差異，依賴列出前一個實例（需已合併）及該 CR 波及的其他主體的對應實例。同一主體的多筆未套用 CR 併成一個實例，不一 CR 一列。修訂實例的 worktree、分支、`.state/tasks/<task-id>/` 目錄與一般任務完全相同。`board-clock`（F04）排在 `board`／`card` 之後的規則不變。
 5. **規格未遷移／未定義時標 blocked，不可腦補**：F03～F06 的 `spec-*.md` 目前「名詞定義」三張表尚未遷移（見 `spec-migration-loop`），没有 `entity`／欄位／`r-` 可引用；這幾個模組對應的任務在任務清單裡先標 `blocked`，附 OQ 指向 `spec-migration-loop` 進度，等該模組遷移完成（三張表補齊）才能改 `todo`。同理，F03／F05／F06 目前沒有 `ui-*.md`，對應前端任務也標 `blocked`。
 
 ## 4. 平行執行模型：worktree × 最多 5 個並行配對
@@ -90,7 +90,7 @@ Dev／Review 跟驅動腳本、跟下一輪的自己，都是透過 `.state/` �
 - Dev 不可以把任務標成 `done`；Review 不可以不跑建置／測試就核准。
 - Review 不可以直接修改 Dev 的程式碼（只能寫 `D-xx`／審查紀錄，改動權在 Dev）。
 - 不可以無視第 3 節的依賴順序提前開工下游任務（依賴任務要「已合併」不是「已完成本輪」）。
-- 不可以把 F03～F06、對應前端任務的 `blocked` 狀態自行改成 `todo`——除非該模組的 spec／ui 遷移已完成（三張表／畫面規格齊備）。
+- 不可以把 F03～F06、對應前端任務的 `blocked` 狀態自行改成 `todo`——除非該模組的 spec／ui 遷移已完成（三張表／畫面規格齊備）。解除 `blocked` 只能由安排階段（或人工）執行，Dev／Review 不可。
 - 不可以修改 `.dev/conventions/**`、`scripts/**`（既有規格檢查腳本）、`CLAUDE.md`，也不可以修改 spec／ui／design 文件本體去配合程式碼實作上的方便。
 - 一個 worktree 不可以同時處理多個任務；一輪不可以做多個任務。
 - `.state/` 底下不可以寫自己任務目錄以外的地方（見第 2.1 節）；不可以改 `.state/tasks.md`。
@@ -100,4 +100,4 @@ Dev／Review 跟驅動腳本、跟下一輪的自己，都是透過 `.state/` �
 
 ## 8. 收尾條件（單一任務）
 
-任務從 `todo` 到真正 `done`（已合併回整合分支）才算完成；驅動腳本的整體停止條件（`DONE`／`MAX_ITERATIONS`／無可執行任務／連續失敗）比照 [`無人值守文件-loop-建置與限制規則.md`](../../lesson-learned/無人值守文件-loop-建置與限制規則.md) 第 8 節，差異在「可執行任務」判定要同時檢查依賴是否**已合併**、以及並行名額（同時 `doing` 的任務數 < `MAX_PARALLEL`）是否還有空位。
+任務從 `todo` 到真正 `done`（已合併回整合分支）才算完成；驅動腳本的整體停止條件（`DONE`／`MAX_ITERATIONS`／無可執行任務／連續失敗）比照 [`無人值守文件-loop-建置與限制規則.md`](../../lesson-learned/無人值守文件-loop-建置與限制規則.md) 第 8 節，差異在「可執行任務」判定要同時檢查依賴是否**已合併**、以及並行名額（同時 `doing` 的任務數 < `MAX_PARALLEL`）是否還有空位。「無可執行任務」時，先重跑一次安排階段確認 spec 是否有新的 CR 需要追加修訂實例，安排階段沒有任何變動才判定 `DONE`（見第 0 節）。

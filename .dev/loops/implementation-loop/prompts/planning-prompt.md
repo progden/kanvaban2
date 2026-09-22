@@ -1,6 +1,6 @@
 # planning-prompt（安排階段）
 
-> 執行一次（或在規格遷移進度更新後重跑校正），產出／校正 `.state/tasks.md`。單一 agent、讀規則書 `iteration-prompt.md` 第 3 節（任務排序原則）後執行本提示詞。
+> 由驅動腳本在「無可執行任務」時自動重跑（見 `iteration-prompt.md` 第 0、8 節），也可在規格遷移進度更新後人工重跑校正；每次執行都是依現況校對、產出／校正 `.state/tasks.md`。單一 agent、讀規則書 `iteration-prompt.md` 第 3 節（任務排序原則）後執行本提示詞。
 > 這一輪**不寫程式碼**，只讀規格與設計稿、寫任務清單。
 
 ## 你的任務
@@ -10,6 +10,12 @@
 3. 讀下方「前端設計稿畫面清單」（已固定列出，來自 claude.ai Design 類型 Artifact，你不需要也不應該重新去解析該 Artifact 的內部機制，只需要把清單當作既有畫面依據）。
 4. 依 `iteration-prompt.md` 第 3 節五條規則，把每個 Aggregate Root／畫面群組整理成一列任務，`T-xx` 由你排定依賴後的建議執行序（依賴要先於被依賴者，但驅動腳本實際會依「依賴是否 done」平行選取，排列順序只是給人看的參考序，不是唯一合法序）。
 5. 校對／更新 `.state/tasks.md`：若既有任務列的描述、依賴、範圍已經涵蓋規格內容，不要無理由重寫；若規格自上次安排後有變（例如某模組剛完成遷移），更新該列，並在 `.state/tasks/_planning/decision-log.md` 記一則決策紀錄說明改了什麼、依據哪裡。
+
+5-1. 對每個已有 `done` 實例的主體：取 spec 目前該主體的 `@CR-xxx` 集合 A，取該主體所有 `done` 列備註「涵蓋 CR」的聯集 B。A − B 非空 → 追加修訂實例列 `<原ID>-rN`；為空 → 不動。主體最新實例狀態為 `doing`／`review-pending` 時本輪不追加。`todo` 且未開工的列若 spec 有變，直接更新該列的產出範圍與備註，不開修訂實例。
+5-2. 一筆 CR 波及多個主體時，依 `iteration-prompt.md` 第 3 節第 2 條的主體依賴方向排各修訂實例的依賴。
+5-3. CR 在 `.dev/CR.md` 有列但 spec 沒打 `@CR-xxx` tag、或 tag 指向的實體找不到 → 該修訂實例標 `blocked`、開 `OQ-PLAN-xx`，不可自行推斷範圍。
+5-4. 前端畫面群組以 `ui-*.md` 的 CR tag 做同樣比對。
+
 6. 任何找不到依據的地方（規格未遷移、ui 檔不存在、設計稿沒有對應畫面）：任務標 `blocked`（寫 `.state/tasks/<task-id>/status`），在 `.state/tasks/_planning/open-questions.md` 用 lesson-learned 的 OQ 格式追加一則（ID 格式 `OQ-PLAN-<兩位數>`），**不可以自己編一個「合理的」範圍去填補**。
 
 ## 前端設計稿畫面清單（檔案已匯出到 `.dev/ui-prototype/`，檔案與 Screen ID 的正式對照見該目錄 `README.md`；下表是當初排任務用的推測）
@@ -37,31 +43,19 @@
 
 沿用既有兩個 loop 的任務清單慣例（狀態值：`todo`／`doing`／`review-pending`／`blocked`／`done`；`G*` 關卡、`D-xx` 修正任務），每列另外要有「產出範圍」「依賴（已合併才算滿足）」兩欄。
 
-**2026-09-18 起 `.state/tasks.md` 沒有狀態欄**：表格欄位固定為 `| ID | 產出範圍 | 依賴（需已合併） | 備註 |`，任務狀態寫在 `.state/tasks/<task-id>/status`（單行檔，不存在＝`todo`；只有要標 `blocked` 時才需要你建立）；`D-xx` 在各任務的 `fixes.md`。原因見 `iteration-prompt.md` 第 2.1 節（並行 worktree 合併衝突）。下方種子資料裡的「狀態：…」是初始狀態的意思，不是要你在 `tasks.md` 加欄位。**不可以改已經存在的 `status` 檔**（那是驅動腳本／Dev／Review 的執行進度），除非是把已補齊依據的 `blocked` 改回 `todo`。下方是目前依規格導出的種子資料，供你校對，不是要你從零重排：
+**`.state/tasks.md` 沒有狀態欄**：表格欄位固定為 `| ID | 產出範圍 | 依賴（需已合併） | 備註 |`，任務狀態寫在 `.state/tasks/<task-id>/status`（單行檔，不存在＝`todo`；只有要標 `blocked` 時才需要你建立）；`D-xx` 在各任務的 `fixes.md`；備註欄固定記「涵蓋 CR：CR-xxx, CR-yyy」（見 `iteration-prompt.md` 第 2 節）。原因見 `iteration-prompt.md` 第 2.1 節（並行 worktree 合併衝突）。**不可以改已經存在的 `status` 檔**（那是驅動腳本／Dev／Review 的執行進度），除非是把已補齊依據的 `blocked` 改回 `todo`。
+
+格式範例（僅示範格式，實際內容以 `.state/tasks.md` 現況與規格校對結果為準）：
 
 ```
-T-00-scaffold   | 建立 kanban-core / kanban-spring / kanban-frontend 專案骨架（Gradle 多模組、pnpm 前端專案、CI 可跑但無業務邏輯） | 依賴：無 | 狀態：todo
-T-01-be-user    | F02 User Aggregate Root（domain + port + application + web + persistence，不含 BoardMembership） | 依賴：T-00-scaffold | 狀態：todo
-T-02-be-board   | F01 board Aggregate（board + swimlane + stage） | 依賴：T-01-be-user（board.created-by） | 狀態：todo
-T-03-be-card    | F01 card Aggregate（card + comment） | 依賴：T-02-be-board、T-01-be-user（assignees/author） | 狀態：todo
-T-04-be-board-membership | F02 BoardMembership + ActivityRecord | 依賴：T-02-be-board、T-01-be-user | 狀態：todo
-T-05-be-board-clock | F04 Board Clock（board.clock-time/clock-status，改寫 board/card 事件的 occurredAt 來源） | 依賴：T-02-be-board、T-03-be-card | 狀態：todo
-T-06-be-kanban-widgets | F03 唯讀 projection（Lead/Cycle Time、WIP、Throughput/CFD、到期提醒） | 依賴：T-02-be-board、T-03-be-card、T-05-be-board-clock | 狀態：blocked（spec 名詞定義尚未遷移，見 OQ）
-T-07-be-workload | F05 唯讀 projection（Active Card 統計） | 依賴：T-03-be-card、T-04-be-board-membership | 狀態：blocked（spec 名詞定義尚未遷移，見 OQ）
-T-08-be-feature-cr-board | F06 唯讀 projection（Feature/CR 卡標籤解讀） | 依賴：T-03-be-card | 狀態：blocked（spec 名詞定義尚未遷移，見 OQ）
-T-09-be-canvas-layout | F07 canvas + item + viewport | 依賴：T-02-be-board、T-04-be-board-membership（viewport.user） | 狀態：todo
-T-10-fe-shell   | 前端 app shell（路由、API client、登入態管理） | 依賴：T-00-scaffold、T-01-be-user | 狀態：todo
-T-11-fe-auth    | Login、Signup | 依賴：T-10-fe-shell | 狀態：todo
-T-12-fe-board-list | BoardList、BoardCreateDialog、BoardDeleteDialog、State*（BoardList 系列） | 依賴：T-10-fe-shell、T-02-be-board、T-04-be-board-membership | 狀態：todo
-T-13-fe-board-detail | Main、PanelStage、CardAddDialog、CardDeleteDialog、CardDetail、StageDeleteDialog、SwimlaneDeleteDialog、AssigneePicker、State*（Board/CardDetail 系列） | 依賴：T-12-fe-board-list、T-03-be-card | 狀態：todo
-T-14-fe-member-management | MemberManagement | 依賴：T-13-fe-board-detail、T-04-be-board-membership | 狀態：todo
-T-15-fe-widgets | F03 對應畫面 | 依賴：T-13-fe-board-detail、T-06-be-kanban-widgets | 狀態：blocked（無 ui-kanban-widgets.md、無設計稿）
-T-16-fe-workload | F05 對應畫面 | 依賴：T-12-fe-board-list、T-07-be-workload | 狀態：blocked（無 ui-workload.md、無設計稿）
-T-17-fe-feature-cr-board | F06 對應畫面 | 依賴：T-13-fe-board-detail、T-08-be-feature-cr-board | 狀態：blocked（無 ui-feature-cr-board.md、無設計稿）
-T-18-fe-canvas  | CanvasPanel | 依賴：T-13-fe-board-detail、T-09-be-canvas-layout | 狀態：todo（範圍限 spec「待釐清」以外的 Item/Viewport CRUD；與 F03 圖表元件整合部分不在範圍內，spec 本身尚未定義）
+| ID | 產出範圍 | 依賴（需已合併） | 備註 |
+|---|---|---|---|
+| T-03-be-card | F01 card Aggregate（card + comment） | T-02-be-board、T-01-be-user（assignees/author） | 涵蓋 CR：CR-001, CR-002 |
+| T-06-be-kanban-widgets | F03 唯讀 projection（Lead/Cycle Time、WIP、Throughput/CFD、到期提醒） | T-02-be-board、T-03-be-card、T-05-be-board-clock | blocked（spec 名詞定義尚未遷移，見 OQ-PLAN-xx）；涵蓋 CR：無 |
+| T-03-be-card-r2 | CR-011：卡片目的 Swimlane/Stage 不存在時補上 pre/fail，只改此差異 | T-03-be-card（需已合併）、T-05-be-board-clock-r1 | 涵蓋 CR：CR-001, CR-002, CR-011 |
 ```
 
-把以上種子資料寫入 `.state/tasks.md` 時，補上任務清單慣例要求的規則段（狀態值定義、挑選順序：依賴全 `done`（已合併）且 `doing` 中任務數 < 5 才能選、`G*` 關卡怎麼核准）；`blocked` 的四列要各自在 `.state/tasks/_planning/open-questions.md` 開一則 OQ，指向對應模組的 spec-migration 進度／缺失的 ui 檔。
+校對既有 `.state/tasks.md` 時，確認以下規則段仍在表格前，且與 `iteration-prompt.md` 一致；缺漏或不一致時補上／修正即可：狀態值定義、挑選順序（依賴全 `done`（已合併）且 `doing` 中任務數 < 5 才能選）、`G*` 關卡怎麼核准、`blocked` 要開 OQ。新增或校正 `blocked` 列時，各自在 `.state/tasks/_planning/open-questions.md` 開一則 OQ，指向對應模組的 spec-migration 進度／缺失的 ui 檔／CR 依據缺口（見步驟 5-3）。
 
 ## 收尾
 
