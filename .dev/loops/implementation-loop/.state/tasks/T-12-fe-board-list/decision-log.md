@@ -38,3 +38,29 @@
 - `pnpm run test`（`kanban-frontend`，vitest）：5 個測試檔、25 個測試全數通過。
 - `pnpm exec oxlint`：exit code 0，無警告無錯誤。
 - `./gradlew test --no-daemon`（repo 根目錄，含 `kanban-core`、`kanban-spring` 兩個模組全部測試，含既有 Cucumber 規格測試與新增的 `BoardApplicationServiceTest` 兩則測試）：BUILD SUCCESSFUL。
+
+## 2026-09-22 Dev 第 2 輪：第 2 輪：處理 D-01～D-03
+
+### 這輪做了什麼
+
+依 Review 第 1 輪退回的 D-01～D-03，全部處理完畢，未擴大改動範圍。
+
+- **D-01**：`BoardListPage.test.tsx` 的 `s-board-list` describe 補一則測試——點擊列表中 Board 名稱按鈕，斷言畫面切到 `/boards/<id>`（以 `BoardCanvasPage` 目前的佔位文字 `Board 畫布（待 T-13 實作）` 驗證），對應 ui 驗收條件「選擇列表中的 Board 後開啟該 Board」。測試檔改動以外沒有動 production code（`BoardListPage.tsx` 的導覽邏輯第 1 輪已經正確，只是缺測試）。
+- **D-02**：開立 `OQ-T-12-fe-board-list-02`（等級高／不阻塞／接手 T-14-fe-board-item／`spec-ambiguous`），逐字引用 `ui-user-membership.md` s-board-list 操作表第 127 行與角色權限表第 115 行、`.state/tasks.md` T-14 那一列的產出範圍原文，說明本任務判斷 `uc-reject-board-access-by-nonmember` 屬於 T-14（載入 `s-board` 的任務）而非本任務（`s-board-list` 只處理看得到的 Board，看不到的不會在列表出現，不需要在此處理「直接開啟」）。
+- **D-03**：`OQ-T-12-fe-board-list-01` 引文不逐字且漏列反證，無法直接修改既有 OQ（`loopctl oq` 只有 `add`，沒有 update／edit 子指令），故開立 `OQ-T-12-fe-board-list-03` 取代它：修正成逐字引文（`ui-user-membership.md` 第 116 行含正確半形空格），並把 `.dev/ui-prototype/BoardDeleteDialog.dc.html` 第 77 行灰字註記「角色僅 r-board-owner」逐字並列為與 spec／ui 相反的原文，情況欄改標「兩處矛盾並列」、`reason-code` 改為 `spec-conflict`；仍判定等級高、不阻塞（design 與 spec/ui 的引用方向本應以 spec/ui 為準，這裡呈現矛盾是為了讓人工看到 design 稿可能需要用 CR 更正，而不是本任務必須違反某段定稿原文才能完成——本任務仍可依 spec/ui 的既有實作完成，只是留一則 OQ 供後續判斷）。原 `OQ-T-12-fe-board-list-01` 未刪除（`loopctl` 沒有刪除 OQ 的機制），內容已在新 OQ 開頭註明「本則取代 OQ-T-12-fe-board-list-01」。
+
+### 涵蓋範圍
+
+本輪不涉及新的 entity／uc／Scenario，延續第 1 輪的涵蓋（`s-board-list`／`s-board-create-dialog`／`s-board-delete-dialog`，`uc-view-board-list`／`uc-create-board`／`uc-delete-board`）。本輪新增測試覆蓋了「選擇 Board 進入」這條原本缺測試的驗收條件；`uc-reject-board-access-by-nonmember` 仍延後給 T-14，但這次有 OQ 正式追蹤歸屬。
+
+### 待確認事項
+
+- `OQ-T-12-fe-board-list-02`：`uc-reject-board-access-by-nonmember` 該由 T-14-fe-board-item 實作、還是需要拆成獨立任務／補在路由層。
+- `OQ-T-12-fe-board-list-03`（取代 `OQ-T-12-fe-board-list-01`）：`s-board-list` 的「刪除」按鈕是否應該只對 Owner 顯示——spec／ui 角色權限表寫法傾向「不分角色顯示、靠後端拒絕」，但設計稿 `BoardDeleteDialog.dc.html` 灰字註記「角色僅 r-board-owner」傾向「只對 Owner 顯示」，兩處矛盾，本任務維持第 1 輪選項 A 的實作。
+
+### Check（本輪重跑）
+
+- `pnpm run build`（`kanban-frontend`）：`tsc -b && vite build`，成功（`✓ built in 798ms`）。
+- `pnpm run test`（vitest）：`Test Files 5 passed (5)`、`Tests 26 passed (26)`（比第 1 輪多 1 則，對應 D-01 補的測試）。
+- `pnpm exec oxlint`：exit 0，無輸出。
+- 本輪未改動 `kanban-spring`／`kanban-core` 任何檔案，未重跑 `./gradlew test`（第 1 輪已跑過且綠燈，本輪範圍不影響後端）。
