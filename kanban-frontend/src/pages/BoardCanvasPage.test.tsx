@@ -315,4 +315,82 @@ describe('s-canvas', () => {
     expect(Number(toolbar.style.top.replace('px', ''))).toBeGreaterThanOrEqual(0);
     expect(Number(toolbar.style.zIndex)).toBeGreaterThan(Number(screen.getByTestId('canvas-item-item-1').style.zIndex));
   });
+
+  it('設定錨定方式為固定於畫面觸發 uc-set-item-anchor，帶上依檢視區換算後的位置與大小', async () => {
+    const viewport = { x: 10, y: 20, zoom: 1.25 };
+    const calls = await renderCanvas({
+      '/api/boards/board-a/canvas': () => jsonResponse(canvasResponse([BOARD_ITEM], viewport)),
+      '/api/canvas-items/item-1/anchor': () =>
+        jsonResponse({ ...BOARD_ITEM, anchor: 'screen', x: -12.5, y: -25, width: 1125, height: 750 }),
+    });
+
+    fireEvent.mouseDown(screen.getByTestId('canvas-item-item-1'), { clientX: 0, clientY: 0 });
+    fireEvent.mouseUp(window, { clientX: 0, clientY: 0 });
+    fireEvent.click(screen.getByRole('button', { name: '固定於畫面' }));
+
+    await waitFor(() =>
+      expect(calls.some((c) => c.url.endsWith('/api/canvas-items/item-1/anchor'))).toBe(true),
+    );
+    const anchorCall = calls.find((c) => c.url.endsWith('/api/canvas-items/item-1/anchor'));
+    expect(anchorCall?.body).toEqual({ anchor: 'screen', x: -12.5, y: -25, width: 1125, height: 750 });
+
+    const item = screen.getByTestId('canvas-item-item-1');
+    await waitFor(() => expect(item.style.left).toBe('-12.5px'));
+    expect(screen.getByRole('button', { name: '錨定於畫布' })).toBeInTheDocument();
+  });
+
+  it('批次移除前顯示確認，確認後觸發 uc-remove-items，所選元件皆從畫面移除', async () => {
+    const secondItem = { ...BOARD_ITEM, id: 'item-2', x: 500, y: 200 };
+    const calls = await renderCanvas({
+      '/api/boards/board-a/canvas': () => jsonResponse(canvasResponse([BOARD_ITEM, secondItem])),
+      '/api/boards/board-a/canvas/items/remove-batch': () => jsonResponse(undefined, 204),
+    });
+
+    fireEvent.mouseDown(screen.getByTestId('canvas-item-item-1'), { clientX: 0, clientY: 0 });
+    fireEvent.mouseUp(window, { clientX: 0, clientY: 0 });
+    fireEvent.mouseDown(screen.getByTestId('canvas-item-item-2'), { clientX: 500, clientY: 200, shiftKey: true });
+    fireEvent.mouseUp(window, { clientX: 500, clientY: 200, shiftKey: true });
+
+    fireEvent.click(screen.getByRole('button', { name: '移除' }));
+    const heading = screen.getByRole('heading', { name: '移除這 2 個元件？' });
+    expect(heading).toBeInTheDocument();
+
+    const dialogPanel = heading.closest('.dialog-panel');
+    if (dialogPanel === null) {
+      throw new Error('找不到確認對話框');
+    }
+    fireEvent.click(within(dialogPanel as HTMLElement).getByRole('button', { name: '移除' }));
+
+    await waitFor(() => expect(screen.queryByTestId('canvas-item-item-1')).not.toBeInTheDocument());
+    expect(screen.queryByTestId('canvas-item-item-2')).not.toBeInTheDocument();
+    const batchCall = calls.find((c) => c.url.endsWith('/api/boards/board-a/canvas/items/remove-batch'));
+    expect(batchCall?.body).toEqual({ itemIds: ['item-1', 'item-2'] });
+  });
+
+  it('批次移除失敗時顯示後端訊息，所選元件仍在畫面上', async () => {
+    const secondItem = { ...BOARD_ITEM, id: 'item-2', x: 500, y: 200 };
+    await renderCanvas({
+      '/api/boards/board-a/canvas': () => jsonResponse(canvasResponse([BOARD_ITEM, secondItem])),
+      '/api/boards/board-a/canvas/items/remove-batch': () => jsonResponse({ message: '這些元件不可移除' }, 409),
+    });
+
+    fireEvent.mouseDown(screen.getByTestId('canvas-item-item-1'), { clientX: 0, clientY: 0 });
+    fireEvent.mouseUp(window, { clientX: 0, clientY: 0 });
+    fireEvent.mouseDown(screen.getByTestId('canvas-item-item-2'), { clientX: 500, clientY: 200, shiftKey: true });
+    fireEvent.mouseUp(window, { clientX: 500, clientY: 200, shiftKey: true });
+
+    fireEvent.click(screen.getByRole('button', { name: '移除' }));
+    const heading = screen.getByRole('heading', { name: '移除這 2 個元件？' });
+    const dialogPanel = heading.closest('.dialog-panel');
+    if (dialogPanel === null) {
+      throw new Error('找不到確認對話框');
+    }
+    fireEvent.click(within(dialogPanel as HTMLElement).getByRole('button', { name: '移除' }));
+
+    await waitFor(() =>
+      expect(within(dialogPanel as HTMLElement).getByRole('alert')).toHaveTextContent('這些元件不可移除'),
+    );
+    expect(screen.getByTestId('canvas-item-item-1')).toBeInTheDocument();
+    expect(screen.getByTestId('canvas-item-item-2')).toBeInTheDocument();
+  });
 });
