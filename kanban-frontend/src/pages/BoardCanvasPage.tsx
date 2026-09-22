@@ -13,8 +13,14 @@ import * as canvasApi from '../api/canvasApi';
 import type { CanvasView } from '../api/canvasApi';
 import { ApiError } from '../api/http';
 import { useAuth } from '../auth/useAuth';
+import { BoardClockControl } from '../canvas/BoardClockControl';
 import { CanvasStage } from '../canvas/CanvasStage';
 import '../canvas/CanvasStage.css';
+import { registerItemComponent } from '../canvas/itemComponentRegistry';
+
+// item.component === 'board-clock-control'：s-board-clock-control（見 ui-board-clock.md），
+// 每個模組各自的 item 內容在這裡（畫布掛載處）自行註冊，其餘元件識別碼由各自任務補上。
+registerItemComponent('board-clock-control', BoardClockControl);
 
 export function BoardCanvasPage() {
   const { boardId } = useParams<{ boardId: string }>();

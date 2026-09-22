@@ -83,6 +83,23 @@
   color: var(--color-text-muted);
 }
 
+.clock-control {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.clock-control__time {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.clock-control__status {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
 .canvas-item__handle {
   position: absolute;
   width: 10px;

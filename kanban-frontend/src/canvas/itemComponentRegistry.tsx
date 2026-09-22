@@ -10,6 +10,7 @@ export interface ItemContentProps {
   component: string;
   width: number;
   height: number;
+  boardId: string;
 }
 
 const registry = new Map<string, ComponentType<ItemContentProps>>();
