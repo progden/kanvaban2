@@ -79,3 +79,6 @@
 1. `OQ-T-14-fe-board-item-02`（逐字版，取代 `OQ-T-14-fe-board-item-01`）：`s-board` 操作表「拖曳看板成員頭像到卡片追加負責人」未實作，因為拖曳來源「看板成員」item 尚不存在。**接手者＝人工**（OQ 的 `接手` 欄填「無」是對的——`.state/tasks.md` 第 43 行 T-15-fe-member-management 的產出範圍只寫 `s-member-management`，沒有涵蓋「看板成員」item 本身與跨 item 拖曳機制）：需人工在選項 A（等 F07 補定義後由安排階段追加 T-14 修訂實例或新的 F07 任務）與選項 B（走 CR 移除該操作列）之間決定。覆核等級／阻塞：`s-board` 狀態為「討論中」且該事項已標 ⚠️，略過此列不需違反任何定稿原文，故「高／否」正確，可核准為附保留 `done`。
 2. `OQ-T-14-fe-board-item-01`：引文有誤，已由 02 取代。**接手者＝人工**（`loopctl` 只能追加不能改既有列，請人工將 01 標記為已被 02 取代後關閉）。
 3. `OQ-T-12-fe-board-list-02`（`uc-reject-board-access-by-nonmember`）：本任務未新增動作，決策紀錄已記錄現況符合「顯示訊息，停留本畫面」。**接手者＝人工**（沿用 T-12 的既有 OQ，本任務不接手）。
+
+#### 人工複核（2026-09-22）
+Review 已判定 done，但合併回 `loop/implementation` 失敗（分支分岔後與 T-17／T-19 對 `boardApi.ts`／`cardApi.ts`／`BoardCanvasPage.tsx` 的新增內容衝突，見 `driver-note.md`）。人工逐檔解衝突（`2fd755e`）：三份衝突皆為純新增（各自新增不同的 API 函式／import），功能上沒有重疊，直接串接保留兩邊。`pnpm build`／`pnpm test` 全綠（17 測試檔、113 測試）。判定：**核准，status=done，已合併**。
