@@ -64,7 +64,7 @@ public class KanbanWidgetsQueryService {
         Board board = loadBoard(boardId);
         List<CardTimeline> timelines = loadTimelines(boardId, board);
         List<StageSummary> stages = board.getStages().stream()
-                .map(s -> new StageSummary(s.getId(), s.getName()))
+                .map(s -> new StageSummary(s.getId(), s.getName(), s.getRole()))
                 .toList();
         return WipCalculator.countByStage(timelines, stages);
     }

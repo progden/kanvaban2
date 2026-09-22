@@ -242,12 +242,12 @@ public class KanbanWidgetsSteps {
 
     // ---- Then：WIP／Aging ----
 
-    @Then("應該顯示 Stage {string} 卡片數 {int}、{string} 卡片數 {int}、{string} 卡片數 {int}")
+    @Then("應該顯示 Stage {string} 卡片數 {int}、{string} 卡片數 {int}，且不顯示 Done 角色的 Stage {string}")
     public void thenStageCardCountsAre(
-            String firstStage, int firstCount, String secondStage, int secondCount, String thirdStage, int thirdCount) {
+            String firstStage, int firstCount, String secondStage, int secondCount, String doneStage) {
         assertEquals(firstCount, stageWipCount(firstStage));
         assertEquals(secondCount, stageWipCount(secondStage));
-        assertEquals(thirdCount, stageWipCount(thirdStage));
+        assertTrue(stageWipCountIfPresent(doneStage).isEmpty(), "WIP 清單不應包含 Done 角色的 Stage " + doneStage);
     }
 
     @Then("卡片 {string} 的年齡應該顯示為 {int} 天")
@@ -309,14 +309,18 @@ public class KanbanWidgetsSteps {
     }
 
     private int stageWipCount(String stageName) {
+        return stageWipCountIfPresent(stageName)
+                .orElseThrow(() -> new AssertionError("WIP 清單中找不到 Stage " + stageName));
+    }
+
+    private java.util.Optional<Integer> stageWipCountIfPresent(String stageName) {
         List<?> stages = (List<?>) lastBody.get("stages");
         UUID stageId = resolveStageId(stageName);
         return stages.stream()
                 .map(s -> (Map<?, ?>) s)
                 .filter(s -> stageId.toString().equals(s.get("stageId")))
                 .findFirst()
-                .map(s -> ((Number) s.get("count")).intValue())
-                .orElseThrow(() -> new AssertionError("WIP 清單中找不到 Stage " + stageName));
+                .map(s -> ((Number) s.get("count")).intValue());
     }
 
     private Map<?, ?> findCardTiming(String title) {

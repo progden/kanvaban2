@@ -9,14 +9,14 @@ Feature: WIP 與 Aging WIP 監控
     Given 我已登入系統，並開啟 Board "產品開發看板"
     And Stage "進行中" 已設定角色為 Start，Stage "完成" 已設定角色為 Done
 
-  @uc-view-wip
+  @CR-012 @uc-view-wip
   # Related aggregate:
   #   board: read
   #   card: read
   Scenario: 檢視各 Stage 目前的卡片數量
     Given Stage "待辦" 有 3 張卡片，Stage "進行中" 有 2 張卡片，Stage "完成" 有 5 張卡片
     When 我開啟 WIP 圖表
-    Then 應該顯示 Stage "待辦" 卡片數 3、"進行中" 卡片數 2、"完成" 卡片數 5
+    Then 應該顯示 Stage "待辦" 卡片數 3、"進行中" 卡片數 2，且不顯示 Done 角色的 Stage "完成"
 
   @uc-view-aging-wip
   # Related aggregate:
