@@ -1,18 +1,24 @@
 # T-18-fe-widgets state
 
-> 2026-09-22 Dev 第 1 輪 收尾，status＝`review-pending`。每輪由 `loopctl finish` 覆寫。
+> 2026-09-22 Review 第 1 輪 收尾，status＝`doing`。每輪由 `loopctl finish` 覆寫。
 
-現況：F03 四個儀表板 Canvas item（s-cycle-lead-time-dashboard／s-wip-dashboard／
-s-throughput-cfd-dashboard／s-duedate-reminder）已實作完成，串接 T-06 六個
-uc-view-* 端點，透過 T-13 的 registerItemComponent 掛上 canvas。
+2026-09-22 Review 第 1 輪：退回，status＝`doing`。
 
-本輪做了什麼：
-- 新增 api/kanbanWidgetsApi.ts（六個 widgets 端點）
-- 新增 widgets/ 下四個內容元件 + 對應測試 + 註冊模組，App.tsx 匯入時註冊
-- item.component 值暫採 Screen ID 字串（OQ-49 未定案，見 OQ-T-18-fe-widgets-01，不阻塞）
-- build／test／lint 皆綠：tsc+vite build 成功、vitest 48/48 通過、oxlint 僅既有 1 則 warning
+自己跑過的驗證（kanban-frontend/）：
+- npm run build（tsc -b && vite build）：成功
+- npm run test（vitest run）：10 個測試檔、48 個測試全過
+- npm run lint（oxlint）：僅 1 則既有 warning（T-13 的 itemComponentRegistry.tsx）
 
-Review 請先看：
-- decision-log.md「本輪判斷與理由」六點技術決定（尤其 item.component 命名、boardId 取得方式、
-  平均值欄位衍生計算三點，偏離規格字面或補了規格沒寫的細節）
-- OQ-T-18-fe-widgets-01 是否認同暫定的 item.component 命名方式
+通過的項目：建置／測試綠燈；六個 uc-view-* 皆有整合測試斷言「開啟畫面即觸發」；
+抽查 uc-view-duedate-reminder fail p1（輸入 0 → 輸入保留、訊息與後端一致、不再呼叫 API）成立；
+任務邊界乾淨（只動 kanban-frontend/src 與自己的 .state 任務目錄）；
+無設計稿的四個畫面沿用既有色票變數與 .field-input／.btn-sm，未發明風格，
+產品畫面無規格註記外洩；需確認？欄皆「否」，實作也無二次確認。
+
+退回原因（D-01）：OQ-T-18-fe-widgets-01 引 spec-canvas-layout.md 第 31 行時，
+刪掉括號『不用 UI 層的 Screen ID，spec 不引用 ui』卻未標刪節——而本任務正是把
+item.component 定成四個 ui 層 Screen ID，被刪的那句是唯一反向先例。
+等級／阻塞／接手三欄判定本身正確，問題只在引文不逐字。
+
+下一輪 Dev 要做：依 D-01 另開一則取代用的 OQ（完整逐字引文、補第三個命名選項），
+並在 decision-log 正面回應那句先例；決定改名的話四個測試的 component 值同步、維持全綠。
