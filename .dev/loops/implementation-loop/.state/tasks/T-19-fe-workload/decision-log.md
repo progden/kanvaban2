@@ -35,3 +35,25 @@
 - `pnpm run test -- --run`（`kanban-frontend/`）：10 個測試檔、61 個測試全過（含本輪新增 3 個測試檔 15 個案例）。
 - `pnpm run build`（`tsc -b && vite build`）：成功，無型別錯誤。
 - `pnpm run lint`（oxlint）：僅既有的 1 則 `itemComponentRegistry.tsx` fast-refresh 警告（非本輪改動的檔案，本輪新增／修改檔案皆無警告）。
+
+## 2026-09-22 Dev 第 2 輪：補 D-01／D-02 的 OQ 與歸屬
+
+### 這輪做了什麼
+
+處理 Review 第 1 輪退回的 D-01、D-02，兩項都是紀錄與 OQ 歸屬問題，程式碼維持第 1 輪現狀不動。
+
+1. **D-01**：`WorkloadDashboard.tsx` 對 `r-board-viewer` 停用頭像拖曳，是 `ui-workload.md`「無角色差異」定稿內容與 `spec-user-membership.md` `r-board-viewer` 定義（不能編輯）之間的矛盾，不是低風險技術決定。已開立 `OQ-T-19-fe-workload-02`（高／不阻塞／owner＝人工／`spec-conflict`），情況欄用「兩處矛盾並列」逐字列出兩份定稿文件的原文，選項含「維持現行實作」「依 ui-workload.md 取消角色差異」「待 spec-user-membership.md 待釐清項全面盤點後再決定」。
+2. **D-02**：原 `OQ-T-19-fe-workload-01` 把「拖放目標端」與「點擊卡片開啟詳情」兩件事包在同一則、都指向 `T-14-fe-board-item` 接手，但後者其實落在 T-19 自己的產出範圍。已拆成兩則新 OQ 取代：
+   - `OQ-T-19-fe-workload-03`（owner＝T-14-fe-board-item）：拖放目標端（F01 `s-board` item 卡片縮圖 `onDrop`），並註明 T-14 目前 `doing`、看不到本輪的 `ADR-T-19-fe-workload-01`，需要人工在安排階段轉達或另開銜接任務。
+   - `OQ-T-19-fe-workload-04`（owner＝人工）：`s-cards-by-assignee` 卡片列導向 `s-card-detail`，說明這是 T-19 自己範圍內、但依賴 T-14 合併後的路由才能補上，需人工安排後續修訂實例。
+   `OQ-T-19-fe-workload-01` 保留不動（歷史紀錄），新兩則內文皆已註明取代其對應的哪一半。
+
+### 待確認事項
+
+- `OQ-T-19-fe-workload-02`：`r-board-viewer` 是否應停用頭像拖曳，待人工依兩份定稿文件裁示。
+- `OQ-T-19-fe-workload-03`：T-14-fe-board-item 合併時是否沿用 `cardAssigneeDrag.ts` 接上卡片縮圖 `onDrop`。
+- `OQ-T-19-fe-workload-04`：`s-cards-by-assignee` 卡片列導向 `s-card-detail` 由誰、何時補上。
+
+### Check（實際跑的指令與結果）
+
+本輪未改動 `kanban-frontend/**` 程式碼，沿用第 1 輪已通過的建置／測試結果（`pnpm run test -- --run` 10 檔 61 案全過、`pnpm run build` 成功、`pnpm run lint` 僅既有 fast-refresh 警告），未重跑。
