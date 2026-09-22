@@ -1,21 +1,14 @@
 # T-14-fe-board-item state
 
-> 2026-09-22 Dev 第 1 輪 收尾，status＝`review-pending`。每輪由 `loopctl finish` 覆寫。
+> 2026-09-22 Review 第 1 輪 收尾，status＝`doing`。每輪由 `loopctl finish` 覆寫。
 
-現在狀態：s-board、s-swimlane-list／delete、s-stage-list／delete、s-card-add-dialog、
-s-card-detail、s-card-delete-dialog、s-card-assignee-picker 九個畫面已實作並掛載到
-F07 s-canvas 的 item.component === 'board'。新增後端端點
-GET /api/boards/{boardId}/cards（重用既有 CardRepository 查詢）供交會格取卡片。
+Review 第 1 輪判定：退回（doing）。
 
-這輪做了什麼：兩個 commit（[dev] 產出程式碼、[test] 測試），開 1 則不阻塞 OQ
-（OQ-T-14-fe-board-item-01：看板成員頭像拖曳指派負責人的來源 item 不存在，F07 待補）。
-
-Review 要先看什麼：
-1. decision-log 第 2 節「規格沒講清楚、本輪自行決定的地方」5 點技術決定（尤其第 1、2 點
-   swimlane/stage 管理入口改用對話框、owner 權限交後端擋，是否可接受）。
-2. `kanban-frontend/src/board/BoardItemContent.tsx` 與 `BoardContext.tsx`：確認
-   Context 掛法沒有動到 T-13 CanvasStage.tsx 本體邏輯。
-3. `kanban-frontend/src/board/BoardItemContent.test.tsx`（24 個測試）＋
-   `CardApplicationServiceTest.java` 新增的 2 個測試。
-4. `./gradlew build --no-daemon` 與 `kanban-frontend` 的 `tsc -b`／`oxlint`／`vitest run`
-   本輪皆已跑過且全綠，Review 仍需自行重跑驗證。
+- 自己跑過：`./gradlew build --no-daemon --rerun-tasks` BUILD SUCCESSFUL（12 task 全部實跑）；`npx tsc -b` 0 錯誤；`npx vitest run` 7 檔 67 測試全過。工作區乾淨。
+- 邊界乾淨：只動 `kanban-frontend/src/board/**`、兩支 api、`BoardCanvasPage.tsx` 的 Provider 包裝、`kanban-spring` 的一個讀取端點（比照已合併的 T-12 先例，含成員資格檢查與測試），`.state/` 只動本任務目錄。`kanban-core` 未被動到。
+- 退回原因（四條 D-xx 待下一輪 Dev 處理）：
+  - D-01：s-card-detail 留言未顯示 `comment.created-at`（ui 資料表與 CardDetail.dc.html 都要求顯示）。
+  - D-02：刪除 Swimlane／Stage 對話框在卡片數為 0 時完全不顯示卡片數（ui：無卡片時卡片數顯示為 0）。
+  - D-03：9 條 ui 驗收條件無任何測試（uc-move-card-stage、兩個移動的 p2 失敗、rename／reorder swimlane 與 stage、空名稱新增泳道、START/DONE 互斥顯示、uc-add-comment p2）。
+  - D-04：`OQ-T-14-fe-board-item-01` 第三段 OQ-19 引文非逐字（「看板成員清單」被寫成「看板成員頭像清單」，且省略關鍵句），要另開逐字版 OQ 取代。
+- 未決 OQ：`OQ-T-14-fe-board-item-01`（高／不阻塞／接手＝人工），`uc-assign-card-owner-by-drag` 本輪未實作，等 F07 補「看板成員」item 與跨 item 拖曳機制。
