@@ -33,3 +33,9 @@
 
 #### 判定理由
 建置紅燈，照規則不能核准。可是修好紅燈必須改任務範圍外、已經合併的檔案，再跑一輪 Dev 也修不好（review-prompt Block 條件 (d)），所以判 blocked，交給人工處理 OQ-02。等人工修好整合分支的重複步驟定義、把整合分支合併進本分支之後，重跑 Review 應該就能核准；屆時要保留 OQ-03（接手：人工）。
+
+#### 人工複核（2026-09-22，接續 Review 第 1 輪的判定）
+`eabb823` 合併時已把本任務程式碼併入 `loop/implementation`（Review 第 1 輪判定 blocked 也照樣合併，見 run-loop.sh）；阻塞的兩個環境／spec 問題後續都已解決：
+- OQ-T-06-be-kanban-widgets-02（重複步驟定義導致建置紅燈）：人工於 `10ebe48` 修掉，`BoardClockSteps`／`FeatureCrBoardSteps` 的重複 `@Given("我已登入系統，並開啟 Board {string}")` 改留 `BoardSteps` 唯一一份。
+- OQ-T-06-be-kanban-widgets-03（WIP 是否含 Done 角色 Stage）：CR-012 定案為「不含」，程式碼落差已於 `a773e7a` 補齊（`WipCalculator` 依 `StageSummary.role()` 過濾 Done、同步 `.feature`／Cucumber step／單元測試）。
+`./gradlew :kanban-core:test :kanban-spring:test --no-daemon` 全線通過（kanban-core 47、kanban-spring 89，共 136 個測試，0 failures/0 errors），`kanban-widgets-wip.feature` 兩個 Scenario 皆過。判定：**核准，status=done**。
