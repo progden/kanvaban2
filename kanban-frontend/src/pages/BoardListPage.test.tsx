@@ -106,6 +106,20 @@ describe('s-board-list', () => {
     expect(screen.getByRole('heading', { name: '刪除看板「產品開發看板」？' })).toBeInTheDocument();
     expect(screen.getByText('產品開發看板')).toBeInTheDocument();
   });
+
+  it('選擇列表中的 Board 後開啟該 Board（F07 s-canvas，跨模組，本任務只驗證導覽）', async () => {
+    mockFetchByPath({
+      '/api/session': SESSION_OK,
+      '/api/boards': () => jsonResponse([BOARD_A]),
+    });
+
+    await renderBoardList();
+    await waitFor(() => expect(screen.getByText('產品開發看板')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: '產品開發看板' }));
+
+    await waitFor(() => expect(screen.getByText('Board 畫布（待 T-13 實作）')).toBeInTheDocument());
+  });
 });
 
 describe('s-board-create-dialog', () => {
