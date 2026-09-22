@@ -16,14 +16,22 @@ interface PlaceItemDialogProps {
     width: number;
     height: number;
     anchor: ItemAnchor;
+    movable: boolean;
+    resizable: boolean;
+    removable: boolean;
   }) => Promise<void>;
 }
 
 export function PlaceItemDialog({ onCancel, onSubmit }: PlaceItemDialogProps) {
   const [component, setComponent] = useState('');
+  const [x, setX] = useState('0');
+  const [y, setY] = useState('0');
   const [width, setWidth] = useState('300');
   const [height, setHeight] = useState('200');
   const [anchor, setAnchor] = useState<ItemAnchor>('canvas');
+  const [movable, setMovable] = useState(true);
+  const [resizable, setResizable] = useState(true);
+  const [removable, setRemovable] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -31,7 +39,17 @@ export function PlaceItemDialog({ onCancel, onSubmit }: PlaceItemDialogProps) {
     setSubmitting(true);
     setError(null);
     try {
-      await onSubmit({ component, x: 0, y: 0, width: Number(width), height: Number(height), anchor });
+      await onSubmit({
+        component,
+        x: Number(x),
+        y: Number(y),
+        width: Number(width),
+        height: Number(height),
+        anchor,
+        movable,
+        resizable,
+        removable,
+      });
     } catch (e) {
       setError(e instanceof ApiError ? e.message : '放置元件失敗，請稍後再試');
     } finally {
@@ -60,6 +78,32 @@ export function PlaceItemDialog({ onCancel, onSubmit }: PlaceItemDialogProps) {
             value={component}
             onChange={(e) => setComponent(e.target.value)}
           />
+        </div>
+        <div className="field" style={{ display: 'flex', gap: 12 }}>
+          <div style={{ flex: 1 }}>
+            <label className="field-label" htmlFor="place-item-x">
+              X
+            </label>
+            <input
+              id="place-item-x"
+              type="number"
+              className="field-input"
+              value={x}
+              onChange={(e) => setX(e.target.value)}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label className="field-label" htmlFor="place-item-y">
+              Y
+            </label>
+            <input
+              id="place-item-y"
+              type="number"
+              className="field-input"
+              value={y}
+              onChange={(e) => setY(e.target.value)}
+            />
+          </div>
         </div>
         <div className="field" style={{ display: 'flex', gap: 12 }}>
           <div style={{ flex: 1 }}>
@@ -100,6 +144,20 @@ export function PlaceItemDialog({ onCancel, onSubmit }: PlaceItemDialogProps) {
             <option value="canvas">隨畫布移動</option>
             <option value="screen">固定於畫面</option>
           </select>
+        </div>
+        <div className="field" style={{ display: 'flex', gap: 12 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}>
+            <input type="checkbox" checked={movable} onChange={(e) => setMovable(e.target.checked)} />
+            可移動
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}>
+            <input type="checkbox" checked={resizable} onChange={(e) => setResizable(e.target.checked)} />
+            可調整大小
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}>
+            <input type="checkbox" checked={removable} onChange={(e) => setRemovable(e.target.checked)} />
+            可移除
+          </label>
         </div>
 
         <div className="canvas-dialog__actions">

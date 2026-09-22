@@ -16,6 +16,13 @@ type Handle = (typeof HANDLES)[number];
 
 const ZOOM_STEP = 1.25;
 const CLICK_THRESHOLD_PX = 4;
+// z-index 分層：畫布元素依 item.z 排序後取相對名次（避免 0／負值被格線背景蓋住），
+// 畫面固定元素整組高於畫布元素，畫面固定的操作介面（加入元件、浮動工具列、縮放控制、錯誤訊息）
+// 再高於全部 item，確保 ui-canvas-layout.md 操作表的入口不會被任何元素蓋住或裁切。
+const CANVAS_ITEM_Z_BASE = 1;
+const SCREEN_ITEM_Z_BASE = 100000;
+const CHROME_Z = 200000;
+const TOOLBAR_MIN_TOP = 4;
 
 interface MoveDrag {
   kind: 'move';
@@ -309,10 +316,12 @@ export function CanvasStage({
     }
   }
 
-  async function handleToggleLock(item: ItemView) {
-    const locked = !item.movable || !item.resizable;
+  async function handleSetCapability(item: ItemView, patch: Partial<Pick<ItemView, 'movable' | 'resizable' | 'removable'>>) {
+    const movable = patch.movable ?? item.movable;
+    const resizable = patch.resizable ?? item.resizable;
+    const removable = patch.removable ?? item.removable;
     try {
-      const updated = await canvasApi.setItemCapabilities(item.id, locked, locked, item.removable);
+      const updated = await canvasApi.setItemCapabilities(item.id, movable, resizable, removable);
       setItems((cur) => cur.map((i) => (i.id === updated.id ? updated : i)));
     } catch (e) {
       setError(e instanceof ApiError ? e.message : '設定元件能力失敗，請稍後再試');
@@ -360,6 +369,9 @@ export function CanvasStage({
     width: number;
     height: number;
     anchor: ItemAnchor;
+    movable: boolean;
+    resizable: boolean;
+    removable: boolean;
   }) {
     const created = await canvasApi.placeItem(boardId, input);
     setItems((cur) => [...cur, created]);
@@ -387,6 +399,19 @@ export function CanvasStage({
   const selectedItems = items.filter((i) => selectedIds.includes(i.id));
   const singleSelected = selectedItems.length === 1 ? selectedItems[0] : null;
 
+  const canvasRanks = new Map(
+    items
+      .filter((i) => i.anchor === 'canvas')
+      .sort((a, b) => a.z - b.z)
+      .map((i, idx) => [i.id, CANVAS_ITEM_Z_BASE + idx] as const),
+  );
+  const screenRanks = new Map(
+    items
+      .filter((i) => i.anchor === 'screen')
+      .sort((a, b) => a.z - b.z)
+      .map((i, idx) => [i.id, SCREEN_ITEM_Z_BASE + idx] as const),
+  );
+
   return (
     <div
       data-testid="canvas-stage"
@@ -395,7 +420,7 @@ export function CanvasStage({
       onMouseDown={handleStageMouseDown}
     >
       {canEdit && (
-        <div className="canvas-add-button" onMouseDown={(e) => e.stopPropagation()}>
+        <div className="canvas-add-button" style={{ zIndex: CHROME_Z }} onMouseDown={(e) => e.stopPropagation()}>
           <button type="button" className="btn-sm" onClick={() => setPlaceDialogOpen(true)}>
             ＋ 加入元件
           </button>
@@ -403,7 +428,11 @@ export function CanvasStage({
       )}
 
       {error !== null && (
-        <p role="alert" className="form-error canvas-page__error" style={{ position: 'absolute', left: 68, top: 14 }}>
+        <p
+          role="alert"
+          className="form-error canvas-page__error"
+          style={{ position: 'absolute', left: 68, top: 14, zIndex: CHROME_Z }}
+        >
           {error}
         </p>
       )}
@@ -412,7 +441,7 @@ export function CanvasStage({
         const box = itemToScreenBox(item, viewport);
         const selected = selectedIds.includes(item.id);
         const Content = resolveItemComponent(item.component);
-        const zIndex = item.anchor === 'screen' ? 100000 + item.z : item.z;
+        const zIndex = canvasRanks.get(item.id) ?? screenRanks.get(item.id) ?? CANVAS_ITEM_Z_BASE;
         return (
           <div
             key={item.id}
@@ -425,7 +454,7 @@ export function CanvasStage({
               <span>{item.component}</span>
             </div>
             <div className="canvas-item__body">
-              <Content itemId={item.component} width={box.width} height={box.height} />
+              <Content itemId={item.id} component={item.component} width={box.width} height={box.height} />
             </div>
             {selected && canEdit && selectedIds.length === 1 && item.resizable && (
               <>
@@ -448,7 +477,8 @@ export function CanvasStage({
           className="canvas-toolbar"
           style={{
             left: itemToScreenBox(singleSelected, viewport).left,
-            top: itemToScreenBox(singleSelected, viewport).top - 42,
+            top: Math.max(TOOLBAR_MIN_TOP, itemToScreenBox(singleSelected, viewport).top - 42),
+            zIndex: CHROME_Z,
           }}
           onMouseDown={(e) => e.stopPropagation()}
         >
@@ -459,9 +489,31 @@ export function CanvasStage({
             置底
           </button>
           <div className="canvas-toolbar__divider" />
-          <button type="button" className="btn-sm" onClick={() => void handleToggleLock(singleSelected)}>
-            {singleSelected.movable && singleSelected.resizable ? '鎖定' : '解鎖'}
+          <button
+            type="button"
+            className="btn-sm"
+            aria-pressed={singleSelected.movable}
+            onClick={() => void handleSetCapability(singleSelected, { movable: !singleSelected.movable })}
+          >
+            可移動：{singleSelected.movable ? '開' : '關'}
           </button>
+          <button
+            type="button"
+            className="btn-sm"
+            aria-pressed={singleSelected.resizable}
+            onClick={() => void handleSetCapability(singleSelected, { resizable: !singleSelected.resizable })}
+          >
+            可調整大小：{singleSelected.resizable ? '開' : '關'}
+          </button>
+          <button
+            type="button"
+            className="btn-sm"
+            aria-pressed={singleSelected.removable}
+            onClick={() => void handleSetCapability(singleSelected, { removable: !singleSelected.removable })}
+          >
+            可移除：{singleSelected.removable ? '開' : '關'}
+          </button>
+          <div className="canvas-toolbar__divider" />
           <button type="button" className="btn-sm" onClick={() => void handleToggleAnchor(singleSelected)}>
             {singleSelected.anchor === 'canvas' ? '固定於畫面' : '錨定於畫布'}
           </button>
@@ -480,7 +532,7 @@ export function CanvasStage({
       {canEdit && selectedItems.length > 1 && (
         <div
           className="canvas-toolbar"
-          style={{ left: 16, top: 60 }}
+          style={{ left: 16, top: 60, zIndex: CHROME_Z }}
           onMouseDown={(e) => e.stopPropagation()}
         >
           <span style={{ fontSize: 12 }}>已選取 {selectedItems.length} 個元件</span>
@@ -495,7 +547,7 @@ export function CanvasStage({
         </div>
       )}
 
-      <div className="canvas-viewport-controls" onMouseDown={(e) => e.stopPropagation()}>
+      <div className="canvas-viewport-controls" style={{ zIndex: CHROME_Z }} onMouseDown={(e) => e.stopPropagation()}>
         <button type="button" aria-label="縮小" onClick={() => applyZoom(1 / ZOOM_STEP)}>
           −
         </button>

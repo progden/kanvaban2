@@ -7,6 +7,7 @@ import type { ComponentType } from 'react';
 
 export interface ItemContentProps {
   itemId: string;
+  component: string;
   width: number;
   height: number;
 }
@@ -17,8 +18,8 @@ export function registerItemComponent(component: string, renderer: ComponentType
   registry.set(component, renderer);
 }
 
-function PlaceholderContent({ itemId }: ItemContentProps) {
-  return <div className="canvas-item__placeholder">元件「{itemId}」內容待其所屬模組實作</div>;
+function PlaceholderContent({ component }: ItemContentProps) {
+  return <div className="canvas-item__placeholder">元件「{component}」內容待其所屬模組實作</div>;
 }
 
 export function resolveItemComponent(component: string): ComponentType<ItemContentProps> {
