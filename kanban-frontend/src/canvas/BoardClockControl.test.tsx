@@ -1,6 +1,5 @@
-// 對應 ui-board-clock.md s-board-clock-control 操作表／驗收條件。
-// 獨立掛載測試（不經過 App／AuthProvider），比照 itemComponentRegistry 的最小掛載點設計，
-// useAuth 直接 mock 掉，只驗證這個 item 內容本體的行為。
+// 對應 ui-board-clock.md s-board-clock-control 操作表／驗收條件（CR-014：對話框，非 canvas item）。
+// 獨立掛載測試（不經過 App／AuthProvider），useAuth 直接 mock 掉，只驗證這個對話框本體的行為。
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BoardClockControl } from './BoardClockControl';
@@ -40,7 +39,7 @@ const BOARD = {
 const MEMBERS_OWNER = [{ username: 'user1', displayName: '陳柏翰', role: 'OWNER' }];
 const MEMBERS_MEMBER = [{ username: 'user1', displayName: '陳柏翰', role: 'MEMBER' }];
 
-const PROPS = { itemId: 'item-1', component: 'board-clock-control', width: 300, height: 200, boardId: 'board-a' };
+const PROPS = { boardId: 'board-a', onClose: () => {} };
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -139,5 +138,21 @@ describe('s-board-clock-control', () => {
     await waitFor(() => expect(screen.getByTestId('clock-control-time')).toBeInTheDocument());
     expect(screen.queryByRole('button', { name: '調整看板時間' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '暫停' })).not.toBeInTheDocument();
+  });
+
+  it('點擊關閉按鈕觸發 onClose，看板時間維持關閉前的狀態', async () => {
+    mockFetchByPath({
+      '/api/boards/board-a': () => jsonResponse(BOARD),
+      '/api/boards/board-a/members': () => jsonResponse(MEMBERS_OWNER),
+    });
+    const onClose = vi.fn();
+
+    render(<BoardClockControl boardId="board-a" onClose={onClose} />);
+    await waitFor(() => expect(screen.getByTestId('clock-control-time')).toBeInTheDocument());
+
+    fireEvent.change(screen.getByLabelText('調整目標時間'), { target: { value: '2026-09-12T13:00:00' } });
+    fireEvent.click(screen.getByRole('button', { name: '關閉' }));
+
+    expect(onClose).toHaveBeenCalled();
   });
 });

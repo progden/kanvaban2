@@ -32,7 +32,9 @@
 - 接手：無
 - 原因代碼：spec-ambiguous
 - 開立：Dev 第 2 輪（2026-09-22）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-22，人工採選項 B）**
+
+解除說明：不採本任務原本推論的「Screen ID 是本體，因為 spec 沒有對應識別碼」，改採「用完整 Screen ID（含 `s-` 前綴）」——理由是 T-18 四個儀表板已經用完整 Screen ID 實作且已合併，其餘 `activity-log`／`board-clock-control`／`workload-dashboard`／`feature-cr-board` 四個原本用 kebab-case 去前綴（`ADR-T-17-fe-clock-control-01`），改回加上 `s-` 前綴的代價（4 個 item）小於反過來改 T-18（4 個 item + 已合併程式碼）。T-18 本身的 `item.component` 值不需要改動。
 
 本則取代 OQ-T-18-fe-widgets-01（原則引文刪節）。
 
@@ -56,7 +58,9 @@
 - 接手：人工
 - 原因代碼：spec-ambiguous
 - 開立：Review 第 2 輪（2026-09-22）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-22，人工採選項 A）**
+
+解除說明：現在就統一定案，不等 OQ-49 整合 CR：`item.component` 一律用完整 Screen ID（含 `s-` 前綴）。`activity-log`／`board-clock-control`（後改為對話框，不再適用）／`workload-dashboard`／`feature-cr-board` 已改回加上 `s-` 前綴（`s-activity-log`／`s-workload-dashboard`／`s-feature-cr-board`），T-18 四個儀表板維持原樣不動。`pnpm build`／`pnpm test` 全綠（19 測試檔、129 測試）。
 
 情況：【推論＋所本原文】
 

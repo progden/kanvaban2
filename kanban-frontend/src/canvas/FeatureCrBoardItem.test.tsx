@@ -1,6 +1,6 @@
 // 對應 spec-feature-cr-board.md「Feature: Feature／CR 追蹤表」uc-view-feature-cr-board；
 // 透過 App 掛載（比照 ActivityLogItem.test.tsx），因為畫面依賴 AuthProvider／ProtectedRoute
-// 與路由參數 boardId，且掛載於 Canvas item.component === 'feature-cr-board'。
+// 與路由參數 boardId，且掛載於 Canvas item.component === 's-feature-cr-board'。
 import { render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -8,7 +8,7 @@ import App from '../App';
 import { registerItemComponent } from './itemComponentRegistry';
 import { FeatureCrBoardItem } from './FeatureCrBoardItem';
 
-registerItemComponent('feature-cr-board', FeatureCrBoardItem);
+registerItemComponent('s-feature-cr-board', FeatureCrBoardItem);
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(status === 204 ? null : JSON.stringify(body), { status });
@@ -42,7 +42,7 @@ const BOARD_A = {
 
 const FEATURE_CR_BOARD_ITEM = {
   id: 'item-1',
-  component: 'feature-cr-board',
+  component: 's-feature-cr-board',
   anchor: 'canvas',
   x: 0,
   y: 0,

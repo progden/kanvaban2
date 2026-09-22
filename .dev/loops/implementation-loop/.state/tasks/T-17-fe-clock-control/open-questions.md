@@ -10,7 +10,9 @@
 - 接手：人工
 - 原因代碼：canvas-item-integration-undefined
 - 開立：Dev 第 1 輪（2026-09-22）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-22，人工決策）**
+
+解除說明：命名慣例定案為完整 Screen ID（含 `s-` 前綴），見 `OQ-T-18-fe-widgets-02`／`OQ-T-18-fe-widgets-03` 解除說明與 `ADR-T-17-fe-clock-control-01`「修正」段（原提案的 kebab-case 去前綴被覆蓋）。另外 `s-board-clock-control` 本身依 `OQ-T-17-fe-clock-control-02` 改為對話框，不再是 canvas item，`item.component` 命名慣例對它已不適用；`activity-log`／`workload-dashboard`／`feature-cr-board` 三個仍是 item 的都已改為 `s-activity-log`／`s-workload-dashboard`／`s-feature-cr-board`。註冊位置維持原案（畫面檔頂層）。
 
 情況：【推論＋所本原文】
 `ui-board-clock.md`「進入與離開」原文：『從哪裡進來：不適用——內容以 F07 item 形式顯示於 s-canvas，見 spec-canvas-layout.md；如何新增此類元件的具體機制仍待該 spec「待釐清」與整合 CR 定案（依 OQ-49）』。
@@ -27,7 +29,9 @@
 - 接手：人工
 - 原因代碼：spec-conflict
 - 開立：Review 第 1 輪（2026-09-22）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-22，人工採選項 A，開 CR-014）**
+
+解除說明：以操作表／「類型」欄為準，`ui-board-clock.md`「進入與離開」改為「F07 s-canvas 畫面上方列的『看板時間』按鈕」，「角色與權限」表移除「比照畫布 item 一律可見」的過時附註，詳見 `.dev/CR.md` CR-014。程式碼同步：`BoardClockControl.tsx` 改為 `dialog-backdrop`／`dialog-panel` 對話框（含「關閉」按鈕，觸發 `onClose`），從 `BoardCanvasPage.tsx` 上方列新增的「看板時間」按鈕開啟，不再是 canvas item（移除 `registerItemComponent('s-board-clock-control', ...)`）。`./scripts/ui-check` 0 error；`pnpm build`／`pnpm test` 全綠（19 測試檔、129 測試，含新增「點擊關閉按鈕觸發 onClose」測試）。
 
 情況：【兩處矛盾並列】
 `.dev/F04-board-clock/ui-board-clock.md`「s-board-clock-control」標頭與操作表，逐字引用：『類型：對話框』、『- 中途放棄會怎樣：關閉對話框，看板時間維持關閉前的狀態（不套用未送出的調整輸入）』、操作表最後一列『| 關閉 | — | 關閉對話框 | — | 否 |』、「狀態」段『錯誤：`uc-adjust-board-clock` 失敗時保留對話框與已輸入值，顯示訊息』。

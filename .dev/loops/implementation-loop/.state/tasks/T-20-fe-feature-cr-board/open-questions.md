@@ -10,7 +10,9 @@
 - 接手：無
 - 原因代碼：spec-ambiguous
 - 開立：Dev 第 1 輪（2026-09-22）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-22，人工混合選項 A／B）**
+
+解除說明：入口機制（維持一般化的「＋ 加入元件」入口，不新增專屬入口）與版面沿用選項 A，視為先行版本；但 `item.component` 命名規則不等 OQ-49，現在就統一定案為完整 Screen ID，見 `OQ-T-18-fe-widgets-02`／`03` 解除說明。本任務的值已從 `"feature-cr-board"` 改為 `"s-feature-cr-board"`（`pnpm build`／`pnpm test` 全綠）。
 
 情況：【推論＋所本原文】
 `ui-feature-cr-board.md` `s-feature-cr-board`「進入與離開」段落逐字：『從哪裡進來：不適用——內容以 F07 item 形式顯示於 s-canvas，見 spec-canvas-layout.md；如何新增此類元件的具體機制仍待該 spec「待釐清」與整合 CR 定案（依 OQ-49）』。

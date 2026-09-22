@@ -1,6 +1,6 @@
 ## ADR-T-17-fe-clock-control-01：Canvas item 元件識別碼與註冊位置慣例
 
-- 狀態：Proposed
+- 狀態：Accepted（2026-09-22，人工修正決策 1，見下方「修正」段；決策 2／3 維持原案）
 - 日期：2026-09-22
 - 提出者：Dev（T-17-fe-clock-control）
 
@@ -10,8 +10,8 @@
 
 ### 決策（Decision）
 
-1. `item.component` 命名：對應畫面的 Screen ID 去掉 `s-` 前綴，直接用 kebab-case（例：`s-board-clock-control` → `board-clock-control`）。
-2. 註冊位置：在掛載該 item 內容的畫面檔（目前只有 `BoardCanvasPage.tsx`）頂層以模組層級呼叫 `registerItemComponent(...)`，import 該畫面時即完成註冊，不另外建集中式註冊表。
+1. ~~`item.component` 命名：對應畫面的 Screen ID 去掉 `s-` 前綴，直接用 kebab-case（例：`s-board-clock-control` → `board-clock-control`）。~~ **修正（2026-09-22，人工決策，見 OQ-T-18-fe-widgets-02／03 解除說明）**：改用完整 Screen ID（含 `s-` 前綴），例：`s-board-clock-control`。理由：T-18 四個儀表板已經用完整 Screen ID 實作且已合併，若採 kebab-case 去前綴，等於要回頭改 T-18 而非其餘五個，代價更高；完整 Screen ID 也更貼近 `docs-convention.md` 一路可追溯的識別碼原則。原本已用 kebab-case 去前綴的 `activity-log`／`board-clock-control`／`workload-dashboard`／`feature-cr-board` 四個已改回加上 `s-` 前綴（`board-members`，T-15，例外：它不是獨立 Screen，沒有對應的 Screen ID，不適用本決策，維持原樣）。
+2. 註冊位置：在掛載該 item 內容的畫面檔（目前只有 `BoardCanvasPage.tsx`／`main.tsx`）頂層以模組層級呼叫 `registerItemComponent(...)`，import 該畫面時即完成註冊，不另外建集中式註冊表。
 3. `ItemContentProps`（`itemComponentRegistry.tsx`）新增 `boardId: string`，由 `CanvasStage.tsx` 傳入；任何需要呼叫看板相關 API 的 item 內容都可以直接拿到，不用另外從 URL 參數重新解析。
 
 ### 考慮過的替代方案（Alternatives）

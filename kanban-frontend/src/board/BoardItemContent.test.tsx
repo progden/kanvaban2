@@ -276,7 +276,7 @@ describe('s-board', () => {
 
 describe('跨 item：s-cards-by-assignee 點擊卡片開啟 s-card-detail', () => {
   it('依負責人查看卡片時，點擊卡片列開啟同一畫布上看板本體 item 的卡片詳情', async () => {
-    const WORKLOAD_ITEM = { ...BOARD_ITEM, id: 'item-2', component: 'workload-dashboard', z: 2 };
+    const WORKLOAD_ITEM = { ...BOARD_ITEM, id: 'item-2', component: 's-workload-dashboard', z: 2 };
     await renderBoard({
       '/api/boards/board-a/canvas': () =>
         jsonResponse({ ...canvasResponse(), items: [BOARD_ITEM, WORKLOAD_ITEM] }),

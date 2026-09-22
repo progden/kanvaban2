@@ -1,6 +1,6 @@
 // 對應 spec-user-membership.md「Feature: 檢視看板活動紀錄」uc-view-board-activity-log；
 // 透過 App 掛載（比照 BoardCanvasPage.test.tsx），因為畫面依賴 AuthProvider／ProtectedRoute
-// 與路由參數 boardId，且掛載於 Canvas item.component === 'activity-log'。
+// 與路由參數 boardId，且掛載於 Canvas item.component === 's-activity-log'。
 import { render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -8,7 +8,7 @@ import App from '../App';
 import { registerItemComponent } from './itemComponentRegistry';
 import { ActivityLogItem } from './ActivityLogItem';
 
-registerItemComponent('activity-log', ActivityLogItem);
+registerItemComponent('s-activity-log', ActivityLogItem);
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(status === 204 ? null : JSON.stringify(body), { status });
@@ -42,7 +42,7 @@ const BOARD_A = {
 
 const ACTIVITY_LOG_ITEM = {
   id: 'item-1',
-  component: 'activity-log',
+  component: 's-activity-log',
   anchor: 'canvas',
   x: 0,
   y: 0,

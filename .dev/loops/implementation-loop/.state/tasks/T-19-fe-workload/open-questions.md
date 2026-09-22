@@ -26,7 +26,9 @@
 - 接手：人工
 - 原因代碼：spec-conflict
 - 開立：Dev 第 2 輪（2026-09-22）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-22，人工採選項 A）**
+
+解除說明：維持現行實作，`r-board-viewer` 不可拖曳頭像追加負責人。理由：拖曳追加負責人是編輯動作，`spec-user-membership.md` 對 `r-board-viewer` 的定義「不能新增／編輯／移動／刪除任何內容」已明確排除編輯，效力優先於 `ui-workload.md`「無角色差異」這句尚未考慮到 `r-board-viewer` 的舊定案文字（`ui-workload.md` 定案時 `r-board-viewer` 角色本身還沒定義）。`ui-workload.md`「無角色差異」與「角色與權限」表暫不修訂，留待 `spec-user-membership.md`「待釐清」項全面盤點 `r-board-viewer` 對各檢視類 uc 的適用範圍時一併處理。程式碼不需變更。
 
 情況：【兩處矛盾並列】
 `.dev/F05-workload/ui-workload.md`（狀態：已定案）「角色與權限」表逐字：『｜ `r-user`（F01，跨模組） ｜ 全部成員的工作量與未指派卡片數量 ｜ 檢視工作量表、拖曳成員頭像到卡片追加負責人、點擊成員工作量查看卡片清單 ｜』；同檔「狀態」段逐字：『- 無權限：不適用（F05 spec 僅使用跨模組 `r-user` 一種角色，無角色差異）』。

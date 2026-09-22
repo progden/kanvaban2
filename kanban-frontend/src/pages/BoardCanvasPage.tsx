@@ -24,12 +24,11 @@ import { registerItemComponent } from '../canvas/itemComponentRegistry';
 import '../canvas/members/BoardMembersItem';
 import { WorkloadDashboard } from '../canvas/WorkloadDashboard';
 
-// item.component === 'board-clock-control'：s-board-clock-control（見 ui-board-clock.md），
-// 每個模組各自的 item 內容在這裡（畫布掛載處）自行註冊，其餘元件識別碼由各自任務補上。
-registerItemComponent('board-clock-control', BoardClockControl);
-// item.component === 'workload-dashboard'：s-workload-dashboard（見 ui-workload.md），
-// 命名依 ADR-T-17-fe-clock-control-01（Screen ID 去掉 s- 前綴、kebab-case）。
-registerItemComponent('workload-dashboard', WorkloadDashboard);
+// item.component === 's-workload-dashboard'（見 ui-workload.md），每個模組各自的 item 內容在這裡
+// （畫布掛載處）自行註冊，其餘元件識別碼由各自任務補上；命名為完整 Screen ID，
+// 見 ADR-T-17-fe-clock-control-01「修正」段。
+registerItemComponent('s-workload-dashboard', WorkloadDashboard);
+// s-board-clock-control 不是 canvas item，是從下方「看板時間」按鈕開啟的對話框（CR-014）。
 
 export function BoardCanvasPage() {
   const { boardId } = useParams<{ boardId: string }>();
@@ -40,6 +39,7 @@ export function BoardCanvasPage() {
   const [canEdit, setCanEdit] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [requestedCardId, setRequestedCardId] = useState<string | null>(null);
+  const [clockDialogOpen, setClockDialogOpen] = useState(false);
 
   useEffect(() => {
     if (boardId === undefined) {
@@ -77,7 +77,14 @@ export function BoardCanvasPage() {
           ← 我的看板
         </button>
         {board !== null && <div className="canvas-page__board-name">{board.name}</div>}
+        <button type="button" className="btn-sm" onClick={() => setClockDialogOpen(true)}>
+          看板時間
+        </button>
       </div>
+
+      {clockDialogOpen && boardId !== undefined && (
+        <BoardClockControl boardId={boardId} onClose={() => setClockDialogOpen(false)} />
+      )}
 
       {error !== null && (
         <p role="alert" className="form-error canvas-page__error">

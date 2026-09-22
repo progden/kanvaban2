@@ -59,7 +59,7 @@ const MEMBERS_MEMBER = [
 
 const MEMBERS_VIEWER = [{ username: 'user1', displayName: '雅婷', role: 'VIEWER' }];
 
-const PROPS = { itemId: 'item-1', component: 'workload-dashboard', width: 300, height: 200, boardId: 'board-a' };
+const PROPS = { itemId: 'item-1', component: 's-workload-dashboard', width: 300, height: 200, boardId: 'board-a' };
 
 afterEach(() => {
   vi.restoreAllMocks();
