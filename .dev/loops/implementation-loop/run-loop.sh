@@ -388,13 +388,26 @@ for id in $(tasks_with_status doing); do
   commit_task_status "$id" todo "$id 啟動時偵測到孤兒（doing 但無對應行程），清掉殘留並改回 todo"
 done
 
-# ---------- 安排階段（只跑一次；任務清單已存在種子資料則略過，除非 FORCE_PLANNING=1）----------
-if [ "${FORCE_PLANNING:-0}" = 1 ] || [ ! -s "$LEDGER" ]; then
+# ---------- 安排階段 ----------
+# 抽成函式：啟動時（第一次或 FORCE_PLANNING=1）跑一次，主迴圈「無可執行任務」時
+# 也會重跑一次（見 iteration-prompt.md 第 0、8 節）。
+run_planning_stage() {
   log "執行安排階段（planning）"
   timeout --foreground "$ROUND_TIMEOUT" claude -p "$(cat "$PLANNING_PROMPT")" \
     --model "$PLANNING_MODEL" --effort medium \
     --output-format stream-json --verbose \
     --dangerously-skip-permissions > "$LOGS/planning-$(date +%Y%m%d-%H%M%S).log" 2>&1 || true
+}
+
+# 安排階段是否讓「可執行任務集合」有變動的判斷依據：任務清單本體的雜湊（新增／改動
+# 任務列）＋目前 blocked 任務集合（解除 blocked）。決策紀錄、state.md 等其他 commit
+# 不算數，避免安排階段照慣例寫一則「無變動」決策紀錄也被誤判成有變動。
+planning_signature() {
+  { md5sum "$LEDGER" 2> /dev/null; tasks_with_status blocked | sort; } | md5sum | awk '{print $1}'
+}
+
+if [ "${FORCE_PLANNING:-0}" = 1 ] || [ ! -s "$LEDGER" ]; then
+  run_planning_stage
 fi
 
 # ---------- 主迴圈：有管線啟動／結束才巡視一次、補滿並行名額 ----------
@@ -403,6 +416,10 @@ fi
 # i 計的是「巡視次數」＝管線結束事件數＋1。
 i=0
 declare -A PIDS=()
+# 「無可執行任務」時，先重跑一次安排階段才停（見 iteration-prompt.md 第 0、8 節）；
+# 這個旗標保證同一次停滯只重跑一次，不會在安排階段沒變動時無限重跑。只要之後真的
+# 派出了新管線（見下方啟動迴圈），就重置旗標，讓下一次停滯有自己的重跑機會。
+planning_retried=0
 while true; do
   i=$((i + 1))
 
@@ -434,23 +451,41 @@ while true; do
       run_pipeline "$id" &
       PIDS["$id"]=$!
       slots=$((slots - 1))
+      planning_retried=0
     fi
   done
 
   if [ "${#PIDS[@]}" -eq 0 ]; then
     remaining="$(tasks_with_status todo)"
     if [ -z "$remaining" ]; then
-      log "沒有可執行或進行中的任務，停止迴圈。請用 scripts/collect.sh status 看 blocked 任務，scripts/collect.sh oq 看待決事項。"
+      stall_msg="沒有可執行或進行中的任務"
     else
       # 沒有任何管線在跑、剩下的 todo 依賴又都沒滿足＝死結：不會再有任何事件改變狀態，
       # 等下去沒有意義（以前每 30 秒重印一次同一句話，直到 MAX_ITERATIONS）。
-      log "有 todo 任務但依賴尚未滿足，且沒有進行中的管線（死結），停止迴圈。卡住的依賴："
+      stall_msg="有 todo 任務但依賴尚未滿足，且沒有進行中的管線（死結）"
+    fi
+    if [ -n "$remaining" ]; then
       for id in $remaining; do
         for dep in $(task_deps "$id"); do
           st="$(task_status . "$dep")"
           [ "$st" = done ] || log "  $id ← $dep（$st）"
         done
       done
+    fi
+
+    if [ "$planning_retried" -eq 0 ]; then
+      planning_retried=1
+      log "$stall_msg，重跑一次安排階段確認 spec 是否有新的 CR 需要追加修訂實例、或已補齊依據的 blocked 可以解除。"
+      before_sig="$(planning_signature)"
+      run_planning_stage
+      after_sig="$(planning_signature)"
+      if [ "$before_sig" != "$after_sig" ]; then
+        log "安排階段有變動（新增任務列或解除 blocked），回到平行階段重新巡視。"
+        continue
+      fi
+      log "安排階段沒有任何變動，停止迴圈。請用 scripts/collect.sh status 看 blocked 任務，scripts/collect.sh oq 看待決事項。"
+    else
+      log "$stall_msg，安排階段先前已重跑過仍派不出可執行任務，停止迴圈。請用 scripts/collect.sh status 看 blocked 任務，scripts/collect.sh oq 看待決事項。"
     fi
     break
   fi
