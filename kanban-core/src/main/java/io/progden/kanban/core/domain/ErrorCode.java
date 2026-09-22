@@ -55,5 +55,23 @@ public enum ErrorCode {
     /** 移除的成員仍是部分卡片的負責人，需要使用者先確認（uc-remove-member）。 */
     CARD_ASSIGNEE_CONFIRMATION_NEEDED,
     /** 指定的負責人不是該看板的成員（uc-set-card-assignees）。 */
-    ASSIGNEE_NOT_BOARD_MEMBER
+    ASSIGNEE_NOT_BOARD_MEMBER,
+    /** 找不到指定的畫布（canvas）；正常流程下應已由 uc-init-canvas 建立，屬防呆檢查。 */
+    CANVAS_NOT_FOUND,
+    /** 找不到指定的畫布元素（item）。 */
+    CANVAS_ITEM_NOT_FOUND,
+    /** 指定的元素設為不可移動，不可移動或藉調整大小改變位置（uc-move-item／uc-resize-item p4／uc-move-items）。 */
+    CANVAS_ITEM_NOT_MOVABLE,
+    /** 指定的元素設為不可調整大小（uc-resize-item）。 */
+    CANVAS_ITEM_NOT_RESIZABLE,
+    /** 指定的元素設為不可移除（uc-remove-item／uc-remove-items）。 */
+    CANVAS_ITEM_NOT_REMOVABLE,
+    /** 指定的寬或高不大於 0（uc-place-item／uc-resize-item）。 */
+    INVALID_ITEM_SIZE,
+    /** 指定的錨定方式不是 canvas 或 screen（web 層輸入驗證，非 spec 定義的失敗情境）。 */
+    INVALID_ITEM_ANCHOR,
+    /** 批次移動指定的元素錨定方式不一致（uc-move-items p2）。 */
+    MIXED_ITEM_ANCHOR_IN_BATCH,
+    /** 指定的縮放比例超出該 canvas 的縮放範圍（uc-set-viewport）。 */
+    VIEWPORT_ZOOM_OUT_OF_RANGE
 }
