@@ -80,3 +80,26 @@
 問題：`s-cards-by-assignee` 卡片列導向 `s-card-detail` 這項留白，應該由誰、在什麼時間點補上？
 
 選項：A. 人工在 T-14-fe-board-item 合併後，安排一個 T-19-fe-workload 的後續修訂實例，補上 `CardsByAssigneeDialog.tsx` 卡片列可點擊導向 `s-card-detail`；B. 併入上一則（拖放目標端）的銜接任務一起處理；C. 以上皆非。
+
+## OQ-T-19-fe-workload-05
+
+[Level: OQ-T-19-fe-workload-01]
+- 等級：高
+- 阻塞：否
+- 接手：人工
+- 原因代碼：tooling-missing
+- 開立：Review 第 2 輪（2026-09-22）
+- 狀態：待處理
+
+情況：【推論＋所本原文】
+`.dev/loops/implementation-loop/.state/tasks/T-19-fe-workload/open-questions.md` 的 `OQ-T-19-fe-workload-01` 欄位逐字：『- 接手：T-14-fe-board-item』、『- 狀態：待處理』。
+
+`OQ-T-19-fe-workload-03` 內文逐字：『本則取代 `OQ-T-19-fe-workload-01` 關於「拖放目標端」的那一半。』；`OQ-T-19-fe-workload-04` 內文逐字：『本則取代 `OQ-T-19-fe-workload-01` 關於「點擊卡片開啟詳情」的那一半。』
+
+`.dev/loops/implementation-loop/prompts/review-prompt.md` 逐字：『`loopctl oq add --level 高｜覆蓋｜環境 --blocking yes｜no --owner <任務 ID>｜人工｜無 --reason-code <代碼> --scope <模組/uc 或條目> --file <內文檔>｜開立 OQ，開立一則 OQ，印出新 ID』；`.dev/loops/implementation-loop/prompts/iteration-prompt.md` 第 2 節逐字：『`.state/tasks/<task-id>/` 只能用 `scripts/loopctl` 寫（`oq add`／`fix add`／`fix done`／`log`／`finish`，用法見 dev／review 提示詞）：格式、編號、commit 都由它負責，agent 不直接編輯。』；`open-questions.md` 檔頭逐字：『由 `loopctl oq add` 產生，不要直接編輯；解除說明由人工補在各則底下。』
+
+推論：`OQ-T-19-fe-workload-01` 的兩半都已被 OQ-03／OQ-04 取代，但它的「狀態」仍是「待處理」、「接手」仍指向 `T-14-fe-board-item`（而其中「點擊卡片開啟詳情」那一半並不在 T-14 的產出範圍內，見 OQ-04）。`loopctl oq` 只有 `add` 一個子指令（實跑 `loopctl oq --help` 輸出逐字：『positional arguments: {add}』），沒有 `resolve`／`supersede`／`edit`，Dev 與 Review 都無法透過 `loopctl` 把 OQ-01 標記為已取代；而 `open-questions.md` 明文只允許人工補解除說明。因此這則殘留紀錄沒有任何已登記任務或 loop 角色能處理。
+
+問題：`OQ-T-19-fe-workload-01` 已被 OQ-03／OQ-04 完全取代，它的「狀態：待處理」與「接手：T-14-fe-board-item」要由誰、用什麼方式更正，避免後續人工誤依它的錯誤接手者行動？
+
+選項：A. 人工直接在 `OQ-T-19-fe-workload-01` 底下補一行解除說明（檔頭允許的方式），註明已由 OQ-03／OQ-04 取代、不需 T-14 依本則行動；B. 為 `loopctl` 增補 `oq resolve`／`oq supersede` 子指令，讓 loop 角色自己能標記取代關係，再回頭處理本則；C. 以上皆非，維持現狀，由讀者自行從 OQ-03／OQ-04 的「本則取代…」字樣推斷。
