@@ -73,6 +73,19 @@ public class BoardApplicationService {
         return boardMembershipApplicationService.listBoardsForUser(operatorId);
     }
 
+    /**
+     * {@code s-board-delete-dialog} 資料表「卡片數」（implementation-loop T-12 交接事項）：
+     * 彙總屬於該 {@code board} 的所有未刪除 {@code card}，重用 {@code deleteBoard} 已在用的
+     * {@link CardRepository#findActiveByBoardId}，不新增查詢邏輯。權限比照 {@code getBoard}
+     * 只檢查成員資格（不限 Owner），讓 Member 也能在嘗試刪除時看到預覽——實際刪除仍由
+     * {@code deleteBoard} 的 {@code ensureOwner} 把關。
+     */
+    public int countActiveCards(UUID boardId, UUID operatorId) {
+        loadBoard(boardId);
+        boardMembershipApplicationService.ensureMember(boardId, operatorId);
+        return cardRepository.findActiveByBoardId(boardId).size();
+    }
+
     @Transactional
     public void deleteBoard(UUID boardId, UUID operatorId) {
         Board board = loadBoard(boardId);

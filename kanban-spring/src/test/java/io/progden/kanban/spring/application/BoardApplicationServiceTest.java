@@ -78,4 +78,38 @@ class BoardApplicationServiceTest {
         Board reloadedBoardA = boardRepository.findById(boardA.getId()).orElseThrow();
         assertThat(reloadedBoardA.getStages()).extracting(s -> s.getId()).contains(sourceStageId);
     }
+
+    /**
+     * {@code s-board-delete-dialog} 資料表「卡片數」（implementation-loop T-12）：
+     * 彙總屬於該 board 的所有未刪除卡片，且不限只有 Owner 能看到預覽（見 countActiveCards 註解）。
+     */
+    @Test
+    void 卡片數彙總該board所有未刪除卡片() {
+        UUID operatorId = UUID.randomUUID();
+        Board board = boardApplicationService.createBoard(operatorId, "測試看板");
+        UUID swimlaneId = board.getSwimlanes().get(0).getId();
+        UUID stageId = board.getStages().get(0).getId();
+
+        Card cardA = Card.create(operatorId, board.getId(), "卡片 A", new CardPlacement(swimlaneId, stageId), Instant.now());
+        cardRepository.save(cardA);
+        Card cardB = Card.create(operatorId, board.getId(), "卡片 B", new CardPlacement(swimlaneId, stageId), Instant.now());
+        cardRepository.save(cardB);
+        Card deletedCard = Card.create(operatorId, board.getId(), "卡片 C", new CardPlacement(swimlaneId, stageId), Instant.now());
+        deletedCard.delete(operatorId, Instant.now());
+        cardRepository.save(deletedCard);
+
+        assertThat(boardApplicationService.countActiveCards(board.getId(), operatorId)).isEqualTo(2);
+    }
+
+    @Test
+    void 非成員查詢卡片數時拒絕() {
+        UUID operatorId = UUID.randomUUID();
+        UUID stranger = UUID.randomUUID();
+        Board board = boardApplicationService.createBoard(operatorId, "測試看板");
+
+        assertThatThrownBy(() -> boardApplicationService.countActiveCards(board.getId(), stranger))
+                .isInstanceOf(DomainException.class)
+                .extracting(e -> ((DomainException) e).getCode())
+                .isEqualTo(ErrorCode.FORBIDDEN);
+    }
 }
