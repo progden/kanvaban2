@@ -1,18 +1,19 @@
 # T-07-be-workload state
 
-> 2026-09-22 Dev 第 1 輪 收尾，status＝`review-pending`。每輪由 `loopctl finish` 覆寫。
+> 2026-09-22 Review 第 1 輪 收尾，status＝`doing`。每輪由 `loopctl finish` 覆寫。
 
-現在狀態：spec-workload.md 四個 uc-view-workload Scenario 與兩個 uc-drag-assign-card-owner Scenario
-（沿用既有拖曳端點）皆已實作並通過測試，本輪首次交付，無 D-xx。
+Review 第 1 輪退回，狀態回到 `doing`，等下一輪 Dev 處理 D-01、D-02。
 
-這輪做了什麼：新增 kanban-spring 的 io.progden.kanban.query.workload（WorkloadCalculator／
-WorkloadQueryService）、WorkloadController（GET /api/boards/{boardId}/workload）、6 個 Cucumber
-Scenario（workload.feature + WorkloadSteps）、WorkloadCalculator 4 個單元測試；順帶修正
-CardAssignmentSteps.setAssignees 讓卡片不存在時就地建立，支援 workload.feature 共用的拖曳步驟文字。
+驗證結果：`./gradlew clean build --no-daemon` BUILD SUCCESSFUL（14 tasks executed），
+workload.feature 6 Scenario／WorkloadCalculatorTest 4 測試／card-assignment.feature 7 Scenario
+全數通過，30 份 test-results 皆 0 failures。`kanban-core` 未被觸及且無 Spring／JPA import；
+跨 aggregate 投影正確放在 `io.progden.kanban.query.workload`。任務邊界乾淨，`.state/` 只動自己的目錄。
+`workload.feature` 與 spec 的 gherkin 區塊逐字相符。本任務沒有任何 OQ，也無阻塞事由。
 
-Review 要先看什麼：
-1. WorkloadCalculator 的 Active Card／未指派／多負責人各算一次三條規則是否正確對應 post p1～p4。
-2. WorkloadController 回應是否包含全部 board-membership 成員（含 0 工作量者），此為 decision-log 記錄
-   的低風險判斷，Review 若認為應排除 0 工作量成員可提 D-xx。
-3. CardAssignmentSteps.setAssignees 的改動是否影響 card-assignment.feature 既有行為（已跑過
-   ./gradlew :kanban-spring:test 全數通過，含該檔）。
+待處理：
+- D-01：`MemberWorkloadEntry` 缺 `displayName`，與 `ui-workload.md`「資料」表指定的 `user.display-name`
+  不符，下游 T-19-fe-workload 會拿不到正確成員名稱；需補欄位並加對應驗證。
+- D-02：`WorkloadQueryService` 未使用的 `CardJpaEntity` import、`WorkloadSteps` 過時的 class javadoc。
+
+已接受不退回的項目：`CardAssignmentSteps.setAssignees` 的 +5 行跨檔追加（共用 Gherkin 步驟的唯一合法做法，
+既有 Scenario 全數仍通過），理由已記在審查紀錄第 4 點。
