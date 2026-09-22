@@ -47,3 +47,29 @@
 問題：F03 四個儀表板 item 的 `item.component` 字串值該取 Screen ID，還是改用 spec 層的 `uc-` 識別碼（需另外解決分組問題）？
 
 選項：A. 沿用本任務已實作的做法：用 Screen ID 字串（`s-cycle-lead-time-dashboard`／`s-wip-dashboard`／`s-throughput-cfd-dashboard`／`s-duedate-reminder`）；理由：spec 沒有對應「一組 uc 合成一個 item」的識別碼，四個 Screen 分組本身是 ui-kanban-widgets.md 定義的概念，Screen ID 是目前唯一能精準對應這四個畫面單位、且跨模組不會撞號的識別碼；代價：OQ-49 整合 CR 若改用別的命名，需一次遷移既有畫布上已放置的 item。B. 改用 spec 層的 `uc-` 識別碼，例如取每組第一個 uc（`uc-view-cycle-lead-time`／`uc-view-wip`／`uc-view-throughput`／`uc-view-duedate-reminder`）當代表值；理由：正面貫徹『不用 UI 層的 Screen ID』的先例方向；代價：uc 與 item 不是一對一（`uc-view-wip` 與 `uc-view-aging-wip` 同屬一個 item、`uc-view-throughput` 與 `uc-view-cfd` 同屬一個 item），用其中一個 uc 代表整組會讓值本身看不出這個 item 其實承載兩個 uc，容易誤導；且仍要另外決定這個「代表值」的取捨規則，spec 沒有依據可循，屬於本任務自創規則，跟直接用 Screen ID 相比並沒有更貼近 spec。C. 等 OQ-49 整合 CR 定案後才實作這四個 item 的內容元件（與 OQ-T-18-fe-widgets-01 選項 B 相同）；理由：徹底避免任何命名日後需要遷移；代價：T-18 整個 blocked，不符合任務排程，也會拖到依賴 canvas item 掛載慣例的下游任務。
+
+## OQ-T-18-fe-widgets-03
+
+[Level: item.component 命名規則（跨 T-17／T-19／T-20）]
+- 等級：高
+- 阻塞：否
+- 接手：人工
+- 原因代碼：spec-ambiguous
+- 開立：Review 第 2 輪（2026-09-22）
+- 狀態：待處理
+
+情況：【推論＋所本原文】
+
+`.dev/F07-canvas-layout/spec-canvas-layout.md` 第 31 行 `item.component` 欄位說明逐字：『元件本體的識別碼，由元件所屬模組定義；本模組不解讀其內容。看板本體固定為實體 ID `board`（見「看板畫布初始化」Feature；不用 UI 層的 Screen ID，spec 不引用 ui，見 `docs-convention.md` 第 3 節）；其餘元件的值待各自所屬模組實作對應 Item 時決定。元件模組定案後改為 ref，元件與元素的生命週期連動（誰刪誰）屆時一併補』。
+
+`.dev/loops/implementation-loop/.state/tasks.md` 第 45 行逐字：『| T-17-fe-clock-control | `s-board-clock-control`（F04，Canvas item） | T-13-fe-canvas-shell、T-05-be-board-clock | 原任務清單遺漏，2026-09-18 校正時補上；涵蓋 CR：無 |』。
+
+`.dev/loops/implementation-loop/.state/tasks.md` 第 47 行逐字：『| T-19-fe-workload | `s-workload-dashboard`（Canvas item）＋ `s-cards-by-assignee`（從前者點擊進入） | T-13-fe-canvas-shell、T-07-be-workload | 原標 blocked 已解除，見 OQ-IMPL-05「解除說明」；依賴改為 T-13；涵蓋 CR：無 |』。
+
+`.dev/loops/implementation-loop/.state/tasks.md` 第 48 行逐字：『| T-20-fe-feature-cr-board | `s-feature-cr-board`（Canvas item） | T-13-fe-canvas-shell、T-08-be-feature-cr-board | 原標 blocked 已解除，見 OQ-IMPL-06「解除說明」；依賴改為 T-13；涵蓋 CR：無 |』。
+
+推論：本則補充 OQ-T-18-fe-widgets-02（該則只討論 F03 這四個值本身），不取代它。T-18 是第一個實際決定 `item.component` 值的前端任務（看板本體的 `board` 是 spec 直接定案、非任務自行決定），因此它選的命名方式會成為 T-17、T-19、T-20 三個尚未開工的 Canvas item 任務的既成慣例——這三列的產出範圍都是 Canvas item，都會面對同一個「component 值取什麼」的問題，而 `.state/tasks.md` 裡沒有任何一列的產出範圍涵蓋 OQ-49 的整合 CR。若人工日後在整合 CR 採用與 Screen ID 不同的命名，遷移代價不只是 OQ-T-18-fe-widgets-02 選項 A 底下寫的「本任務四個 item」，而是四個任務、至少七個 Canvas item 的註冊值與既有畫布資料。
+
+問題：`item.component` 的命名規則要現在就由人工統一定案（讓 T-17／T-19／T-20 照同一條規則實作），還是讓各任務各自沿用 T-18 的 Screen ID 慣例、等 OQ-49 整合 CR 時一次遷移？
+
+選項：A. 現在由人工定一條跨模組的 `item.component` 命名規則（例如一律用 Screen ID，或一律用 spec 層識別碼），寫進 `spec-canvas-layout.md`「待釐清」或整合 CR；代價：需要人工在 T-17／T-19／T-20 開工前介入，會擋住排程；B. 不定案，T-17／T-19／T-20 沿用 T-18 的 Screen ID 慣例，等 OQ-49 整合 CR 一次定案並遷移；代價：遷移範圍擴大到四個任務的註冊值與既有畫布上所有這幾類 item 資料，但不擋住目前排程。
