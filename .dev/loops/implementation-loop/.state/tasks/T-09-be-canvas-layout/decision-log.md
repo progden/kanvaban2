@@ -97,3 +97,20 @@ canvas-viewport 6，全部 `skipped="0" failures="0" errors="0"`，合計 43，�
 確認 12 個 `@fail-pN` Scenario 的快照比對是否真的會在資料被寫入時失敗（例如人工暫時
 移除某個 `ensureMovable()` 前置檢查、重跑測試觀察是否轉紅，若需要可作為驗證手段）。
 `OQ-T-09-be-canvas-layout-02`／`03` 的引文與選項是否合理。
+
+## 2026-09-22 Dev 第 3 輪：D-04 修正：另開正確 OQ 取代 OQ-03
+
+### D-04：另開逐字正確的 OQ 取代 OQ-T-09-be-canvas-layout-03
+
+- Review 第 2 輪指出 `OQ-T-09-be-canvas-layout-03` 第二段引文把 Scenario 標題寫成『Scenario: 放置畫布元素』，但 `spec-canvas-layout.md` 第 203 行原文是『Scenario: 放置元件到空畫布』，`grep -n "放置畫布元素"` 零命中，違反逐字引用規則。
+- `loopctl` 無法修改既有 OQ 內文，依 D-04 指示另開 `OQ-T-09-be-canvas-layout-04`：內文開頭註明取代 OQ-03，三段引文（`uc-init-canvas` post 第 2 條、Background『Given 畫布已由系統建立』、`Scenario: 放置元件到空畫布` 連同其『Given 畫布中沒有任何元素』）已對照 spec 第 100／198／202～204 行逐字核對後照貼，推論與選項沿用原 OQ-03 內容不變。
+- OQ-01～OQ-04 皆為「高、不阻塞」，`spec-canvas-layout.md` 為草稿狀態，接手皆為人工，不影響核准；OQ-03 保留在檔案中作為歷史紀錄，人工接手時以 OQ-04 為準。
+
+### 本輪範圍
+
+- 只處理 D-04，未改動任何 `kanban-core`／`kanban-spring` 程式碼或測試（Review 已確認 D-01～D-03 的實質要求都已達成，D-04 純粹是 OQ 引文文字修正）。
+- 未重跑建置：本輪無程式碼／測試變更，上一輪（Review 第 2 輪）已確認 `./gradlew clean build --no-daemon` BUILD SUCCESSFUL、42 份測試檔 failures=0 errors=0。
+
+### 待確認事項
+
+- `OQ-T-09-be-canvas-layout-01`／`02`／`04`：接手人工，供 spec 定稿時處理，不阻塞本任務核准。
