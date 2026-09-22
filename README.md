@@ -11,10 +11,21 @@
   - `kanban-spring`：application／web／persistence 層，以及跨 aggregate 的讀取投影（`io.progden.kanban.query.*`）
 - 前端：`kanban-frontend`（React 19 / TypeScript / Vite）
 
+## 環境需求
+
+- **JDK 25**：`kanban-core`／`kanban-spring` 的 Gradle toolchain 設定死 `JavaLanguageVersion.of(25)`（見兩個模組的 `build.gradle.kts`）。本機沒有的話，`./gradlew` 會嘗試自動下載，需要能連外網；用 [SDKMAN!](https://sdkman.io/) 手動裝一份也可以（`sdk install java 25-tem`）。
+- **Node.js 20+**、**pnpm**：`kanban-frontend` 用 pnpm 管理依賴（`pnpm-lock.yaml`），**不要用 `npm install`**——lockfile 不是 npm 的格式，跑下去會把 `node_modules` 裝壞。沒有 pnpm 的話先 `npm i -g pnpm` 或 `corepack enable`。
+- **PostgreSQL 16**：資料庫名稱 `kanban`，帳密預設都是 `kanban`（可用環境變數 `DB_HOST`／`DB_PORT`／`DB_NAME`／`DB_USERNAME`／`DB_PASSWORD` 覆寫，見 `kanban-spring/src/main/resources/application.yml`）。沒有現成的 PostgreSQL 可以用 Docker 起一個（見下方指令）；純跑 `kanban-core`／`kanban-spring` 的單元測試不需要（`kanban-spring` 測試用內嵌 H2）。
+- **Docker**（選用，但最簡單）：沒有 Docker 的話要自己在本機裝 PostgreSQL 16，資料庫／帳密設定同上。
+- **執行 e2e（`kanban-frontend/e2e/`）額外需要**：`pnpm exec playwright install chromium`（第一次跑之前下載瀏覽器），且後端／PostgreSQL 都要先啟動（`playwright.config.ts` 只會幫忙啟動前端 dev server）。
+
 ## 快速開始
 
 ```bash
-# 1. 啟動 PostgreSQL（資料庫 kanban，帳密見 kanban-spring/src/main/resources/application.yml）
+# 1. 啟動 PostgreSQL（沒有現成的就用 Docker 起一個）
+docker run -d --name kanban-postgres \
+  -e POSTGRES_DB=kanban -e POSTGRES_USER=kanban -e POSTGRES_PASSWORD=kanban \
+  -p 5432:5432 postgres:16-alpine
 
 # 2. 啟動後端（localhost:8080）
 ./gradlew :kanban-spring:bootRun
