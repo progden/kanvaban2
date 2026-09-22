@@ -107,10 +107,14 @@ describe('s-board-list', () => {
     expect(screen.getByText('產品開發看板')).toBeInTheDocument();
   });
 
-  it('選擇列表中的 Board 後開啟該 Board（F07 s-canvas，跨模組，本任務只驗證導覽）', async () => {
+  it('選擇列表中的 Board 後開啟該 Board（F07 s-canvas，由 T-13-fe-canvas-shell 實作）', async () => {
     mockFetchByPath({
       '/api/session': SESSION_OK,
       '/api/boards': () => jsonResponse([BOARD_A]),
+      '/api/boards/board-a': () => jsonResponse(BOARD_A),
+      '/api/boards/board-a/canvas': () =>
+        jsonResponse({ id: 'canvas-1', boardId: 'board-a', zoomMin: 0.1, zoomMax: 4, items: [], viewport: null }),
+      '/api/boards/board-a/members': () => jsonResponse([{ username: 'user1', displayName: '陳柏翰', role: 'OWNER' }]),
     });
 
     await renderBoardList();
@@ -118,7 +122,7 @@ describe('s-board-list', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '產品開發看板' }));
 
-    await waitFor(() => expect(screen.getByText('Board 畫布（待 T-13 實作）')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByTestId('canvas-stage')).toBeInTheDocument());
   });
 });
 
