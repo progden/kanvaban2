@@ -111,6 +111,16 @@ export function StagePanel({ board, cardCountByStage, onCancel, onChanged }: Sta
               ) : (
                 <>
                   <span className="board-structure-panel__name">{stage.name}</span>
+                  <button
+                    type="button"
+                    className="btn-sm"
+                    onClick={() => {
+                      setRenamingId(stage.id);
+                      setRenameValue(stage.name);
+                    }}
+                  >
+                    重新命名
+                  </button>
                   <label className="board-structure-panel__role-label" htmlFor={`stage-role-${stage.id}`}>
                     {stage.name} 的階段角色
                   </label>
@@ -230,9 +240,9 @@ function StageDeleteConfirm({
 
   return (
     <>
+      <p className="board-dialog__subtitle">這個階段裡有 {cardCount} 張卡片。</p>
       {cardCount > 0 && (
         <>
-          <p className="board-dialog__subtitle">這個階段裡有 {cardCount} 張卡片，選一個階段接收它們。</p>
           <label className="field-label" htmlFor="stage-delete-destination">
             卡片移到
           </label>

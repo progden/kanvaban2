@@ -161,11 +161,9 @@ export function SwimlanePanel({ board, cardCountBySwimlane, onCancel, onChanged 
         <div className="dialog-backdrop">
           <div className="dialog-panel">
             <h2>刪除泳道「{deleteTarget.name}」？</h2>
-            {(cardCountBySwimlane.get(deleteTarget.id) ?? 0) > 0 && (
-              <p className="board-dialog__subtitle">
-                這個泳道裡的 {cardCountBySwimlane.get(deleteTarget.id) ?? 0} 張卡片會一起被刪除。
-              </p>
-            )}
+            <p className="board-dialog__subtitle">
+              這個泳道裡的 {cardCountBySwimlane.get(deleteTarget.id) ?? 0} 張卡片會一起被刪除。
+            </p>
             <SwimlaneDeleteConfirm
               boardId={board.id}
               swimlaneId={deleteTarget.id}

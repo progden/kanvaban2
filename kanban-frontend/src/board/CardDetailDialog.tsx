@@ -99,6 +99,12 @@ export function CardDetailDialog({
     return candidates.find((c) => c.id === userId)?.displayName ?? userId;
   }
 
+  function formatCommentTime(createdAt: string): string {
+    const date = new Date(createdAt);
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${pad(date.getMonth() + 1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+
   return (
     <div className="dialog-backdrop">
       <div className="dialog-panel board-card-detail">
@@ -138,12 +144,19 @@ export function CardDetailDialog({
 
                 <h2 className="board-card-detail__section-title">留言</h2>
                 <ul className="board-card-detail__comments">
-                  {card.comments.map((comment) => (
-                    <li key={comment.id}>
-                      <div className="board-card-detail__comment-author">{displayNameOf(comment.authorId)}</div>
-                      <p>{comment.content}</p>
-                    </li>
-                  ))}
+                  {[...card.comments]
+                    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+                    .map((comment) => (
+                      <li key={comment.id}>
+                        <div className="board-card-detail__comment-author">
+                          <span>{displayNameOf(comment.authorId)}</span>
+                          <span className="board-card-detail__comment-time">
+                            {formatCommentTime(comment.createdAt)}
+                          </span>
+                        </div>
+                        <p>{comment.content}</p>
+                      </li>
+                    ))}
                 </ul>
 
                 {commentError !== null && (

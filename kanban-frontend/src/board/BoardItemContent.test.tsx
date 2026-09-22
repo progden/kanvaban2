@@ -147,6 +147,57 @@ describe('s-board', () => {
     expect(call?.body).toEqual({ swimlaneId: 'sw-2' });
   });
 
+  it('拖曳卡片到另一個 Stage 後，卡片顯示於目的 Stage，觸發 uc-move-card-stage', async () => {
+    const calls = await renderBoard({
+      '/api/cards/card-1/move-stage': () => jsonResponse({ ...CARD_A, stageId: 'st-2' }),
+    });
+
+    const card = screen.getByText('結帳頁 3DS 驗證流程').closest('.board-card') as HTMLElement;
+    const dataTransfer = { getData: () => 'card-1', setData: () => undefined };
+    fireEvent.dragStart(card, { dataTransfer });
+    const targetCell = screen.getByText('前端').nextElementSibling?.nextElementSibling as HTMLElement;
+    fireEvent.dragOver(targetCell, { dataTransfer });
+    fireEvent.drop(targetCell, { dataTransfer });
+
+    await waitFor(() => expect(calls.some((c) => c.url.endsWith('/api/cards/card-1/move-stage'))).toBe(true));
+    const call = calls.find((c) => c.url.endsWith('/api/cards/card-1/move-stage'));
+    expect(call?.body).toEqual({ stageId: 'st-2' });
+  });
+
+  it('依 uc-move-card-swimlane p2：移動失敗時卡片維持原位，顯示訊息', async () => {
+    await renderBoard({
+      '/api/cards/card-1/move-swimlane': () => jsonResponse({ message: '無法移動卡片' }, 400),
+    });
+
+    const card = screen.getByText('結帳頁 3DS 驗證流程').closest('.board-card') as HTMLElement;
+    const dataTransfer = { getData: () => 'card-1', setData: () => undefined };
+    fireEvent.dragStart(card, { dataTransfer });
+    const targetCell = screen.getByText('後端').nextElementSibling as HTMLElement;
+    fireEvent.dragOver(targetCell, { dataTransfer });
+    fireEvent.drop(targetCell, { dataTransfer });
+
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('無法移動卡片'));
+    const frontCell = screen.getByText('前端').nextElementSibling as HTMLElement;
+    expect(within(frontCell).getByText('結帳頁 3DS 驗證流程')).toBeInTheDocument();
+  });
+
+  it('依 uc-move-card-stage p2：移動失敗時卡片維持原位，顯示訊息', async () => {
+    await renderBoard({
+      '/api/cards/card-1/move-stage': () => jsonResponse({ message: '無法移動卡片' }, 400),
+    });
+
+    const card = screen.getByText('結帳頁 3DS 驗證流程').closest('.board-card') as HTMLElement;
+    const dataTransfer = { getData: () => 'card-1', setData: () => undefined };
+    fireEvent.dragStart(card, { dataTransfer });
+    const targetCell = screen.getByText('前端').nextElementSibling?.nextElementSibling as HTMLElement;
+    fireEvent.dragOver(targetCell, { dataTransfer });
+    fireEvent.drop(targetCell, { dataTransfer });
+
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('無法移動卡片'));
+    const originCell = screen.getByText('前端').nextElementSibling as HTMLElement;
+    expect(within(originCell).getByText('結帳頁 3DS 驗證流程')).toBeInTheDocument();
+  });
+
   it('點擊新增卡片開啟 s-card-add-dialog', async () => {
     await renderBoard();
 
@@ -281,6 +332,26 @@ describe('s-card-detail', () => {
     expect(screen.getByLabelText('描述')).toHaveValue('更新後的描述');
   });
 
+  it('留言列表顯示 comment.created-at，並依時間由舊到新排序', async () => {
+    const OLDER = { id: 'c-1', authorId: 'user-1', content: '較舊的留言', createdAt: '2026-09-15T14:02:00Z' };
+    const NEWER = { id: 'c-2', authorId: 'user-2', content: '較新的留言', createdAt: '2026-09-16T09:30:00Z' };
+    await renderBoard({
+      '/api/cards/card-1': () => jsonResponse({ ...CARD_A, comments: [NEWER, OLDER] }),
+    });
+
+    fireEvent.click(screen.getByText('結帳頁 3DS 驗證流程'));
+    await screen.findByText('留言');
+
+    const comments = screen.getAllByText(/較舊的留言|較新的留言/);
+    expect(comments[0]).toHaveTextContent('較舊的留言');
+    expect(comments[1]).toHaveTextContent('較新的留言');
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const olderDate = new Date(OLDER.createdAt);
+    const expectedTime = `${pad(olderDate.getMonth() + 1)}/${pad(olderDate.getDate())} ${pad(olderDate.getHours())}:${pad(olderDate.getMinutes())}`;
+    const olderItem = screen.getByText('較舊的留言').closest('li') as HTMLElement;
+    expect(within(olderItem).getByText(expectedTime)).toBeInTheDocument();
+  });
+
   it('新增留言後顯示於留言列表，觸發 uc-add-comment', async () => {
     const COMMENT = { id: 'c-1', authorId: 'user-1', content: '測試留言', createdAt: '2026-09-22T00:00:00Z' };
     let commentsAdded = false;
@@ -298,6 +369,20 @@ describe('s-card-detail', () => {
     fireEvent.click(screen.getByRole('button', { name: '送出' }));
 
     await waitFor(() => expect(screen.getByText('測試留言')).toBeInTheDocument());
+  });
+
+  it('依 uc-add-comment p2：留言內容為空被拒絕時，輸入內容保留，顯示訊息', async () => {
+    await renderBoard({
+      '/api/cards/card-1/comments': () => jsonResponse({ message: '留言內容不能留空' }, 400),
+    });
+
+    fireEvent.click(screen.getByText('結帳頁 3DS 驗證流程'));
+    await screen.findByLabelText('新增留言');
+    fireEvent.change(screen.getByLabelText('新增留言'), { target: { value: ' ' } });
+    fireEvent.click(screen.getByRole('button', { name: '送出' }));
+
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('留言內容不能留空'));
+    expect(screen.getByLabelText('新增留言')).toHaveValue(' ');
   });
 
   it('開啟負責人選取入口開啟 s-card-assignee-picker，不觸發任何 Use Case', async () => {
@@ -391,11 +476,93 @@ describe('s-swimlane-list ／ s-swimlane-delete-dialog', () => {
     );
   });
 
+  it('該 Swimlane 沒有卡片時，刪除對話框顯示卡片數為 0', async () => {
+    await renderBoard({
+      '/api/boards/board-a/cards': () => jsonResponse([{ ...CARD_A, swimlaneId: 'sw-2' }]),
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '管理 Swimlane' }));
+    fireEvent.click(screen.getAllByRole('button', { name: '刪除' })[0]);
+    const heading = screen.getByRole('heading', { name: '刪除泳道「前端」？' });
+    const dialogPanel = heading.closest('.dialog-panel') as HTMLElement;
+    expect(within(dialogPanel).getByText('這個泳道裡的 0 張卡片會一起被刪除。')).toBeInTheDocument();
+  });
+
   it('僅剩 1 個 Swimlane 時，刪除操作無法使用', async () => {
     await renderBoard({}, { swimlanes: [{ id: 'sw-1', name: '前端', order: 0 }] });
 
     fireEvent.click(screen.getByRole('button', { name: '管理 Swimlane' }));
     expect(screen.getByRole('button', { name: '刪除' })).toBeDisabled();
+  });
+
+  it('重新命名送出後，該列名稱更新為新名稱，觸發 uc-rename-swimlane', async () => {
+    let currentBoard = board();
+    const calls = await renderBoard({
+      '/api/boards/board-a': () => jsonResponse(currentBoard),
+      '/api/boards/board-a/swimlanes/sw-1': () => {
+        currentBoard = {
+          ...currentBoard,
+          swimlanes: [
+            { id: 'sw-1', name: '新前端', order: 0 },
+            { id: 'sw-2', name: '後端', order: 1 },
+          ],
+        };
+        return jsonResponse(currentBoard, 200);
+      },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '管理 Swimlane' }));
+    const panel = screen.getByRole('heading', { name: '管理泳道' }).closest('.dialog-panel') as HTMLElement;
+    const row = within(panel).getByText('前端').closest('li') as HTMLElement;
+    fireEvent.click(within(row).getByRole('button', { name: '重新命名' }));
+    fireEvent.change(within(row).getByRole('textbox'), { target: { value: '新前端' } });
+    fireEvent.click(within(row).getByRole('button', { name: '儲存' }));
+
+    await waitFor(() =>
+      expect(calls.some((c) => c.method === 'PATCH' && c.url.endsWith('/api/boards/board-a/swimlanes/sw-1'))).toBe(
+        true,
+      ),
+    );
+    await waitFor(() => expect(within(panel).getByText('新前端')).toBeInTheDocument());
+  });
+
+  it('拖曳排序完成後，列表順序依拖曳結果更新，觸發 uc-reorder-swimlane', async () => {
+    const calls = await renderBoard({
+      '/api/boards/board-a/swimlanes/sw-2/move': () => jsonResponse(board(), 200),
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '管理 Swimlane' }));
+    const panel = screen.getByRole('heading', { name: '管理泳道' }).closest('.dialog-panel') as HTMLElement;
+    const sourceRow = within(panel).getByText('後端').closest('li') as HTMLElement;
+    const targetRow = within(panel).getByText('前端').closest('li') as HTMLElement;
+    const dataTransfer = { getData: () => '', setData: () => undefined };
+    fireEvent.dragStart(sourceRow, { dataTransfer });
+    fireEvent.dragOver(targetRow, { dataTransfer });
+    fireEvent.drop(targetRow, { dataTransfer });
+
+    await waitFor(() =>
+      expect(
+        calls.some((c) => c.method === 'POST' && c.url.endsWith('/api/boards/board-a/swimlanes/sw-2/move')),
+      ).toBe(true),
+    );
+    const call = calls.find((c) => c.url.endsWith('/api/boards/board-a/swimlanes/sw-2/move'));
+    expect(call?.body).toEqual({ beforeId: 'sw-1' });
+  });
+
+  it('新增名稱為空時，輸入內容保留、顯示訊息，列表不變', async () => {
+    await renderBoard({
+      '/api/boards/board-a/swimlanes': () => jsonResponse({ message: '泳道名稱不能留空' }, 400),
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '管理 Swimlane' }));
+    const panel = screen.getByRole('heading', { name: '管理泳道' }).closest('.dialog-panel') as HTMLElement;
+    fireEvent.change(screen.getByLabelText('新增泳道'), { target: { value: ' ' } });
+    fireEvent.click(within(panel).getByRole('button', { name: '新增' }));
+
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('泳道名稱不能留空'));
+    expect(screen.getByLabelText('新增泳道')).toHaveValue(' ');
+    expect(within(panel).getByText('前端')).toBeInTheDocument();
+    expect(within(panel).getByText('後端')).toBeInTheDocument();
   });
 
   it('確認刪除 Swimlane 後回列表並重新載入，觸發 uc-delete-swimlane', async () => {
@@ -445,6 +612,96 @@ describe('s-stage-list ／ s-stage-delete-dialog', () => {
         calls.some((c) => c.method === 'PATCH' && c.url.endsWith('/api/boards/board-a/stages/st-2/role')),
       ).toBe(true),
     );
+  });
+
+  it('重新命名送出後，該列名稱更新為新名稱，觸發 uc-rename-stage', async () => {
+    let currentBoard = board();
+    const calls = await renderBoard({
+      '/api/boards/board-a': () => jsonResponse(currentBoard),
+      '/api/boards/board-a/stages/st-1': () => {
+        currentBoard = {
+          ...currentBoard,
+          stages: [
+            { id: 'st-1', name: '新 Backlog', order: 0, role: 'START' },
+            { id: 'st-2', name: '完成', order: 1, role: 'DONE' },
+          ],
+        };
+        return jsonResponse(currentBoard, 200);
+      },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '管理 Stage' }));
+    const panel = screen.getByRole('heading', { name: '管理階段' }).closest('.dialog-panel') as HTMLElement;
+    const row = within(panel).getByText('Backlog').closest('li') as HTMLElement;
+    fireEvent.click(within(row).getByRole('button', { name: '重新命名' }));
+    fireEvent.change(within(row).getByRole('textbox'), { target: { value: '新 Backlog' } });
+    fireEvent.click(within(row).getByRole('button', { name: '儲存' }));
+
+    await waitFor(() =>
+      expect(calls.some((c) => c.method === 'PATCH' && c.url.endsWith('/api/boards/board-a/stages/st-1'))).toBe(
+        true,
+      ),
+    );
+    await waitFor(() => expect(within(panel).getByText('新 Backlog')).toBeInTheDocument());
+  });
+
+  it('拖曳排序完成後，列表順序依拖曳結果更新，觸發 uc-reorder-stage', async () => {
+    const calls = await renderBoard({
+      '/api/boards/board-a/stages/st-2/move': () => jsonResponse(board(), 200),
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '管理 Stage' }));
+    const panel = screen.getByRole('heading', { name: '管理階段' }).closest('.dialog-panel') as HTMLElement;
+    const sourceRow = within(panel).getByText('完成').closest('li') as HTMLElement;
+    const targetRow = within(panel).getByText('Backlog').closest('li') as HTMLElement;
+    const dataTransfer = { getData: () => '', setData: () => undefined };
+    fireEvent.dragStart(sourceRow, { dataTransfer });
+    fireEvent.dragOver(targetRow, { dataTransfer });
+    fireEvent.drop(targetRow, { dataTransfer });
+
+    await waitFor(() =>
+      expect(calls.some((c) => c.method === 'POST' && c.url.endsWith('/api/boards/board-a/stages/st-2/move'))).toBe(
+        true,
+      ),
+    );
+    const call = calls.find((c) => c.url.endsWith('/api/boards/board-a/stages/st-2/move'));
+    expect(call?.body).toEqual({ beforeId: 'st-1' });
+  });
+
+  it('將某 Stage 設為 DONE 後，原持有 DONE 的 Stage 該列角色顯示變回 NONE', async () => {
+    let currentBoard = board();
+    await renderBoard({
+      '/api/boards/board-a': () => jsonResponse(currentBoard),
+      '/api/boards/board-a/stages/st-1/role': () => {
+        currentBoard = {
+          ...currentBoard,
+          stages: [
+            { id: 'st-1', name: 'Backlog', order: 0, role: 'DONE' },
+            { id: 'st-2', name: '完成', order: 1, role: 'NONE' },
+          ],
+        };
+        return jsonResponse(currentBoard, 200);
+      },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '管理 Stage' }));
+    fireEvent.change(screen.getByLabelText('Backlog 的階段角色'), { target: { value: 'DONE' } });
+
+    await waitFor(() => expect(screen.getByLabelText('完成 的階段角色')).toHaveValue('NONE'));
+    expect(screen.getByLabelText('Backlog 的階段角色')).toHaveValue('DONE');
+  });
+
+  it('該 Stage 沒有卡片時，刪除對話框顯示卡片數為 0', async () => {
+    await renderBoard({
+      '/api/boards/board-a/cards': () => jsonResponse([{ ...CARD_A, stageId: 'st-2' }]),
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '管理 Stage' }));
+    fireEvent.click(screen.getAllByRole('button', { name: '刪除' })[0]);
+    const heading = screen.getByRole('heading', { name: '刪除階段「Backlog」？' });
+    const dialogPanel = heading.closest('.dialog-panel') as HTMLElement;
+    expect(within(dialogPanel).getByText('這個階段裡有 0 張卡片。')).toBeInTheDocument();
+    expect(within(dialogPanel).queryByLabelText('卡片移到')).not.toBeInTheDocument();
   });
 
   it('僅剩 1 個 Stage 時，刪除操作無法使用', async () => {
