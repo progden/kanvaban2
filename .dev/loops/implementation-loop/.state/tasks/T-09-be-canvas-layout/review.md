@@ -175,3 +175,51 @@ Dev 第 3 輪自述「未重跑建置」，因此本輪從頭跑一次：
 - `OQ-T-09-be-canvas-layout-02`（`item.z` 唯一鍵範圍）：接手 **人工**，需修 `spec-canvas-layout.md` 文字（草稿，不需 CR）。定案為選項 B 時要回頭改 `ItemJpaEntity` 唯一鍵與 `nextZ`。
 - `OQ-T-09-be-canvas-layout-04`（Background「畫布已由系統建立」是否含看板本體 item）：接手 **人工**，需修 spec 文字。定案為選項 B 時要回頭改 `CanvasSteps.givenCanvasEstablished` 與多個 Scenario 的 z 期望值。
 - `OQ-T-09-be-canvas-layout-03`：已由 OQ-04 取代，人工接手時以 OQ-04 為準，本則僅作歷史紀錄。
+
+## 2026-09-22 Review 第 4 輪：附保留核准
+
+本輪自行重跑建置與全部測試，並重新核對 spec 對應、core 純度、任務邊界與四則 OQ，判定為**附保留核准**。
+
+### 1. 建置與測試（自行執行，未採信交接摘要）
+
+- `./gradlew clean build --no-daemon` → `BUILD SUCCESSFUL in 3m 10s`，14 actionable tasks: 14 executed。
+- 彙總 `build/test-results` 全部 43 份 `TEST-*.xml`：`tests=246 skipped=0 failures=0 errors=0`。
+- `git status --porcelain` 為空（工作區乾淨）。
+
+### 2. spec 對應
+
+- `spec-canvas-layout.md` 的 11 個 `uc-`（`uc-init-canvas`／`uc-place-item`／`uc-remove-item`／`uc-move-item`／`uc-resize-item`／`uc-set-item-capabilities`／`uc-set-item-anchor`／`uc-reorder-item`／`uc-move-items`／`uc-remove-items`／`uc-set-viewport`）在五個 feature 檔的 `@uc-` tag 全部出現，無遺漏。
+- 以腳本逐字比對：spec 43 個 Scenario 標題與 feature 檔 43 個完全一致，spec 中未出現在 feature 的為 0 筆。
+- fail 訊息逐字比對：spec 出現的 10 句訊息（『不可同時移動畫布元素與畫面固定元素』『寬與高必須大於 0』『所選元素中有不可移動的元素』『所選元素中有不可移除的元素』『此元素不可移動』『此元素不可移除』『此元素不可調整大小』『畫布元素不存在』『看板不存在』『縮放比例超出範圍』）在 `Item.java`／`Canvas.java`／`CanvasApplicationService.java` 都有對應且字面相同。
+- 抽查 `@fail-pN`「且資料不變」（D-01 的修正）：`CanvasSteps.thenRejected`（第 379～386 行）除斷言 status >= 400 與 message 外，比對 `preActionSnapshot` 與重新查詢的 `snapshotState()`；`snapshotState()` 對全部 `canvas_items`（id／canvasId／component／anchor／x／y／width／height／z／movable／resizable／removable）與全部 `viewports` 逐欄拍照。12 個 `@When` step 全數在送出請求前呼叫 `captureSnapshot()`（12 個呼叫點，逐一確認）。
+- 抽查 D-05 的修正（本輪唯一程式碼變更，commit `ec50163`）：`CanvasApplicationService.moveItems`／`removeItems` 在 `ensureCanEdit` 之後、載入 item 之前加上 `itemIds == null || itemIds.isEmpty()` 的 no-op 分支；`CanvasController` 的兩個批次端點只是把 `request.itemIds()` 原樣傳下去，沒有在 controller 內解參考，因此 `IndexOutOfBoundsException`／`NullPointerException`／HTTP 500 的路徑已消失。新增 `CanvasApplicationServiceTest` 4 個案例（move／remove × 空陣列／null），符合 D-05 第 3 點「kanban-spring 層即可」；權限檢查仍在 no-op 之前，未被跳過。決策理由已寫入 `decision-log.md`（D-05 第 2 點）。
+
+### 3. `kanban-core` 純度
+
+- `grep -rn 'org.springframework\|jakarta.persistence\|@Entity\|@Autowired' kanban-core/src/main/java/io/progden/kanban/core/domain/` → 零命中。
+- 本任務未新增跨 aggregate 讀取投影，`io.progden.kanban.query.*` 無異動。
+
+### 4. 任務邊界
+
+- `git diff loop/implementation...HEAD --stat`：48 檔、+3511/-2。程式碼只落在 `kanban-core/.../core/domain/`（Canvas／Item／Viewport 及其 Repository port、`ItemAnchor`、`ErrorCode` 追加 canvas 錯誤碼）與 `kanban-spring/.../application|persistence|web` 的 canvas 相關檔，測試落在 canvas 對應的單元測試、`CanvasSteps.java` 與五個 `canvas-*.feature`。
+- `.state/` 只動 `.state/tasks/T-09-be-canvas-layout/**`，沒有 `.state/tasks.md`、`.state/archive/**`、其他任務目錄的異動；未觸碰 `.dev/conventions/**`、`scripts/**`、spec／ui 文件本體。
+
+### 5. OQ 核對
+
+- 四則 OQ 都實際存在於 `loopctl show`，交接摘要「待確認事項」沒有只寫在紀錄裡就消失的項目。
+- 等級／阻塞判定：`spec-canvas-layout.md` 第 14 行為『狀態：草稿』，四則都不需要違反任何已定稿原文即可把任務做完 → 「高／不阻塞」正確，不需改成阻塞。
+- 引文核對：OQ-02／OQ-04 的引文（欄位表 `item.z` 限制欄『必填、同一 `canvas` 內唯一』、`uc-place-item` post、「層序」段、`uc-init-canvas` post 第 2 條、Background『Given 畫布已由系統建立』、『Scenario: 放置元件到空畫布』／『Given 畫布中沒有任何元素』）與 spec 現行文字逐字相符；OQ-04 已按 D-04 註明取代 OQ-03，OQ-03 留作歷史紀錄。
+- 接手欄：OQ-02／03／04 為 `人工`（spec 草稿文字要定案，沒有任務會處理），OQ-01 為 `無`，均與實情相符。
+
+### 6. 前端項目
+
+不適用（本任務為後端）。
+
+### 判定：附保留核准（`done`）
+
+保留事項（皆不阻塞，逐條列出接手者）：
+
+1. `OQ-T-09-be-canvas-layout-01`（HTTP 狀態碼分配 409/404/400）——接手：**人工**（spec 未定義狀態碼）；若前端 `T-13-fe-canvas-shell` 實作時對狀態碼有依賴，由該任務在動工前確認並回頭提 OQ，不自行改後端。
+2. `OQ-T-09-be-canvas-layout-02`（`item.z` 唯一鍵為 canvas 內唯一或錨定方式內唯一）——接手：**人工**，須修正 `spec-canvas-layout.md`（草稿，不需 CR）使欄位表與 `uc-place-item` post／「層序」段一致；若最後選 B（canvas 內唯一），需追加 `T-09-be-canvas-layout-r2` 修訂實例改唯一鍵。
+3. `OQ-T-09-be-canvas-layout-04`（Background『畫布已由系統建立』是否含 z=1 看板本體元素）——接手：**人工**；若選 B，Scenario 的 z 期望值與測試前置都要改，同樣需要修訂實例。
+4. `OQ-T-09-be-canvas-layout-03`——已由 OQ-04 取代，人工接手時只看 OQ-04。
