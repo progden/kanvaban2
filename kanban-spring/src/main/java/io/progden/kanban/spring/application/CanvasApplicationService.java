@@ -183,11 +183,15 @@ public class CanvasApplicationService {
 
     /**
      * {@code uc-move-items}：批次移動，全成功或全失敗——先對指定的每個 {@code item} 逐一驗證存在、
-     * 錨定方式一致、可移動，全部通過才逐一套用位移量並存回。
+     * 錨定方式一致、可移動，全部通過才逐一套用位移量並存回。{@code itemIds} 為空或未指定時，spec
+     * 的 {@code pre} 皆為真空成立，視為 no-op（D-05：避免對空 List 取 {@code get(0)} 丟例外）。
      */
     @Transactional
     public List<Item> moveItems(UUID boardId, UUID operatorId, List<UUID> itemIds, double dx, double dy) {
         boardMembershipApplicationService.ensureCanEdit(boardId, operatorId);
+        if (itemIds == null || itemIds.isEmpty()) {
+            return List.of();
+        }
         List<Item> items = loadItemsInBoard(boardId, itemIds);
         ItemAnchor firstAnchor = items.get(0).getAnchor();
         boolean mixedAnchor = items.stream().anyMatch(item -> item.getAnchor() != firstAnchor);
@@ -203,11 +207,15 @@ public class CanvasApplicationService {
 
     /**
      * {@code uc-remove-items}：批次移除，全成功或全失敗——先對指定的每個 {@code item} 逐一驗證存在、
-     * 可移除，全部通過才逐一刪除。
+     * 可移除，全部通過才逐一刪除。{@code itemIds} 為空或未指定時，spec 的 {@code pre} 皆為真空成立，
+     * 視為 no-op（D-05）。
      */
     @Transactional
     public void removeItems(UUID boardId, UUID operatorId, List<UUID> itemIds) {
         boardMembershipApplicationService.ensureCanEdit(boardId, operatorId);
+        if (itemIds == null || itemIds.isEmpty()) {
+            return;
+        }
         List<Item> items = loadItemsInBoard(boardId, itemIds);
         items.forEach(item -> item.ensureRemovable("所選元素中有不可移除的元素"));
         items.forEach(item -> itemRepository.deleteById(item.getId()));
