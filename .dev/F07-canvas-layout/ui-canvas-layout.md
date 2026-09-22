@@ -18,9 +18,9 @@
 ### 角色與權限
 | 角色 | 看得到 | 做得到 |
 |---|---|---|
-| `r-canvas-editor` | 全部畫布元素與自己的檢視區 | 放置元件、移除元件、移動元件、調整元件大小、設定元件能力、設定元件錨定方式、調整元件層序（置頂／置底）、批次移動元件、批次移除元件、平移／縮放檢視區、離開、開啟管理 Swimlane、開啟管理 Stage（⚠️ 見 OQ-44） |
-| `r-canvas-viewer` | 全部畫布元素與自己的檢視區 | 平移／縮放檢視區、離開 |
-| `r-board-owner`（F02，跨模組） | 新增 Swimlane、新增 Stage 所需範圍；「看板成員」item（⚠️ 與 `r-canvas-editor` 的對應關係見 OQ-44） | 新增 Swimlane、新增 Stage、於「看板成員」item 選擇加入成員 |
+| `r-canvas-editor` | 全部畫布元素與自己的檢視區 | 放置元件、移除元件、移動元件、調整元件大小、設定元件能力、設定元件錨定方式、調整元件層序（置頂／置底）、批次移動元件、批次移除元件、平移／縮放檢視區、離開、開啟管理 Swimlane、開啟管理 Stage（對應 F02 `board-membership.role` 為 Owner／Member，即 `r-board-owner`／`r-board-member`，見 spec-canvas-layout.md 角色定義） |
+| `r-canvas-viewer` | 全部畫布元素與自己的檢視區 | 平移／縮放檢視區、離開（對應 F02 `board-membership.role` 為 Viewer，即 `r-board-viewer`，見 spec-canvas-layout.md 角色定義） |
+| `r-board-owner`（F02，跨模組） | 新增 Swimlane、新增 Stage 所需範圍；「看板成員」item（即 `r-canvas-editor`） | 新增 Swimlane、新增 Stage、於「看板成員」item 選擇加入成員 |
 
 ### 資料
 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
@@ -59,7 +59,7 @@
 - 載入中：載入畫布全部元件與自己的檢視區時顯示
 - 空資料：畫布上沒有任何元件時，顯示空白畫布（`canvas` 與 `item` 的關係 min 為 0，允許空畫布）
 - 錯誤：任一操作失敗時，依上方操作表顯示對應訊息
-- 無權限：不適用（spec 僅定義 `r-canvas-editor`／`r-canvas-viewer` 兩種角色，兩者可見範圍相同、僅可執行的操作不同，未定義完全無法存取本畫面的角色；⚠️ 這兩個角色與 F02 `board-membership` 角色的對應關係未定義，見 OQ-44）
+- 無權限：不適用（spec 僅定義 `r-canvas-editor`／`r-canvas-viewer` 兩種角色，兩者可見範圍相同、僅可執行的操作不同，未定義完全無法存取本畫面的角色）
 - 資料狀態差異：操作者角色為 `r-canvas-viewer` 時，僅能平移／縮放自己的檢視區與離開，其餘操作皆不可用
 
 ### 驗收條件
@@ -78,4 +78,3 @@
 ### 待確認事項
 - ⚠️ 看板本體如何成為 `s-canvas` 上的一個 `item`（`item.component` 對應值、預設位置與大小、建立時機）spec「待釐清」尚未定義；人工已確認固定顯示於畫布中間的方向，確切機制待整合 CR 定案，見 OQ-17／OQ-18
 - ⚠️ 依 OQ-49，F03 四個圖表畫面、F04 時鐘控制畫面、F05 工作量儀表板、F06 追蹤表畫面，人工已確認也是 `s-canvas` 上可放置的獨立 `item`（跟看板本體一樣，不透過其他畫面的操作列進入）；但這些各自的 `item.component` 對應值、如何從既有畫布新增這類元件（使用者操作流程）spec「待釐清」尚未定義，待整合 CR 定案
-- ⚠️ `r-canvas-editor`／`r-canvas-viewer`／`r-board-owner`（F02）三者的對應關係 spec 未定義，見 OQ-44

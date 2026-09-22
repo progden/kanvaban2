@@ -10,7 +10,9 @@
 - 接手：人工
 - 原因代碼：spec-conflict
 - 開立：Dev 第 2 輪（2026-09-22）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-22，人工採選項 A）**
+
+解除說明：依 spec 定案內容修訂 `ui-canvas-layout.md`：「角色與權限」表三列補上與 F02 `board-membership.role`（Owner／Member → `r-canvas-editor`；Viewer → `r-canvas-viewer`）的對應說明、移除「⚠️ 見 OQ-44」字樣；「狀態」段「無權限」列、「待確認事項」段同樣移除過時的「對應關係未定義，見 OQ-44」字樣。`./scripts/ui-check` 執行後 0 error（既有 10 則 warning 皆與本次修訂無關）。
 
 情況：【兩處矛盾並列】
 
