@@ -114,3 +114,35 @@ canvas-viewport 6，全部 `skipped="0" failures="0" errors="0"`，合計 43，�
 ### 待確認事項
 
 - `OQ-T-09-be-canvas-layout-01`／`02`／`04`：接手人工，供 spec 定稿時處理，不阻塞本任務核准。
+
+## 2026-09-22 Dev 第 4 輪：修 D-05：批次操作 itemIds 空值 no-op
+
+### D-05 修正：批次操作 itemIds 為空或缺欄位時的語意選擇
+
+`CanvasApplicationService.moveItems`／`removeItems` 原本在 `itemIds` 為空陣列時對
+`items.get(0)` 丟 `IndexOutOfBoundsException`，JSON 缺該欄位（Jackson 反序列化為 `null`）時
+`itemIds.stream()` 丟 `NullPointerException`，`CanvasController.withOperator` 只 catch
+`DomainException`，兩者都穿透成 HTTP 500。
+
+`uc-move-items`／`uc-remove-items` 的 `pre` 逐字為『指定的每個 `item` 皆存在』等，空集合下三個
+`pre` 皆真空成立（vacuously true），屬規格未定義而非規格違反。選擇語意：**視為 no-op 成功**，
+而非以 `DomainException` 拒絕——理由是空集合本來就滿足所有 `pre`，沒有正當理由回絕一個沒有做任何
+事的請求；改成拒絕反而要新增一個 spec 沒提到的錯誤碼，且與「批次操作全成功或全失敗」的既有語意
+（空集合視為「全部（零個）成功」）更一致。
+
+實作：`ensureCanEdit` 權限檢查維持在最前面（no-op 不代表跳過權限），`itemIds == null ||
+itemIds.isEmpty()` 時 `moveItems` 直接回傳 `List.of()`、`removeItems` 直接 return，不再載入
+canvas／item。
+
+補測試：`CanvasApplicationServiceTest`（`kanban-spring` 層整合測試）涵蓋 `itemIds` 為空陣列與
+`null` 兩種輸入 × `moveItems`／`removeItems` 共 4 個案例，皆不丟例外、`moveItems` 回傳空清單。
+未動 `canvas-*.feature` 五個逐字複製的 spec 檔。
+
+### Check
+
+- `./gradlew clean build --no-daemon`：BUILD SUCCESSFUL in 3m 11s，14 actionable tasks: 14 executed。
+- 43 份測試結果檔（`kanban-core`＋`kanban-spring`）逐檔 `skipped="0" failures="0" errors="0"`，
+  含新增的 `TEST-io.progden.kanban.spring.application.CanvasApplicationServiceTest.xml`（4 個測試
+  全過）。canvas 五個 feature 檔合計仍為 43 個 Scenario，未變動。
+- `git status --porcelain` 於 commit 後為空，本輪只動
+  `CanvasApplicationService.java`（+10/-2）與新增的測試檔。
