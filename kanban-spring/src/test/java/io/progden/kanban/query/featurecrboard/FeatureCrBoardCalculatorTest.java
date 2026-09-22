@@ -49,6 +49,15 @@ class FeatureCrBoardCalculatorTest {
     }
 
     @Test
+    void crAffectingUnknownFeatureDoesNotCreatePlaceholderFeature() {
+        var cards = List.of(card(List.of("CR-099", "affects:F99"), StageRole.NONE));
+
+        var view = FeatureCrBoardCalculator.calculate(cards);
+
+        assertTrue(view.features().isEmpty());
+    }
+
+    @Test
     void cardWithTwoFeatureLabelsProducesWarningAndIsExcluded() {
         var cards = List.of(card(List.of("F01", "F02"), StageRole.NONE));
 

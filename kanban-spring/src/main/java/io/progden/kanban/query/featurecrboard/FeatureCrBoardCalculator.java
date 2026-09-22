@@ -16,12 +16,9 @@ import java.util.regex.Pattern;
  * <p>標籤格式（不分大小寫，見 post p5，內部一律轉大寫比對）：
  * Feature 卡「^F\d{2}$」、CR 卡「^CR-\d{3}$」、affects 標籤「^affects:F\d{2}$」（見「其他名詞」表）。
  *
- * <p>post p2「帶有 affects 標籤時，顯示在對應 Feature 底下」不要求該 Feature 編號真的有一張
- * Feature 卡：spec-feature-cr-board.md 範例情境（Scenario「檢視 CR 影響哪個 Feature 以及其狀態」）
- * 只給了一張 CR 卡，沒有對應的 F01 卡片，仍要求 CR 顯示在 Feature "F01" 底下——因此「對應 Feature」
- * 是由 affects 標籤的目標編號直接決定（沒有實體卡片時建立一個狀態預設「未開發」的佔位 Feature），
- * 與 post p3「orphan」是否成立分開判斷：orphan 只看該編號是否真的有一張 Feature 卡（見
- * implementation-loop decision-log，此為由範例情境推論出的實作細節）。
+ * <p>post p2「帶有 affects 標籤『且該編號存在對應 Feature 卡』時，顯示在對應 Feature 底下」與
+ * post p3「orphan」互斥（CR-013）：affects 目標沒有對應 Feature 卡時，只列入 orphan 清單，不建立
+ * 分組、也不自建佔位 Feature。
  *
  * <p>{@code post p4} 只針對「同一張卡片帶兩個 Feature 標籤」定義警告＋排除行為；CR 卡沒有 affects
  * 標籤、或同一張卡片帶兩個 CR 標籤時 spec 未定義，本計算器選擇：沒有 affects 標籤的 CR 卡不出現在
@@ -69,10 +66,10 @@ public final class FeatureCrBoardCalculator {
         for (CrEntry cr : crCards) {
             boolean isOrphan = false;
             for (String target : cr.affectsTargets()) {
-                featuresById.putIfAbsent(target, new FeatureEntry(target, statusOf(StageRole.NONE)));
-                crsByFeature.computeIfAbsent(target, k -> new ArrayList<>())
-                        .add(new CrView(cr.crId(), cr.status()));
-                if (!featureIdsWithCard.contains(target)) {
+                if (featureIdsWithCard.contains(target)) {
+                    crsByFeature.computeIfAbsent(target, k -> new ArrayList<>())
+                            .add(new CrView(cr.crId(), cr.status()));
+                } else {
                     isOrphan = true;
                 }
             }

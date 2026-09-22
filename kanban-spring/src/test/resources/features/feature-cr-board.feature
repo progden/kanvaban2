@@ -18,12 +18,13 @@ Feature: Feature／CR 追蹤表
     When 我開啟 Feature／CR 追蹤表
     Then Feature "F01" 的狀態應該顯示為「已完成」
 
-  @uc-view-feature-cr-board
+  @CR-013 @uc-view-feature-cr-board
   # Related aggregate:
   #   board: read
   #   card: read
   Scenario: 檢視 CR 影響哪個 Feature 以及其狀態
-    Given 卡片 "看板時間" 標籤為 "CR-004"，並帶有 "affects:F01" 標籤，目前在角色為 Start 的 Stage
+    Given 卡片 "basic-kanban" 標籤為 "F01"
+    And 卡片 "看板時間" 標籤為 "CR-004"，並帶有 "affects:F01" 標籤，目前在角色為 Start 的 Stage
     When 我開啟 Feature／CR 追蹤表
     Then Feature "F01" 底下應該顯示一筆狀態為「開發中」的 CR "CR-004"
 
