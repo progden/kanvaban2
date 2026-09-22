@@ -43,7 +43,7 @@ export function ActivityLogItem(_props: ItemContentProps) {
 
   if (error !== null) {
     return (
-      <p role="alert" className="activity-log__error">
+      <p role="alert" className="form-error activity-log__error">
         {error}
       </p>
     );

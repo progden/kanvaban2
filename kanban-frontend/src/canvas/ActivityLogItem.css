@@ -46,6 +46,6 @@
 }
 
 .activity-log__error {
+  margin: 0;
   padding: 12px;
-  font-size: 12px;
 }
