@@ -8,6 +8,9 @@ import { BoardCanvasPage } from './pages/BoardCanvasPage';
 import { BoardListPage } from './pages/BoardListPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
+import { registerKanbanWidgets } from './widgets/registerKanbanWidgets';
+
+registerKanbanWidgets();
 
 // 依 ui-user-membership.md s-login「進入與離開」：應用程式入口依登入態決定導向 /login 或 /boards。
 function RootRedirect() {
