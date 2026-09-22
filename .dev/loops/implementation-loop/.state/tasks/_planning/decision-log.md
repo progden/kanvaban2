@@ -55,3 +55,23 @@
 - **決策**：`.dev/CR.md` 的 CR-007／CR-009／CR-012／CR-013 狀態欄仍是「待處理」，但這四筆的程式碼都已落地（分別由 `T-21`／`T-04`／`T-06`／`T-08-be-feature-cr-board-r2` 完成並合併），本輪不因狀態欄而追加任務。
 - **依據**：`iteration-prompt.md` 第 2 節把 `.dev/**` 列為「上游依據：**不可修改**」，安排階段不能改狀態欄；而第 5-1 步的落後判定依據是 spec 的 `@CR-` tag 與各列「涵蓋 CR」，不是 CR.md 的狀態欄。四列的備註都已載明「完成並驗收後，人工把 `.dev/CR.md` 改『處理完成』」。
 - **提醒（給人工）**：依 `CLAUDE.md`「CR 狀態改成『待處理』／改回『處理完成』是保護開關」，這四筆滯留在「待處理」會讓 `cr-check` 的 GH-05 持續嚴格擋 F02／F03／F06 的格式性修訂，建議盡快翻回「處理完成」。
+
+## 2026-09-22 安排階段重跑（第三次，驅動腳本「無可執行任務」觸發，`bf0a066` 之後）
+
+### 決策 7：本輪 `.state/tasks.md` 仍為零改動（第 5-1／5-4 步 A−B 全為空集合）
+
+- **決策**：24 列任務的 ID／產出範圍／依賴／備註全部維持原狀，不新增、不刪除、不重寫任何列，也不追加任何 `-rN` 修訂實例。
+- **依據（上游無變動）**：`git log 574f8f6..HEAD -- .dev/F0*/ .dev/CR.md` 輸出為空——自上一輪安排階段（`T-08-be-feature-cr-board-r2` 合併後）以來，`.dev/` 底下的 spec／ui／CR 總表沒有任何新 commit。`.dev/F0*/spec-*.md` 現況 `@CR-` tag 集合仍是 F01 = {CR-001, CR-002, CR-003, CR-010, CR-011}、F02 = {CR-006, CR-007, CR-009}、F03 = {CR-012}、F06 = {CR-013}、F04／F05／F07 = ∅；七份 `ui-*.md` 仍無任何 `@CR-` tag（第 5-4 步集合 A 為空）。逐主體 A−B 比對結果與決策 4 相同，全部為 ∅。
+- **`.dev/ui-prototype/`**：仍為 22 個項目（21 份 `.dc.html` ＋ `README.md`），未增減，沒有新畫面需要排任務。
+- **規則段核對**：`.state/tasks.md`「規則」段七條（狀態值定義、挑選順序、`D-xx`、任務目錄內容、`blocked` 解除、顆粒度、備註欄「涵蓋 CR」、修訂實例 `-rN`）與 `iteration-prompt.md` 第 0／2／3／4 節一致，無缺漏需補。
+
+### 決策 8：`T-14-fe-board-item`／`T-15-fe-member-management` 維持 `blocked`，開立 `OQ-PLAN-01`
+
+- **決策**：不把這兩個 `status` 檔改回 `todo`，也不為它們開修訂實例列；改為開立 `OQ-PLAN-01` 交人工處理。
+- **依據**：兩者的 `driver-note.md` 都寫明『worktree 內已判定 done，但合併回 loop/implementation 失敗，需人工介入』；`.state/tasks.md`「規則」段只允許安排階段在「缺的依據已補齊」時解除 `blocked`，而這兩列缺的是一次人工解衝突合併，不是規格依據。改回 `todo` 會讓驅動腳本另開新 worktree 從 Dev 第 1 輪重跑，丟掉 `impl/T-14-fe-board-item`（`852aa29`）／`impl/T-15-fe-member-management`（`c2bce05`）上已核准的成果。
+- **本輪實測（記錄在 OQ-PLAN-01）**：在暫時 detached worktree 乾跑合併（用完已移除，未動主 repo），衝突檔為 `BoardCanvasPage.tsx`（兩條都有）、`boardApi.ts`／`cardApi.ts`（T-14）、各自的 `status` 檔。與 `ADR-T-17-fe-clock-control-01`「後果」第 1 條預測的「多個平行分支同時改同一個檔案的相鄰位置…非邏輯衝突，只是同檔案多處新增」相符。
+
+### 決策 9：CR.md 四筆「待處理」仍由人工翻，本輪不重複開 OQ
+
+- **決策**：`.dev/CR.md` 的 CR-007／CR-009／CR-012／CR-013 狀態欄仍是「待處理」而程式碼皆已落地，本輪不因此追加任務，也不重開 OQ（決策 6 已記錄，內容未變）。
+- **依據**：`iteration-prompt.md` 第 2 節把 `.dev/**` 列為「上游依據：**不可修改**」；第 5-1 步的落後判定依據是 spec 的 `@CR-` tag 與各列「涵蓋 CR」，不是 CR.md 的狀態欄。
