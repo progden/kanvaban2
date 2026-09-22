@@ -27,7 +27,7 @@ import { WorkloadDashboard } from '../canvas/WorkloadDashboard';
 // item.component === 's-workload-dashboard'（見 ui-workload.md），每個模組各自的 item 內容在這裡
 // （畫布掛載處）自行註冊，其餘元件識別碼由各自任務補上；命名為完整 Screen ID，
 // 見 ADR-T-17-fe-clock-control-01「修正」段。
-registerItemComponent('s-workload-dashboard', WorkloadDashboard);
+registerItemComponent('s-workload-dashboard', WorkloadDashboard, '人員工作量儀表板');
 // s-board-clock-control 不是 canvas item，是從下方「看板時間」按鈕開啟的對話框（CR-014）。
 
 export function BoardCanvasPage() {
@@ -39,6 +39,7 @@ export function BoardCanvasPage() {
   const [canEdit, setCanEdit] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [requestedCardId, setRequestedCardId] = useState<string | null>(null);
+  const [cardsVersion, setCardsVersion] = useState(0);
   const [clockDialogOpen, setClockDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -102,6 +103,8 @@ export function BoardCanvasPage() {
             requestedCardId,
             requestCardDetail: setRequestedCardId,
             clearRequestedCardDetail: () => setRequestedCardId(null),
+            cardsVersion,
+            notifyCardsChanged: () => setCardsVersion((v) => v + 1),
           }}
         >
           <CanvasStage

@@ -15,7 +15,7 @@ import './CanvasStage.css';
 
 export function WorkloadDashboard({ boardId }: ItemContentProps) {
   const { username } = useAuth();
-  const { requestCardDetail } = useBoardContext();
+  const { requestCardDetail, cardsVersion } = useBoardContext();
   const [members, setMembers] = useState<MemberWorkloadEntry[] | null>(null);
   const [unassignedCount, setUnassignedCount] = useState(0);
   const [canDrag, setCanDrag] = useState(false);
@@ -44,7 +44,9 @@ export function WorkloadDashboard({ boardId }: ItemContentProps) {
     return () => {
       cancelled = true;
     };
-  }, [boardId, username]);
+    // cardsVersion 變動代表卡片（含負責人）被改過，見 BoardContext.tsx 的說明；放進 dependency
+    // array 讓這個 item 跟著重新抓一次，不用等使用者自己重新整理頁面。
+  }, [boardId, username, cardsVersion]);
 
   if (error !== null) {
     return (

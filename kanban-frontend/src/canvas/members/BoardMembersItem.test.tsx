@@ -26,8 +26,13 @@ afterEach(() => {
 });
 
 const MEMBERS = [
-  { username: 'user1', displayName: '陳柏翰', role: 'OWNER' },
-  { username: 'yating', displayName: '雅婷', role: 'MEMBER' },
+  { userId: 'user-1', username: 'user1', displayName: '陳柏翰', role: 'OWNER' },
+  { userId: 'user-yating', username: 'yating', displayName: '雅婷', role: 'MEMBER' },
+];
+
+const MEMBERS_SELF_VIEWER = [
+  { userId: 'user-1', username: 'user1', displayName: '陳柏翰', role: 'VIEWER' },
+  { userId: 'user-yating', username: 'yating', displayName: '雅婷', role: 'MEMBER' },
 ];
 
 function renderItem() {
@@ -80,5 +85,21 @@ describe('「看板成員」item', () => {
     fireEvent.click(trigger);
 
     expect(await screen.findByRole('heading', { name: '看板成員' })).toBeInTheDocument();
+  });
+
+  it('操作者不是 Viewer 時，頭像可以拖曳（uc-assign-card-owner-by-drag 的拖曳來源）', async () => {
+    mockFetch({ '/members': () => jsonResponse(MEMBERS) });
+    renderItem();
+
+    const avatar = await screen.findByTestId('board-members-avatar-user-yating');
+    expect(avatar).toHaveAttribute('draggable', 'true');
+  });
+
+  it('操作者是 Viewer 時，頭像不可拖曳', async () => {
+    mockFetch({ '/members': () => jsonResponse(MEMBERS_SELF_VIEWER) });
+    renderItem();
+
+    const avatar = await screen.findByTestId('board-members-avatar-user-yating');
+    expect(avatar).toHaveAttribute('draggable', 'false');
   });
 });

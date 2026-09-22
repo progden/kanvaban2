@@ -2,9 +2,13 @@
 // （由 uc-init-canvas 自動建立），其餘元件的值待各自模組定案（見 ui-canvas-layout.md 待確認事項）；
 // 畫布工具列本身的版面 spec 也未定義（Main.dc.html 標註「⚠️ 規格未定義：畫布工具列本身」），
 // 這裡沿用既有對話框樣式，先讓 uc-place-item 這個操作在畫面上可被觸發與測試。
+// 元件識別碼改用下拉選單而非自由輸入：能加入畫布的元件就是 itemComponentRegistry 裡已經掛了
+// 內容的那些（一個固定、有限的集合），手打容易打錯字；"board" 由 uc-init-canvas 自動建立、
+// 排除在外，不讓使用者手動再加一個。
 import { useState } from 'react';
 import { ApiError } from '../api/http';
 import type { ItemAnchor } from '../api/canvasApi';
+import { listRegisteredComponents } from './itemComponentRegistry';
 import './CanvasStage.css';
 
 interface PlaceItemDialogProps {
@@ -23,6 +27,9 @@ interface PlaceItemDialogProps {
 }
 
 export function PlaceItemDialog({ onCancel, onSubmit }: PlaceItemDialogProps) {
+  // 每次開對話框才重新讀 registry：registerItemComponent 是散落在各模組的 side-effect import，
+  // 若在模組頂層算好這份清單（曾經這樣寫過），會依 import 順序而定、可能拿到還沒註冊完的半成品清單。
+  const [componentOptions] = useState(() => listRegisteredComponents(['board']));
   const [component, setComponent] = useState('');
   const [x, setX] = useState('0');
   const [y, setY] = useState('0');
@@ -72,12 +79,21 @@ export function PlaceItemDialog({ onCancel, onSubmit }: PlaceItemDialogProps) {
           <label className="field-label" htmlFor="place-item-component">
             元件識別碼
           </label>
-          <input
+          <select
             id="place-item-component"
             className="field-input"
             value={component}
             onChange={(e) => setComponent(e.target.value)}
-          />
+          >
+            <option value="" disabled>
+              請選擇元件
+            </option>
+            {componentOptions.map((option) => (
+              <option key={option.component} value={option.component}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="field" style={{ display: 'flex', gap: 12 }}>
           <div style={{ flex: 1 }}>
@@ -164,7 +180,12 @@ export function PlaceItemDialog({ onCancel, onSubmit }: PlaceItemDialogProps) {
           <button type="button" className="btn-secondary" onClick={onCancel}>
             取消
           </button>
-          <button type="button" className="btn" disabled={submitting} onClick={() => void handleSubmit()}>
+          <button
+            type="button"
+            className="btn"
+            disabled={submitting || component === ''}
+            onClick={() => void handleSubmit()}
+          >
             加入
           </button>
         </div>

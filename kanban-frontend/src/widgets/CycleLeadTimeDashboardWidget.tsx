@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getCycleLeadTime, type CycleLeadTimeResponse } from '../api/kanbanWidgetsApi';
 import { ApiError } from '../api/http';
+import { useBoardContext } from '../board/BoardContext';
 import type { ItemContentProps } from '../canvas/itemComponentRegistry';
 import './WidgetShell.css';
 
@@ -26,6 +27,7 @@ function formatAverage(value: number | null): string {
 
 export function CycleLeadTimeDashboardWidget(_props: ItemContentProps) {
   const { boardId } = useParams<{ boardId: string }>();
+  const { cardsVersion } = useBoardContext();
   const [data, setData] = useState<CycleLeadTimeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,7 +50,7 @@ export function CycleLeadTimeDashboardWidget(_props: ItemContentProps) {
     return () => {
       cancelled = true;
     };
-  }, [boardId]);
+  }, [boardId, cardsVersion]);
 
   if (error !== null) {
     return (

@@ -7,6 +7,7 @@ import { apiClient } from './http';
 export type BoardRole = 'OWNER' | 'MEMBER' | 'VIEWER';
 
 export interface MemberView {
+  userId: string;
   username: string;
   displayName: string;
   role: BoardRole;

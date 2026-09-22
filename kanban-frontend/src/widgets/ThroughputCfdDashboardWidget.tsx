@@ -12,11 +12,13 @@ import {
   type ThroughputUnit,
 } from '../api/kanbanWidgetsApi';
 import { ApiError } from '../api/http';
+import { useBoardContext } from '../board/BoardContext';
 import type { ItemContentProps } from '../canvas/itemComponentRegistry';
 import './WidgetShell.css';
 
 export function ThroughputCfdDashboardWidget(_props: ItemContentProps) {
   const { boardId } = useParams<{ boardId: string }>();
+  const { cardsVersion } = useBoardContext();
   const [stages, setStages] = useState<StageView[] | null>(null);
   const [unit, setUnit] = useState<ThroughputUnit>('day');
   const [throughput, setThroughput] = useState<ThroughputResponse | null>(null);
@@ -43,7 +45,7 @@ export function ThroughputCfdDashboardWidget(_props: ItemContentProps) {
     return () => {
       cancelled = true;
     };
-  }, [boardId]);
+  }, [boardId, cardsVersion]);
 
   useEffect(() => {
     if (boardId === undefined) {
@@ -64,7 +66,7 @@ export function ThroughputCfdDashboardWidget(_props: ItemContentProps) {
     return () => {
       cancelled = true;
     };
-  }, [boardId, unit]);
+  }, [boardId, unit, cardsVersion]);
 
   if (error !== null) {
     return (

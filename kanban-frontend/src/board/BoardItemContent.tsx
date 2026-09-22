@@ -30,7 +30,7 @@ import { SwimlanePanel } from './SwimlanePanel';
 import { StagePanel } from './StagePanel';
 
 function BoardItemContent(_props: ItemContentProps) {
-  const { boardId, canEdit, requestedCardId, clearRequestedCardDetail } = useBoardContext();
+  const { boardId, canEdit, requestedCardId, clearRequestedCardDetail, notifyCardsChanged } = useBoardContext();
   const [board, setBoard] = useState<BoardResponse | null>(null);
   const [cards, setCards] = useState<CardResponse[] | null>(null);
   const [candidates, setCandidates] = useState<AssigneeCandidate[]>([]);
@@ -47,6 +47,9 @@ function BoardItemContent(_props: ItemContentProps) {
         setBoard(loadedBoard);
         setCards(loadedCards);
         setCandidates(loadedCandidates);
+        // 讓其他依賴卡片資料的 item（工作量、WIP、活動紀錄……）知道要重新抓一次，見 BoardContext.tsx
+        // cardsVersion 的說明。reload() 本身也是初次載入用的，這裡多通知一次是無害的多打一次 API。
+        notifyCardsChanged();
       })
       .catch((e: unknown) => {
         setError(e instanceof ApiError ? e.message : '載入看板內容失敗，請稍後再試');
@@ -137,7 +140,9 @@ function BoardItemContent(_props: ItemContentProps) {
         <div className="board-grid__corner" />
         {stages.map((stage) => (
           <div key={stage.id} className="board-grid__stage-header">
-            <span>{stage.name}</span>
+            <span className="board-grid__stage-name" title={stage.name}>
+              {stage.name}
+            </span>
             {stage.role !== 'NONE' && <span className="board-grid__stage-role">{stage.role}</span>}
           </div>
         ))}
@@ -289,4 +294,4 @@ function BoardItemContent(_props: ItemContentProps) {
   );
 }
 
-registerItemComponent('board', BoardItemContent);
+registerItemComponent('board', BoardItemContent, '看板本體');

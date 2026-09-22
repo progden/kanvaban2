@@ -16,6 +16,11 @@ type Handle = (typeof HANDLES)[number];
 
 const ZOOM_STEP = 1.25;
 const CLICK_THRESHOLD_PX = 4;
+// viewport 在使用者第一次自己平移／縮放前不存在（spec-canvas-layout.md：viewport「第一次設定時
+// 建立」），這個初始值只是前端本地的顯示起點，不是存檔資料，改它不影響 uc-set-viewport 的行為。
+// uc-init-canvas 固定把「看板本體」item 放在畫布座標 (0, 0)（spec 定死，不可動），往左上角平移一點
+// 讓它不會一開始就貼著「＋ 加入元件」按鈕，版面依 .dev/ui-prototype/Main.dc.html。
+const DEFAULT_VIEWPORT: ViewportView = { x: -140, y: -20, zoom: 1 };
 // z-index 分層：畫布元素依 item.z 排序後取相對名次（避免 0／負值被格線背景蓋住），
 // 畫面固定元素整組高於畫布元素，畫面固定的操作介面（加入元件、浮動工具列、縮放控制、錯誤訊息）
 // 再高於全部 item，確保 ui-canvas-layout.md 操作表的入口不會被任何元素蓋住或裁切。
@@ -73,7 +78,7 @@ export function CanvasStage({
   canEdit,
 }: CanvasStageProps) {
   const [items, setItems] = useState<ItemView[]>(initialItems);
-  const [viewport, setViewportState] = useState<ViewportView>(initialViewport ?? { x: 0, y: 0, zoom: 1 });
+  const [viewport, setViewportState] = useState<ViewportView>(initialViewport ?? DEFAULT_VIEWPORT);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [placeDialogOpen, setPlaceDialogOpen] = useState(false);
@@ -155,7 +160,11 @@ export function CanvasStage({
         if (drag.ids.length === 1) {
           const item = current[0];
           const updated = await canvasApi.moveItem(item.id, item.x, item.y);
-          setItems((cur) => cur.map((i) => (i.id === updated.id ? updated : i)));
+          // 只回填這次操作真的改到的欄位（x／y），不要整包換掉：這個回應是「移動當下」拍的照片，
+          // 若使用者在它回來之前又做了下一個操作（例如立刻調整大小），整包換掉會把後面那個操作
+          // 剛寫進 state 的欄位蓋回舊值。commitResizeDrag／handleSetCapability／handleToggleAnchor／
+          // handleReorder 都是同樣的道理。
+          setItems((cur) => cur.map((i) => (i.id === updated.id ? { ...i, x: updated.x, y: updated.y } : i)));
         } else {
           const first = current[0];
           const original = drag.originals.get(first.id);
@@ -166,7 +175,12 @@ export function CanvasStage({
           const dy = first.y - original.y;
           const updated = await canvasApi.moveItems(boardId, drag.ids, dx, dy);
           const byId = new Map(updated.map((i) => [i.id, i]));
-          setItems((cur) => cur.map((i) => byId.get(i.id) ?? i));
+          setItems((cur) =>
+            cur.map((i) => {
+              const u = byId.get(i.id);
+              return u === undefined ? i : { ...i, x: u.x, y: u.y };
+            }),
+          );
         }
       } catch (e) {
         setItems((cur) =>
@@ -188,7 +202,13 @@ export function CanvasStage({
     }
     try {
       const updated = await canvasApi.resizeItem(item.id, item.x, item.y, item.width, item.height);
-      setItems((cur) => cur.map((i) => (i.id === updated.id ? updated : i)));
+      setItems((cur) =>
+        cur.map((i) =>
+          i.id === updated.id
+            ? { ...i, x: updated.x, y: updated.y, width: updated.width, height: updated.height }
+            : i,
+        ),
+      );
     } catch (e) {
       setItems((cur) => cur.map((i) => (i.id === drag.id ? { ...i, ...drag.original } : i)));
       setError(e instanceof ApiError ? e.message : '調整大小失敗，請稍後再試');
@@ -252,6 +272,14 @@ export function CanvasStage({
     if (!canEdit) {
       return;
     }
+    // item 內容（新增卡片／卡片詳情／管理 Swimlane／Stage……）開的對話框雖然用 position:fixed
+    // 蓋滿全螢幕，但在 React／DOM 樹裡仍然是這個 item 的子節點（BoardItemContent 把它們渲染在
+    // 自己的元件樹裡），mousedown 事件會沿著 DOM 樹往上冒泡到這裡，不會因為視覺上蓋住了就不觸發。
+    // 沒擋掉的話，點對話框裡的輸入框只會選取／拖動底下的 item，preventDefault() 還會連帶讓輸入框
+    // 拿不到 focus——使用者看到的現象是「點不進新增卡片的輸入欄位，反而把整個看板拖走了」。
+    if ((e.target as HTMLElement).closest('.dialog-backdrop') !== null) {
+      return;
+    }
     e.stopPropagation();
     const isSelected = selectedIds.includes(item.id);
     let nextSelected: string[];
@@ -263,6 +291,15 @@ export function CanvasStage({
       nextSelected = [item.id];
     }
     setSelectedIds(nextSelected);
+
+    // item 內容（例如「看板本體」裡可原生拖曳的卡片，uc-move-card-stage／uc-move-card-swimlane）
+    // 也可能自己是 draggable 的。這裡若照常呼叫 startDrag()（會 preventDefault() 這個 mousedown），
+    // 瀏覽器就不會再判定成「使用者正在拖曳這個卡片」，原生 HTML5 拖放會整個失效，卡片變成完全
+    // 拖不動——見 e2e/board/card.spec.ts 抓到的實際案例。移動整個 item 只在 mousedown 落在非
+    // draggable 的區域（標題列、空白處）時才啟動；落在卡片本身時讓瀏覽器自己處理原生拖曳。
+    if ((e.target as HTMLElement).closest('[draggable="true"]') !== null) {
+      return;
+    }
 
     if (!item.movable || !nextSelected.includes(item.id)) {
       return;
@@ -450,17 +487,19 @@ export function CanvasStage({
             style={{ left: box.left, top: box.top, width: box.width, height: box.height, zIndex }}
             onMouseDown={(e) => handleItemMouseDown(e, item)}
           >
-            <div className="canvas-item__header">
-              <span>{item.component}</span>
-            </div>
-            <div className="canvas-item__body">
-              <Content
-                itemId={item.id}
-                component={item.component}
-                width={box.width}
-                height={box.height}
-                boardId={boardId}
-              />
+            <div className="canvas-item__inner">
+              <div className="canvas-item__header">
+                <span>{item.component}</span>
+              </div>
+              <div className="canvas-item__body">
+                <Content
+                  itemId={item.id}
+                  component={item.component}
+                  width={box.width}
+                  height={box.height}
+                  boardId={boardId}
+                />
+              </div>
             </div>
             {selected && canEdit && selectedIds.length === 1 && item.resizable && (
               <>

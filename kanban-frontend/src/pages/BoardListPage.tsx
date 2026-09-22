@@ -86,17 +86,17 @@ export function BoardListPage() {
       {boards !== null && boards.length > 0 && (
         <div className="board-list__grid">
           {boards.map((board) => (
-            <div className="board-card" key={board.id}>
+            <div className="board-list-card" key={board.id}>
               <button
                 type="button"
-                className="board-card__open"
+                className="board-list-card__open"
                 onClick={() => navigate(`/boards/${board.id}`)}
               >
                 {board.name}
               </button>
               <button
                 type="button"
-                className="btn-sm board-card__delete"
+                className="btn-sm board-list-card__delete"
                 onClick={() => setDialog({ type: 'delete', board })}
               >
                 刪除

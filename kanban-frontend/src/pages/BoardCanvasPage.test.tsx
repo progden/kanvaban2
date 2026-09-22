@@ -91,8 +91,11 @@ describe('s-canvas', () => {
     expect(calls.some((c) => c.url.endsWith('/api/boards/board-a/canvas'))).toBe(true);
     const item = screen.getByTestId('canvas-item-item-1');
     expect(within(item).getByText('board')).toBeInTheDocument();
-    expect(item.style.left).toBe('0px');
-    expect(item.style.top).toBe('0px');
+    // 沒有存檔過的 viewport 時，CanvasStage 用 DEFAULT_VIEWPORT（x:-140, y:-20, zoom:1）當本地起點，
+    // 讓 uc-init-canvas 固定放在畫布座標 (0, 0) 的「看板本體」不會一開始就貼著「＋ 加入元件」按鈕
+    // （見 CanvasStage.tsx 該常數旁的註解、.dev/ui-prototype/Main.dc.html）。
+    expect(item.style.left).toBe('140px');
+    expect(item.style.top).toBe('20px');
     expect(item.style.width).toBe('900px');
     expect(item.style.height).toBe('600px');
   });
@@ -107,8 +110,9 @@ describe('s-canvas', () => {
     fireEvent.mouseMove(window, { clientX: 150, clientY: 150 });
     fireEvent.mouseUp(window, { clientX: 150, clientY: 150 });
 
-    await waitFor(() => expect(item.style.left).toBe('100px'));
-    expect(item.style.top).toBe('100px');
+    // 伺服器回傳的畫布座標 (100, 100) 疊上 DEFAULT_VIEWPORT 的平移量後才是畫面像素。
+    await waitFor(() => expect(item.style.left).toBe('240px'));
+    expect(item.style.top).toBe('120px');
     const moveCall = calls.find((c) => c.url.endsWith('/api/canvas-items/item-1/move'));
     expect(moveCall?.body).toEqual({ x: 100, y: 100 });
   });
@@ -124,8 +128,8 @@ describe('s-canvas', () => {
     fireEvent.mouseUp(window, { clientX: 150, clientY: 150 });
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('此元素不可移動'));
-    expect(item.style.left).toBe('0px');
-    expect(item.style.top).toBe('0px');
+    expect(item.style.left).toBe('140px');
+    expect(item.style.top).toBe('20px');
   });
 
   it('調整大小後觸發 uc-resize-item', async () => {
@@ -194,7 +198,8 @@ describe('s-canvas', () => {
 
     await waitFor(() => expect(screen.getByTestId('viewport-zoom')).toHaveTextContent('125%'));
     const viewportCall = calls.find((c) => c.url.endsWith('/api/boards/board-a/canvas/viewport'));
-    expect(viewportCall?.body).toEqual({ x: 0, y: 0, zoom: 1.25 });
+    // jsdom 的 stage rect 寬高是 0，applyZoom 縮放中心點算出來等於平移量不變，還是 DEFAULT_VIEWPORT 的值。
+    expect(viewportCall?.body).toEqual({ x: -140, y: -20, zoom: 1.25 });
   });
 
   it('批次移動觸發 uc-move-items', async () => {
@@ -214,7 +219,7 @@ describe('s-canvas', () => {
     fireEvent.mouseMove(window, { clientX: 550, clientY: 230, shiftKey: true });
     fireEvent.mouseUp(window, { clientX: 550, clientY: 230, shiftKey: true });
 
-    await waitFor(() => expect(screen.getByTestId('canvas-item-item-1').style.left).toBe('50px'));
+    await waitFor(() => expect(screen.getByTestId('canvas-item-item-1').style.left).toBe('190px'));
     const batchCall = calls.find((c) => c.url.endsWith('/api/boards/board-a/canvas/items/move-batch'));
     expect(batchCall?.body).toEqual({ itemIds: ['item-1', 'item-2'], dx: 50, dy: 30 });
   });
@@ -232,13 +237,13 @@ describe('s-canvas', () => {
     const calls = await renderCanvas({
       '/api/boards/board-a/canvas/items': () =>
         jsonResponse(
-          { id: 'item-2', component: '銷售圖表', anchor: 'canvas', x: 100, y: 200, width: 300, height: 200, z: 2, movable: false, resizable: false, removable: false },
+          { id: 'item-2', component: 'board-members', anchor: 'canvas', x: 100, y: 200, width: 300, height: 200, z: 2, movable: false, resizable: false, removable: false },
           201,
         ),
     });
 
     fireEvent.click(screen.getByRole('button', { name: '＋ 加入元件' }));
-    fireEvent.change(screen.getByLabelText('元件識別碼'), { target: { value: '銷售圖表' } });
+    fireEvent.change(screen.getByLabelText('元件識別碼'), { target: { value: 'board-members' } });
     fireEvent.change(screen.getByLabelText('X'), { target: { value: '100' } });
     fireEvent.change(screen.getByLabelText('Y'), { target: { value: '200' } });
     fireEvent.click(screen.getByLabelText('可移動'));
@@ -249,7 +254,7 @@ describe('s-canvas', () => {
     await waitFor(() => expect(screen.getByTestId('canvas-item-item-2')).toBeInTheDocument());
     const placeCall = calls.find((c) => c.url.endsWith('/api/boards/board-a/canvas/items'));
     expect(placeCall?.body).toEqual({
-      component: '銷售圖表',
+      component: 'board-members',
       x: 100,
       y: 200,
       width: 300,

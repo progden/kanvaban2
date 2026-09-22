@@ -21,6 +21,7 @@
 | `r-canvas-editor` | 全部畫布元素與自己的檢視區 | 放置元件、移除元件、移動元件、調整元件大小、設定元件能力、設定元件錨定方式、調整元件層序（置頂／置底）、批次移動元件、批次移除元件、平移／縮放檢視區、離開、開啟管理 Swimlane、開啟管理 Stage（對應 F02 `board-membership.role` 為 Owner／Member，即 `r-board-owner`／`r-board-member`，見 spec-canvas-layout.md 角色定義） |
 | `r-canvas-viewer` | 全部畫布元素與自己的檢視區 | 平移／縮放檢視區、離開（對應 F02 `board-membership.role` 為 Viewer，即 `r-board-viewer`，見 spec-canvas-layout.md 角色定義） |
 | `r-board-owner`（F02，跨模組） | 新增 Swimlane、新增 Stage 所需範圍；「看板成員」item（即 `r-canvas-editor`） | 新增 Swimlane、新增 Stage、於「看板成員」item 選擇加入成員 |
+| `r-board-member`（F02，跨模組） | 「看板成員」item（即 `r-canvas-editor`） | 拖曳「看板成員」item 的頭像到卡片 |
 
 ### 資料
 | 欄位 | 來源 | 顯示 / 輸入 | 驗證 / 格式 | 說明 |
@@ -53,6 +54,7 @@
 | 開啟管理 Swimlane | — | 開啟 F01 `s-swimlane-list`（F01，跨模組） | 不適用 | 否 |
 | 開啟管理 Stage | — | 開啟 F01 `s-stage-list`（F01，跨模組） | 不適用 | 否 |
 | 於「看板成員」item 選擇加入成員 | — | 開啟 F02 `s-member-management`（F02，跨模組） | 不適用 | 否 |
+| 拖曳「看板成員」item 的頭像到卡片 | `uc-assign-card-owner-by-drag`（F02，跨模組） | 該成員追加為該卡片的負責人，卡片縮圖同步顯示 | 不適用（`uc-assign-card-owner-by-drag` 無 fail 定義） | 否 |
 | 離開 | — | 回到 F02 `s-board-list`（跨模組） | — | 否 |
 
 ### 狀態
@@ -73,6 +75,7 @@
 - 新增 Swimlane、新增 Stage 成功後，分別觸發 `uc-add-swimlane`、`uc-add-stage`
 - 開啟管理 Swimlane、開啟管理 Stage 分別開啟 F01 `s-swimlane-list`、`s-stage-list`
 - 於「看板成員」item 選擇加入成員後，開啟 F02 `s-member-management`
+- 拖曳「看板成員」item 的頭像到卡片後，觸發 `uc-assign-card-owner-by-drag`，該卡片的負責人同步更新
 - 離開後回到 F02 `s-board-list`
 
 ### 待確認事項

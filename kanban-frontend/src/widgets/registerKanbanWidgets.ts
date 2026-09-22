@@ -12,8 +12,8 @@ import { ThroughputCfdDashboardWidget } from './ThroughputCfdDashboardWidget';
 import { DueDateReminderWidget } from './DueDateReminderWidget';
 
 export function registerKanbanWidgets(): void {
-  registerItemComponent('s-cycle-lead-time-dashboard', CycleLeadTimeDashboardWidget);
-  registerItemComponent('s-wip-dashboard', WipDashboardWidget);
-  registerItemComponent('s-throughput-cfd-dashboard', ThroughputCfdDashboardWidget);
-  registerItemComponent('s-duedate-reminder', DueDateReminderWidget);
+  registerItemComponent('s-cycle-lead-time-dashboard', CycleLeadTimeDashboardWidget, 'Cycle Time 與 Lead Time 儀表板');
+  registerItemComponent('s-wip-dashboard', WipDashboardWidget, 'WIP 與 Aging WIP 儀表板');
+  registerItemComponent('s-throughput-cfd-dashboard', ThroughputCfdDashboardWidget, 'Throughput 與累積流量圖儀表板');
+  registerItemComponent('s-duedate-reminder', DueDateReminderWidget, '截止日期提醒列表');
 }

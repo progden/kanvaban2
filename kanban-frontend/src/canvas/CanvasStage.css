@@ -47,7 +47,6 @@
   border: 1px solid #c4cbd8;
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(22, 32, 44, 0.13);
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -57,6 +56,18 @@
 }
 .canvas-item--movable {
   cursor: move;
+}
+
+/* 內容（標題列＋本體）另包一層裁切，跟外層 .canvas-item 分開：resize 把手（canvas-item__handle）
+   用負值 top/left/right/bottom 定位在外層邊框外側，若外層本身 overflow:hidden 會把把手可點擊
+   範圍裁到只剩 1px 縫，滑鼠幾乎點不到（見 e2e/canvas/canvas-items.spec.ts 抓到的實際案例）。 */
+.canvas-item__inner {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  border-radius: 7px;
+  overflow: hidden;
 }
 
 .canvas-item__header {
@@ -254,6 +265,9 @@
   background: var(--color-border);
 }
 
+/* 位置依 .dev/ui-prototype/Main.dc.html：固定在畫布左上角。跟「看板本體」item（uc-init-canvas
+   固定放在畫布座標 (0, 0)）不重疊，是靠 CanvasStage.tsx 那個沒有存檔過的使用者留一點初始平移
+   （見 DEFAULT_VIEWPORT），不是靠移動這顆按鈕本身的位置。 */
 .canvas-add-button {
   position: absolute;
   left: 14px;

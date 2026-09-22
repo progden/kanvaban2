@@ -13,10 +13,21 @@ export interface ItemContentProps {
   boardId: string;
 }
 
-const registry = new Map<string, ComponentType<ItemContentProps>>();
+interface RegistryEntry {
+  renderer: ComponentType<ItemContentProps>;
+  label: string;
+}
 
-export function registerItemComponent(component: string, renderer: ComponentType<ItemContentProps>): void {
-  registry.set(component, renderer);
+const registry = new Map<string, RegistryEntry>();
+
+// label 只給「加入元件」對話框的下拉選單顯示用，不影響 item.component 實際存的值；
+// 沒傳就沿用 component 識別碼本身（見 registerItemComponent 呼叫端）。
+export function registerItemComponent(
+  component: string,
+  renderer: ComponentType<ItemContentProps>,
+  label?: string,
+): void {
+  registry.set(component, { renderer, label: label ?? component });
 }
 
 function PlaceholderContent({ component }: ItemContentProps) {
@@ -24,5 +35,22 @@ function PlaceholderContent({ component }: ItemContentProps) {
 }
 
 export function resolveItemComponent(component: string): ComponentType<ItemContentProps> {
-  return registry.get(component) ?? PlaceholderContent;
+  return registry.get(component)?.renderer ?? PlaceholderContent;
+}
+
+export interface RegisteredComponentOption {
+  component: string;
+  label: string;
+}
+
+// 給「加入元件」對話框（uc-place-item）當下拉選單的資料來源：可加入的元件就是已經掛上內容的
+// 這些，識別碼本身沒有 spec 定義的固定清單（見 spec-canvas-layout.md 待釐清），與其讓使用者手打
+// 容易打錯，不如直接列出目前系統認得的這些。exclude 用來排除像 "board" 這種由 uc-init-canvas
+// 自動建立、不該讓使用者手動再加一個的識別碼。
+export function listRegisteredComponents(exclude: string[] = []): RegisteredComponentOption[] {
+  const excluded = new Set(exclude);
+  return [...registry.entries()]
+    .filter(([component]) => !excluded.has(component))
+    .map(([component, entry]) => ({ component, label: entry.label }))
+    .sort((a, b) => a.label.localeCompare(b.label, 'zh-Hant'));
 }

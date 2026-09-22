@@ -8,11 +8,13 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { viewFeatureCrBoard, type FeatureView } from '../api/featureCrBoardApi';
 import { ApiError } from '../api/http';
+import { useBoardContext } from '../board/BoardContext';
 import type { ItemContentProps } from './itemComponentRegistry';
 import './FeatureCrBoardItem.css';
 
 export function FeatureCrBoardItem(_props: ItemContentProps) {
   const { boardId } = useParams<{ boardId: string }>();
+  const { cardsVersion } = useBoardContext();
   const [view, setView] = useState<{ features: FeatureView[]; orphanCrIds: string[]; warnings: string[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,7 +37,7 @@ export function FeatureCrBoardItem(_props: ItemContentProps) {
     return () => {
       cancelled = true;
     };
-  }, [boardId]);
+  }, [boardId, cardsVersion]);
 
   if (error !== null) {
     return (

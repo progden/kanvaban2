@@ -20,6 +20,12 @@
   flex-grow: 1;
   display: grid;
   grid-auto-rows: minmax(90px, auto);
+  /* CSS Grid 預設 align-content: normal 在這種情況下等同 stretch：容器（跟著 item 大小撐開的
+     flex-grow:1）比所有列自然高度總和還高時，多出來的空間會平均分給每一列 auto 撐開，
+     包含 Stage 標題那一列——泳道很少（例如只有一條）時，標題列就會被撐得異常高，
+     看起來像是「標題太高」，其實是空白被硬塞進標題列。改成 start 讓每列維持自己該有的高度，
+     多出來的空間留在最後一條泳道下面（更符合看板的預期外觀）。 */
+  align-content: start;
   overflow: auto;
 }
 
@@ -35,10 +41,21 @@
   background: var(--color-bg-muted);
   padding: 7px 10px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   font-size: 12px;
   font-weight: 600;
+}
+
+/* stage.name 沒有長度上限，最多顯示兩行、超過用刪節號收掉，避免整個 stage-header 這一格
+   （CSS Grid 同一列所有格子共用列高）被一個過長的名稱撐到無限高。 */
+.board-grid__stage-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.35;
+  word-break: break-word;
 }
 
 .board-grid__stage-role {

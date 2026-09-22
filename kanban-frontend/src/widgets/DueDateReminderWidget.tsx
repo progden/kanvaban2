@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getDueDateReminder, type DueDateReminderResponse } from '../api/kanbanWidgetsApi';
 import { ApiError } from '../api/http';
+import { useBoardContext } from '../board/BoardContext';
 import type { ItemContentProps } from '../canvas/itemComponentRegistry';
 import './WidgetShell.css';
 
@@ -25,35 +26,31 @@ function parseThreshold(input: string): number | null {
 
 export function DueDateReminderWidget(_props: ItemContentProps) {
   const { boardId } = useParams<{ boardId: string }>();
+  const { cardsVersion } = useBoardContext();
   const [thresholdInput, setThresholdInput] = useState(String(DEFAULT_THRESHOLD_DAYS));
+  // 目前實際套用查詢的門檻天數，跟輸入框的 thresholdInput 分開：卡片資料變動時（cardsVersion）
+  // 要用「使用者上次套用的門檻」重新查詢，不能悄悄變回預設值 7 天。
+  const [appliedThreshold, setAppliedThreshold] = useState(DEFAULT_THRESHOLD_DAYS);
   const [data, setData] = useState<DueDateReminderResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  function query(boardIdValue: string, thresholdDays: number) {
-    getDueDateReminder(boardIdValue, thresholdDays)
-      .then((result) => setData(result))
-      .catch((e: unknown) => setError(e instanceof ApiError ? e.message : '載入截止日期提醒資料失敗，請稍後再試'));
-  }
 
   useEffect(() => {
     if (boardId === undefined) {
       return;
     }
-    query(boardId, DEFAULT_THRESHOLD_DAYS);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [boardId]);
+    getDueDateReminder(boardId, appliedThreshold)
+      .then((result) => setData(result))
+      .catch((e: unknown) => setError(e instanceof ApiError ? e.message : '載入截止日期提醒資料失敗，請稍後再試'));
+  }, [boardId, appliedThreshold, cardsVersion]);
 
   function handleApply() {
-    if (boardId === undefined) {
-      return;
-    }
     const threshold = parseThreshold(thresholdInput);
     if (threshold === null) {
       setError(INVALID_THRESHOLD_MESSAGE);
       return;
     }
     setError(null);
-    query(boardId, threshold);
+    setAppliedThreshold(threshold);
   }
 
   return (

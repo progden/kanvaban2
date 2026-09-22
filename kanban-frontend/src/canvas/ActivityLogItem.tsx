@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { viewActivityLog, type ActivityLogEntryView } from '../api/activityLogApi';
 import { ApiError } from '../api/http';
+import { useBoardContext } from '../board/BoardContext';
 import type { ItemContentProps } from './itemComponentRegistry';
 import './ActivityLogItem.css';
 
@@ -17,6 +18,7 @@ function formatOccurredAt(occurredAt: string): string {
 
 export function ActivityLogItem(_props: ItemContentProps) {
   const { boardId } = useParams<{ boardId: string }>();
+  const { cardsVersion } = useBoardContext();
   const [entries, setEntries] = useState<ActivityLogEntryView[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +41,7 @@ export function ActivityLogItem(_props: ItemContentProps) {
     return () => {
       cancelled = true;
     };
-  }, [boardId]);
+  }, [boardId, cardsVersion]);
 
   if (error !== null) {
     return (

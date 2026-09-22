@@ -36,7 +36,7 @@
   gap: 20px;
 }
 
-.board-card {
+.board-list-card {
   background: #fff;
   border: 1px solid #dde2ea;
   border-radius: 8px;
@@ -48,7 +48,7 @@
   padding: 13px 16px;
 }
 
-.board-card__open {
+.board-list-card__open {
   flex-grow: 1;
   min-width: 0;
   text-align: left;
@@ -64,7 +64,7 @@
   white-space: nowrap;
 }
 
-.board-card__delete {
+.board-list-card__delete {
   flex-shrink: 0;
   color: var(--color-error-text);
 }
