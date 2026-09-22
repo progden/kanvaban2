@@ -15,5 +15,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
+    // e2e/ 是 Playwright 的 spec（playwright.config.ts 才認得 test.describe 的簽名），
+    // 不排除的話 vitest 預設的 test glob 也會抓到它們，當成 vitest 測試檔硬跑會直接炸掉。
+    exclude: ['e2e/**', 'node_modules/**'],
   },
 })
