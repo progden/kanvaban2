@@ -14,6 +14,7 @@
 | CR-010 | 留言內容不可為空的 pre／fail 補齊 | 變更 | implementation-loop（T-03-be-card，OQ-T-03-be-card-01） | 2026-09-19 | spec-kanban-basic、ui-kanban-basic | `uc-add-comment` | 處理完成 | 2026-09-19 | |
 | CR-011 | 卡片目的 Swimlane／Stage 不存在時的 pre／fail 補齊 | 變更 | implementation-loop（T-03-be-card，OQ-T-03-be-card-02） | 2026-09-19 | spec-kanban-basic、ui-kanban-basic | `uc-add-card`、`uc-move-card-swimlane`、`uc-move-card-stage` | 處理完成 | 2026-09-19 | |
 | CR-012 | WIP 圖表排除 Done 角色 Stage | 變更 | implementation-loop（T-06-be-kanban-widgets，OQ-T-06-be-kanban-widgets-03） | 2026-09-22 | spec-kanban-widgets | `uc-view-wip` | 待處理 | | |
+| CR-013 | affects 指到沒有 Feature 卡的編號時只進 orphan 清單 | 變更 | implementation-loop（T-08-be-feature-cr-board，OQ-T-08-be-feature-cr-board-02） | 2026-09-22 | spec-feature-cr-board | `uc-view-feature-cr-board` | 待處理 | | |
 
 ### CR-001：Board/Card 補上操作人記錄
 - 背景：Swimlane／Stage／Card 會改變狀態的情境，原本沒有記錄是誰做的操作，F02 要做活動紀錄需要這份資料。
@@ -74,3 +75,8 @@
 - 背景：`spec-kanban-widgets.md`「其他名詞」表對 WIP 的定義是『目前不在 Done 角色 Stage 的卡片數量，依 Stage 分組統計』，但 `uc-view-wip` 的 post『依 Stage 分組顯示目前的 `card` 數量』與 Scenario「檢視各 Stage 目前的卡片數量」都沒有排除 Done 角色 Stage（Background 設定 Stage "完成" 角色為 Done，Then 仍要求顯示 "完成" 卡片數 5），兩處互相矛盾。`implementation-loop` T-06-be-kanban-widgets 的 Dev 第 1 輪依 post／Scenario 實作（不排除），Review 第 1 輪開立 OQ-T-06-be-kanban-widgets-03。2026-09-22 人工定案：WIP 的字義即「進行中的工作」，Stage 角色已是 Done 代表工作已完成，不算進行中，原則上不顯示；即名詞表定義為準。
 - 變更內容：`uc-view-wip` 的 post 改為「依 Stage 分組顯示目前的 `card` 數量，不含 Done 角色 Stage」；Scenario「檢視各 Stage 目前的卡片數量」的 `Then` 改為只顯示 "待辦"、"進行中" 兩個 Stage 的卡片數，不顯示 Done 角色的 "完成" Stage。
 - 驗收標準：修改後的 Scenario 由 Cucumber 驗證通過；`kanban-spring` 的 `WipCalculator`（或對應查詢邏輯）排除 Done 角色 Stage；`./scripts/spec-check` 0 error；`./gradlew clean build` 通過。本 CR 只涵蓋 spec 修正，程式碼變更留待後續任務／D-xx 處理。
+
+### CR-013：affects 指到沒有 Feature 卡的編號時只進 orphan 清單
+- 背景：`spec-feature-cr-board.md` `uc-view-feature-cr-board` post p2『帶有「affects:F\d{2}$」標籤時，顯示在對應 Feature 底下…』沒有明講前提是該編號要真的存在 Feature 卡；Scenario「檢視 CR 影響哪個 Feature 以及其狀態」的 Given 只給了 CR-004（affects:F01），沒有任何標籤 "F01" 的 Feature 卡，Then 卻要求顯示在 Feature "F01" 底下，跟另一則「CR 指到不存在的 Feature 時列為 orphan」（同樣沒有對應 Feature 卡，但要求進 orphan）矛盾；`ui-feature-cr-board.md` 「CR 所屬 Feature」列寫的是『改列入』（互斥語意）。`implementation-loop` T-08-be-feature-cr-board 因此有兩種讀法：Dev 第 1 輪採「兩者不互斥」實作（沒有 Feature 卡時兩處都顯示，並自建狀態「未開發」的佔位 Feature），Review 開立 OQ-T-08-be-feature-cr-board-02。2026-09-22 人工定案：CR 應該跟著真的存在的 Feature 卡顯示；沒有連到真的 Feature 卡時要清楚標記為 orphan，兩者互斥，採 ui 檔「改列入」的語意；「檢視 CR 影響哪個 Feature 以及其狀態」這則 Scenario 目前少給了一張 F01 Feature 卡，屬於測試資料缺漏，需補齊而不是改語意。
+- 變更內容：`uc-view-feature-cr-board` post p2 改為「標籤格式為「^CR-\d{3}$」的 `card` 視為 CR 卡；帶有「affects:F\d{2}$」標籤且該編號存在對應 Feature 卡時，顯示在對應 Feature 底下，並依所在 Stage 角色顯示狀態（例如角色為 Start 顯示「開發中」）」；Scenario「檢視 CR 影響哪個 Feature 以及其狀態」的 Given 新增一筆「卡片 "basic-kanban" 標籤為 "F01"」（不指定 Stage，因為這則 Then 沒有斷言 F01 自身的狀態）。
+- 驗收標準：修改後的 Scenario 由 Cucumber 驗證通過；`kanban-spring` 的 `FeatureCrBoardCalculator`（或對應查詢邏輯）改成沒有 Feature 卡時只列入 orphan、不建立分組或佔位 Feature；`./scripts/spec-check`、`./scripts/ui-check` 0 error；`./gradlew clean build` 通過。本 CR 只涵蓋 spec 修正，程式碼變更留待後續任務／D-xx 處理。

@@ -10,7 +10,7 @@
 - 接手：人工
 - 原因代碼：spec-ambiguous
 - 開立：Dev 第 1 輪（2026-09-19）
-- 狀態：待處理
+- 狀態：**已由 OQ-T-08-be-feature-cr-board-02 取代並解除（2026-09-22）**，見該則解除說明與 CR-013。
 
 情況：【推論＋所本原文】
 引用（spec-feature-cr-board.md usecase 區塊 post）：
@@ -31,7 +31,9 @@ p3：『CR 卡的「affects」標籤指到不存在的 Feature 編號時，該 `
 - 接手：人工
 - 原因代碼：spec-conflict
 - 開立：Review 第 1 輪（2026-09-19）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-22，人工決策，採選項 B：互斥、只列入 orphan）**
+
+解除說明：人工開 CR-013，`uc-view-feature-cr-board` post p2 補上「該編號存在對應 Feature 卡時」前提，讓「顯示在對應 Feature 底下」與「列入 orphan」互斥，與 `ui-feature-cr-board.md`「改列入」的語意一致。Scenario「檢視 CR 影響哪個 Feature 以及其狀態」的 Given 補上一張標籤 "F01" 的 Feature 卡（不指定 Stage 角色，因為這則 Then 沒有斷言 F01 自身的狀態，只要它存在即可，避免混入跟本則測試目標無關的細節）——原 Scenario 少給了這筆前置資料，不是語意需要改。本輪只處理 CR 與 spec 修正；`kanban-spring` 的 `FeatureCrBoardCalculator`（或對應查詢邏輯）尚未同步改成沒 Feature 卡時只列入 orphan、不建佔位 Feature，程式碼變更留待後續任務／D-xx 處理。詳見 `.dev/CR.md` CR-013。
 
 情況：【兩處矛盾並列】
 本則取代 OQ-T-08-be-feature-cr-board-01：該則說 ui 檔『也沒有描述這個組合狀態』，但 ui 檔其實有寫，而且跟 spec 範例情境衝突。
