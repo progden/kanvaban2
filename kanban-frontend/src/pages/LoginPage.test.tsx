@@ -28,6 +28,7 @@ describe('s-login', () => {
       '/api/session': () => new Response(JSON.stringify({ message: '尚未登入' }), { status: 401 }),
       '/api/login': () =>
         new Response(JSON.stringify({ username: 'user5', displayName: '王小明' }), { status: 200 }),
+      '/api/boards': () => new Response(JSON.stringify([]), { status: 200 }),
     });
 
     render(
@@ -44,7 +45,7 @@ describe('s-login', () => {
 
     await waitFor(() => expect(screen.getByText('王小明')).toBeInTheDocument());
     expect(screen.queryByText('user5')).not.toBeInTheDocument();
-    expect(screen.getByText(/Board 列表/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '我的看板' })).toBeInTheDocument();
   });
 
   it('密碼與帳號不相符時送出登入表單，欄位保留、顯示訊息，停留本畫面', async () => {

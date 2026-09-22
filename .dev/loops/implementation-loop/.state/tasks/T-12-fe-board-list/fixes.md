@@ -1,0 +1,11 @@
+# T-12-fe-board-list 修正任務（D-xx）
+
+> 由 `loopctl fix add`／`fix done` 維護，不要直接編輯。
+
+## 第 1 輪 Review 退回
+
+| ID | 回合 | 狀態 | 延續 | 描述 |
+|---|---|---|---|---|
+| D-01 | 1 | done | — | `s-board-list` 驗收條件「選擇列表中的 Board 後開啟該 Board（F07 `s-canvas`，跨模組）」沒有對應測試。 現況：`BoardListPage.tsx` 的 `board-card__open` 按鈕呼叫 `navigate(/boards/${board.id})`，路由在 `App.tsx:35` 掛到 `BoardCanvasPage`，但 `BoardListPage.test.tsx` 三個 `describe` 裡沒有任何一則點擊 Board 名稱、驗證導覽結果的測試（`grep -n "navigate\｜boards/" kanban-frontend/src/pages/BoardListPage.test.tsx` 無結果）。ui 操作表「選擇 Board 進入」與驗收條件都列在 `s-board-list`，屬於本任務範圍。 怎樣才算修好：在 `BoardListPage.test.tsx` 補一則測試，點擊列表中某個 Board 後斷言畫面切換到 `/boards/<id>` 對應的內容（例如 `BoardCanvasPage` 目前的佔位文字），並維持既有 25 則測試全數通過。 |
+| D-02 | 1 | done | — | `uc-reject-board-access-by-nonmember` 延後到 T-14，但沒有開成 OQ，只寫在 `decision-log.md`。 現況：`.dev/F02-user-membership/ui-user-membership.md` `s-board-list` 操作表有一列『｜ 嘗試直接開啟不屬於自己的 Board ｜ `uc-reject-board-access-by-nonmember` ｜ 依 `uc-reject-board-access-by-nonmember` post：顯示訊息，停留本畫面 ｜ 不適用（`uc-reject-board-access-by-nonmember` 無 fail 定義） ｜ 否 ｜』，驗收條件也有對應一條；本輪未實作，理由寫在 `BoardListPage.tsx` 檔頭註解與 `decision-log.md`「有意識跳過／延後的部分」。但 `.state/tasks.md` T-14-fe-board-item 那一列的產出範圍只列 `s-board`、`s-swimlane-list`… 等 Screen ID，沒有寫到這個 `uc-`，也沒有 OQ 把它掛給 T-14；`loopctl show` 目前只列得出 OQ-T-12-fe-board-list-01。這樣一個已定案 Screen 的驗收條件會落在兩個任務之間沒有人接手。 怎樣才算修好：用 `loopctl oq add --level 高 --blocking no --owner T-14-fe-board-item --reason-code spec-ambiguous --scope s-board-list` 開一則 OQ，內文逐字引用上述 ui 操作表那一列與 `.state/tasks.md` T-14 那一列的產出範圍原文，說明本任務為何判斷歸屬 T-14、以及若 T-14 不處理時要由誰補。 |
+| D-03 | 1 | done | — | OQ-T-12-fe-board-list-01 的引文不是逐字，且漏掉了設計稿上的反證，人工無法據以判斷。 問題一（引文不逐字）：OQ 引用成『｜ `r-board-owner` ｜ 同上 ｜ 刪除自己是Owner的Board（依 `uc-delete-board` roles） ｜』，但 `.dev/F02-user-membership/ui-user-membership.md` 第 116 行原文是『｜ `r-board-owner` ｜ 同上 ｜ 刪除自己是 Owner 的 Board（依 `uc-delete-board` roles） ｜』（「自己是 Owner 的 Board」三處有半形空格）。 問題二（漏列反證）：`.dev/ui-prototype/BoardDeleteDialog.dc.html` 灰字註記寫『從 s-board-list 每一列的「刪除 Board」操作進來（OQ-47）；角色僅 r-board-owner』，「角色僅 r-board-owner」是傾向選項 B（只對 Owner 顯示）的依據，OQ 完全沒有提到；OQ 目前只列了支持選項 A 的依據（`uc-delete-board` 沒有獨立 reject use case），等於單方面陳述。 怎樣才算修好：修正引文成逐字（可用 `loopctl oq add` 另開一則並在內文註明取代 OQ-T-12-fe-board-list-01，或依 `loopctl` 提供的方式更新），並在「情況」欄把設計稿那段灰字註記逐字並列進去，讓兩種讀法的所本原文都在 OQ 裡看得到。 |

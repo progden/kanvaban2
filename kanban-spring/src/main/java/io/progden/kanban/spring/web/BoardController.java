@@ -86,6 +86,14 @@ public class BoardController {
         });
     }
 
+    @GetMapping("/{boardId}/card-count")
+    public ResponseEntity<?> countActiveCards(@PathVariable UUID boardId, HttpSession session) {
+        return withOperator(session, operatorId -> {
+            int cardCount = boardApplicationService.countActiveCards(boardId, operatorId);
+            return ResponseEntity.ok(new CardCountResponse(cardCount));
+        });
+    }
+
     @GetMapping("/{boardId}/activity-log")
     public ResponseEntity<?> viewActivityLog(@PathVariable UUID boardId, HttpSession session) {
         return withOperator(session, operatorId -> {
