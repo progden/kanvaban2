@@ -13,6 +13,7 @@
 | CR-009 | 建立看板時的預設 Swimlane／Stage | 變更 | implementation-loop（T-02-be-board，OQ-IMPL-14） | 2026-09-19 | spec-user-membership | `uc-create-board` | 待處理 | | |
 | CR-010 | 留言內容不可為空的 pre／fail 補齊 | 變更 | implementation-loop（T-03-be-card，OQ-T-03-be-card-01） | 2026-09-19 | spec-kanban-basic、ui-kanban-basic | `uc-add-comment` | 處理完成 | 2026-09-19 | |
 | CR-011 | 卡片目的 Swimlane／Stage 不存在時的 pre／fail 補齊 | 變更 | implementation-loop（T-03-be-card，OQ-T-03-be-card-02） | 2026-09-19 | spec-kanban-basic、ui-kanban-basic | `uc-add-card`、`uc-move-card-swimlane`、`uc-move-card-stage` | 處理完成 | 2026-09-19 | |
+| CR-012 | WIP 圖表排除 Done 角色 Stage | 變更 | implementation-loop（T-06-be-kanban-widgets，OQ-T-06-be-kanban-widgets-03） | 2026-09-22 | spec-kanban-widgets | `uc-view-wip` | 待處理 | | |
 
 ### CR-001：Board/Card 補上操作人記錄
 - 背景：Swimlane／Stage／Card 會改變狀態的情境，原本沒有記錄是誰做的操作，F02 要做活動紀錄需要這份資料。
@@ -68,3 +69,8 @@
 - 背景：`spec-kanban-basic.md` 名詞定義欄位表把 `card.swimlane`／`card.stage` 標為「ref swimlane」「ref stage」「建立時必填」，隱含理論上應參照真實存在、且屬於同一 `board` 的 `swimlane`／`stage`；但 `uc-add-card`／`uc-move-card-swimlane`／`uc-move-card-stage` 三個 usecase 都沒有把「目的不存在或不屬於該 board」定義成 fail 情境。`implementation-loop` T-03-be-card 的 `CardApplicationService` 因此沒加這層驗證，可以用不存在或屬於別的 board 的 UUID 建立／移動卡片（OQ-T-03-be-card-02）。2026-09-19 人工定案（並訂立通則）：spec 欄位表已隱含要求、且能單純由邏輯推理出對應拒絕情境的 fail 分支，一律直接補齊，不留給後續任務或使用情境驗證後才回頭補。
 - 變更內容：`uc-add-card` 新增 `pre.p2`（目的 swimlane 與 stage 存在，且屬於指定的 board）與對應 `fail.p2`；`uc-move-card-swimlane` 新增 `pre.p2`（目的 swimlane 存在，且屬於 card 所在的 board）與對應 `fail.p2`；`uc-move-card-stage` 新增 `pre.p2`（目的 stage 存在，且屬於 card 所在的 board）與對應 `fail.p2`；三者各新增 1 則 Scenario；`ui-kanban-basic.md` `s-board`（拖曳卡片跨 Swimlane／Stage）與 `s-card-add-dialog`（確認新增）操作表「失敗時」欄、狀態段「錯誤」欄同步更新。
 - 驗收標準：新增的 3 則 Scenario 由 Cucumber 驗證通過；`kanban-core` `Board` 新增 `ensureSwimlaneExists`／`ensureStageExists`（重用既有的 `SWIMLANE_NOT_FOUND`／`STAGE_NOT_FOUND` 錯誤碼），`kanban-spring` `CardApplicationService` 的 `addCard`／`moveCardSwimlane`／`moveCardStage` 呼叫這兩個方法，`CardController` 的錯誤碼對照補上這兩個 404 對應；`./scripts/spec-check`、`./scripts/ui-check` 0 error；`./gradlew clean build` 通過。
+
+### CR-012：WIP 圖表排除 Done 角色 Stage
+- 背景：`spec-kanban-widgets.md`「其他名詞」表對 WIP 的定義是『目前不在 Done 角色 Stage 的卡片數量，依 Stage 分組統計』，但 `uc-view-wip` 的 post『依 Stage 分組顯示目前的 `card` 數量』與 Scenario「檢視各 Stage 目前的卡片數量」都沒有排除 Done 角色 Stage（Background 設定 Stage "完成" 角色為 Done，Then 仍要求顯示 "完成" 卡片數 5），兩處互相矛盾。`implementation-loop` T-06-be-kanban-widgets 的 Dev 第 1 輪依 post／Scenario 實作（不排除），Review 第 1 輪開立 OQ-T-06-be-kanban-widgets-03。2026-09-22 人工定案：WIP 的字義即「進行中的工作」，Stage 角色已是 Done 代表工作已完成，不算進行中，原則上不顯示；即名詞表定義為準。
+- 變更內容：`uc-view-wip` 的 post 改為「依 Stage 分組顯示目前的 `card` 數量，不含 Done 角色 Stage」；Scenario「檢視各 Stage 目前的卡片數量」的 `Then` 改為只顯示 "待辦"、"進行中" 兩個 Stage 的卡片數，不顯示 Done 角色的 "完成" Stage。
+- 驗收標準：修改後的 Scenario 由 Cucumber 驗證通過；`kanban-spring` 的 `WipCalculator`（或對應查詢邏輯）排除 Done 角色 Stage；`./scripts/spec-check` 0 error；`./gradlew clean build` 通過。本 CR 只涵蓋 spec 修正，程式碼變更留待後續任務／D-xx 處理。

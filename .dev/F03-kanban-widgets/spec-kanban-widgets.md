@@ -56,6 +56,7 @@
 | 2026-09-16 | CR-005 | 變更 | 規格格式遷移至 usecase 區塊（`uc-view-cycle-lead-time`、`uc-view-wip`、`uc-view-aging-wip`、`uc-view-throughput`、`uc-view-cfd`、`uc-view-duedate-reminder`） |
 | 2026-09-18 |  | 變更 | 修正 6 個檢視類 usecase 的角色（ui-authoring-loop OQ-32 發現：填了 F01 的 `r-user`，本檔並未定義這個 ID），全部改為 `r-board-member`；`uc-view-duedate-reminder` 補上門檻天數的驗證規則（1 到 365 之間的正整數）與對應失敗情境；本檔尚未進入開發，可直接補上，不需開 CR |
 | 2026-09-18 |  | 變更 | 補上 `uc-view-cycle-lead-time` 統計摘要細節（ui-authoring-loop OQ-33 發現：百分位數與 Lead Time 排除規則未定義）：明訂固定顯示 P50、P85、P95 三個百分位數；Lead Time 統計摘要不排除任何卡片（僅 Cycle Time 因「無」值排除）；本檔尚未進入開發，可直接補上，不需開 CR |
+| 2026-09-22 | CR-012 | 變更 | `uc-view-wip` post 補上「不含 Done 角色 Stage」；Scenario「檢視各 Stage 目前的卡片數量」的驗收步驟改為只顯示非 Done 角色 Stage 的卡片數（implementation-loop T-06-be-kanban-widgets，OQ-T-06-be-kanban-widgets-03：名詞表定義與 post／Scenario 矛盾，人工定案採名詞表定義） |
 
 ---
 
@@ -133,7 +134,7 @@ Feature: Cycle Time 與 Lead Time 分析
   crud: {board: R, card: R}
   pre: {}
   post:
-    - "依 Stage 分組顯示目前的 `card` 數量"
+    - "依 Stage 分組顯示目前的 `card` 數量，不含 Done 角色 Stage"
   fail: {}
   emits: []
   requires: []
@@ -161,14 +162,14 @@ Feature: WIP 與 Aging WIP 監控
     Given 我已登入系統，並開啟 Board "產品開發看板"
     And Stage "進行中" 已設定角色為 Start，Stage "完成" 已設定角色為 Done
 
-  @uc-view-wip
+  @CR-012 @uc-view-wip
   # Related aggregate:
   #   board: read
   #   card: read
   Scenario: 檢視各 Stage 目前的卡片數量
     Given Stage "待辦" 有 3 張卡片，Stage "進行中" 有 2 張卡片，Stage "完成" 有 5 張卡片
     When 我開啟 WIP 圖表
-    Then 應該顯示 Stage "待辦" 卡片數 3、"進行中" 卡片數 2、"完成" 卡片數 5
+    Then 應該顯示 Stage "待辦" 卡片數 3、"進行中" 卡片數 2，且不顯示 Done 角色的 Stage "完成"
 
   @uc-view-aging-wip
   # Related aggregate:

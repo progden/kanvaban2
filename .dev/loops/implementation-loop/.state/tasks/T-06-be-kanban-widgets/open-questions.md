@@ -71,7 +71,9 @@ Review 第 1 輪實際在本 worktree 執行 `./gradlew clean build --no-daemon`
 - 接手：人工
 - 原因代碼：spec-conflict
 - 開立：Review 第 1 輪（2026-09-19）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-22，人工決策，採選項 A：不含 Done 角色 Stage）**
+
+解除說明：人工開 CR-012，`uc-view-wip` post 補上「不含 Done 角色 Stage」，Scenario「檢視各 Stage 目前的卡片數量」的 `Then` 改為只顯示 "待辦"、"進行中" 兩個非 Done 角色 Stage 的卡片數，不再顯示 Done 角色的 "完成" Stage，讓 post／Scenario 與「其他名詞」表的 WIP 定義一致。本輪只處理 CR 與 spec 修正；`kanban-spring` 的 `WipCalculator`（或對應查詢邏輯）尚未同步排除 Done 角色 Stage，程式碼變更留待後續任務／D-xx 處理。詳見 `.dev/CR.md` CR-012。
 
 情況：【兩處矛盾並列】
 `.dev/F03-kanban-widgets/spec-kanban-widgets.md`「其他名詞」表（第 33 行）：
