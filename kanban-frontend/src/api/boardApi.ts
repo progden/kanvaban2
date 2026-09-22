@@ -33,6 +33,10 @@ export function listBoards(): Promise<BoardResponse[]> {
   return apiClient.get<BoardResponse[]>('/api/boards');
 }
 
+export function getBoard(boardId: string): Promise<BoardResponse> {
+  return apiClient.get<BoardResponse>(`/api/boards/${boardId}`);
+}
+
 export function createBoard(name: string): Promise<BoardResponse> {
   return apiClient.post<BoardResponse>('/api/boards', { name });
 }

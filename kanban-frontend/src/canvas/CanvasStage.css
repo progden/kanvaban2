@@ -1,0 +1,205 @@
+/* s-canvas：版面依 .dev/ui-prototype/Main.dc.html／CanvasPanel.dc.html
+   （格線背景、卡片式元素、浮動工具列、右下角縮放控制），行為以 ui-canvas-layout.md 為準。 */
+
+.canvas-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 54px);
+}
+
+.canvas-page__topbar {
+  height: 48px;
+  background: #fff;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  flex-shrink: 0;
+}
+
+.canvas-page__board-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.canvas-page__error {
+  margin: 0;
+  padding: 8px 16px;
+}
+
+.canvas-stage {
+  position: relative;
+  flex-grow: 1;
+  background: #e8eaf0;
+  background-image: radial-gradient(#c6cbd7 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
+  overflow: hidden;
+  cursor: grab;
+}
+.canvas-stage--panning {
+  cursor: grabbing;
+}
+
+.canvas-item {
+  position: absolute;
+  background: #fff;
+  border: 1px solid #c4cbd8;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(22, 32, 44, 0.13);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.canvas-item--selected {
+  border: 2px solid var(--color-primary);
+  box-shadow: 0 10px 28px rgba(22, 32, 44, 0.16);
+}
+.canvas-item--movable {
+  cursor: move;
+}
+
+.canvas-item__header {
+  height: 30px;
+  background: #f2f4f8;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.canvas-item__body {
+  flex-grow: 1;
+  overflow: auto;
+}
+
+.canvas-item__placeholder {
+  padding: 12px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.canvas-item__handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border: 2px solid var(--color-primary);
+  border-radius: 2px;
+}
+.canvas-item__handle--n {
+  top: -6px;
+  left: calc(50% - 5px);
+  cursor: ns-resize;
+}
+.canvas-item__handle--s {
+  bottom: -6px;
+  left: calc(50% - 5px);
+  cursor: ns-resize;
+}
+.canvas-item__handle--e {
+  right: -6px;
+  top: calc(50% - 5px);
+  cursor: ew-resize;
+}
+.canvas-item__handle--w {
+  left: -6px;
+  top: calc(50% - 5px);
+  cursor: ew-resize;
+}
+.canvas-item__handle--ne {
+  top: -6px;
+  right: -6px;
+  cursor: nesw-resize;
+}
+.canvas-item__handle--nw {
+  top: -6px;
+  left: -6px;
+  cursor: nwse-resize;
+}
+.canvas-item__handle--se {
+  bottom: -6px;
+  right: -6px;
+  cursor: nwse-resize;
+}
+.canvas-item__handle--sw {
+  bottom: -6px;
+  left: -6px;
+  cursor: nesw-resize;
+}
+
+.canvas-toolbar {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid #c4cbd8;
+  border-radius: 7px;
+  box-shadow: 0 4px 12px rgba(22, 32, 44, 0.14);
+  padding: 4px 6px;
+}
+
+.canvas-toolbar button {
+  border: 0;
+  background: transparent;
+}
+.canvas-toolbar__remove {
+  color: var(--color-error-text);
+}
+.canvas-toolbar__divider {
+  width: 1px;
+  height: 18px;
+  background: var(--color-border);
+}
+
+.canvas-add-button {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+}
+
+.canvas-viewport-controls {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #c4cbd8;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(22, 32, 44, 0.12);
+  overflow: hidden;
+}
+.canvas-viewport-controls button {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--color-text-label);
+}
+.canvas-viewport-controls__zoom {
+  height: 36px;
+  min-width: 52px;
+  border: 0;
+  border-left: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+  background: #fff;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.canvas-dialog__actions {
+  margin-top: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
