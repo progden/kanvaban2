@@ -277,6 +277,11 @@ public class CardAssignmentSteps {
 
     private void setAssignees(String title, List<String> usernames) throws Exception {
         currentCardTitle = title;
+        if (!cardIdsByTitle.containsKey(title)) {
+            // spec-workload.md「Feature: 人員工作量檢視」的拖曳追加負責人 Scenario 與本檔共用同一句
+            // 步驟文字，但沒有先跑「看板中存在一張卡片」，卡片在此第一次被提及時就地建立。
+            createCard(title);
+        }
         for (String username : usernames) {
             inviteMember(username);
         }
