@@ -1,16 +1,18 @@
 # T-08-be-feature-cr-board-r2 state
 
-> 2026-09-22 Dev 第 1 輪 收尾，status＝`review-pending`。每輪由 `loopctl finish` 覆寫。
+> 2026-09-22 Review 第 1 輪 收尾，status＝`done`。每輪由 `loopctl finish` 覆寫。
 
-現在狀態：CR-013 差異已實作完成，等待 Review。
+現在狀態：Review 第 1 輪附保留核准，status＝`done`，可合併回 `loop/implementation`。
 
-這輪做了什麼：`FeatureCrBoardCalculator` 改成 Feature 分組與 orphan 判定互斥（affects 目標沒有對應
-Feature 卡時只列入 orphan，不再自建佔位 Feature），同步更新 `feature-cr-board.feature`（補
-`@CR-013` tag 與新增的 Given）與 `FeatureCrBoardCalculatorTest`（新增一則測試驗證無佔位 Feature）。
-`./gradlew clean build --no-daemon` BUILD SUCCESSFUL，全部測試綠，含 Cucumber 5 個 Scenario 與
-Calculator 8 個單元測試。沒有新開 OQ。
+驗證結果：Review 自行跑 `./gradlew clean build --no-daemon` → BUILD SUCCESSFUL in 2m 55s，34 個
+test suite 全部 0 failure／0 error，含 Cucumber「Feature／CR 追蹤表」5 個 Scenario 與
+FeatureCrBoardCalculatorTest 8 個單元測試。`.feature` 檔與 spec gherkin 區塊 diff 後僅差檔首兩行
+來源註解（既有慣例），CR-013 的 `@CR-013` tag 與新增 Given 皆逐字相符。`FeatureCrBoardCalculator`
+已移除佔位 Feature 的 `putIfAbsent`，分組與 orphan 互斥，新測試在舊碼上會失敗（有效測試）。
+`kanban-core` 無 Spring／JPA import，投影位於 `io.progden.kanban.query.featurecrboard`。
+改動範圍 7 檔，未越界，工作區乾淨。
 
-Review 要先看什麼：`FeatureCrBoardCalculator.calculate` 的 affects 迴圈改動是否真的互斥（不再
-`putIfAbsent` 佔位 Feature）；`feature-cr-board.feature` 是否與目前 `spec-feature-cr-board.md` 逐字
-相符；新測試 `crAffectingUnknownFeatureDoesNotCreatePlaceholderFeature` 是否確實驗到「features 為
-空」這個關鍵斷言。
+保留事項：
+1. OQ-T-08-be-feature-cr-board-r2-01（多個 affects 目標部分有／部分無 Feature 卡時的互斥判定單位，
+   spec 未定義；現行逐目標判定）——接手：人工，不阻塞。
+2. `.dev/CR.md` CR-013 狀態欄需由人工改為「處理完成」（`.dev/**` 本 loop 不可改）——接手：人工。
