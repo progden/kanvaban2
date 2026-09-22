@@ -224,7 +224,7 @@ Feature: 使用者登入與登出
     Then 我應該登入成功
     And TopBar 應該顯示我的名稱 "user1"
 
-  @added @wip @CR-007 @uc-login
+  @CR-007 @uc-login
   # Related aggregate:
   #   user: read
   Scenario: 登入後 TopBar 顯示的是顯示名字而不是帳號 ID
@@ -354,7 +354,7 @@ Feature: Board 建立與成員邀請
     And 我對該 Board 的角色應該是 "Owner"
     And 應該產生一筆活動紀錄：操作人 "user1"、動作為「建立看板」
 
-  @added @wip @CR-009 @uc-create-board
+  @CR-009 @uc-create-board
   # Related aggregate:
   #   board: write
   #   swimlane: write
