@@ -82,3 +82,42 @@
 
 無新增 OQ；沿用既有 `ui-canvas-layout.md`「待確認事項」與 `ui-authoring-open-questions.md`
 OQ-45／OQ-49（看板成員／F03～F06 圖表如何成為 `item` 待整合 CR 定案），本任務未也不需要解決。
+
+## 2026-09-22 Dev 第 2 輪：修正 D-01～D-04
+
+### 處理內容
+
+- **D-01**：`itemComponentRegistry.tsx` 的 `ItemContentProps` 加上 `component` 欄位；`CanvasStage.tsx`
+  渲染 `Content` 時改傳 `itemId={item.id}`（原本誤傳 `item.component`）、另傳 `component={item.component}`
+  供顯示用；`PlaceholderContent` 改用 `component` 顯示文字。修好下游任務（T-14 起）用
+  `registerItemComponent` 掛上內容後，同一 `item.component` 放置多個 item 時可用 `itemId` 互相區分。
+- **D-02**：畫面 z-index 改用「同一錨定方式（canvas／screen）內依 `item.z` 排序後的相對名次」
+  （`CANVAS_ITEM_Z_BASE = 1` 起算，screen 另有 `SCREEN_ITEM_Z_BASE = 100000` 起算，維持 spec
+  「畫面固定元素永遠繪於畫布元素之上」），避免 `item.z` 為 0 或負值時被格線背景蓋住；
+  「＋ 加入元件」、浮動工具列（單選／多選）、縮放控制、錯誤訊息統一給 `CHROME_Z = 200000`，
+  確保恆高於全部 item；浮動工具列 `top` 改用 `Math.max(TOOLBAR_MIN_TOP, ...)` 夾住，避免選取
+  y 為 0 的 item 時工具列被 `overflow: hidden` 的 stage 裁掉。
+- **D-03**：`PlaceItemDialog.tsx` 補上 X／Y 與可移動／可調整大小／可移除三個 checkbox（預設皆勾選，
+  依 spec `uc-place-item` post「未指定時為 true」），送出時一併帶進 `placeItem` 請求；浮動工具列原本
+  合併 movable／resizable 的「鎖定」按鈕拆成三顆各自可切換的能力按鈕（可移動／可調整大小／可移除），
+  呼叫 `uc-set-item-capabilities` 時三項皆可個別設定。
+- **D-04**：開立 `OQ-T-13-fe-canvas-shell-01`（等級高、不阻塞、owner 人工、reason-code
+  spec-conflict），內文列出 spec「角色定義」與 ui「待確認事項」兩處矛盾原文，說明本任務依 spec
+  定案內容實作 `canEdit` 判斷不算違反定稿文字，但 `ui-canvas-layout.md` 的待確認事項與角色表尚未
+  同步更新，需要人工決定是否修訂 ui 文件。
+
+### 涵蓋的 spec entity／uc／Scenario
+
+本輪未新增涵蓋範圍，沿用第 1 輪判斷（見 decision-log 第 1 輪紀錄）；本輪異動屬同一批 uc 的實作修正
+（`uc-place-item`、`uc-set-item-capabilities`）與畫面層序技術修正，不影響第 1 輪列出的 uc／Scenario 涵蓋清單。
+
+### 待確認事項
+
+- `OQ-T-13-fe-canvas-shell-01`：`ui-canvas-layout.md` 待確認事項與角色表是否要依 spec 定案內容修訂。
+
+### Check
+
+- `pnpm exec tsc -b`：通過
+- `pnpm run lint`（oxlint）：僅 1 則既有非阻斷 warning（`itemComponentRegistry.tsx` fast-refresh 建議搬檔）
+- `pnpm test`（vitest run）：6 個檔案、40 個測試全數通過（新增 5 個測試涵蓋 D-01～D-03）
+- `pnpm run build`（`tsc -b && vite build`）：通過
