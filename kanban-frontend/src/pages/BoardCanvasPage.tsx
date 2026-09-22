@@ -39,6 +39,7 @@ export function BoardCanvasPage() {
   const [canvas, setCanvas] = useState<CanvasView | null>(null);
   const [canEdit, setCanEdit] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [requestedCardId, setRequestedCardId] = useState<string | null>(null);
 
   useEffect(() => {
     if (boardId === undefined) {
@@ -87,7 +88,15 @@ export function BoardCanvasPage() {
       {canvas === null && error === null && <p className="canvas-page__error">載入中…</p>}
 
       {canvas !== null && (
-        <BoardContext.Provider value={{ boardId, canEdit }}>
+        <BoardContext.Provider
+          value={{
+            boardId,
+            canEdit,
+            requestedCardId,
+            requestCardDetail: setRequestedCardId,
+            clearRequestedCardDetail: () => setRequestedCardId(null),
+          }}
+        >
           <CanvasStage
             boardId={boardId}
             zoomMin={canvas.zoomMin}

@@ -2,9 +2,11 @@
 // （見 canvas/itemComponentRegistry.tsx、spec-canvas-layout.md「待釐清」；uc-init-canvas 建立此
 // item 時固定用 component 值 "board"，見 CanvasApplicationService.initCanvas）。
 // 依 ui-kanban-basic.md 操作表／驗收條件實作；版面依 Main.dc.html（Swimlane × Stage 交會格）。
-// 「拖曳看板成員頭像到卡片追加負責人」（uc-assign-card-owner-by-drag）不在本任務範圍：
-// OQ-19（ui-authoring-open-questions.md）已載明「看板成員」是 F07 另一個獨立 item，
-// 跨 item 拖曳機制待 F07 補充，尚無該 item 可供本任務整合，見 decision-log／OQ。
+// 「拖曳看板成員頭像到卡片追加負責人」（uc-assign-card-owner-by-drag）：拖放來源在「看板工作量」item
+// （T-19-fe-workload），協定抽在 canvas/cardAssigneeDrag.ts 共用模組，本檔只需在卡片節點接上
+// acceptsCardAssigneeDrop／handleCardAssigneeDrop（見 OQ-T-19-fe-workload-03 解除說明）。
+// 另外透過 BoardContext 的 requestedCardId 接住「依負責人查看卡片」item（T-19）點卡片要求開啟
+// s-card-detail 的跨 item 通知（見 OQ-T-19-fe-workload-04 解除說明）。
 import { Fragment, useEffect, useState } from 'react';
 import { getBoard, type BoardResponse } from '../api/boardApi';
 import {
@@ -16,6 +18,7 @@ import {
   type CardResponse,
 } from '../api/cardApi';
 import { ApiError } from '../api/http';
+import { acceptsCardAssigneeDrop, handleCardAssigneeDrop } from '../canvas/cardAssigneeDrag';
 import { registerItemComponent, type ItemContentProps } from '../canvas/itemComponentRegistry';
 import { avatarColorFor } from './avatarColor';
 import './Board.css';
@@ -27,7 +30,7 @@ import { SwimlanePanel } from './SwimlanePanel';
 import { StagePanel } from './StagePanel';
 
 function BoardItemContent(_props: ItemContentProps) {
-  const { boardId, canEdit } = useBoardContext();
+  const { boardId, canEdit, requestedCardId, clearRequestedCardDetail } = useBoardContext();
   const [board, setBoard] = useState<BoardResponse | null>(null);
   const [cards, setCards] = useState<CardResponse[] | null>(null);
   const [candidates, setCandidates] = useState<AssigneeCandidate[]>([]);
@@ -54,6 +57,17 @@ function BoardItemContent(_props: ItemContentProps) {
     reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boardId]);
+
+  useEffect(() => {
+    if (requestedCardId === null || cards === null) {
+      return;
+    }
+    if (cards.some((c) => c.id === requestedCardId)) {
+      setDetailCardId(requestedCardId);
+    }
+    clearRequestedCardDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestedCardId, cards]);
 
   async function handleDropCard(card: CardResponse, targetSwimlaneId: string, targetStageId: string) {
     try {
@@ -155,6 +169,22 @@ function BoardItemContent(_props: ItemContentProps) {
                       className="board-card"
                       draggable={canEdit}
                       onDragStart={(event) => event.dataTransfer.setData('text/plain', card.id)}
+                      onDragOver={(event) => {
+                        if (canEdit && acceptsCardAssigneeDrop(event)) {
+                          event.preventDefault();
+                        }
+                      }}
+                      onDrop={(event) => {
+                        if (canEdit && acceptsCardAssigneeDrop(event)) {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          void handleCardAssigneeDrop(event, card.id)
+                            .then(reload)
+                            .catch((e: unknown) => {
+                              setError(e instanceof ApiError ? e.message : '追加負責人失敗，請稍後再試');
+                            });
+                        }
+                      }}
                       onClick={() => setDetailCardId(card.id)}
                     >
                       <div className="board-card__title">{card.title}</div>

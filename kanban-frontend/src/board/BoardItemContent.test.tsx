@@ -6,6 +6,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { CARD_ASSIGNEE_DRAG_MIME } from '../canvas/cardAssigneeDrag';
 import App from '../App';
 
 function jsonResponse(body: unknown, status = 200) {
@@ -198,6 +199,33 @@ describe('s-board', () => {
     expect(within(originCell).getByText('結帳頁 3DS 驗證流程')).toBeInTheDocument();
   });
 
+  it('拖曳成員頭像到卡片，觸發 uc-drag-assign-card-owner（uc-assign-card-owner-by-drag）', async () => {
+    const calls = await renderBoard({
+      '/api/cards/card-1/assignees/drag': () => jsonResponse({ ...CARD_A, assigneeIds: ['user-1', 'user-2'] }),
+    });
+
+    const card = screen.getByText('結帳頁 3DS 驗證流程').closest('.board-card') as HTMLElement;
+    const store: Record<string, string> = {};
+    const dataTransfer = {
+      types: [CARD_ASSIGNEE_DRAG_MIME, 'text/plain'],
+      getData: (format: string) => store[format] ?? '',
+      setData: (format: string, data: string) => {
+        store[format] = data;
+      },
+    };
+    dataTransfer.setData(CARD_ASSIGNEE_DRAG_MIME, 'user-2');
+    fireEvent.dragOver(card, { dataTransfer });
+    fireEvent.drop(card, { dataTransfer });
+
+    await waitFor(() =>
+      expect(calls.some((c) => c.method === 'POST' && c.url.endsWith('/api/cards/card-1/assignees/drag'))).toBe(
+        true,
+      ),
+    );
+    const call = calls.find((c) => c.url.endsWith('/api/cards/card-1/assignees/drag'));
+    expect(call?.body).toEqual({ userId: 'user-2' });
+  });
+
   it('點擊新增卡片開啟 s-card-add-dialog', async () => {
     await renderBoard();
 
@@ -243,6 +271,27 @@ describe('s-board', () => {
 
     await waitFor(() => expect(screen.queryByText('結帳頁 3DS 驗證流程')).not.toBeInTheDocument());
     expect(calls.some((c) => c.method === 'DELETE' && c.url.endsWith('/api/cards/card-1'))).toBe(true);
+  });
+});
+
+describe('跨 item：s-cards-by-assignee 點擊卡片開啟 s-card-detail', () => {
+  it('依負責人查看卡片時，點擊卡片列開啟同一畫布上看板本體 item 的卡片詳情', async () => {
+    const WORKLOAD_ITEM = { ...BOARD_ITEM, id: 'item-2', component: 'workload-dashboard', z: 2 };
+    await renderBoard({
+      '/api/boards/board-a/canvas': () =>
+        jsonResponse({ ...canvasResponse(), items: [BOARD_ITEM, WORKLOAD_ITEM] }),
+      '/api/boards/board-a/workload': () =>
+        jsonResponse({ members: [{ userId: 'user-1', displayName: '陳柏翰', cardCount: 1 }], unassignedCount: 0 }),
+      '/api/boards/board-a/cards/by-assignee/user-1': () =>
+        jsonResponse([{ id: 'card-1', title: '結帳頁 3DS 驗證流程' }]),
+    });
+
+    fireEvent.click(screen.getByTestId('workload-count-user-1'));
+    await screen.findByText('陳柏翰 負責的卡片');
+    fireEvent.click(screen.getByText('結帳頁 3DS 驗證流程', { selector: 'button' }));
+
+    expect(await screen.findByText('留言')).toBeInTheDocument();
+    expect(screen.queryByText('陳柏翰 負責的卡片')).not.toBeInTheDocument();
   });
 });
 

@@ -1,8 +1,26 @@
 // 對應 ui-workload.md s-workload-dashboard 操作表／驗收條件。
 // 獨立掛載測試，比照 BoardClockControl.test.tsx 的最小掛載點設計，useAuth 直接 mock 掉。
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type { ReactElement } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { BoardContext } from '../board/BoardContext';
 import { WorkloadDashboard } from './WorkloadDashboard';
+
+function renderWithBoardContext(ui: ReactElement) {
+  return render(
+    <BoardContext.Provider
+      value={{
+        boardId: 'board-a',
+        canEdit: true,
+        requestedCardId: null,
+        requestCardDetail: () => {},
+        clearRequestedCardDetail: () => {},
+      }}
+    >
+      {ui}
+    </BoardContext.Provider>,
+  );
+}
 
 vi.mock('../auth/useAuth', () => ({
   useAuth: () => ({ username: 'user1', displayName: '雅婷', status: 'authenticated' }),
@@ -54,7 +72,7 @@ describe('s-workload-dashboard', () => {
       '/api/boards/board-a/members': () => jsonResponse(MEMBERS_MEMBER),
     });
 
-    render(<WorkloadDashboard {...PROPS} />);
+    renderWithBoardContext(<WorkloadDashboard {...PROPS} />);
 
     await waitFor(() => expect(screen.getByTestId('workload-count-u1')).toHaveTextContent('3'));
     expect(screen.getByTestId('workload-count-u2')).toHaveTextContent('1');
@@ -67,7 +85,7 @@ describe('s-workload-dashboard', () => {
       '/api/boards/board-a/members': () => jsonResponse(MEMBERS_MEMBER),
     });
 
-    render(<WorkloadDashboard {...PROPS} />);
+    renderWithBoardContext(<WorkloadDashboard {...PROPS} />);
 
     await waitFor(() => expect(calls.some((c) => c.url.endsWith('/api/boards/board-a/workload'))).toBe(true));
   });
@@ -79,7 +97,7 @@ describe('s-workload-dashboard', () => {
       '/api/boards/board-a/cards/by-assignee/u1': () => jsonResponse([{ id: 'card-a', title: '卡片 A' }]),
     });
 
-    render(<WorkloadDashboard {...PROPS} />);
+    renderWithBoardContext(<WorkloadDashboard {...PROPS} />);
     await waitFor(() => expect(screen.getByTestId('workload-count-u1')).toBeInTheDocument());
 
     fireEvent.click(screen.getByTestId('workload-count-u1'));
@@ -94,7 +112,7 @@ describe('s-workload-dashboard', () => {
       '/api/boards/board-a/members': () => jsonResponse(MEMBERS_VIEWER),
     });
 
-    render(<WorkloadDashboard {...PROPS} />);
+    renderWithBoardContext(<WorkloadDashboard {...PROPS} />);
 
     await waitFor(() => expect(screen.getByTestId('workload-avatar-u1')).toBeInTheDocument());
     expect(screen.getByTestId('workload-avatar-u1')).toHaveAttribute('draggable', 'false');
@@ -106,7 +124,7 @@ describe('s-workload-dashboard', () => {
       '/api/boards/board-a/members': () => jsonResponse(MEMBERS_MEMBER),
     });
 
-    render(<WorkloadDashboard {...PROPS} />);
+    renderWithBoardContext(<WorkloadDashboard {...PROPS} />);
 
     await waitFor(() => expect(screen.getByTestId('workload-avatar-u1')).toBeInTheDocument());
     expect(screen.getByTestId('workload-avatar-u1')).toHaveAttribute('draggable', 'true');

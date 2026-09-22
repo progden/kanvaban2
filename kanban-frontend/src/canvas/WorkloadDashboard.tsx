@@ -1,9 +1,10 @@
 // s-workload-dashboard：依 ui-workload.md 操作表／驗收條件實作。
 // 沒有對應設計稿（ui-prototype 只收錄 F01/F02/F07 既有畫面），沿用既有儀表板／清單視覺語彙做最簡潔可用的版面。
-// 拖曳成員頭像到卡片：拖放目標卡片縮圖屬於 T-14-fe-board-item（本任務動工時尚未合併），
-// 拖放協定另抽成 cardAssigneeDrag.ts 共用模組，T-14 只需在卡片節點接上 handleCardAssigneeDrop。
+// 拖曳成員頭像到卡片：拖放目標是「看板本體」item（T-14）的卡片縮圖，拖放協定抽成 cardAssigneeDrag.ts
+// 共用模組，BoardItemContent 接上 handleCardAssigneeDrop（見 OQ-T-19-fe-workload-03 解除說明）。
 import { useEffect, useState } from 'react';
 import { listMembers } from '../api/boardMembershipApi';
+import { useBoardContext } from '../board/BoardContext';
 import { ApiError } from '../api/http';
 import { getWorkload, type MemberWorkloadEntry } from '../api/workloadApi';
 import { useAuth } from '../auth/useAuth';
@@ -14,6 +15,7 @@ import './CanvasStage.css';
 
 export function WorkloadDashboard({ boardId }: ItemContentProps) {
   const { username } = useAuth();
+  const { requestCardDetail } = useBoardContext();
   const [members, setMembers] = useState<MemberWorkloadEntry[] | null>(null);
   const [unassignedCount, setUnassignedCount] = useState(0);
   const [canDrag, setCanDrag] = useState(false);
@@ -95,6 +97,10 @@ export function WorkloadDashboard({ boardId }: ItemContentProps) {
           userId={selected.userId}
           displayName={selected.displayName}
           onClose={() => setSelected(null)}
+          onOpenCard={(cardId) => {
+            requestCardDetail(cardId);
+            setSelected(null);
+          }}
         />
       )}
     </div>

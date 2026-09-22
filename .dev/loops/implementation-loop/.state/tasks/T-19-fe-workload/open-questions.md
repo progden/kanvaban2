@@ -47,7 +47,9 @@
 - 接手：T-14-fe-board-item
 - 原因代碼：cross-item-dependency-missing
 - 開立：Dev 第 2 輪（2026-09-22）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-22，人工採選項 A）**
+
+解除說明：T-14-fe-board-item 已合併，人工在 `BoardItemContent.tsx`（看板本體 item）的卡片節點接上 `cardAssigneeDrag.ts` 的 `acceptsCardAssigneeDrop`／`handleCardAssigneeDrop`：`onDragOver` 用 `acceptsCardAssigneeDrop` 判斷是否為負責人拖放（不影響既有卡片搬移 Swimlane／Stage 的拖放，靠 `CARD_ASSIGNEE_DRAG_MIME` 這個自訂 MIME type 區分兩種拖放，非此類型時不 `preventDefault`／`stopPropagation`，事件照舊冒泡給交會格的既有搬移邏輯處理）；`onDrop` 命中時呼叫 `handleCardAssigneeDrop` 並在成功後 `reload()`。新增整合測試「拖曳成員頭像到卡片，觸發 uc-drag-assign-card-owner」（`BoardItemContent.test.tsx`）驗證 `POST /api/cards/{cardId}/assignees/drag` 有帶正確的 `userId`。`pnpm build`／`pnpm test` 全綠（19 測試檔、128 測試）。
 
 情況：【推論＋所本原文】
 本則取代 `OQ-T-19-fe-workload-01` 關於「拖放目標端」的那一半。
@@ -68,7 +70,9 @@
 - 接手：人工
 - 原因代碼：upstream-missing
 - 開立：Dev 第 2 輪（2026-09-22）
-- 狀態：待處理
+- 狀態：**已解除（2026-09-22，人工採選項 A）**
+
+解除說明：T-14-fe-board-item 合併後，人工補上這條銜接：`s-card-detail` 是「看板本體」item（`BoardItemContent`）內部的 `detailCardId` 狀態，不是獨立路由，兩個 item 在各自的 React 元件樹裡互不相通，於是在共同祖先 `BoardCanvasPage` 提供的 `BoardContext` 新增 `requestedCardId`／`requestCardDetail`／`clearRequestedCardDetail` 三個欄位當作跨 item 橋接；`CardsByAssigneeDialog.tsx` 卡片列改成可點擊按鈕，呼叫呼叫端傳入的 `onOpenCard`（`WorkloadDashboard.tsx` 接上 `requestCardDetail` 並同時關閉自己這層對話框）；`BoardItemContent.tsx` 用一個 `useEffect` 監看 `requestedCardId`，命中且卡片存在於已載入清單時開啟 `CardDetailDialog`，開完即清空請求避免重複觸發。新增測試：`CardsByAssigneeDialog.test.tsx`「點擊清單中的卡片，觸發 onOpenCard」、`BoardItemContent.test.tsx`「跨 item：s-cards-by-assignee 點擊卡片開啟 s-card-detail」端到端驗證整條路徑。`pnpm build`／`pnpm test` 全綠（19 測試檔、128 測試）。
 
 情況：【推論＋所本原文】
 本則取代 `OQ-T-19-fe-workload-01` 關於「點擊卡片開啟詳情」的那一半。

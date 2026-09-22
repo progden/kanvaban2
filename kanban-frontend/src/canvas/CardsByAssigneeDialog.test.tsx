@@ -20,7 +20,15 @@ describe('s-cards-by-assignee', () => {
       ]),
     );
 
-    render(<CardsByAssigneeDialog boardId="board-a" userId="u1" displayName="雅婷" onClose={() => {}} />);
+    render(
+      <CardsByAssigneeDialog
+        boardId="board-a"
+        userId="u1"
+        displayName="雅婷"
+        onClose={() => {}}
+        onOpenCard={() => {}}
+      />,
+    );
 
     await waitFor(() => expect(screen.getByTestId('cards-by-assignee-list')).toHaveTextContent('卡片 A'));
     expect(screen.getByTestId('cards-by-assignee-list')).toHaveTextContent('卡片 B');
@@ -29,7 +37,15 @@ describe('s-cards-by-assignee', () => {
   it('查詢對象目前沒有負責任何卡片時，清單顯示為空', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse([]));
 
-    render(<CardsByAssigneeDialog boardId="board-a" userId="u1" displayName="雅婷" onClose={() => {}} />);
+    render(
+      <CardsByAssigneeDialog
+        boardId="board-a"
+        userId="u1"
+        displayName="雅婷"
+        onClose={() => {}}
+        onOpenCard={() => {}}
+      />,
+    );
 
     await waitFor(() => expect(screen.getByText('目前沒有負責任何卡片')).toBeInTheDocument());
   });
@@ -38,11 +54,39 @@ describe('s-cards-by-assignee', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse([]));
     const onClose = vi.fn();
 
-    render(<CardsByAssigneeDialog boardId="board-a" userId="u1" displayName="雅婷" onClose={onClose} />);
+    render(
+      <CardsByAssigneeDialog
+        boardId="board-a"
+        userId="u1"
+        displayName="雅婷"
+        onClose={onClose}
+        onOpenCard={() => {}}
+      />,
+    );
     await waitFor(() => expect(screen.getByText('目前沒有負責任何卡片')).toBeInTheDocument());
 
     fireEvent.click(screen.getByText('關閉'));
 
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('點擊清單中的卡片，觸發 onOpenCard 開啟 F01 s-card-detail', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse([{ id: 'card-a', title: '卡片 A' }]));
+    const onOpenCard = vi.fn();
+
+    render(
+      <CardsByAssigneeDialog
+        boardId="board-a"
+        userId="u1"
+        displayName="雅婷"
+        onClose={() => {}}
+        onOpenCard={onOpenCard}
+      />,
+    );
+    await waitFor(() => expect(screen.getByText('卡片 A')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText('卡片 A'));
+
+    expect(onOpenCard).toHaveBeenCalledWith('card-a');
   });
 });

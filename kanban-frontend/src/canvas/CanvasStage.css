@@ -159,6 +159,17 @@
   overflow: auto;
 }
 
+.cards-by-assignee__card {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--color-primary);
+  text-decoration: underline;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+}
+
 .clock-control__time {
   font-size: 16px;
   font-weight: 600;
