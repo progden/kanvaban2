@@ -119,3 +119,58 @@
 - ui 操作表「新增 Swimlane」「新增 Stage」「開啟管理 Swimlane」「開啟管理 Stage」未實作：接手者 **T-14-fe-board-item**。
 - ui 操作表「於『看板成員』item 選擇加入成員」未實作：接手者 **T-15-fe-member-management**（`item.component` 的值待整合 CR 定案，見 OQ-45）。
 - 縮放以 `clampZoom()` 事前夾住，使 `uc-set-viewport` p1（縮放超出範圍）在畫面上不可能被觸發，故驗收條件「縮放比例超出範圍時，顯示訊息」沒有對應路徑。畫面只提供固定倍率的「＋／−」按鈕、無法輸入任意縮放值，事前夾住屬合理的驗證實作，不列為退回理由；若之後要開放輸入縮放值，接手者為屆時修改 `s-canvas` 的任務。
+
+## 2026-09-22 Review 第 3 輪：附保留核准
+
+### 1. 自己跑建置與完整測試（不採信 Dev 的 Check 欄）
+
+在 `kanban-frontend/` 前景依序跑：
+
+- `pnpm test`（vitest run）：`Test Files 6 passed (6)`、`Tests 43 passed (43)`、`Duration 33.59s`。
+- `pnpm run build`（`tsc -b && vite build`）：通過，`✓ 50 modules transformed`、`✓ built in 767ms`。
+- `pnpm run lint`（oxlint）：1 則既有非阻斷 warning（`src/canvas/itemComponentRegistry.tsx:21:10 react(only-export-components)`）。
+
+全綠，往下看細節。
+
+### 2. D-05 複驗（本輪唯一退回理由）
+
+D-05 要求三點，逐點查核 `src/pages/BoardCanvasPage.test.tsx`（`grep -n "  it("` 現為 17 則，第 2 輪為 14 則，新增 3 則）：
+
+1. **`uc-set-item-anchor` 含換算**：測試「設定錨定方式為固定於畫面觸發 uc-set-item-anchor，帶上依檢視區換算後的位置與大小」（:319）。`viewport = {x:10, y:20, zoom:1.25}`（zoom≠1 且有平移，驗得到換算），斷言 `PATCH /api/canvas-items/item-1/anchor` 的 body 為 `{anchor:'screen', x:-12.5, y:-25, width:1125, height:750}`。我用 `canvas/geometry.ts` 手算核對：`itemToScreenBox` 對 canvas 錨定的 `(0,0,900,600)` 得 `left=(0-10)*1.25=-12.5`、`top=(0-20)*1.25=-25`、`width=900*1.25=1125`、`height=600*1.25=750`，`convertBoxForAnchor(..., 'screen')` 原樣回傳——與斷言值一致，`convertBoxForAnchor()` 的換算確實被把關。測試另斷言回應套用後 `item.style.left === '-12.5px'`、按鈕文字切換為「錨定於畫布」。
+2. **批次移除確認流程**：測試「批次移除前顯示確認，確認後觸發 uc-remove-items，所選元件皆從畫面移除」（:342）。shift 多選 `item-1`／`item-2`，按「移除」後先斷言 `heading` 為「移除這 2 個元件？」（對應 `ui-canvas-layout.md` 操作表「批次移除元件…需確認？＝是」），確認後斷言 `POST .../canvas/items/remove-batch` body 為 `{itemIds:['item-1','item-2']}`，兩個元件皆從畫面消失。
+3. **失敗路徑**：測試「批次移除失敗時顯示後端訊息，所選元件仍在畫面上」（:370）。`remove-batch` 回 409 ＋ `{"message":"這些元件不可移除"}`，斷言對話框內 `role="alert"` 顯示該訊息，且 `canvas-item-item-1`／`canvas-item-item-2` 兩個元件仍在 DOM。對照 spec:647-653『@uc-remove-items @fail-p2 … Then 拒絕，訊息為 "所選元素中有不可移除的元素"，且資料不變』與 usecase fail `p2: "拒絕，資料不變"`——「顯示訊息、資料不變」成立（訊息文字由後端回傳，前端不重述，符合 ui 操作表「失敗時」欄規則）。
+
+D-05 三點全數滿足。D-01～D-04 於第 2 輪已逐條複驗通過，本輪 diff（`git show --stat 9f70810`）只動 `BoardCanvasPage.test.tsx` 一個檔、+78 行，未觸及既有實作，故不需重驗。
+
+### 3. spec／ui 對應（全 uc 覆蓋確認）
+
+`spec-canvas-layout.md` 本模組十一個 uc 現在全部有前端測試對應：`uc-init-canvas`、`uc-place-item`、`uc-remove-item`、`uc-move-item`、`uc-resize-item`、`uc-set-item-capabilities`、`uc-set-item-anchor`、`uc-reorder-item`、`uc-move-items`、`uc-remove-items`、`uc-set-viewport`。
+
+抽查失敗情境（第二則，本輪新看）：`@uc-move-item @fail-p2`——測試「移動失敗時位置還原並顯示訊息」以 409 ＋ `{"message":"此元素不可移動"}` 模擬，斷言 `role="alert"` 顯示訊息且 `left`／`top` 回到原值；`CanvasStage.tsx` `commitMoveDrag()` 的 catch 用 `drag.originals` 還原，符合「拒絕，資料不變」。另抽查上述 `@uc-remove-items @fail-p2`，同樣成立。
+
+### 4. kanban-core 純度
+
+`git diff loop/implementation...HEAD --name-only | grep -v '^kanban-frontend/' | grep -v 'tasks/T-13-fe-canvas-shell'` 為空——本任務完全沒有動 `kanban-core`／`kanban-spring`，純度不受影響。
+
+### 5. 任務邊界
+
+`git diff loop/implementation...HEAD --stat`：20 個檔、+2039/-5。程式碼全在 `kanban-frontend/src/**`（`api/`、`canvas/`、`pages/`）；`.state/` 只有 `.state/tasks/T-13-fe-canvas-shell/**`（`decision-log.md`／`fixes.md`／`open-questions.md`／`review.md`／`rounds.log`／`state.md`／`status`）。沒有 `.state/tasks.md`、`.state/archive/**`、別的任務目錄、`.dev/conventions/**`、`scripts/**`、spec／ui 文件本體的異動。`git status --porcelain` 乾淨。
+
+### 6. OQ 核對
+
+`loopctl show` 列出 `OQ-T-13-fe-canvas-shell-01`（等級高／不阻塞／接手人工／spec-conflict），本輪無新增。第 2 輪已把兩段引文到 `spec-canvas-layout.md:67` 與 `ui-canvas-layout.md:81` 逐字比對過，等級與阻塞標記依檢驗句（照 spec 實作 `canEdit` 不需改動任何定稿文字）正確、接手「人工」正確（`.state/tasks.md` 無任務涵蓋 ui 文件修訂）。Dev 第 3 輪交接摘要的「待確認事項」也只有這一則，沒有只寫在摘要裡而沒開成 OQ 的項目。
+
+### 7. 前端設計稿核對
+
+本輪沒有畫面異動（只加測試），第 2 輪對 `.dev/ui-prototype/Main.dc.html`／`CanvasPanel.dc.html` 的核對結論仍成立：格線背景、卡片式 item、選取態 2px `#1F4BD8` 邊框與八個把手、浮動工具列樣式語彙一致；設計稿灰色註記（`.id`／`.uc`／`.sid`／「⚠️ 規格未定義」）未出現在產品畫面；「需確認？」欄（移除元件／批次移除為「是」）落實，其餘操作未多加確認；「失敗時」欄各處只顯示後端訊息。
+
+### 判定：附保留核准（第 3 輪，上限 6）
+
+建置／lint／測試全綠，D-01～D-05 全數修好，十一個 uc 全有測試對應、抽查兩個 `@fail-pN` 情境行為成立，`kanban-core` 未受影響，邊界乾淨，無阻塞 OQ。核准為 `done`。
+
+### 保留事項（各自接手者）
+
+1. `OQ-T-13-fe-canvas-shell-01`：`ui-canvas-layout.md`「待確認事項」與「角色與權限」表仍寫「三者的對應關係 spec 未定義，見 OQ-44」，與 spec 已定案的 `r-canvas-editor` 定義矛盾。**接手者：人工**（本 loop 禁止改 ui 文件本體，`.state/tasks.md` 也無任務涵蓋）。
+2. ui 操作表「新增 Swimlane」「新增 Stage」「開啟管理 Swimlane」「開啟管理 Stage」未實作（入口在看板本體 item 的內容裡）。**接手者：T-14-fe-board-item**（`tasks.md` 該列產出範圍含 `s-swimlane-list`／`s-stage-list`）。
+3. ui 操作表「於『看板成員』item 選擇加入成員」未實作；本任務提供 `registerItemComponent` 掛載點，`item.component` 的值待整合 CR 定案。**接手者：T-15-fe-member-management**（`tasks.md` 該列註明「機制待 T-13 實作時一併定案，見 OQ-45」）。
+4. `uc-set-viewport` p1（縮放超出範圍）在畫面上不可能觸發——`clampZoom()` 事前夾住，且畫面只提供固定倍率「＋／−」按鈕、無法輸入任意縮放值，故 ui 驗收條件「縮放比例超出範圍時，顯示訊息」沒有對應路徑。事前驗證屬合理實作，不列為退回理由。**接手者：屆時若開放輸入縮放值，由當時修改 `s-canvas` 的任務處理**；目前無任務接手。
