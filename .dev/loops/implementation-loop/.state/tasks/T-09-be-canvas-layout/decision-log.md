@@ -58,3 +58,42 @@
 
 - OQ-T-09-be-canvas-layout-01（高、不阻塞）：canvas-layout 失敗情境的 HTTP 狀態碼分配，spec 未定義，
   已依現有 `BoardController` 慣例（409/404/400）實作，供後續確認或調整。
+
+## 2026-09-22 Dev 第 2 輪：D-01～D-03 處理：補資料不變快照、補開 OQ
+
+### D-01～D-03 處理
+
+- D-01（改測試）：`CanvasSteps.thenRejected` 之前只驗 HTTP 狀態碼與 `message`，spec
+  `Then 拒絕，訊息為 "..."，且資料不變` 的後半段沒被斷言。新增 `captureSnapshot()`／
+  `snapshotState()`：在每個可能導向「拒絕」的 When 方法（開啟看板、放置元件、移動／
+  調整大小／設能力／設錨定／置頂置底／移除、批次移動／批次移除、設定檢視區，共 12 處呼叫點，
+  逐一對照 grep 出的 12 個 `@fail-pN` Scenario 前置 When）送出請求前，對全庫 `canvas_items`／
+  `viewports` 逐欄（含 id／x／y／width／height／z／anchor／movable／resizable／removable／
+  canvasId／userId／zoom）拍照；`thenRejected` 拒絕後重新拍照，`assertEquals` 逐欄比對含筆數。
+  用全庫掃描而非只掃 `currentCanvasId`，是因為「看板不存在」情境連 canvas 都還沒建立。
+  12 個 `@fail-pN` Scenario 全數維持通過（見下方 Check）。
+- D-02（補 OQ，實作不改）：`item.z` 唯一鍵 `(canvas_id, anchor, z)` 與欄位表限制欄逐字
+  『同一 canvas 內唯一』不同，但與 `uc-place-item` post／「層序」段落一致。開立
+  `OQ-T-09-be-canvas-layout-02`（情況：兩處矛盾並列，逐字引用欄位表限制欄、post 第 2 條、
+  「層序」段落；選項 A 維持現況＋修欄位表文字、B 改唯一鍵＋修 post／層序文字）。
+- D-03（補 OQ，實作不改）：Background「畫布已由系統建立」用直接寫 DB 的空白 canvas，
+  繞過 `uc-init-canvas`（其 post 第 2 條要求一定帶 z=1 看板本體 item）。開立
+  `OQ-T-09-be-canvas-layout-03`（情況：兩處矛盾並列，逐字引用 post 第 2 條與 Background／
+  「畫布中沒有任何元素」；選項 A 維持空白 canvas 前置＋修 spec 排除看板本體、B 改走
+  `uc-init-canvas` 端點＋回頭修所有依賴「無元素」「z 從 1 起算」的 Scenario）。
+
+### Check
+
+`./gradlew clean build --no-daemon`：BUILD SUCCESSFUL in 3m 11s，14 actionable tasks: 14 executed。
+`kanban-spring` 五個 canvas feature 檔測試結果檔逐一確認：canvas-init 3、
+canvas-item-arrangement 19、canvas-item-batch 7、canvas-item-placement 8、
+canvas-viewport 6，全部 `skipped="0" failures="0" errors="0"`，合計 43，與上一輪一致。
+`kanban-core` 單元測試（CanvasTest／ItemTest／ViewportTest／NoSpringDependencyTest）與
+`kanban-spring` 其餘 feature 檔本輪未改動，重跑同樣全綠。
+
+### 下一輪 Review 要先看什麼
+
+`CanvasSteps.java` 的 `captureSnapshot`／`snapshotState`／`thenRejected` 三處改動，
+確認 12 個 `@fail-pN` Scenario 的快照比對是否真的會在資料被寫入時失敗（例如人工暫時
+移除某個 `ensureMovable()` 前置檢查、重跑測試觀察是否轉紅，若需要可作為驗證手段）。
+`OQ-T-09-be-canvas-layout-02`／`03` 的引文與選項是否合理。
