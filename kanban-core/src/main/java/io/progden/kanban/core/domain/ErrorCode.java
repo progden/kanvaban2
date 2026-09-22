@@ -43,5 +43,17 @@ public enum ErrorCode {
     /** 只有 Owner 可以調整或暫停／恢復看板時間（uc-adjust-board-clock／uc-pause-resume-board-clock）。 */
     NOT_BOARD_OWNER,
     /** 截止日期提醒的門檻天數不是 1 到 365 之間的正整數（uc-view-duedate-reminder fail p1）。 */
-    INVALID_DUEDATE_THRESHOLD_DAYS
+    INVALID_DUEDATE_THRESHOLD_DAYS,
+    /** 該使用者已經是這個看板的成員（uc-invite-member）。 */
+    ALREADY_BOARD_MEMBER,
+    /** 看板已經只剩最後一位 Owner，不可再移除或降級（uc-remove-member）。 */
+    MINIMUM_BOARD_OWNER,
+    /** 找不到指定的 BoardMembership。 */
+    MEMBERSHIP_NOT_FOUND,
+    /** 操作者不是該看板的成員，或角色不足以執行此操作（權限管理／存取權限相關 uc）。 */
+    FORBIDDEN,
+    /** 移除的成員仍是部分卡片的負責人，需要使用者先確認（uc-remove-member）。 */
+    CARD_ASSIGNEE_CONFIRMATION_NEEDED,
+    /** 指定的負責人不是該看板的成員（uc-set-card-assignees）。 */
+    ASSIGNEE_NOT_BOARD_MEMBER
 }

@@ -5,8 +5,12 @@ import io.progden.kanban.core.domain.DomainException;
 import io.progden.kanban.core.domain.ErrorCode;
 import io.progden.kanban.core.domain.User;
 import io.progden.kanban.core.domain.UserRepository;
+import io.progden.kanban.query.BoardActivityLogEntry;
+import io.progden.kanban.query.BoardActivityLogQueryService;
 import io.progden.kanban.spring.application.BoardApplicationService;
+import io.progden.kanban.spring.application.BoardMembershipApplicationService;
 import jakarta.servlet.http.HttpSession;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,23 +25,30 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * spec-kanban-basic.md「Swimlane 管理」「Stage（階段）管理」對應的 web 層。
+ * spec-kanban-basic.md「Swimlane 管理」「Stage（階段）管理」＋
+ * spec-user-membership.md「Board 存取權限」「檢視看板活動紀錄」對應的 web 層。
  *
  * <p>操作人身分沿用 {@link UserController} 的登入慣例，從 {@link HttpSession} 取出 username 後
  * 查詢 {@link UserRepository} 換得 {@code User} 的 UUID 作為 operatorId。
  *
- * <p>{@code r-board-owner} 權限檢查（僅 Owner 可調整看板結構）尚未實作，見
- * {@link BoardApplicationService} 類別註解與 implementation-loop OQ-IMPL-15。
+ * <p>{@code r-board-owner} 權限檢查（僅 Owner 可調整看板結構／刪除看板）已由
+ * {@link BoardApplicationService} 補上（implementation-loop T-04）。
  */
 @RestController
 @RequestMapping("/api/boards")
 public class BoardController {
 
     private final BoardApplicationService boardApplicationService;
+    private final BoardMembershipApplicationService boardMembershipApplicationService;
+    private final BoardActivityLogQueryService boardActivityLogQueryService;
     private final UserRepository userRepository;
 
-    public BoardController(BoardApplicationService boardApplicationService, UserRepository userRepository) {
+    public BoardController(BoardApplicationService boardApplicationService,
+            BoardMembershipApplicationService boardMembershipApplicationService,
+            BoardActivityLogQueryService boardActivityLogQueryService, UserRepository userRepository) {
         this.boardApplicationService = boardApplicationService;
+        this.boardMembershipApplicationService = boardMembershipApplicationService;
+        this.boardActivityLogQueryService = boardActivityLogQueryService;
         this.userRepository = userRepository;
     }
 
@@ -49,12 +60,49 @@ public class BoardController {
         });
     }
 
+    @GetMapping
+    public ResponseEntity<?> listBoards(HttpSession session) {
+        return withOperator(session, operatorId -> {
+            List<BoardResponse> boards = boardApplicationService.listBoards(operatorId).stream()
+                    .map(BoardResponse::from)
+                    .toList();
+            return ResponseEntity.ok(boards);
+        });
+    }
+
     @GetMapping("/{boardId}")
     public ResponseEntity<?> getBoard(@PathVariable UUID boardId, HttpSession session) {
         return withOperator(session, operatorId -> {
-            Board board = boardApplicationService.getBoard(boardId);
+            Board board = boardApplicationService.getBoard(boardId, operatorId);
             return ResponseEntity.ok(BoardResponse.from(board));
         });
+    }
+
+    @DeleteMapping("/{boardId}")
+    public ResponseEntity<?> deleteBoard(@PathVariable UUID boardId, HttpSession session) {
+        return withOperator(session, operatorId -> {
+            boardApplicationService.deleteBoard(boardId, operatorId);
+            return ResponseEntity.noContent().build();
+        });
+    }
+
+    @GetMapping("/{boardId}/activity-log")
+    public ResponseEntity<?> viewActivityLog(@PathVariable UUID boardId, HttpSession session) {
+        return withOperator(session, operatorId -> {
+            boardMembershipApplicationService.ensureMember(boardId, operatorId);
+            List<ActivityLogEntryResponse> entries = boardActivityLogQueryService.viewBoardActivityLog(boardId)
+                    .stream()
+                    .map(this::toActivityLogEntryResponse)
+                    .toList();
+            return ResponseEntity.ok(entries);
+        });
+    }
+
+    private ActivityLogEntryResponse toActivityLogEntryResponse(BoardActivityLogEntry entry) {
+        User operator = userRepository.findById(entry.operatorId()).orElse(null);
+        String username = operator == null ? null : operator.getUsername();
+        String displayName = operator == null ? null : operator.getDisplayName();
+        return ActivityLogEntryResponse.of(entry, username, displayName);
     }
 
     @PostMapping("/{boardId}/swimlanes")
@@ -187,7 +235,7 @@ public class BoardController {
             case BOARD_NOT_FOUND, SWIMLANE_NOT_FOUND, STAGE_NOT_FOUND -> HttpStatus.NOT_FOUND;
             case MINIMUM_SWIMLANE, MINIMUM_STAGE, SWIMLANE_HAS_CARDS, STAGE_HAS_CARDS,
                     BOARD_CLOCK_BEHIND_LAST_EVENT -> HttpStatus.CONFLICT;
-            case NOT_BOARD_OWNER -> HttpStatus.FORBIDDEN;
+            case NOT_BOARD_OWNER, FORBIDDEN -> HttpStatus.FORBIDDEN;
             default -> HttpStatus.BAD_REQUEST;
         };
     }

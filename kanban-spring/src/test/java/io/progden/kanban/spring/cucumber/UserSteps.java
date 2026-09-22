@@ -47,6 +47,15 @@ public class UserSteps {
     void setLastResult(MvcResult result) {
         this.lastResult = result;
     }
+
+    /**
+     * 供其他 aggregate 的 step definitions（例如 {@code BoardMembershipSteps}）取用「我已登入系統」
+     * 這個 Background 步驟建立的 session，才能以同一個登入身分繼續呼叫其他端點（implementation-loop
+     * T-04 新增）。
+     */
+    MockHttpSession getSession() {
+        return session;
+    }
     private long countBeforeAction;
     private String pendingLoginUsername;
     private String pendingLoginPassword;

@@ -26,10 +26,15 @@ class CrossAggregateState {
     // ---- 「該操作應該被記錄為一筆活動紀錄」：上一筆要驗證的卡片活動紀錄；null 代表驗證 board ----
     private UUID lastCardActivityId;
 
+    // ---- 「我儲存變更」：spec-kanban-basic.md（編輯欄位）與 spec-user-membership.md（設定負責人）
+    // 共用同一段文字，true 代表這次儲存要送出負責人清單，不是描述／截止日期／標籤 ----
+    private boolean savingAssignees;
+
     void reset() {
         clearAddCard();
         clearPendingDeleteCard();
         lastActivityOnBoard();
+        savingAssignees = false;
     }
 
     void beginAddCard(UUID swimlaneId, UUID stageId) {
@@ -87,5 +92,17 @@ class CrossAggregateState {
 
     UUID lastCardActivityId() {
         return lastCardActivityId;
+    }
+
+    void beginSavingAssignees() {
+        this.savingAssignees = true;
+    }
+
+    boolean isSavingAssignees() {
+        return savingAssignees;
+    }
+
+    void clearSavingAssignees() {
+        this.savingAssignees = false;
     }
 }

@@ -9,6 +9,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderColumn;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import java.time.Instant;
@@ -63,6 +64,12 @@ public class CardJpaEntity {
     @Column(nullable = false)
     private boolean deleted;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "card_assignees", joinColumns = @JoinColumn(name = "card_id"))
+    @Column(name = "user_id")
+    @OrderColumn(name = "sort_order")
+    private List<UUID> assigneeIds = new ArrayList<>();
+
     @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderBy("createdAt ASC")
     private List<CommentJpaEntity> comments = new ArrayList<>();
@@ -83,7 +90,7 @@ public class CardJpaEntity {
     }
 
     public void update(String title, String description, LocalDate dueDate, List<String> labels,
-            UUID swimlaneId, UUID stageId, boolean deleted) {
+            UUID swimlaneId, UUID stageId, boolean deleted, List<UUID> assigneeIds) {
         this.title = title;
         this.description = description;
         this.dueDate = dueDate;
@@ -91,6 +98,7 @@ public class CardJpaEntity {
         this.swimlaneId = swimlaneId;
         this.stageId = stageId;
         this.deleted = deleted;
+        this.assigneeIds = new ArrayList<>(assigneeIds);
     }
 
     public void replaceComments(List<Comment> source) {
@@ -167,6 +175,10 @@ public class CardJpaEntity {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    public List<UUID> getAssigneeIds() {
+        return List.copyOf(assigneeIds);
     }
 
     public List<CommentJpaEntity> getComments() {
